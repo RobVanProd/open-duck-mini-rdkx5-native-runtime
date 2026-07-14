@@ -7,6 +7,7 @@
     "schema_version",
     "backend",
     "informational_only",
+    "hardware_gate_status",
     "run_status",
     "review_status",
     "label",
@@ -24,6 +25,7 @@
     "schema_version": { "const": "open_duck_x5.sensor_summary.v1" },
     "backend": { "enum": ["mock", "x5"] },
     "informational_only": { "type": "boolean" },
+    "hardware_gate_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
     "run_status": { "const": "COMPLETE" },
     "review_status": { "const": "REVIEW_REQUIRED" },
     "label": { "type": "string" },
@@ -38,12 +40,16 @@
       "required": [
         "servo_bus_accessed",
         "torque_enabled",
-        "goal_position_writes"
+        "goal_position_writes",
+        "hardware_authorized",
+        "suspended_or_benched"
       ],
       "properties": {
         "servo_bus_accessed": { "const": false },
         "torque_enabled": { "const": false },
-        "goal_position_writes": { "const": 0 }
+        "goal_position_writes": { "const": 0 },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" }
       }
     },
     "timing": { "type": "object" },
@@ -56,13 +62,44 @@
         "zero_contacts_stale",
         "strictly_increasing_imu_timestamps",
         "strictly_increasing_contact_timestamps",
-        "orientation_and_contact_label_match"
+        "orientation_and_contact_label_match",
+        "authorization_provenance",
+        "gate3_data_candidate"
       ],
       "properties": {
-        "orientation_and_contact_label_match": { "const": "REVIEW_REQUIRED" }
+        "orientation_and_contact_label_match": { "const": "REVIEW_REQUIRED" },
+        "authorization_provenance": { "type": "boolean" },
+        "gate3_data_candidate": { "type": "boolean" }
       }
     },
     "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "backend": { "const": "mock" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": true },
+          "hardware_gate_status": { "const": "NOT_APPLICABLE_MOCK" },
+          "checks": { "properties": { "gate3_data_candidate": { "const": false } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "backend": { "const": "x5" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": false },
+          "hardware_gate_status": { "const": "REVIEW_REQUIRED" },
+          "environment": {
+            "properties": {
+              "hardware_authorized": { "const": true },
+              "suspended_or_benched": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }

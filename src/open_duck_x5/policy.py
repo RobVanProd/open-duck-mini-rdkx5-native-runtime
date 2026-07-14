@@ -6,6 +6,15 @@ import numpy as np
 
 from .constants import ACTION_DIM, OBSERVATION_DIM
 
+ONNX_SESSION_CONTRACT = {
+    "execution_mode": "ORT_SEQUENTIAL",
+    "graph_optimization_level": "ORT_ENABLE_ALL",
+    "intra_op_num_threads": 1,
+    "inter_op_num_threads": 1,
+    "intra_op_allow_spinning": False,
+    "inter_op_allow_spinning": False,
+}
+
 
 class PolicyContractError(RuntimeError):
     pass
@@ -22,7 +31,24 @@ class OnnxPolicy:
         self.path = Path(model_path)
         if not self.path.is_file():
             raise FileNotFoundError(self.path)
-        self.session = ort.InferenceSession(str(self.path), providers=["CPUExecutionProvider"])
+        session_options = ort.SessionOptions()
+        session_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        session_options.graph_optimization_level = (
+            ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        )
+        session_options.intra_op_num_threads = 1
+        session_options.inter_op_num_threads = 1
+        session_options.add_session_config_entry(
+            "session.intra_op.allow_spinning", "0"
+        )
+        session_options.add_session_config_entry(
+            "session.inter_op.allow_spinning", "0"
+        )
+        self.session = ort.InferenceSession(
+            str(self.path),
+            sess_options=session_options,
+            providers=["CPUExecutionProvider"],
+        )
         inputs = self.session.get_inputs()
         outputs = self.session.get_outputs()
         if (

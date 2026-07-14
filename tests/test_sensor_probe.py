@@ -58,10 +58,15 @@ def test_mock_sensor_probe_writes_labeled_schema_valid_evidence(tmp_path: Path) 
     _validator("sensor_summary.schema.json").validate(summary)
     assert summary["backend"] == "mock"
     assert summary["review_status"] == "REVIEW_REQUIRED"
+    assert summary["hardware_gate_status"] == "NOT_APPLICABLE_MOCK"
     assert summary["checks"]["zero_imu_stale"] is True
     assert summary["checks"]["zero_contacts_stale"] is True
     assert summary["environment"]["servo_bus_accessed"] is False
     assert summary["environment"]["goal_position_writes"] == 0
+    assert summary["environment"]["hardware_authorized"] is False
+    assert summary["environment"]["suspended_or_benched"] is False
+    assert summary["checks"]["authorization_provenance"] is True
+    assert summary["checks"]["gate3_data_candidate"] is False
     assert summary["jsonl_sha256"] == hashlib.sha256(output.read_bytes()).hexdigest()
 
 

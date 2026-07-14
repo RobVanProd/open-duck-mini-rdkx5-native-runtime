@@ -10,7 +10,22 @@
     "event": { "enum": ["runtime_start", "realtime_verified", "runtime_halt"] },
     "details": { "type": "object" },
     "reason": { "type": "string", "minLength": 1 },
-    "telemetry_records_dropped": { "type": "integer", "minimum": 0 }
+    "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
+    "torque_off_attempted": { "type": "boolean" },
+    "torque_off_status": {
+      "enum": [
+        "ok",
+        "timeout",
+        "crc",
+        "partial",
+        "device",
+        "unexpected_id",
+        "io",
+        "exception",
+        "not_attempted"
+      ]
+    },
+    "torque_off_error": { "type": ["string", "null"] }
   },
   "allOf": [
     {
@@ -30,7 +45,13 @@
     {
       "if": { "properties": { "event": { "const": "runtime_halt" } } },
       "then": {
-        "required": ["reason", "telemetry_records_dropped"]
+        "required": [
+          "reason",
+          "telemetry_records_dropped",
+          "torque_off_attempted",
+          "torque_off_status",
+          "torque_off_error"
+        ]
       }
     }
   ],
@@ -106,12 +127,32 @@
             { "type": "null" },
             {
               "type": "object",
-              "required": ["path", "sha256", "input", "output"],
+              "required": ["path", "sha256", "input", "output", "session"],
               "properties": {
                 "path": { "type": "string", "minLength": 1 },
                 "sha256": { "$ref": "#/$defs/sha256" },
                 "input": { "$ref": "#/$defs/onnxTensor" },
-                "output": { "$ref": "#/$defs/onnxTensor" }
+                "output": { "$ref": "#/$defs/onnxTensor" },
+                "session": {
+                  "type": "object",
+                  "required": [
+                    "execution_mode",
+                    "graph_optimization_level",
+                    "intra_op_num_threads",
+                    "inter_op_num_threads",
+                    "intra_op_allow_spinning",
+                    "inter_op_allow_spinning"
+                  ],
+                  "properties": {
+                    "execution_mode": { "const": "ORT_SEQUENTIAL" },
+                    "graph_optimization_level": { "const": "ORT_ENABLE_ALL" },
+                    "intra_op_num_threads": { "const": 1 },
+                    "inter_op_num_threads": { "const": 1 },
+                    "intra_op_allow_spinning": { "const": false },
+                    "inter_op_allow_spinning": { "const": false }
+                  },
+                  "additionalProperties": false
+                }
               },
               "additionalProperties": false
             }

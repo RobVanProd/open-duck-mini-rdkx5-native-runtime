@@ -20,6 +20,7 @@
     "telemetry_records_dropped",
     "provenance",
     "realtime",
+    "safety",
     "timing",
     "bus",
     "sensors",
@@ -53,6 +54,29 @@
     "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
     "provenance": { "type": "object" },
     "realtime": { "type": ["object", "null"] },
+    "safety": {
+      "type": "object",
+      "required": ["torque_off_attempted", "torque_off_status", "torque_off_error", "torque_off_confirmed"],
+      "properties": {
+        "torque_off_attempted": { "type": "boolean" },
+        "torque_off_status": {
+          "enum": [
+            "ok",
+            "timeout",
+            "crc",
+            "partial",
+            "device",
+            "unexpected_id",
+            "io",
+            "exception",
+            "not_attempted"
+          ]
+        },
+        "torque_off_error": { "type": ["string", "null"] },
+        "torque_off_confirmed": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "timing": {
       "type": "object",
       "required": ["tick_period_ms", "tick_work_ms"],
@@ -145,6 +169,7 @@
       "required": [
         "complete_record_stream",
         "normal_exit",
+        "torque_off_confirmed",
         "realtime_verified_when_required",
         "policy_ticks_present",
         "fixed_command_matches",

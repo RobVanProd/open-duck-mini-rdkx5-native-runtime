@@ -22,6 +22,7 @@
         "control_frequency_hz",
         "onnx_input",
         "onnx_output",
+        "onnx_session",
         "observation_fields",
         "target_quantity_map",
         "actions"
@@ -45,6 +46,26 @@
             "type": { "const": "tensor(float)" }
           },
           "required": ["name", "shape", "type"]
+        },
+        "onnx_session": {
+          "type": "object",
+          "properties": {
+            "execution_mode": { "const": "ORT_SEQUENTIAL" },
+            "graph_optimization_level": { "const": "ORT_ENABLE_ALL" },
+            "intra_op_num_threads": { "const": 1 },
+            "inter_op_num_threads": { "const": 1 },
+            "intra_op_allow_spinning": { "const": false },
+            "inter_op_allow_spinning": { "const": false }
+          },
+          "required": [
+            "execution_mode",
+            "graph_optimization_level",
+            "intra_op_num_threads",
+            "inter_op_num_threads",
+            "intra_op_allow_spinning",
+            "inter_op_allow_spinning"
+          ],
+          "additionalProperties": false
         },
         "observation_fields": {
           "type": "array",

@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/single-servo-summary.schema.json",
+  "title": "Open Duck X5 Gate 1 single-servo summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "backend",
+    "informational_only",
+    "review_status",
+    "hardware_gate_status",
+    "run_status",
+    "halt_reason",
+    "servo_id",
+    "ticks",
+    "ticks_requested",
+    "ping_status",
+    "tick_period_ms",
+    "round_trip_ms",
+    "transaction_status_counts",
+    "transactions_failed",
+    "unexpected_response_length_count",
+    "transaction_failure_rate",
+    "read_burst_count",
+    "max_read_burst_ticks",
+    "environment",
+    "jsonl_sha256",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.single_servo_summary.v1" },
+    "backend": { "enum": ["mock", "serial"] },
+    "informational_only": { "type": "boolean" },
+    "review_status": { "enum": ["INFORMATIONAL_ONLY", "REVIEW_REQUIRED"] },
+    "hardware_gate_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
+    "run_status": { "enum": ["COMPLETE", "HALTED"] },
+    "halt_reason": { "type": ["string", "null"] },
+    "servo_id": { "enum": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 13, 14] },
+    "ticks": { "type": "integer", "minimum": 0 },
+    "ticks_requested": { "type": "integer", "minimum": 2 },
+    "ping_status": { "$ref": "#/$defs/errorName" },
+    "tick_period_ms": { "$ref": "#/$defs/stats" },
+    "round_trip_ms": { "$ref": "#/$defs/stats" },
+    "transaction_status_counts": { "$ref": "#/$defs/statusCounts" },
+    "transactions_failed": { "type": "integer", "minimum": 0 },
+    "unexpected_response_length_count": { "type": "integer", "minimum": 0 },
+    "transaction_failure_rate": { "type": "number", "minimum": 0 },
+    "read_burst_count": { "type": "integer", "minimum": 0 },
+    "max_read_burst_ticks": { "type": "integer", "minimum": 0 },
+    "environment": {
+      "type": "object",
+      "required": [
+        "python",
+        "platform",
+        "device",
+        "baudrate",
+        "frequency_hz",
+        "timeout_ms",
+        "torque_enabled",
+        "torque_off_status",
+        "watchdog_consecutive_failures",
+        "telemetry_records_dropped",
+        "hardware_authorized",
+        "suspended_or_benched"
+      ],
+      "properties": {
+        "python": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "device": { "type": "string", "minLength": 1 },
+        "baudrate": { "type": "integer", "minimum": 1 },
+        "frequency_hz": { "type": "number", "exclusiveMinimum": 0 },
+        "timeout_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "torque_enabled": { "const": false },
+        "torque_off_status": { "$ref": "#/$defs/errorName" },
+        "watchdog_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "gates": {
+      "type": "object",
+      "required": [
+        "complete_record_stream",
+        "torque_off_confirmed",
+        "authorization_provenance",
+        "ping_ok",
+        "zero_transaction_failures",
+        "zero_unexpected_response_lengths",
+        "zero_read_bursts",
+        "gate1_candidate"
+      ],
+      "additionalProperties": { "type": "boolean" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "backend": { "const": "mock" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": true },
+          "review_status": { "const": "INFORMATIONAL_ONLY" },
+          "hardware_gate_status": { "const": "NOT_APPLICABLE_MOCK" },
+          "gates": { "properties": { "gate1_candidate": { "const": false } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "backend": { "const": "serial" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": false },
+          "review_status": { "const": "REVIEW_REQUIRED" },
+          "hardware_gate_status": { "const": "REVIEW_REQUIRED" },
+          "environment": {
+            "properties": {
+              "hardware_authorized": { "const": true },
+              "suspended_or_benched": { "const": true }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "run_status": { "const": "COMPLETE" } } },
+      "then": {
+        "properties": {
+          "halt_reason": { "type": "null" },
+          "environment": { "properties": { "torque_off_status": { "const": "ok" } } },
+          "gates": {
+            "properties": {
+              "complete_record_stream": { "const": true },
+              "torque_off_confirmed": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nullableNonnegative": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "number", "minimum": 0 }
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "required": ["min", "mean", "p95", "p99", "p99_9", "max"],
+      "properties": {
+        "min": { "$ref": "#/$defs/nullableNonnegative" },
+        "mean": { "$ref": "#/$defs/nullableNonnegative" },
+        "p95": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99_9": { "$ref": "#/$defs/nullableNonnegative" },
+        "max": { "$ref": "#/$defs/nullableNonnegative" }
+      },
+      "additionalProperties": false
+    },
+    "errorName": {
+      "enum": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"]
+    },
+    "statusCounts": {
+      "type": "object",
+      "required": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"],
+      "properties": {
+        "ok": { "type": "integer", "minimum": 0 },
+        "timeout": { "type": "integer", "minimum": 0 },
+        "crc": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "device": { "type": "integer", "minimum": 0 },
+        "unexpected_id": { "type": "integer", "minimum": 0 },
+        "io": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

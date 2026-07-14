@@ -47,6 +47,18 @@ class FakeScheduler:
         )
 
 
+def test_cpu_list_parser_uses_exact_ids_and_expands_ranges() -> None:
+    parsed = realtime.parse_cpu_list("0-3,5,10-11")
+
+    assert parsed == {0, 1, 2, 3, 5, 10, 11}
+    assert 1 not in realtime.parse_cpu_list("10")
+
+
+def test_cpu_list_parser_rejects_reversed_range() -> None:
+    with pytest.raises(ValueError, match="invalid CPU range"):
+        realtime.parse_cpu_list("5-3")
+
+
 def install_fake_scheduler(
     monkeypatch: pytest.MonkeyPatch, scheduler: FakeScheduler
 ) -> None:

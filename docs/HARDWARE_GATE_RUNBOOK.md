@@ -6,7 +6,7 @@ All gates are `NOT_RUN`. Each invocation requires a fresh, explicit authorizatio
 
 1. Record repository commit, config SHA-256, policy SHA-256 if applicable, board image/kernel, Python version, serial driver, baud, USB topology, CPU isolation, scheduler, and operator.
 2. Confirm hands clear, robot supported, power cutoff reachable, and `start_paused=true`.
-3. Run `setup/verify_rt_setup.sh` and `setup/verify_serial_path.sh /dev/ttyACM0`; attach output.
+3. Run `setup/verify_rt_setup.sh 5 80` and `setup/verify_serial_path.sh /dev/ttyACM0`; attach output. RT verification must show exact isolation membership plus successful affinity and `SCHED_FIFO` tests.
 4. Pre-register duration, commands, failure threshold, consecutive-failure watchdog count, and stop conditions in the gate artifact.
 5. Use both CLI acknowledgements: `--hardware-authorized --suspended-or-benched`.
 6. Stop on unexpected motion, wrong joint/side/sign, hard overrun, any burst of read failures, or operator concern.
@@ -32,6 +32,9 @@ probe_single_servo --bus serial --servo-id 20 --ticks 10000 \
 
 Its summary preserves all zero/nonzero error classes and failure bursts. This
 single-servo result does not satisfy Gate 2's all-14 timing requirement.
+It also binds the raw JSONL SHA-256, both hardware assertions, final torque-off
+status, and unexpected response-length count. `gate1_candidate=true` still
+means `REVIEW_REQUIRED`; it never authorizes Gate 2.
 
 ## Gate 2 — Fourteen-servo home hold, no policy
 
@@ -60,6 +63,10 @@ because torque was left enabled by an earlier process.
 Serial all-14 probes refuse to run without `--require-realtime`. Their summary
 must contain the verified control/background native-thread partition; a timing
 summary without that record is invalid for Gate 2 or the Python-to-Rust decision.
+The summary must also bind the raw JSONL SHA-256 and show the two hardware
+assertions, moving-gate assertion, complete record stream, and final torque-off
+status. A serial candidate remains `REVIEW_REQUIRED` even if every numeric gate
+is green.
 
 ## Gate 3 — IMU and contacts
 
@@ -86,6 +93,9 @@ reports sample age, stale counts, timestamp repeats, axis distributions, contact
 fractions, config hash, and `imu_upside_down`. Orientation/contact correctness
 stays `REVIEW_REQUIRED`; the script does not manufacture a pass from unlabeled
 numbers.
+The summary also preserves both hardware assertions. Its data-candidate field
+only covers completeness/freshness/timestamps; the operator must still review
+the physical label, so it is never automatic orientation/contact clearance.
 
 ## Gate 4 — Sine sweeps
 
@@ -109,6 +119,7 @@ runtime_timing_probe --bus serial --config ~/duck_config.json \
 Timing schema v2 records all 14 sent targets, actual positions, and absolute
 errors. The summary calculates tracking p95 directly; a timing-only artifact
 with torque disabled reports no valid tracking samples and cannot pass Gate 4.
+Only exact 0.25/0.5 Hz, 0.03 rad runs can set the Gate 4 candidate field.
 
 ## Gate 5 — Suspended policy replay
 

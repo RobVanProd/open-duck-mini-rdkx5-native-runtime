@@ -206,6 +206,9 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "schema_version": "open_duck_x5.sensor_summary.v1",
         "backend": args.backend,
         "informational_only": args.backend == "mock",
+        "hardware_gate_status": (
+            "NOT_APPLICABLE_MOCK" if args.backend == "mock" else "REVIEW_REQUIRED"
+        ),
         "run_status": "COMPLETE",
         "review_status": "REVIEW_REQUIRED",
         "label": args.label,
@@ -227,6 +230,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "servo_bus_accessed": False,
             "torque_enabled": False,
             "goal_position_writes": 0,
+            "hardware_authorized": bool(args.hardware_authorized),
+            "suspended_or_benched": bool(args.suspended_or_benched),
         },
         "timing": {
             "tick_period_ms": _stats(tick_period_ns[1:completed], scale=1e-6),
@@ -259,6 +264,15 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "strictly_increasing_imu_timestamps": imu_timestamp_repeats == 0,
             "strictly_increasing_contact_timestamps": contact_timestamp_repeats == 0,
             "orientation_and_contact_label_match": "REVIEW_REQUIRED",
+            "authorization_provenance": args.backend == "mock"
+            or (args.hardware_authorized and args.suspended_or_benched),
+            "gate3_data_candidate": args.backend == "x5"
+            and args.hardware_authorized
+            and args.suspended_or_benched
+            and imu_stale_count == 0
+            and contacts_stale_count == 0
+            and imu_timestamp_repeats == 0
+            and contact_timestamp_repeats == 0,
         },
         "jsonl_sha256": _sha256(args.output),
     }

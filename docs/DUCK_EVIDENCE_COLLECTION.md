@@ -44,7 +44,8 @@ its tensor interface is reported as `UNVERIFIED`.
 - JSONL schema/tick summaries and, when available, an extracted and verified adjacent
   legacy 101/14 contract snapshot;
 - `policy_handoff.json`, which records all 101 observation labels, action/servo order,
-  home values, the three distinct target quantities, and unresolved semantic gates;
+  home values, deterministic ONNX session settings, the three distinct target
+  quantities, and unresolved semantic gates;
 - a SHA-256 manifest, compressed archive, and archive hash sidecar.
 
 Likely credential assignments cause a source file to be hashed but not copied. Virtual

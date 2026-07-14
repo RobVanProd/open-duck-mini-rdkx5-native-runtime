@@ -7,3 +7,7 @@ threads onto housekeeping CPUs before they create ONNX, sensor, controller, or
 writer workers. They then verify that only the control thread can execute on the
 isolated CPU under `SCHED_FIFO`. No such verification has run on the board, so
 this artifact remains `NOT_RUN`.
+
+The preflight now parses isolation ranges exactly and must actually enter the
+requested `SCHED_FIFO` priority before it reports `PASS`; this behavior is also
+unrun on the X5.

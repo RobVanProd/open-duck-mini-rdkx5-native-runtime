@@ -57,6 +57,9 @@ def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     assert events[1]["event"] == "runtime_halt"
     assert events[1]["reason"] == "normal_exit"
     assert events[1]["telemetry_records_dropped"] == 0
+    assert events[1]["torque_off_attempted"] is True
+    assert events[1]["torque_off_status"] == "ok"
+    assert events[1]["torque_off_error"] is None
     assert isinstance(events[1]["timestamp_monotonic_ns"], int)
 
 
@@ -407,12 +410,66 @@ def test_runtime_cleanup_reports_failed_torque_off_and_still_closes_bus() -> Non
     runtime.bus = FailingCutoffBus()
     bus = runtime.bus
     runtime._gc_was_enabled = False
+    runtime.halt_reason = "normal_exit"
 
     with pytest.raises(SafetyError, match="cleanup torque-off failed: io"):
         runtime.close()
 
     assert bus.closed is True
     assert runtime.bus is None
+    assert runtime.halt_reason == "SafetyError: cleanup torque-off failed: io"
+
+
+def test_runtime_cleanup_cuts_torque_before_other_resources_and_writer() -> None:
+    events: list[str] = []
+    writer_arguments: dict[str, object] = {}
+
+    class RecordingBus:
+        @staticmethod
+        def disable_torque():
+            events.append("disable_torque")
+            return runtime_module.ErrorCode.OK
+
+        @staticmethod
+        def close() -> None:
+            events.append("bus_close")
+
+    class RecordingResource:
+        def __init__(self, name: str) -> None:
+            self.name = name
+
+        def close(self) -> None:
+            events.append(f"{self.name}_close")
+
+    class RecordingWriter:
+        @staticmethod
+        def close(**kwargs) -> None:
+            events.append("writer_close")
+            writer_arguments.update(kwargs)
+
+    runtime = object.__new__(Runtime)
+    runtime.writer = RecordingWriter()
+    runtime.controller = RecordingResource("controller")
+    runtime.sensor_hub = RecordingResource("sensor")
+    runtime.bus = RecordingBus()
+    runtime._gc_was_enabled = False
+    runtime.halt_reason = "normal_exit"
+
+    runtime.close()
+
+    assert events == [
+        "disable_torque",
+        "controller_close",
+        "sensor_close",
+        "bus_close",
+        "writer_close",
+    ]
+    assert writer_arguments == {
+        "reason": "normal_exit",
+        "torque_off_attempted": True,
+        "torque_off_status": "ok",
+        "torque_off_error": None,
+    }
 
 
 def test_stop_during_home_move_torques_off_with_signal_reason(

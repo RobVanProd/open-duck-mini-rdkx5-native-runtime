@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -41,6 +42,10 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
         assert len(record["motion"]["absolute_error_rad"]) == 14
 
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary_schema_path = Path(__file__).parents[1] / "schemas" / "timing_summary.schema.json"
+    summary_schema = json.loads(summary_schema_path.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(summary_schema)
+    Draft202012Validator(summary_schema).validate(summary)
     assert summary["schema_version"] == "open_duck_x5.timing_summary.v2"
     assert summary["run_status"] == "COMPLETE"
     assert summary["halt_reason"] is None
@@ -59,8 +64,14 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
         "unexpected_packet": 0,
     }
     assert summary["tracking_absolute_error_rad"]["samples"] == 12
+    assert summary["jsonl_sha256"] == hashlib.sha256(output.read_bytes()).hexdigest()
     assert summary["environment"]["telemetry_records_dropped"] == 0
     assert summary["environment"]["realtime"] is None
+    assert summary["environment"]["torque_off_status"] == "ok"
+    assert summary["gates"]["complete_record_stream"] is True
+    assert summary["gates"]["torque_off_confirmed"] is True
+    assert summary["gates"]["gate2_home_hold_candidate"] is False
+    assert summary["gates"]["gate4_sine_candidate"] is False
 
 
 def test_probe_refuses_output_summary_collision(tmp_path: Path) -> None:
@@ -142,6 +153,8 @@ def test_probe_failed_cleanup_torque_off_marks_run_halted(
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert summary["run_status"] == "HALTED"
     assert summary["halt_reason"] == "cleanup torque-off failed: io"
+    assert summary["environment"]["torque_off_status"] == "io"
+    assert summary["gates"]["torque_off_confirmed"] is False
 
 
 def test_probe_stop_during_home_move_reaches_torque_off(

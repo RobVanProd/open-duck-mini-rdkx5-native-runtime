@@ -17,7 +17,8 @@ per-error taxonomy, tracking statistics, authorization guards, watchdog
 triggers, torque-off on an injected exception, BNO055 units/remapping,
 active-low contacts, and nonblocking publication when I2C is delayed.
 The ONNX host is exercised with a fake runtime that verifies pre-loop warm-up,
-bound float32 buffers, zero-copy output reuse, and rejection of non-finite data.
+single-thread sequential/no-spin session options, bound float32 buffers,
+zero-copy output reuse, and rejection of non-finite data.
 Controller tests cover both right-stick layouts, locked seven-command snapshots,
 A-button pause edges, the inherited Y-button head-control mode, and LB sprint
 phase factor.
@@ -35,13 +36,20 @@ exhausting any bounded record pool fails the run instead of silently dropping
 evidence. Runtime guard tests reject incomplete Gate 5 scope and
 `start_paused=false` before serial or real-time setup is touched. Path-collision
 tests protect config/policy/evidence files, while cleanup tests verify that a
-stop during the home move cuts torque and a failed cutoff status cannot look
-successful.
+stop during the home move cuts torque, final cutoff precedes every potentially
+blocking resource close, and a failed cutoff status cannot look successful.
 Control-evidence tests validate startup/tick/event/summary schemas, source and
 config/policy hashes, contiguous tick numbering, timestamp-derived periods,
 fixed-command readback, transaction recounting, round-robin telemetry coverage,
-per-joint envelope reconstruction, output collision guards, and the distinction
-between total ticks and valid policy ticks.
+per-joint envelope reconstruction, terminal torque-off proof, output collision
+guards, and the distinction between total ticks and valid policy ticks.
+Timing-probe summaries are schema-checked and bind their raw JSONL SHA-256,
+authorization assertions, RT partition, moving-gate scope, and final cutoff
+status. The comparison builder rejects halted/incomplete summaries, refuses
+source overwrite, and labels serial results `REVIEW_REQUIRED` rather than
+minting an automatic hardware pass.
+Gate 1 uses the same evidence discipline for its torque-off single-servo stream,
+including response framing and a hardware-only review candidate field.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.

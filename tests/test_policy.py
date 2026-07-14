@@ -43,6 +43,7 @@ class FakeSession:
         self.binding = FakeBinding()
         self.calls = 0
         self.nonfinite_call = nonfinite_call
+        self.session_options = None
 
     def get_inputs(self) -> list[FakeNode]:
         return [self.input_node]
@@ -71,12 +72,32 @@ def install_fake_onnxruntime(
         def ortvalue_from_numpy(array: np.ndarray) -> np.ndarray:
             return array
 
-    def make_session(path: str, *, providers: list[str]) -> FakeSession:
+    class FakeSessionOptions:
+        def __init__(self) -> None:
+            self.execution_mode = None
+            self.graph_optimization_level = None
+            self.intra_op_num_threads = 0
+            self.inter_op_num_threads = 0
+            self.entries: dict[str, str] = {}
+
+        def add_session_config_entry(self, key: str, value: str) -> None:
+            self.entries[key] = value
+
+    def make_session(
+        path: str, *, sess_options: FakeSessionOptions, providers: list[str]
+    ) -> FakeSession:
         assert Path(path).is_file()
         assert providers == ["CPUExecutionProvider"]
+        session.session_options = sess_options
         return session
 
-    module = SimpleNamespace(InferenceSession=make_session, OrtValue=FakeOrtValue)
+    module = SimpleNamespace(
+        InferenceSession=make_session,
+        OrtValue=FakeOrtValue,
+        SessionOptions=FakeSessionOptions,
+        ExecutionMode=SimpleNamespace(ORT_SEQUENTIAL="ORT_SEQUENTIAL"),
+        GraphOptimizationLevel=SimpleNamespace(ORT_ENABLE_ALL="ORT_ENABLE_ALL"),
+    )
     monkeypatch.setitem(sys.modules, "onnxruntime", module)
 
 
@@ -100,6 +121,15 @@ def test_policy_binds_float32_buffers_and_warms_before_first_inference(
     assert session.binding.output_array is not None
     assert session.binding.input_array.dtype == np.float32
     assert session.binding.output_array.dtype == np.float32
+    assert session.session_options is not None
+    assert session.session_options.execution_mode == "ORT_SEQUENTIAL"
+    assert session.session_options.graph_optimization_level == "ORT_ENABLE_ALL"
+    assert session.session_options.intra_op_num_threads == 1
+    assert session.session_options.inter_op_num_threads == 1
+    assert session.session_options.entries == {
+        "session.intra_op.allow_spinning": "0",
+        "session.inter_op.allow_spinning": "0",
+    }
     result = policy.infer(np.zeros(101, dtype=np.float32))
     assert session.calls == 4
     np.testing.assert_array_equal(result, np.full(14, 4.0, dtype=np.float32))

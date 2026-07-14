@@ -30,7 +30,7 @@ from .hardware_guard import (
     add_hardware_ack_arguments,
     require_hardware_authorization,
 )
-from .policy import OnnxPolicy, PolicyContractError
+from .policy import ONNX_SESSION_CONTRACT, OnnxPolicy, PolicyContractError
 from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import SafetyError, TorqueGuard, Watchdog, WatchdogTrip
 from .sensors import BNO055Smbus, MockSensorHub, SensorHub, SensorReadout, X5FootContacts
@@ -353,6 +353,7 @@ class Runtime:
                         "shape": [1, 14],
                         "type": "tensor(float)",
                     },
+                    "session": dict(ONNX_SESSION_CONTRACT),
                 }
                 if self.policy_path is not None
                 else None
@@ -530,12 +531,27 @@ class Runtime:
 
     def close(self) -> None:
         errors: list[BaseException] = []
-        if self.writer is not None:
+        torque_off_attempted = False
+        torque_off_status = "not_attempted"
+        torque_off_error: str | None = None
+        # Cut power first. Writer/resource shutdown can block, and none of it is
+        # more important than issuing the final redundant torque-off command.
+        if self.bus is not None:
+            torque_off_attempted = True
             try:
-                self.writer.close(reason=self.halt_reason)
+                status = self.bus.disable_torque()
+                torque_off_status = status.name.lower()
+                if status is not ErrorCode.OK:
+                    cutoff_error = SafetyError(
+                        f"cleanup torque-off failed: {status.name.lower()}"
+                    )
+                    torque_off_error = str(cutoff_error)
+                    errors.append(cutoff_error)
             except BaseException as exc:
+                torque_off_status = "exception"
+                torque_off_error = f"{type(exc).__name__}: {exc}"
                 errors.append(exc)
-        self.writer = None
+
         for resource in (self.controller, self.sensor_hub):
             if resource is None:
                 continue
@@ -547,22 +563,25 @@ class Runtime:
         self.sensor_hub = None
         if self.bus is not None:
             try:
-                status = self.bus.disable_torque()
-                if status is not ErrorCode.OK:
-                    errors.append(
-                        SafetyError(
-                            f"cleanup torque-off failed: {status.name.lower()}"
-                        )
-                    )
-            except BaseException as exc:
-                errors.append(exc)
-            try:
                 self.bus.close()
             except BaseException as exc:
                 errors.append(exc)
             self.bus = None
         if self._gc_was_enabled and not gc.isenabled():
             gc.enable()
+        if errors and self.halt_reason == "normal_exit":
+            self.halt_reason = f"{type(errors[0]).__name__}: {errors[0]}"
+        if self.writer is not None:
+            try:
+                self.writer.close(
+                    reason=self.halt_reason,
+                    torque_off_attempted=torque_off_attempted,
+                    torque_off_status=torque_off_status,
+                    torque_off_error=torque_off_error,
+                )
+            except BaseException as exc:
+                errors.append(exc)
+        self.writer = None
         if errors:
             raise errors[0]
 

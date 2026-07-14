@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/timing-summary.schema.json",
+  "title": "Open Duck X5 all-servo timing summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "backend",
+    "informational_only",
+    "review_status",
+    "hardware_gate_status",
+    "run_status",
+    "halt_reason",
+    "ticks",
+    "ticks_requested",
+    "tick_period_ms",
+    "release_lateness_ms",
+    "group_round_trip_ms",
+    "extended_round_trip_ms",
+    "bus_total_ms",
+    "transactions_expected",
+    "transactions_failed",
+    "transaction_status_counts",
+    "transaction_failure_counts",
+    "transaction_failure_rate",
+    "transaction_failure_percent",
+    "partial_byte_count",
+    "unexpected_packet_count",
+    "read_burst_count",
+    "max_read_burst_ticks",
+    "tracking_joint_index",
+    "tracking_absolute_error_rad",
+    "environment",
+    "jsonl_sha256",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.timing_summary.v2" },
+    "backend": { "enum": ["mock", "serial"] },
+    "informational_only": { "type": "boolean" },
+    "review_status": { "enum": ["INFORMATIONAL_ONLY", "REVIEW_REQUIRED"] },
+    "hardware_gate_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
+    "run_status": { "enum": ["COMPLETE", "HALTED"] },
+    "halt_reason": { "type": ["string", "null"] },
+    "ticks": { "type": "integer", "minimum": 0 },
+    "ticks_requested": { "type": "integer", "minimum": 2 },
+    "tick_period_ms": { "$ref": "#/$defs/stats" },
+    "release_lateness_ms": { "$ref": "#/$defs/stats" },
+    "group_round_trip_ms": { "$ref": "#/$defs/stats" },
+    "extended_round_trip_ms": { "$ref": "#/$defs/stats" },
+    "bus_total_ms": { "$ref": "#/$defs/stats" },
+    "transactions_expected": { "type": "integer", "minimum": 0 },
+    "transactions_failed": { "type": "integer", "minimum": 0 },
+    "transaction_status_counts": { "$ref": "#/$defs/statusCounts" },
+    "transaction_failure_counts": {
+      "type": "object",
+      "required": [
+        "timeout",
+        "crc",
+        "partial",
+        "device",
+        "unexpected_id",
+        "io",
+        "unexpected_packet"
+      ],
+      "properties": {
+        "timeout": { "type": "integer", "minimum": 0 },
+        "crc": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "device": { "type": "integer", "minimum": 0 },
+        "unexpected_id": { "type": "integer", "minimum": 0 },
+        "io": { "type": "integer", "minimum": 0 },
+        "unexpected_packet": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "transaction_failure_rate": { "type": "number", "minimum": 0 },
+    "transaction_failure_percent": { "type": "number", "minimum": 0 },
+    "partial_byte_count": { "type": "integer", "minimum": 0 },
+    "unexpected_packet_count": { "type": "integer", "minimum": 0 },
+    "read_burst_count": { "type": "integer", "minimum": 0 },
+    "max_read_burst_ticks": { "type": "integer", "minimum": 0 },
+    "tracking_joint_index": { "type": "integer", "minimum": 0, "maximum": 13 },
+    "tracking_absolute_error_rad": {
+      "type": "object",
+      "required": ["samples", "min", "mean", "p95", "p99", "p99_9", "max"],
+      "properties": {
+        "samples": { "type": "integer", "minimum": 0 },
+        "min": { "$ref": "#/$defs/nullableNonnegative" },
+        "mean": { "$ref": "#/$defs/nullableNonnegative" },
+        "p95": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99_9": { "$ref": "#/$defs/nullableNonnegative" },
+        "max": { "$ref": "#/$defs/nullableNonnegative" }
+      },
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "python",
+        "platform",
+        "device",
+        "baudrate",
+        "frequency_hz",
+        "timeout_ms",
+        "sine_hz",
+        "amplitude_rad",
+        "sine_joint",
+        "torque_enabled",
+        "torque_off_status",
+        "watchdog_consecutive_failures",
+        "hardware_authorized",
+        "suspended_or_benched",
+        "moving_gate_authorized",
+        "config_path",
+        "config_sha256",
+        "telemetry_records_dropped",
+        "realtime"
+      ],
+      "properties": {
+        "python": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "device": { "type": "string", "minLength": 1 },
+        "baudrate": { "type": "integer", "minimum": 1 },
+        "frequency_hz": { "type": "number", "exclusiveMinimum": 0 },
+        "timeout_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "sine_hz": { "type": "number", "minimum": 0 },
+        "amplitude_rad": { "type": "number", "minimum": 0 },
+        "sine_joint": { "type": "string", "minLength": 1 },
+        "torque_enabled": { "type": "boolean" },
+        "torque_off_status": { "$ref": "#/$defs/errorName" },
+        "watchdog_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" },
+        "moving_gate_authorized": { "type": "boolean" },
+        "config_path": { "type": ["string", "null"] },
+        "config_sha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          ]
+        },
+        "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
+        "realtime": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "gates": {
+      "type": "object",
+      "required": [
+        "tick_p99_at_most_21_ms",
+        "tick_p99_9_at_most_22_ms",
+        "zero_read_bursts",
+        "transaction_failure_below_0_1_percent",
+        "bus_max_under_5_ms",
+        "tracking_p95_at_most_0_011_rad",
+        "complete_record_stream",
+        "torque_off_confirmed",
+        "realtime_verified_when_required",
+        "authorization_provenance",
+        "moving_gate_scope",
+        "gate2_home_hold_candidate",
+        "gate4_sine_candidate"
+      ],
+      "additionalProperties": { "type": "boolean" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "backend": { "const": "mock" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": true },
+          "review_status": { "const": "INFORMATIONAL_ONLY" },
+          "hardware_gate_status": { "const": "NOT_APPLICABLE_MOCK" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "backend": { "const": "serial" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": false },
+          "review_status": { "const": "REVIEW_REQUIRED" },
+          "hardware_gate_status": { "const": "REVIEW_REQUIRED" },
+          "environment": {
+            "properties": {
+              "hardware_authorized": { "const": true },
+              "suspended_or_benched": { "const": true },
+              "realtime": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "run_status": { "const": "COMPLETE" } } },
+      "then": {
+        "properties": {
+          "halt_reason": { "type": "null" },
+          "environment": {
+            "properties": { "torque_off_status": { "const": "ok" } }
+          },
+          "gates": {
+            "properties": {
+              "complete_record_stream": { "const": true },
+              "torque_off_confirmed": { "const": true }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "nullableNonnegative": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "number", "minimum": 0 }
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "required": ["min", "mean", "p95", "p99", "p99_9", "max"],
+      "properties": {
+        "min": { "$ref": "#/$defs/nullableNonnegative" },
+        "mean": { "$ref": "#/$defs/nullableNonnegative" },
+        "p95": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99": { "$ref": "#/$defs/nullableNonnegative" },
+        "p99_9": { "$ref": "#/$defs/nullableNonnegative" },
+        "max": { "$ref": "#/$defs/nullableNonnegative" }
+      },
+      "additionalProperties": false
+    },
+    "errorName": {
+      "enum": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"]
+    },
+    "statusCounts": {
+      "type": "object",
+      "required": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"],
+      "properties": {
+        "ok": { "type": "integer", "minimum": 0 },
+        "timeout": { "type": "integer", "minimum": 0 },
+        "crc": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "integer", "minimum": 0 },
+        "device": { "type": "integer", "minimum": 0 },
+        "unexpected_id": { "type": "integer", "minimum": 0 },
+        "io": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

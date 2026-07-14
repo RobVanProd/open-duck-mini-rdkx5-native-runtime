@@ -41,6 +41,7 @@ from .hardware_guard import (
     require_hardware_authorization,
 )
 from .legacy_contract import extract_contract_snapshot
+from .policy import ONNX_SESSION_CONTRACT
 
 SCHEMA_VERSION = "open_duck_x5.duck_evidence_bundle.v1"
 COLLECTION_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
@@ -814,6 +815,7 @@ def _contract_handoff(
                 "shape": [1, ACTION_DIM],
                 "type": "tensor(float)",
             },
+            "onnx_session": dict(ONNX_SESSION_CONTRACT),
             "normalization_location": "inside ONNX graph",
             "action_scale_rad": ACTION_SCALE_RAD,
             "target_rate_limit_rad_s": LEGACY_TARGET_RATE_LIMIT_RAD_S,

@@ -57,3 +57,51 @@ Accepted. Exact fixed-command replay cannot depend on joystick drift, head mode,
 or LB state. Serial Gate 5 retains the physical pause/unpause edge but zeros all
 non-X commands and fixes phase speed at 1.0. General controller parity remains
 unchanged outside that gate.
+
+## D012 — Make shutdown cutoff-first and evidence-bearing
+
+Accepted. The runtime issues its redundant final torque-off before closing any
+worker, sensor, controller, serial, or telemetry resource. The terminal event
+records whether cutoff was attempted, its explicit bus status, and any error.
+The offline summarizer cannot report a complete run or Gate 5 candidate without
+`torque_off_status=ok`. This does not claim the physical rail has decayed; that
+latency still requires Phase 6 hardware evidence.
+
+## D013 — Make the RT preflight test the claimed scheduler state
+
+Accepted. `verify_rt_setup.sh` uses exact Linux CPU-list parsing and a
+short-lived process that must enter the requested CPU affinity and `SCHED_FIFO`
+priority. Merely finding the core number as a substring or printing the current
+non-RT scheduler cannot produce `result=PASS`.
+
+## D014 — Keep ONNX inference on the RT control thread
+
+Accepted. The CPU session uses sequential execution with one intra-op and one
+inter-op thread, and disables worker spinning. The default ONNX Runtime pool can
+span the physical cores; waiting on those SCHED_OTHER workers would reintroduce
+unbounded housekeeping latency into the SCHED_FIFO loop. The session settings
+are recorded in startup and policy-handoff evidence. Authorized timing still
+decides whether this configuration is sufficient.
+
+## D015 — Bind timing comparisons to complete reviewed evidence
+
+Accepted. Timing summaries carry the raw JSONL SHA-256, RT and authorization
+provenance, moving-gate scope, final torque-off status, and explicit Gate 2/4
+candidate fields. The comparison builder rejects halted or incomplete input and
+protects its source path. Mock output stays informational; serial output is
+always `REVIEW_REQUIRED`, never an automatic `HARDWARE_RESULT`.
+
+## D016 — Apply complete-evidence rules to Gate 1
+
+Accepted. The single-servo summary binds its raw stream, authorization
+assertions, final cutoff status, ping, per-class failures, bursts, and exact
+two-byte response framing. Only a serial run with all of those checks can become
+a Gate 1 review candidate, and the candidate does not advance Gate 2.
+
+## D017 — Keep Gate 3 physical labels human-reviewed
+
+Accepted. Sensor summaries bind raw data, config, and both hardware assertions,
+and can identify a complete fresh timestamp stream. They cannot infer whether
+the operator actually held the robot upright, tilted it in the named direction,
+or pressed the named switch. The data candidate therefore remains subordinate
+to explicit label review.

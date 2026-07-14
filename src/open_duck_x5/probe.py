@@ -287,6 +287,12 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     summary["ticks_requested"] = args.ticks
     summary["run_status"] = "HALTED" if halt_reason else "COMPLETE"
     summary["halt_reason"] = halt_reason
+    summary["review_status"] = (
+        "INFORMATIONAL_ONLY" if informational_only else "REVIEW_REQUIRED"
+    )
+    summary["hardware_gate_status"] = (
+        "NOT_APPLICABLE_MOCK" if informational_only else "REVIEW_REQUIRED"
+    )
     summary["environment"] = {
         "python": sys.version.split()[0],
         "platform": platform.platform(),
@@ -298,12 +304,66 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "amplitude_rad": args.amplitude_rad,
         "sine_joint": args.sine_joint,
         "torque_enabled": bool(args.enable_torque),
+        "torque_off_status": torque_off_status.name.lower(),
         "watchdog_consecutive_failures": args.watchdog_failures,
+        "hardware_authorized": bool(args.hardware_authorized),
+        "suspended_or_benched": bool(args.suspended_or_benched),
+        "moving_gate_authorized": bool(args.moving_gate_authorized),
         "config_path": str(args.config) if args.config is not None else None,
         "config_sha256": config_sha256,
         "telemetry_records_dropped": writer.dropped,
         "realtime": asdict(realtime_state) if realtime_state is not None else None,
     }
+    summary["jsonl_sha256"] = _sha256(args.output)
+    core_gate_names = (
+        "tick_p99_at_most_21_ms",
+        "tick_p99_9_at_most_22_ms",
+        "zero_read_bursts",
+        "transaction_failure_below_0_1_percent",
+        "bus_max_under_5_ms",
+    )
+    complete_stream = (
+        halt_reason is None
+        and series.count == args.ticks
+        and writer.dropped == 0
+    )
+    torque_off_confirmed = torque_off_status is ErrorCode.OK
+    realtime_verified = args.bus == "mock" or realtime_state is not None
+    authorization_provenance = args.bus == "mock" or (
+        args.hardware_authorized and args.suspended_or_benched
+    )
+    moving_scope = args.bus == "mock" or (
+        args.enable_torque
+        and args.moving_gate_authorized
+        and config_sha256 is not None
+    )
+    core_timing_and_bus = all(bool(summary["gates"][name]) for name in core_gate_names)
+    hardware_base = (
+        args.bus == "serial"
+        and complete_stream
+        and torque_off_confirmed
+        and realtime_verified
+        and authorization_provenance
+        and moving_scope
+        and core_timing_and_bus
+    )
+    summary["gates"].update(
+        {
+            "complete_record_stream": complete_stream,
+            "torque_off_confirmed": torque_off_confirmed,
+            "realtime_verified_when_required": realtime_verified,
+            "authorization_provenance": authorization_provenance,
+            "moving_gate_scope": moving_scope,
+            "gate2_home_hold_candidate": hardware_base
+            and args.enable_torque
+            and args.amplitude_rad == 0.0,
+            "gate4_sine_candidate": hardware_base
+            and args.enable_torque
+            and args.amplitude_rad == 0.03
+            and args.sine_hz in (0.25, 0.5)
+            and bool(summary["gates"]["tracking_p95_at_most_0_011_rad"]),
+        }
+    )
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     summary_bytes = (json.dumps(summary, indent=2, sort_keys=True) + "\n").encode("utf-8")
     args.summary.write_bytes(summary_bytes)

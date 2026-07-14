@@ -434,13 +434,23 @@ class AsyncControlWriter:
             self.dropped += 1
             raise TelemetryError("control telemetry queue overflow") from exc
 
-    def close(self, *, reason: str = "normal_exit") -> None:
+    def close(
+        self,
+        *,
+        reason: str = "normal_exit",
+        torque_off_attempted: bool = False,
+        torque_off_status: str = "not_attempted",
+        torque_off_error: str | None = None,
+    ) -> None:
         halt_record = {
             "schema_version": "open_duck_x5.runtime_event.v1",
             "timestamp_monotonic_ns": clock_ns(),
             "event": "runtime_halt",
             "reason": reason,
             "telemetry_records_dropped": self.dropped,
+            "torque_off_attempted": torque_off_attempted,
+            "torque_off_status": torque_off_status,
+            "torque_off_error": torque_off_error,
         }
         halt_queued = False
         while self._thread.is_alive() and not halt_queued:

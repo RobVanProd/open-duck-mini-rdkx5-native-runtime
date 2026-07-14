@@ -18,11 +18,13 @@ from .constants import (
     OBSERVATION_DIM,
     SERVO_IDS,
 )
+from .policy import ONNX_SESSION_CONTRACT
 
 CONTROL_TICK_SCHEMA = "open_duck_x5.control_tick.v1"
 RUNTIME_EVENT_SCHEMA = "open_duck_x5.runtime_event.v1"
 SUMMARY_SCHEMA = "open_duck_x5.control_summary.v1"
 STATUS_NAMES = tuple(ERROR_NAMES[int(code)] for code in ErrorCode)
+TORQUE_OFF_STATUSES = frozenset((*STATUS_NAMES, "exception", "not_attempted"))
 
 
 class ControlSummaryError(ValueError):
@@ -141,6 +143,10 @@ def _validate_start(details: dict[str, object]) -> None:
         }:
             raise ControlSummaryError(
                 "runtime_start policy output is not frozen continuous_actions [1,14]"
+            )
+        if policy_map.get("session") != ONNX_SESSION_CONTRACT:
+            raise ControlSummaryError(
+                "runtime_start policy session is not the deterministic single-thread contract"
             )
 
 
@@ -455,6 +461,24 @@ def summarize_control_run(path: Path) -> dict[str, object]:
     halt_reason = halt.get("reason")
     if not isinstance(halt_reason, str) or not halt_reason:
         raise ControlSummaryError("runtime_halt reason is missing")
+    torque_off_attempted = halt.get("torque_off_attempted")
+    if type(torque_off_attempted) is not bool:
+        raise ControlSummaryError("runtime_halt torque-off attempted flag is invalid")
+    torque_off_status = halt.get("torque_off_status")
+    if torque_off_status not in TORQUE_OFF_STATUSES:
+        raise ControlSummaryError("runtime_halt torque-off status is invalid")
+    torque_off_error = halt.get("torque_off_error")
+    if torque_off_error is not None and (
+        not isinstance(torque_off_error, str) or not torque_off_error
+    ):
+        raise ControlSummaryError("runtime_halt torque-off error is invalid")
+    if torque_off_attempted != (torque_off_status != "not_attempted"):
+        raise ControlSummaryError("runtime_halt torque-off attempt/status disagree")
+    if torque_off_status == "ok" and torque_off_error is not None:
+        raise ControlSummaryError("successful torque-off cannot carry an error")
+    if torque_off_status not in ("ok", "not_attempted") and torque_off_error is None:
+        raise ControlSummaryError("failed torque-off must carry an error")
+    torque_off_confirmed = torque_off_attempted and torque_off_status == "ok"
     complete_tick_count = max_ticks > 0 and len(ticks) <= max_ticks
     active_tick_target_met = (
         active_policy_ticks == max_active_ticks
@@ -478,6 +502,7 @@ def summarize_control_run(path: Path) -> dict[str, object]:
     gates = {
         "complete_record_stream": complete_record_stream,
         "normal_exit": normal_exit,
+        "torque_off_confirmed": torque_off_confirmed,
         "realtime_verified_when_required": not realtime_required or realtime is not None,
         "policy_ticks_present": active_policy_ticks > 0,
         "fixed_command_matches": command_matches,
@@ -503,7 +528,11 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "hardware_gate_status": (
             "NOT_APPLICABLE_MOCK" if backend == "mock" else "REVIEW_REQUIRED"
         ),
-        "run_status": "COMPLETE" if normal_exit and complete_record_stream else "HALTED",
+        "run_status": (
+            "COMPLETE"
+            if normal_exit and complete_record_stream and torque_off_confirmed
+            else "HALTED"
+        ),
         "halt_reason": halt_reason,
         "ticks": len(ticks),
         "ticks_requested": max_ticks,
@@ -513,6 +542,12 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "telemetry_records_dropped": dropped,
         "provenance": details,
         "realtime": realtime_details,
+        "safety": {
+            "torque_off_attempted": torque_off_attempted,
+            "torque_off_status": torque_off_status,
+            "torque_off_error": torque_off_error,
+            "torque_off_confirmed": torque_off_confirmed,
+        },
         "timing": {
             "tick_period_ms": tick_stats,
             "tick_work_ms": _stats(tick_work_ms),

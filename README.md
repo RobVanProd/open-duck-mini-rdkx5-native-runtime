@@ -12,10 +12,10 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Frozen 101/14 contract | Implemented and unit-tested; hardware golden-vector capture still required |
 | Direct STS3215 bus | Python implementation plus deterministic/fault-injecting mock |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
-| Timing probe | v2 per-class timing/tracking evidence; explicitly gated serial movement |
-| Runtime evidence | Hashed startup provenance, strict tick/event schemas, and offline control-run summarizer |
+| Timing probe | v2 per-class evidence with raw hash, RT/auth/cutoff provenance, and gated movement |
+| Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
-| IMU / contacts / policy host | Implemented; labeled sensor probe and policy host remain hardware-unverified |
+| IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
 | Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
 | Grounded replay | Out of scope |
 
@@ -117,8 +117,8 @@ Mock results validate code paths, schemas, failure accounting, and artifact prod
 
 The checked-in 1,000-tick mock run used stock Windows scheduling and the shared
 high-resolution monotonic clock. It produced zero transaction failures and zero
-bursts, with bus-time max 2.514 ms. Tick p99 was 21.989 ms and p99.9 was
-22.004 ms, so the mock host does not pass the hardware timing gates. Mock
+bursts, with bus-time max 2.527 ms. Tick p99 was 21.999 ms and p99.9 was
+22.012 ms, so the mock host does not pass the hardware timing gates. Mock
 tracking p95 was 0.00345 rad. That is an
 informational result, not a failure of an X5 gate and not evidence about
 `SCHED_FIFO` or CPU isolation.

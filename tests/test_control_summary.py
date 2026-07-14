@@ -75,7 +75,14 @@ def test_paused_mock_control_summary_is_structurally_complete_but_not_gate5(
     assert summary["bus"]["transactions_expected"] == 80
     assert summary["bus"]["transactions_failed"] == 0
     assert summary["telemetry_records_dropped"] == 0
+    assert summary["safety"] == {
+        "torque_off_attempted": True,
+        "torque_off_status": "ok",
+        "torque_off_error": None,
+        "torque_off_confirmed": True,
+    }
     assert summary["gates"]["complete_record_stream"] is True
+    assert summary["gates"]["torque_off_confirmed"] is True
     assert summary["gates"]["policy_ticks_present"] is False
     assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
     assert summary["envelope"]["total_events"] == 0
@@ -172,6 +179,24 @@ def test_summary_cannot_mark_dropped_telemetry_complete(tmp_path: Path) -> None:
 
     assert summary["run_status"] == "HALTED"
     assert summary["gates"]["complete_record_stream"] is False
+    assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
+
+
+def test_summary_cannot_pass_without_confirmed_torque_off(tmp_path: Path) -> None:
+    telemetry = _run_paused(tmp_path, ticks=3)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    records[-1]["torque_off_status"] = "io"
+    records[-1]["torque_off_error"] = "cleanup torque-off failed: io"
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = summarize_control_run(telemetry)
+
+    assert summary["run_status"] == "HALTED"
+    assert summary["safety"]["torque_off_confirmed"] is False
+    assert summary["gates"]["torque_off_confirmed"] is False
     assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
 
 

@@ -9,12 +9,12 @@
   "new": {
     "backend": "mock",
     "bus_total_ms": {
-      "max": 2.5138,
-      "mean": 1.9086547,
-      "min": 0.9527,
-      "p95": 2.01946,
-      "p99": 2.040413,
-      "p99_9": 2.0549593000000415
+      "max": 2.5272,
+      "mean": 1.9325432,
+      "min": 0.0951,
+      "p95": 2.030315,
+      "p99": 2.046415,
+      "p99_9": 2.5168104000000007
     },
     "environment": {
       "amplitude_rad": 0.03,
@@ -23,62 +23,76 @@
       "config_sha256": null,
       "device": "mock://sts3215",
       "frequency_hz": 50.0,
+      "hardware_authorized": false,
+      "moving_gate_authorized": false,
       "platform": "Windows-10-10.0.26200-SP0",
       "python": "3.10.11",
       "realtime": null,
       "sine_hz": 0.5,
       "sine_joint": "left_hip_yaw",
+      "suspended_or_benched": false,
       "telemetry_records_dropped": 0,
       "timeout_ms": 4.0,
       "torque_enabled": false,
+      "torque_off_status": "ok",
       "watchdog_consecutive_failures": 3
     },
     "extended_round_trip_ms": {
-      "max": 0.0179,
-      "mean": 0.0011512,
-      "min": 0.0004,
-      "p95": 0.0018,
-      "p99": 0.0022009999999999994,
-      "p99_9": 0.005412500000001126
+      "max": 0.0075,
+      "mean": 0.0013417,
+      "min": 0.0005,
+      "p95": 0.002,
+      "p99": 0.002400999999999999,
+      "p99_9": 0.003404100000000369
     },
     "gates": {
+      "authorization_provenance": true,
       "bus_max_under_5_ms": true,
+      "complete_record_stream": true,
+      "gate2_home_hold_candidate": false,
+      "gate4_sine_candidate": false,
+      "moving_gate_scope": true,
+      "realtime_verified_when_required": true,
       "tick_p99_9_at_most_22_ms": false,
       "tick_p99_at_most_21_ms": false,
+      "torque_off_confirmed": true,
       "tracking_p95_at_most_0_011_rad": true,
       "transaction_failure_below_0_1_percent": true,
       "zero_read_bursts": true
     },
     "group_round_trip_ms": {
-      "max": 2.4979,
-      "mean": 1.8988591000000001,
-      "min": 0.9393,
-      "p95": 2.009905,
-      "p99": 2.0289,
-      "p99_9": 2.045952400000041
+      "max": 2.5163,
+      "mean": 1.9221226000000002,
+      "min": 0.0872,
+      "p95": 2.0207100000000002,
+      "p99": 2.03511,
+      "p99_9": 2.5092071000000007
     },
     "halt_reason": null,
+    "hardware_gate_status": "NOT_APPLICABLE_MOCK",
     "informational_only": true,
+    "jsonl_sha256": "91b50169e8f5e6a64247fc71ef30a21f70f9c7d77dc3a95274b0578eae218614",
     "max_read_burst_ticks": 0,
     "partial_byte_count": 0,
     "read_burst_count": 0,
     "release_lateness_ms": {
-      "max": 2.8053,
-      "mean": 1.2054302000000003,
-      "min": 0.0003,
-      "p95": 2.11716,
-      "p99": 2.511072,
-      "p99_9": 2.7317736000000066
+      "max": 2.8234,
+      "mean": 1.2772321999999998,
+      "min": 0.0004,
+      "p95": 2.589255,
+      "p99": 2.7611049999999997,
+      "p99_9": 2.8054180000000017
     },
+    "review_status": "INFORMATIONAL_ONLY",
     "run_status": "COMPLETE",
     "schema_version": "open_duck_x5.timing_summary.v2",
     "tick_period_ms": {
-      "max": 22.0043,
-      "mean": 20.00152442442442,
-      "min": 17.9916,
-      "p95": 21.008570000000002,
-      "p99": 21.988808000000002,
-      "p99_9": 22.0042002
+      "max": 22.0302,
+      "mean": 20.000754254254254,
+      "min": 17.9677,
+      "p95": 21.506240000000002,
+      "p99": 21.999328000000002,
+      "p99_9": 22.012335800000002
     },
     "ticks": 1000,
     "ticks_requested": 1000,
@@ -115,6 +129,10 @@
     "transactions_expected": 16000,
     "transactions_failed": 0,
     "unexpected_packet_count": 0
+  },
+  "new_summary_source": {
+    "path": "artifacts/runs/mock/summary.json",
+    "sha256": "19d995ceac450b31a7cb1976d6f69c1929cddef1a20f6a08871a5a51e00187a6"
   },
   "schema_version": "open_duck_x5.baseline_comparison.v1",
   "status": "INFORMATIONAL_MOCK"

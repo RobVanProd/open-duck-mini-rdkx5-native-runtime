@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -40,12 +41,24 @@ def test_single_servo_probe_records_torque_off_mock_evidence(tmp_path: Path) -> 
         assert record["response_length"] == 2
 
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary_schema_path = (
+        Path(__file__).parents[1] / "schemas" / "single_servo_summary.schema.json"
+    )
+    summary_schema = json.loads(summary_schema_path.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(summary_schema)
+    Draft202012Validator(summary_schema).validate(summary)
     assert summary["run_status"] == "COMPLETE"
     assert summary["halt_reason"] is None
     assert summary["ping_status"] == "ok"
     assert summary["transactions_failed"] == 0
     assert summary["transaction_status_counts"]["ok"] == 10
     assert summary["environment"]["torque_enabled"] is False
+    assert summary["environment"]["torque_off_status"] == "ok"
+    assert summary["unexpected_response_length_count"] == 0
+    assert summary["jsonl_sha256"] == hashlib.sha256(output.read_bytes()).hexdigest()
+    assert summary["gates"]["complete_record_stream"] is True
+    assert summary["gates"]["torque_off_confirmed"] is True
+    assert summary["gates"]["gate1_candidate"] is False
 
 
 def test_single_servo_probe_refuses_output_summary_collision(tmp_path: Path) -> None:

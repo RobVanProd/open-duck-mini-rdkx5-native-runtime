@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import platform
 import queue
@@ -24,6 +25,14 @@ from .hardware_guard import (
 from .safety import Watchdog, WatchdogTrip
 from .telemetry import TelemetryError
 from .timing import AbsoluteTicker
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 @dataclass(slots=True)
@@ -257,6 +266,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     round_trip_ns = np.zeros(args.ticks, dtype=np.int64)
     tick_period_ns = np.zeros(args.ticks, dtype=np.int64)
     statuses = np.full(args.ticks, int(ErrorCode.TIMEOUT), dtype=np.uint8)
+    response_lengths = np.zeros(args.ticks, dtype=np.int16)
     ping_status = ErrorCode.TIMEOUT
     previous_tick_ns = 0
     watchdog = Watchdog(
@@ -286,6 +296,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             elapsed_ns = clock_ns() - transaction_start_ns
             round_trip_ns[tick] = elapsed_ns
             statuses[tick] = int(status)
+            response_lengths[tick] = len(response)
             writer.publish(
                 tick,
                 tick_start_ns,
@@ -319,11 +330,20 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     }
     failures = completed_statuses != int(ErrorCode.OK)
     failure_count = int(np.count_nonzero(failures))
+    unexpected_response_lengths = int(
+        np.count_nonzero(response_lengths[:completed_ticks] != 2)
+    )
     burst_count, max_burst = _bursts(failures)
     summary = {
         "schema_version": "open_duck_x5.single_servo_summary.v1",
         "backend": args.bus,
         "informational_only": informational_only,
+        "review_status": (
+            "INFORMATIONAL_ONLY" if informational_only else "REVIEW_REQUIRED"
+        ),
+        "hardware_gate_status": (
+            "NOT_APPLICABLE_MOCK" if informational_only else "REVIEW_REQUIRED"
+        ),
         "run_status": "HALTED" if halt_reason else "COMPLETE",
         "halt_reason": halt_reason,
         "servo_id": args.servo_id,
@@ -334,6 +354,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "round_trip_ms": _stats_ns(round_trip_ns[:completed_ticks]),
         "transaction_status_counts": status_counts,
         "transactions_failed": failure_count,
+        "unexpected_response_length_count": unexpected_response_lengths,
         "transaction_failure_rate": (
             failure_count / completed_ticks if completed_ticks else 0.0
         ),
@@ -347,9 +368,39 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "frequency_hz": args.frequency_hz,
             "timeout_ms": args.timeout_ms,
             "torque_enabled": False,
+            "torque_off_status": torque_off_status.name.lower(),
             "watchdog_consecutive_failures": args.watchdog_failures,
             "telemetry_records_dropped": writer.dropped,
+            "hardware_authorized": bool(args.hardware_authorized),
+            "suspended_or_benched": bool(args.suspended_or_benched),
         },
+        "jsonl_sha256": _sha256(args.output),
+    }
+    complete_stream = (
+        halt_reason is None
+        and completed_ticks == args.ticks
+        and writer.dropped == 0
+    )
+    torque_off_confirmed = torque_off_status is ErrorCode.OK
+    authorization_provenance = args.bus == "mock" or (
+        args.hardware_authorized and args.suspended_or_benched
+    )
+    summary["gates"] = {
+        "complete_record_stream": complete_stream,
+        "torque_off_confirmed": torque_off_confirmed,
+        "authorization_provenance": authorization_provenance,
+        "ping_ok": ping_status is ErrorCode.OK,
+        "zero_transaction_failures": failure_count == 0,
+        "zero_unexpected_response_lengths": unexpected_response_lengths == 0,
+        "zero_read_bursts": burst_count == 0,
+        "gate1_candidate": args.bus == "serial"
+        and complete_stream
+        and torque_off_confirmed
+        and authorization_provenance
+        and ping_status is ErrorCode.OK
+        and failure_count == 0
+        and unexpected_response_lengths == 0
+        and burst_count == 0,
     }
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_bytes(

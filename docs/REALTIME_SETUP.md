@@ -19,7 +19,19 @@ same clock domain.
 - Request SCHED_FIFO priority 80.
 - Run logging, controller input, and noncritical sensor work off the isolated core.
 
+The CPU ONNX session is explicitly sequential and single-threaded, with intra-
+and inter-op spinning disabled. Inference therefore executes on the RT control
+thread instead of making it wait for default SCHED_OTHER worker pools on the
+housekeeping cores. Any native thread still created by ONNX Runtime or another
+library is enumerated and must exclude the control CPU.
+
 Boot configuration on RDK images varies. `setup/print_core_isolation_plan.sh 5` prints the arguments and checks the current kernel state; it intentionally does not edit bootloader files offline. Record the board's actual bootloader path before applying the arguments.
+
+`setup/verify_rt_setup.sh 5 80` parses the kernel CPU-list syntax exactly and
+launches a short-lived process that must successfully pin itself to CPU 5 and
+enter `SCHED_FIFO` priority 80. A `PASS` therefore proves both isolation
+membership and current-session scheduler privilege; substring matches such as
+CPU 1 versus CPU 10 are never accepted.
 
 `setup/install_rt_permissions.sh` installs a narrow limits file for group
 `open-duck-rt`. A systemd service is preferred in production because it can set
