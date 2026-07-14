@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/sensor-summary.schema.json",
+  "title": "Open Duck X5 labeled sensor summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "backend",
+    "informational_only",
+    "run_status",
+    "review_status",
+    "label",
+    "samples",
+    "samples_requested",
+    "config",
+    "environment",
+    "timing",
+    "imu",
+    "contacts",
+    "checks",
+    "jsonl_sha256"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.sensor_summary.v1" },
+    "backend": { "enum": ["mock", "x5"] },
+    "informational_only": { "type": "boolean" },
+    "run_status": { "const": "COMPLETE" },
+    "review_status": { "const": "REVIEW_REQUIRED" },
+    "label": { "type": "string" },
+    "samples": { "type": "integer", "minimum": 2 },
+    "samples_requested": { "type": "integer", "minimum": 2 },
+    "config": {
+      "type": "object",
+      "required": ["path", "sha256", "imu_upside_down"]
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "servo_bus_accessed",
+        "torque_enabled",
+        "goal_position_writes"
+      ],
+      "properties": {
+        "servo_bus_accessed": { "const": false },
+        "torque_enabled": { "const": false },
+        "goal_position_writes": { "const": 0 }
+      }
+    },
+    "timing": { "type": "object" },
+    "imu": { "type": "object" },
+    "contacts": { "type": "object" },
+    "checks": {
+      "type": "object",
+      "required": [
+        "zero_imu_stale",
+        "zero_contacts_stale",
+        "strictly_increasing_imu_timestamps",
+        "strictly_increasing_contact_timestamps",
+        "orientation_and_contact_label_match"
+      ],
+      "properties": {
+        "orientation_and_contact_label_match": { "const": "REVIEW_REQUIRED" }
+      }
+    },
+    "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  },
+  "additionalProperties": false
+}

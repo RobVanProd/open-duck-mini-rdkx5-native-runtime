@@ -14,7 +14,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class timing/tracking evidence; explicitly gated serial movement |
 | RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
-| IMU / contacts / policy host | Implemented behind hardware authorization |
+| IMU / contacts / policy host | Implemented; labeled sensor probe and policy host remain hardware-unverified |
 | Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
 | Grounded replay | Out of scope |
 
@@ -56,6 +56,9 @@ Every hardware CLI requires both of these exact flags:
 ```
 
 Those flags are an operator assertion that Rob approved the specific gate and the robot is physically supported. They are not blanket authorization for later gates. There is intentionally no grounded-run option.
+Moving probes additionally require `--moving-gate-authorized`. The serial policy
+runtime is reserved for Gate 5 and additionally requires `--gate5-authorized`,
+an exact fixed command, a finite tick count, and `start_paused=true`.
 
 Read these before any X5 work:
 
@@ -111,8 +114,8 @@ Mock results validate code paths, schemas, failure accounting, and artifact prod
 
 The checked-in 1,000-tick mock run used stock Windows scheduling and the shared
 high-resolution monotonic clock. It produced zero transaction failures and zero
-bursts, with bus-time max 2.541 ms. Tick p99 was 21.995 ms and p99.9 was
-22.011 ms, so the mock host does not pass the hardware timing gates. Mock
+bursts, with bus-time max 2.094 ms. Tick p99 was 21.997 ms and p99.9 was
+22.049 ms, so the mock host does not pass the hardware timing gates. Mock
 tracking p95 was 0.00345 rad. That is an
 informational result, not a failure of an X5 gate and not evidence about
 `SCHED_FIFO` or CPU isolation.

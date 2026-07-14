@@ -11,7 +11,10 @@ WorkingDirectory=/home/sunrise/open-duck-mini-rdkx5-native-runtime
 # reviewed override for the one explicitly authorized suspended/benched gate.
 ExecStart=/home/sunrise/open-duck-x5-venv/bin/open_duck_x5_runtime --bus serial --require-realtime --rt-cpu 5 --rt-priority 80 --config /home/sunrise/duck_config.json --policy /home/sunrise/BEST_WALK_ONNX_2.onnx --controller f710 --telemetry /home/sunrise/duck_logs/runtime.jsonl
 Restart=no
-CPUAffinity=5
+# All six CPUs must be available at process start. The runtime partitions
+# background/native workers onto 0-4, then moves only the control thread to 5.
+# Pinning the whole service to CPU 5 defeats isolation and is rejected.
+CPUAffinity=0 1 2 3 4 5
 LimitRTPRIO=90
 LimitMEMLOCK=infinity
 AmbientCapabilities=CAP_SYS_NICE

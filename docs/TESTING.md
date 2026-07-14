@@ -24,6 +24,19 @@ phase factor.
 The evidence-collector tests verify safe default operation, schema and manifest
 integrity, likely-credential exclusion, policy-binary exclusion, 115-input ONNX
 rejection, and dual-acknowledgement enforcement before output creation.
+Real-time tests verify pre-spawn housekeeping affinity, control-thread-only
+`SCHED_FIFO`, rejection of a service pinned only to the control CPU, and failure
+when any background native thread can execute on the isolated core.
+The labeled sensor-probe tests validate JSONL/summary schemas, shared-clock
+freshness evidence, explicit review-required orientation status, and refusal to
+open X5 GPIO/I2C before both hardware acknowledgements.
+Telemetry tests prove output-open failures are reported synchronously and that
+exhausting any bounded record pool fails the run instead of silently dropping
+evidence. Runtime guard tests reject incomplete Gate 5 scope and
+`start_paused=false` before serial or real-time setup is touched. Path-collision
+tests protect config/policy/evidence files, while cleanup tests verify that a
+stop during the home move cuts torque and a failed cutoff status cannot look
+successful.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.

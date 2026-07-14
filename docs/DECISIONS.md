@@ -6,7 +6,7 @@ Accepted. The timing probe and failure taxonomy precede hardware optimization. Z
 
 ## D002 — Python first, native only by gate
 
-Accepted. Policy and servo transaction start in Python. A Rust extension is allowed only after an authorized RT/isolation run misses tick p99 or p99.9 gates. Only the transaction crosses FFI.
+Accepted. Policy and servo transaction start in Python. A Rust extension is allowed only after an authorized RT/isolation run misses tick p99 or p99.9 gates. Only the transaction crosses FFI. The serial all-14 probe refuses to run without verified `SCHED_FIFO`, control-core affinity, and exclusion of every background native thread from that core.
 
 ## D003 — One direct bus stack
 
@@ -23,3 +23,16 @@ Accepted provisionally. The inherited real runtime's phase order is preserved ev
 ## D006 — No grounded execution surface
 
 Accepted. Hardware CLIs require suspended/benched assertion. The runtime exposes no grounded mode from this workstream.
+
+## D007 — Incomplete telemetry invalidates a run
+
+Accepted. Bounded queues remain off the hot thread, but pool exhaustion, queue
+overflow, and writer I/O failure are fatal evidence errors. A run with an
+unrecorded tick or envelope event cannot remain `COMPLETE`.
+
+## D008 — Reserve serial runtime for the exact Gate 5 scope
+
+Accepted. Gate 1/2/4 use their dedicated probes. Serial policy execution also
+requires a per-invocation Gate 5 assertion, a 101/14 policy, `start_paused=true`,
+a finite duration, and exact `x=0` or `x=0.08`; each command is authorized and
+reviewed separately.

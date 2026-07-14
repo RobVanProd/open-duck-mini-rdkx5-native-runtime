@@ -13,6 +13,10 @@ from .clock import clock_ns
 from .constants import ACTION_DIM, OBSERVATION_DIM
 
 
+class TelemetryError(RuntimeError):
+    """The evidence stream is incomplete or could not be written."""
+
+
 @dataclass(slots=True)
 class ProbeRecord:
     tick: int = 0
@@ -127,8 +131,16 @@ class AsyncProbeWriter:
         for _ in range(capacity):
             self._free.put(ProbeRecord())
         self.dropped = 0
+        self._error: BaseException | None = None
+        self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, name="probe-jsonl-writer", daemon=True)
         self._thread.start()
+        self._ready.wait()
+        self._raise_if_failed()
+
+    def _raise_if_failed(self) -> None:
+        if self._error is not None:
+            raise TelemetryError(f"timing telemetry writer failed: {self._error}") from self._error
 
     def publish(
         self,
@@ -139,11 +151,12 @@ class AsyncProbeWriter:
         snapshot: ServoSnapshot,
         target_positions_rad: np.ndarray,
     ) -> None:
+        self._raise_if_failed()
         try:
             record = self._free.get_nowait()
-        except queue.Empty:
+        except queue.Empty as exc:
             self.dropped += 1
-            return
+            raise TelemetryError("timing telemetry record pool exhausted") from exc
         record.capture(
             tick,
             tick_start_ns,
@@ -154,22 +167,36 @@ class AsyncProbeWriter:
         )
         try:
             self._pending.put_nowait(record)
-        except queue.Full:
+        except queue.Full as exc:
             self.dropped += 1
             self._free.put(record)
+            raise TelemetryError("timing telemetry queue overflow") from exc
 
     def _run(self) -> None:
-        with self.path.open("w", encoding="utf-8", buffering=1) as handle:
-            while True:
-                record = self._pending.get()
-                if record is None:
-                    return
-                handle.write(json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n")
-                self._free.put(record)
+        try:
+            with self.path.open("w", encoding="utf-8", buffering=1) as handle:
+                self._ready.set()
+                while True:
+                    record = self._pending.get()
+                    if record is None:
+                        return
+                    handle.write(
+                        json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n"
+                    )
+                    self._free.put(record)
+        except BaseException as exc:
+            self._error = exc
+            self._ready.set()
 
     def close(self) -> None:
-        self._pending.put(None)
+        while self._thread.is_alive():
+            try:
+                self._pending.put(None, timeout=0.1)
+                break
+            except queue.Full:
+                continue
         self._thread.join()
+        self._raise_if_failed()
 
 
 @dataclass(slots=True)
@@ -312,8 +339,16 @@ class AsyncControlWriter:
         for _ in range(capacity):
             self._free.put(ControlRecord())
         self.dropped = 0
+        self._error: BaseException | None = None
+        self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, name="control-jsonl-writer", daemon=True)
         self._thread.start()
+        self._ready.wait()
+        self._raise_if_failed()
+
+    def _raise_if_failed(self) -> None:
+        if self._error is not None:
+            raise TelemetryError(f"control telemetry writer failed: {self._error}") from self._error
 
     def publish(
         self,
@@ -333,11 +368,12 @@ class AsyncControlWriter:
         implied_velocity_rad_s: np.ndarray,
         over_envelope: np.ndarray,
     ) -> None:
+        self._raise_if_failed()
         try:
             record = self._free.get_nowait()
-        except queue.Empty:
+        except queue.Empty as exc:
             self.dropped += 1
-            return
+            raise TelemetryError("control telemetry record pool exhausted") from exc
         record.capture(
             tick,
             tick_start_ns,
@@ -357,30 +393,67 @@ class AsyncControlWriter:
         )
         try:
             self._pending.put_nowait(record)
-        except queue.Full:
+        except queue.Full as exc:
             self.dropped += 1
             self._free.put(record)
+            raise TelemetryError("control telemetry queue overflow") from exc
 
     def _run(self) -> None:
-        with self.path.open("w", encoding="utf-8", buffering=1) as handle:
-            while True:
-                record = self._pending.get()
-                if record is None:
-                    return
-                if isinstance(record, dict):
-                    handle.write(json.dumps(record, separators=(",", ":")) + "\n")
-                    continue
-                handle.write(json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n")
-                self._free.put(record)
+        try:
+            with self.path.open("w", encoding="utf-8", buffering=1) as handle:
+                self._ready.set()
+                while True:
+                    record = self._pending.get()
+                    if record is None:
+                        return
+                    if isinstance(record, dict):
+                        handle.write(json.dumps(record, separators=(",", ":")) + "\n")
+                        continue
+                    handle.write(
+                        json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n"
+                    )
+                    self._free.put(record)
+        except BaseException as exc:
+            self._error = exc
+            self._ready.set()
+
+    def publish_event(
+        self, event: str, *, details: dict[str, object] | None = None
+    ) -> None:
+        self._raise_if_failed()
+        payload: dict[str, object] = {
+            "schema_version": "open_duck_x5.runtime_event.v1",
+            "timestamp_monotonic_ns": clock_ns(),
+            "event": event,
+        }
+        if details is not None:
+            payload["details"] = details
+        try:
+            self._pending.put_nowait(payload)
+        except queue.Full as exc:
+            self.dropped += 1
+            raise TelemetryError("control telemetry queue overflow") from exc
 
     def close(self, *, reason: str = "normal_exit") -> None:
-        self._pending.put(
-            {
-                "schema_version": "open_duck_x5.runtime_event.v1",
-                "timestamp_monotonic_ns": clock_ns(),
-                "event": "runtime_halt",
-                "reason": reason,
-            }
-        )
-        self._pending.put(None)
+        halt_record = {
+            "schema_version": "open_duck_x5.runtime_event.v1",
+            "timestamp_monotonic_ns": clock_ns(),
+            "event": "runtime_halt",
+            "reason": reason,
+            "telemetry_records_dropped": self.dropped,
+        }
+        halt_queued = False
+        while self._thread.is_alive() and not halt_queued:
+            try:
+                self._pending.put(halt_record, timeout=0.1)
+                halt_queued = True
+            except queue.Full:
+                continue
+        while self._thread.is_alive():
+            try:
+                self._pending.put(None, timeout=0.1)
+                break
+            except queue.Full:
+                continue
         self._thread.join()
+        self._raise_if_failed()

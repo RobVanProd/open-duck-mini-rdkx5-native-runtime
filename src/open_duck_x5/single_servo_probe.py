@@ -22,6 +22,7 @@ from .hardware_guard import (
     require_hardware_authorization,
 )
 from .safety import Watchdog, WatchdogTrip
+from .telemetry import TelemetryError
 from .timing import AbsoluteTicker
 
 
@@ -75,10 +76,20 @@ class AsyncSingleServoWriter:
         for _ in range(capacity):
             self._free.put(SingleServoRecord())
         self.dropped = 0
+        self._error: BaseException | None = None
+        self._ready = threading.Event()
         self._thread = threading.Thread(
             target=self._run, name="single-servo-jsonl-writer", daemon=True
         )
         self._thread.start()
+        self._ready.wait()
+        self._raise_if_failed()
+
+    def _raise_if_failed(self) -> None:
+        if self._error is not None:
+            raise TelemetryError(
+                f"single-servo telemetry writer failed: {self._error}"
+            ) from self._error
 
     def publish(
         self,
@@ -89,11 +100,14 @@ class AsyncSingleServoWriter:
         status: ErrorCode,
         response_length: int,
     ) -> None:
+        self._raise_if_failed()
         try:
             record = self._free.get_nowait()
-        except queue.Empty:
+        except queue.Empty as exc:
             self.dropped += 1
-            return
+            raise TelemetryError(
+                "single-servo telemetry record pool exhausted"
+            ) from exc
         record.capture(
             tick,
             tick_start_ns,
@@ -104,27 +118,39 @@ class AsyncSingleServoWriter:
         )
         try:
             self._pending.put_nowait(record)
-        except queue.Full:
+        except queue.Full as exc:
             self.dropped += 1
             self._free.put(record)
+            raise TelemetryError("single-servo telemetry queue overflow") from exc
 
     def _run(self) -> None:
-        with self.path.open("w", encoding="utf-8", buffering=1) as handle:
-            while True:
-                record = self._pending.get()
-                if record is None:
-                    return
-                handle.write(
-                    json.dumps(
-                        record.as_jsonable(self.servo_id), separators=(",", ":")
+        try:
+            with self.path.open("w", encoding="utf-8", buffering=1) as handle:
+                self._ready.set()
+                while True:
+                    record = self._pending.get()
+                    if record is None:
+                        return
+                    handle.write(
+                        json.dumps(
+                            record.as_jsonable(self.servo_id), separators=(",", ":")
+                        )
+                        + "\n"
                     )
-                    + "\n"
-                )
-                self._free.put(record)
+                    self._free.put(record)
+        except BaseException as exc:
+            self._error = exc
+            self._ready.set()
 
     def close(self) -> None:
-        self._pending.put(None)
+        while self._thread.is_alive():
+            try:
+                self._pending.put(None, timeout=0.1)
+                break
+            except queue.Full:
+                continue
         self._thread.join()
+        self._raise_if_failed()
 
 
 def _stats_ns(values: np.ndarray) -> dict[str, float | None]:
@@ -179,10 +205,24 @@ def build_parser() -> argparse.ArgumentParser:
 def run_probe(args: argparse.Namespace) -> dict[str, object]:
     if args.ticks < 2:
         raise ValueError("--ticks must be at least 2")
-    if args.frequency_hz <= 0 or args.timeout_ms <= 0:
-        raise ValueError("frequency and timeout must be positive")
+    if args.baudrate <= 0:
+        raise ValueError("--baudrate must be positive")
+    if (
+        not np.isfinite(args.frequency_hz)
+        or args.frequency_hz <= 0
+        or not np.isfinite(args.timeout_ms)
+        or args.timeout_ms <= 0
+    ):
+        raise ValueError("frequency and timeout must be finite and positive")
     if args.watchdog_failures < 1:
         raise ValueError("--watchdog-failures must be positive")
+    output_path = args.output.expanduser().resolve()
+    summary_path = args.summary.expanduser().resolve()
+    protected_paths = {summary_path}
+    if args.bus == "serial":
+        protected_paths.add(Path(args.device).expanduser().resolve())
+    if output_path in protected_paths or summary_path == Path(args.device).expanduser().resolve():
+        raise ValueError("probe output, summary, and serial device must be distinct")
     if args.bus == "serial":
         require_hardware_authorization(
             hardware_authorized=args.hardware_authorized,
@@ -195,6 +235,9 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             transaction_timeout_s=args.timeout_ms / 1000.0,
         )
         informational_only = False
+        if bus.disable_torque() is not ErrorCode.OK:
+            bus.close()
+            raise RuntimeError("failed to establish torque-off before Gate 1 setup")
     else:
         bus = MockSTS3215Bus(latency_s=0.0)
         informational_only = True
@@ -221,10 +264,9 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         max_consecutive_bus_failures=args.watchdog_failures,
     )
     halt_reason = None
+    torque_off_status = ErrorCode.OK
     completed_ticks = 0
     try:
-        if bus.disable_torque() is not ErrorCode.OK:
-            raise RuntimeError("failed to establish torque-off before Gate 1 probe")
         ping_status = bus.ping(args.servo_id)
         if ping_status is not ErrorCode.OK:
             raise RuntimeError(
@@ -258,14 +300,17 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 tick_work_ns=clock_ns() - tick_start_ns,
                 bus_ok=status is ErrorCode.OK,
             )
-    except WatchdogTrip as exc:
+    except (TelemetryError, WatchdogTrip) as exc:
         halt_reason = str(exc)
     finally:
         try:
-            bus.disable_torque()
+            torque_off_status = bus.disable_torque()
         finally:
             bus.close()
             writer.close()
+    if torque_off_status is not ErrorCode.OK:
+        cutoff_reason = f"cleanup torque-off failed: {torque_off_status.name.lower()}"
+        halt_reason = f"{halt_reason}; {cutoff_reason}" if halt_reason else cutoff_reason
 
     completed_statuses = statuses[:completed_ticks]
     status_counts = {

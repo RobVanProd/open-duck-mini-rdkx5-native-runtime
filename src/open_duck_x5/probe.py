@@ -5,7 +5,9 @@ import hashlib
 import json
 import math
 import platform
+import signal
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -19,9 +21,20 @@ from .hardware_guard import (
     add_hardware_ack_arguments,
     require_hardware_authorization,
 )
+from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import Watchdog, WatchdogTrip
-from .telemetry import AsyncProbeWriter
+from .telemetry import AsyncProbeWriter, TelemetryError
 from .timing import AbsoluteTicker, TimingSeries
+
+
+class ProbeInterrupted(RuntimeError):
+    pass
+
+
+def _raise_if_stop_requested(args: argparse.Namespace) -> None:
+    signum = getattr(args, "stop_signal", None)
+    if signum is not None:
+        raise ProbeInterrupted(f"signal:{signum}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -45,6 +58,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", type=Path)
     parser.add_argument("--home-seconds", type=float, default=2.0)
     parser.add_argument("--watchdog-failures", type=int, default=3)
+    parser.add_argument("--require-realtime", action="store_true")
+    parser.add_argument("--rt-cpu", type=int, default=5)
+    parser.add_argument("--rt-priority", type=int, default=80)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
     add_hardware_ack_arguments(parser)
@@ -77,6 +93,7 @@ def _move_home_slowly(
     physical_home_rad,
     *,
     home_seconds: float,
+    stop_check,
 ) -> None:
     if home_seconds <= 0:
         raise ValueError("--home-seconds must be positive for a moving gate")
@@ -90,7 +107,9 @@ def _move_home_slowly(
     steps = max(1, int(home_seconds * CONTROL_FREQUENCY_HZ))
     ticker = AbsoluteTicker()
     for step in range(1, steps + 1):
+        stop_check()
         ticker.wait()
+        stop_check()
         fraction = step / steps
         np.multiply(start, 1.0 - fraction, out=target)
         target += physical_home_rad * fraction
@@ -111,14 +130,31 @@ def _move_home_slowly(
 def run_probe(args: argparse.Namespace) -> dict[str, object]:
     if args.ticks < 2:
         raise ValueError("--ticks must be at least 2")
-    if args.frequency_hz <= 0:
-        raise ValueError("--frequency-hz must be positive")
-    if args.sine_hz < 0:
-        raise ValueError("--sine-hz must be nonnegative")
-    if args.amplitude_rad < 0:
-        raise ValueError("--amplitude-rad must be nonnegative")
+    if args.baudrate <= 0:
+        raise ValueError("--baudrate must be positive")
+    for name in ("timeout_ms", "frequency_hz", "home_seconds"):
+        value = float(getattr(args, name))
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError(f"--{name.replace('_', '-')} must be finite and positive")
+    for name in ("sine_hz", "amplitude_rad", "mock_latency_ms"):
+        value = float(getattr(args, name))
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"--{name.replace('_', '-')} must be finite and nonnegative")
     if args.watchdog_failures < 1:
         raise ValueError("--watchdog-failures must be positive")
+    if args.rt_cpu < 0:
+        raise ValueError("--rt-cpu must be nonnegative")
+    if not 1 <= args.rt_priority <= 99:
+        raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
+    output_path = args.output.expanduser().resolve()
+    summary_path = args.summary.expanduser().resolve()
+    protected_paths = {summary_path}
+    if args.config is not None:
+        protected_paths.add(args.config.expanduser().resolve())
+    if args.bus == "serial":
+        protected_paths.add(Path(args.device).expanduser().resolve())
+    if output_path in protected_paths or summary_path in protected_paths - {summary_path}:
+        raise ValueError("probe output, summary, config, and serial device must be distinct")
     if args.bus == "serial" and args.enable_torque:
         if not args.moving_gate_authorized:
             raise HardwareAuthorizationError(
@@ -139,12 +175,24 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             suspended_or_benched=args.suspended_or_benched,
             operation="serial timing probe",
         )
+        if not args.require_realtime:
+            raise RealtimeSetupError("serial timing probe requires --require-realtime")
+    realtime_preparation = None
+    realtime_state = None
+    if args.require_realtime:
+        # Partition before the JSON writer thread is created. It then inherits
+        # housekeeping affinity and cannot contend with the control loop.
+        realtime_preparation = prepare_realtime(cpu=args.rt_cpu, require_isolated=True)
+    if args.bus == "serial":
         bus = STS3215Bus(
             args.device,
             baudrate=args.baudrate,
             transaction_timeout_s=args.timeout_ms / 1000.0,
         )
         informational_only = False
+        if bus.disable_torque() is not ErrorCode.OK:
+            bus.close()
+            raise RuntimeError("failed to establish torque-off before probe setup")
     else:
         bus = MockSTS3215Bus(latency_s=args.mock_latency_ms / 1000.0)
         informational_only = True
@@ -169,10 +217,15 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         max_consecutive_bus_failures=args.watchdog_failures,
     )
     halt_reason = None
+    torque_off_status = ErrorCode.OK
     try:
+        _raise_if_stop_requested(args)
+        if realtime_preparation is not None:
+            realtime_state = configure_realtime(
+                preparation=realtime_preparation,
+                priority=args.rt_priority,
+            )
         if args.bus == "serial":
-            if bus.disable_torque() is not ErrorCode.OK:
-                raise RuntimeError("failed to establish torque-off before probe")
             _verify_servos(bus, snapshot)
         if args.enable_torque:
             _move_home_slowly(
@@ -180,10 +233,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 snapshot,
                 physical_home,
                 home_seconds=args.home_seconds,
+                stop_check=lambda: _raise_if_stop_requested(args),
             )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
         for tick in range(args.ticks):
+            _raise_if_stop_requested(args)
             tick_start_ns, lateness_ns = ticker.wait()
+            _raise_if_stop_requested(args)
             phase = 2.0 * math.pi * args.sine_hz * tick / args.frequency_hz
             targets[:] = physical_home
             targets[sine_joint_index] += args.amplitude_rad * math.sin(phase)
@@ -215,14 +271,17 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 tick_work_ns=tick_work_ns,
                 bus_ok=bus_ok,
             )
-    except WatchdogTrip as exc:
+    except (ProbeInterrupted, TelemetryError, WatchdogTrip) as exc:
         halt_reason = str(exc)
     finally:
         try:
-            bus.disable_torque()
+            torque_off_status = bus.disable_torque()
         finally:
             bus.close()
             writer.close()
+    if torque_off_status is not ErrorCode.OK:
+        cutoff_reason = f"cleanup torque-off failed: {torque_off_status.name.lower()}"
+        halt_reason = f"{halt_reason}; {cutoff_reason}" if halt_reason else cutoff_reason
 
     summary = series.summary(backend=args.bus, informational_only=informational_only)
     summary["ticks_requested"] = args.ticks
@@ -243,6 +302,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "config_path": str(args.config) if args.config is not None else None,
         "config_sha256": config_sha256,
         "telemetry_records_dropped": writer.dropped,
+        "realtime": asdict(realtime_state) if realtime_state is not None else None,
     }
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     summary_bytes = (json.dumps(summary, indent=2, sort_keys=True) + "\n").encode("utf-8")
@@ -253,10 +313,29 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    args.stop_signal = None
+
+    def request_stop(signum, frame) -> None:
+        del frame
+        args.stop_signal = signum
+
+    previous_sigint = signal.getsignal(signal.SIGINT)
+    previous_sigterm = signal.getsignal(signal.SIGTERM)
+    signal.signal(signal.SIGINT, request_stop)
+    signal.signal(signal.SIGTERM, request_stop)
     try:
-        summary = run_probe(args)
-    except (HardwareAuthorizationError, ValueError, RuntimeError) as exc:
-        parser.error(str(exc))
+        try:
+            summary = run_probe(args)
+        except (
+            HardwareAuthorizationError,
+            RealtimeSetupError,
+            ValueError,
+            RuntimeError,
+        ) as exc:
+            parser.error(str(exc))
+    finally:
+        signal.signal(signal.SIGINT, previous_sigint)
+        signal.signal(signal.SIGTERM, previous_sigterm)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 2 if summary["run_status"] == "HALTED" else 0
 

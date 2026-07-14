@@ -48,6 +48,24 @@ def test_single_servo_probe_records_torque_off_mock_evidence(tmp_path: Path) -> 
     assert summary["environment"]["torque_enabled"] is False
 
 
+def test_single_servo_probe_refuses_output_summary_collision(tmp_path: Path) -> None:
+    collision = tmp_path / "collision.json"
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "2",
+                "--output",
+                str(collision),
+                "--summary",
+                str(collision),
+            ]
+        )
+    assert not collision.exists()
+
+
 def test_single_servo_serial_probe_requires_hardware_assertions(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         main(

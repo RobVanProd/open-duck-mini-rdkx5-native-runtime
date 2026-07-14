@@ -5,6 +5,7 @@ import gc
 import signal
 import sys
 from contextlib import suppress
+from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -21,10 +22,10 @@ from .hardware_guard import (
     require_hardware_authorization,
 )
 from .policy import OnnxPolicy, PolicyContractError
-from .realtime import RealtimeSetupError, configure_realtime
+from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import SafetyError, TorqueGuard, Watchdog, WatchdogTrip
 from .sensors import BNO055Smbus, MockSensorHub, SensorHub, SensorReadout, X5FootContacts
-from .telemetry import AsyncControlWriter
+from .telemetry import AsyncControlWriter, TelemetryError
 from .timing import AbsoluteTicker
 
 
@@ -47,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=5)
     parser.add_argument("--rt-priority", type=int, default=80)
+    parser.add_argument(
+        "--gate5-authorized",
+        action="store_true",
+        help="assert that this exact suspended Gate 5 policy replay is authorized",
+    )
     add_hardware_ack_arguments(parser)
     return parser
 
@@ -72,6 +78,14 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
     if args.fixed_command_x is not None and not np.isfinite(args.fixed_command_x):
         raise ValueError("--fixed-command-x must be finite")
+    telemetry_path = args.telemetry.expanduser().resolve()
+    protected_paths = {args.config.expanduser().resolve()}
+    if args.policy is not None:
+        protected_paths.add(args.policy.expanduser().resolve())
+    if args.bus == "serial":
+        protected_paths.add(Path(args.device).expanduser().resolve())
+    if telemetry_path in protected_paths:
+        raise ValueError("--telemetry must not overwrite config, policy, or serial device")
 
 
 class Runtime:
@@ -108,6 +122,9 @@ class Runtime:
         self.sensor_hub = None
         self.controller = None
         self.writer = None
+        self.realtime_preparation = None
+        self.realtime_state = None
+        self._gc_was_enabled = gc.isenabled()
 
         try:
             if args.bus == "serial":
@@ -116,13 +133,40 @@ class Runtime:
                     suspended_or_benched=args.suspended_or_benched,
                     operation="X5 runtime",
                 )
+                if not args.gate5_authorized:
+                    raise HardwareAuthorizationError(
+                        "serial runtime is reserved for Gate 5: pass --gate5-authorized "
+                        "only after this exact command/duration is explicitly authorized"
+                    )
+                if args.policy is None:
+                    raise ValueError("Gate 5 serial runtime requires --policy")
+                if args.max_ticks < 1:
+                    raise ValueError("Gate 5 serial runtime requires finite --max-ticks")
+                if args.fixed_command_x not in (0.0, 0.08):
+                    raise ValueError(
+                        "Gate 5 serial runtime requires --fixed-command-x 0 or 0.08"
+                    )
+                if not self.config.start_paused:
+                    raise SafetyError(
+                        "Gate 5 serial runtime requires start_paused=true in duck_config.json"
+                    )
                 if not args.require_realtime:
                     raise RealtimeSetupError("serial runtime requires --require-realtime")
+            if args.require_realtime:
+                # This must happen before ONNX, sensors, controller, or writer
+                # create threads. They then inherit housekeeping affinity.
+                self.realtime_preparation = prepare_realtime(
+                    cpu=args.rt_cpu,
+                    require_isolated=True,
+                )
+            if args.bus == "serial":
                 self.bus = STS3215Bus(
                     args.device,
                     baudrate=args.baudrate,
                     transaction_timeout_s=args.timeout_ms / 1000.0,
                 )
+                if self.bus.disable_torque() is not ErrorCode.OK:
+                    raise SafetyError("failed to establish torque-off before startup")
                 contacts = X5FootContacts()
                 try:
                     imu = BNO055Smbus(
@@ -181,7 +225,11 @@ class Runtime:
         steps = max(1, int(self.args.home_seconds * 50.0))
         ticker = AbsoluteTicker()
         for step in range(1, steps + 1):
+            if self.stop_requested:
+                raise SafetyError("stop requested during home move")
             ticker.wait()
+            if self.stop_requested:
+                raise SafetyError("stop requested during home move")
             fraction = step / steps
             np.multiply(start, 1.0 - fraction, out=target)
             target += HOME_RAD * fraction
@@ -216,16 +264,23 @@ class Runtime:
                 or tick_start_ns - self.controller_readout.timestamp_ns > 250_000_000
             )
         ):
-            self.paused = True
+            raise SafetyError("physical controller state is disconnected or stale")
 
     def run(self) -> None:
         if self.args.require_realtime:
-            configure_realtime(
-                cpu=self.args.rt_cpu,
+            if self.realtime_preparation is None:
+                raise RealtimeSetupError("real-time thread partition was not prepared")
+            self.realtime_state = configure_realtime(
+                preparation=self.realtime_preparation,
                 priority=self.args.rt_priority,
-                require_isolated=True,
+            )
+            self.writer.publish_event(
+                "realtime_verified",
+                details=asdict(self.realtime_state),
             )
         self._verify_all_servos()
+        if self.stop_requested:
+            return
         with TorqueGuard(self.bus) as guard:
             self._move_home_slowly(guard)
             ticker = AbsoluteTicker()
@@ -235,6 +290,8 @@ class Runtime:
                 not self.args.max_ticks or tick < self.args.max_ticks
             ):
                 tick_start_ns, _ = ticker.wait()
+                if self.stop_requested:
+                    break
                 tick_period_ns = (
                     tick_start_ns - self._previous_tick_start_ns
                     if self._previous_tick_start_ns
@@ -275,8 +332,25 @@ class Runtime:
                             action, self.commands, self.offsets
                         )
                         observation_valid = True
-                    except StaleObservationError:
-                        physical_target = self.hold_physical_target
+                    except StaleObservationError as exc:
+                        sources: list[str] = []
+                        if bool(self.snapshot.stale.any()):
+                            stale_ids = [
+                                str(servo_id)
+                                for servo_id, stale in zip(
+                                    SERVO_IDS, self.snapshot.stale, strict=True
+                                )
+                                if bool(stale)
+                            ]
+                            sources.append("servos=" + ",".join(stale_ids))
+                        if self.sensors.imu_stale:
+                            sources.append("imu")
+                        if self.sensors.contacts_stale:
+                            sources.append("contacts")
+                        detail = "; ".join(sources) if sources else "unknown input"
+                        raise SafetyError(
+                            f"required policy observation became stale: {detail}"
+                        ) from exc
                 else:
                     physical_target = self.hold_physical_target
 
@@ -318,9 +392,13 @@ class Runtime:
                     self.action_pipeline.implied_velocity_rad_s,
                     self.action_pipeline.over_envelope,
                 )
+                # Include record capture/queue publication in the safety deadline.
+                # The record itself carries pre-publication work so logging remains
+                # a bounded one-way handoff from the hot loop.
+                watchdog_work_ns = clock_ns() - tick_start_ns
                 self.watchdog.observe(
                     tick_period_ns=tick_period_ns,
-                    tick_work_ns=tick_work_ns,
+                    tick_work_ns=watchdog_work_ns,
                     bus_ok=bus_ok,
                 )
                 tick += 1
@@ -344,7 +422,13 @@ class Runtime:
         self.sensor_hub = None
         if self.bus is not None:
             try:
-                self.bus.disable_torque()
+                status = self.bus.disable_torque()
+                if status is not ErrorCode.OK:
+                    errors.append(
+                        SafetyError(
+                            f"cleanup torque-off failed: {status.name.lower()}"
+                        )
+                    )
             except BaseException as exc:
                 errors.append(exc)
             try:
@@ -352,6 +436,8 @@ class Runtime:
             except BaseException as exc:
                 errors.append(exc)
             self.bus = None
+        if self._gc_was_enabled and not gc.isenabled():
+            gc.enable()
         if errors:
             raise errors[0]
 
@@ -360,28 +446,35 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     runtime: Runtime | None = None
+    exit_code = 0
     try:
         runtime = Runtime(args)
         signal.signal(signal.SIGINT, runtime.request_stop)
         signal.signal(signal.SIGTERM, runtime.request_stop)
         runtime.run()
-        return 0
     except (
         ConfigError,
         HardwareAuthorizationError,
         PolicyContractError,
         RealtimeSetupError,
+        RuntimeError,
         SafetyError,
+        TelemetryError,
         WatchdogTrip,
         ValueError,
     ) as exc:
-        if runtime is not None:
+        if runtime is not None and not runtime.stop_requested:
             runtime.halt_reason = f"{type(exc).__name__}: {exc}"
         print(f"runtime halted: {exc}", file=sys.stderr)
-        return 2
+        exit_code = 2
     finally:
         if runtime is not None:
-            runtime.close()
+            try:
+                runtime.close()
+            except BaseException as exc:
+                print(f"runtime cleanup failed: {exc}", file=sys.stderr)
+                exit_code = 2
+    return exit_code
 
 
 if __name__ == "__main__":

@@ -23,9 +23,16 @@ import os
 import sys
 
 core = int(sys.argv[1])
-print(f"current_affinity={sorted(os.sched_getaffinity(0))}")
+initial = set(os.sched_getaffinity(0))
+print(f"current_affinity={sorted(initial)}")
 print(f"current_scheduler={os.sched_getscheduler(0)}")
 print(f"current_priority={os.sched_getparam(0).sched_priority}")
+if core not in initial:
+    raise RuntimeError(f"control CPU {core} is excluded from initial service affinity")
+housekeeping = initial - {core}
+if not housekeeping:
+    raise RuntimeError("no housekeeping CPU remains; do not pin the service only to control CPU")
+print(f"housekeeping_affinity={sorted(housekeeping)}")
 try:
     os.sched_setaffinity(0, {core})
     print(f"affinity_test=PASS affinity={sorted(os.sched_getaffinity(0))}")
