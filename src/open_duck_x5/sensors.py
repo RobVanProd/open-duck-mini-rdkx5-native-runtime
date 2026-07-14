@@ -129,6 +129,17 @@ class SensorReadout:
     contacts_stale: bool = True
 
 
+@dataclass(frozen=True, slots=True)
+class PublishedSensorReadout:
+    """A complete immutable sensor sample published by one reference assignment."""
+
+    gyro_rad_s: tuple[float, float, float]
+    acceleration_m_s2: tuple[float, float, float]
+    contacts: tuple[float, float]
+    imu_timestamp_ns: int
+    contacts_timestamp_ns: int
+
+
 class SensorHub:
     def __init__(
         self,
@@ -138,11 +149,15 @@ class SensorHub:
         sample_frequency_hz: float = 100.0,
         stale_after_s: float = 0.04,
     ) -> None:
+        if not math.isfinite(sample_frequency_hz) or sample_frequency_hz <= 0:
+            raise ValueError("sensor sample frequency must be finite and positive")
+        if not math.isfinite(stale_after_s) or stale_after_s <= 0:
+            raise ValueError("sensor stale threshold must be finite and positive")
         self.imu = imu
         self.contacts = contacts
         self.period_ns = int(1e9 / sample_frequency_hz)
         self.stale_after_ns = int(stale_after_s * 1e9)
-        self._lock = threading.Lock()
+        self._published: PublishedSensorReadout | None = None
         self._stop = threading.Event()
         self._thread = threading.Thread(target=self._run, name="x5-sensors", daemon=True)
         try:
@@ -156,9 +171,20 @@ class SensorHub:
         deadline = clock_ns()
         while not self._stop.is_set():
             try:
-                with self._lock:
-                    self.imu.sample()
-                    self.contacts.sample()
+                self.imu.sample()
+                self.contacts.sample()
+                # Device I/O happens before publication. The control loop reads a
+                # single immutable object reference, so it can never wait behind
+                # I2C or observe a half-updated IMU/contact pair.
+                self._published = PublishedSensorReadout(
+                    gyro_rad_s=tuple(float(value) for value in self.imu.gyro_rad_s),
+                    acceleration_m_s2=tuple(
+                        float(value) for value in self.imu.acceleration_m_s2
+                    ),
+                    contacts=tuple(float(value) for value in self.contacts.contacts),
+                    imu_timestamp_ns=int(self.imu.timestamp_ns),
+                    contacts_timestamp_ns=int(self.contacts.timestamp_ns),
+                )
             except Exception:
                 # The consumer observes age becoming stale; the hot path does not
                 # print or silently reuse the sample.
@@ -169,12 +195,18 @@ class SensorHub:
                 self._stop.wait(remaining / 1e9)
 
     def read_into(self, output: SensorReadout, now_ns: int) -> None:
-        with self._lock:
-            np.copyto(output.gyro_rad_s, self.imu.gyro_rad_s)
-            np.copyto(output.acceleration_m_s2, self.imu.acceleration_m_s2)
-            np.copyto(output.contacts, self.contacts.contacts)
-            output.imu_timestamp_ns = self.imu.timestamp_ns
-            output.contacts_timestamp_ns = self.contacts.timestamp_ns
+        published = self._published
+        if published is not None:
+            output.gyro_rad_s[0] = published.gyro_rad_s[0]
+            output.gyro_rad_s[1] = published.gyro_rad_s[1]
+            output.gyro_rad_s[2] = published.gyro_rad_s[2]
+            output.acceleration_m_s2[0] = published.acceleration_m_s2[0]
+            output.acceleration_m_s2[1] = published.acceleration_m_s2[1]
+            output.acceleration_m_s2[2] = published.acceleration_m_s2[2]
+            output.contacts[0] = published.contacts[0]
+            output.contacts[1] = published.contacts[1]
+            output.imu_timestamp_ns = published.imu_timestamp_ns
+            output.contacts_timestamp_ns = published.contacts_timestamp_ns
         output.imu_age_ns = max(0, now_ns - output.imu_timestamp_ns)
         output.contacts_age_ns = max(0, now_ns - output.contacts_timestamp_ns)
         output.imu_stale = output.imu_timestamp_ns == 0 or output.imu_age_ns > self.stale_after_ns

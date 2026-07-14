@@ -16,7 +16,7 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class DuckConfig:
-    start_paused: bool = True
+    start_paused: bool = False
     imu_upside_down: bool = False
     phase_frequency_factor_offset: float = 0.0
     joints_offsets: dict[str, float] = field(
@@ -40,6 +40,13 @@ class DuckConfig:
         if not isinstance(data, dict):
             raise ConfigError("duck config root must be an object")
 
+        start_paused = data.get("start_paused", False)
+        if not isinstance(start_paused, bool):
+            raise ConfigError("start_paused must be a JSON boolean")
+        imu_upside_down = data.get("imu_upside_down", False)
+        if not isinstance(imu_upside_down, bool):
+            raise ConfigError("imu_upside_down must be a JSON boolean")
+
         raw_offsets = data.get("joints_offsets", {})
         if not isinstance(raw_offsets, dict):
             raise ConfigError("joints_offsets must be an object")
@@ -59,7 +66,10 @@ class DuckConfig:
                 raise ConfigError(f"offset for {name} must be finite")
             offsets[name] = value
 
-        phase_offset = float(data.get("phase_frequency_factor_offset", 0.0))
+        try:
+            phase_offset = float(data.get("phase_frequency_factor_offset", 0.0))
+        except (TypeError, ValueError) as exc:
+            raise ConfigError("phase_frequency_factor_offset must be numeric") from exc
         if not np.isfinite(phase_offset):
             raise ConfigError("phase_frequency_factor_offset must be finite")
 
@@ -68,8 +78,8 @@ class DuckConfig:
             raise ConfigError("expression_features must be an object")
 
         return cls(
-            start_paused=bool(data.get("start_paused", False)),
-            imu_upside_down=bool(data.get("imu_upside_down", False)),
+            start_paused=start_paused,
+            imu_upside_down=imu_upside_down,
             phase_frequency_factor_offset=phase_offset,
             joints_offsets=offsets,
             expression_features={str(k): bool(v) for k, v in expression_features.items()},

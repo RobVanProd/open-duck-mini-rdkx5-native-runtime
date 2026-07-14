@@ -14,7 +14,13 @@ conversions inherited from `rustypot==0.1.0`, all 101 observation fields, all 14
 actions, history order, phase order, stale-source rejection, config validation,
 field-labeled legacy snapshot extraction/comparison, mock JSONL schema,
 per-error taxonomy, tracking statistics, authorization guards, watchdog
-triggers, and torque-off on an injected exception.
+triggers, torque-off on an injected exception, BNO055 units/remapping,
+active-low contacts, and nonblocking publication when I2C is delayed.
+The ONNX host is exercised with a fake runtime that verifies pre-loop warm-up,
+bound float32 buffers, zero-copy output reuse, and rejection of non-finite data.
+Controller tests cover both right-stick layouts, locked seven-command snapshots,
+A-button pause edges, the inherited Y-button head-control mode, and LB sprint
+phase factor.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.

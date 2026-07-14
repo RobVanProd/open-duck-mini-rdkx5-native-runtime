@@ -51,9 +51,33 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def validate_runtime_args(args: argparse.Namespace) -> None:
+    if args.baudrate <= 0:
+        raise ValueError("--baudrate must be positive")
+    if not np.isfinite(args.timeout_ms) or args.timeout_ms <= 0:
+        raise ValueError("--timeout-ms must be finite and positive")
+    if not np.isfinite(args.home_seconds) or args.home_seconds <= 0:
+        raise ValueError("--home-seconds must be finite and positive")
+    if args.watchdog_failures < 1:
+        raise ValueError("--watchdog-failures must be positive")
+    if args.max_ticks < 0:
+        raise ValueError("--max-ticks must be nonnegative")
+    if args.imu_bus < 0:
+        raise ValueError("--imu-bus must be nonnegative")
+    if not 0 <= args.imu_address <= 0x7F:
+        raise ValueError("--imu-address must be a 7-bit I2C address")
+    if args.rt_cpu < 0:
+        raise ValueError("--rt-cpu must be nonnegative")
+    if not 1 <= args.rt_priority <= 99:
+        raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
+    if args.fixed_command_x is not None and not np.isfinite(args.fixed_command_x):
+        raise ValueError("--fixed-command-x must be finite")
+
+
 class Runtime:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
+        validate_runtime_args(args)
         self.config = DuckConfig.load(args.config)
         self.offsets = self.config.offsets_array
         self.logical_positions = np.zeros(ACTION_DIM, dtype=np.float64)
@@ -241,7 +265,9 @@ class Runtime:
                             contacts_stale=self.sensors.contacts_stale,
                         )
                         # Preserve inherited real-runtime order: advance after obs construction.
-                        self.phase.advance()
+                        self.phase.advance(
+                            base_factor=self.controller_readout.phase_frequency_factor
+                        )
                         action = self.policy.infer(observation)
                         np.copyto(self.telemetry_action, action)
                         self.assembler.commit_action(action)

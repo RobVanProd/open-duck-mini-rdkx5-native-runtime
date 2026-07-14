@@ -36,3 +36,31 @@ def test_config_rejects_missing_and_unknown_joint_names(tmp_path: Path) -> None:
     path.write_text(json.dumps(base), encoding="utf-8")
     with pytest.raises(ConfigError, match="unknown joints"):
         DuckConfig.load(path)
+
+
+@pytest.mark.parametrize("field", ["start_paused", "imu_upside_down"])
+def test_config_rejects_string_booleans(tmp_path: Path, field: str) -> None:
+    payload = {
+        "start_paused": True,
+        "imu_upside_down": False,
+        "phase_frequency_factor_offset": 0.0,
+        "joints_offsets": {name: 0.0 for name in JOINT_NAMES},
+    }
+    payload[field] = "false"
+    path = tmp_path / "invalid-bool.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ConfigError, match=f"{field} must be a JSON boolean"):
+        DuckConfig.load(path)
+
+
+def test_config_rejects_nonnumeric_phase_offset(tmp_path: Path) -> None:
+    payload = {
+        "start_paused": True,
+        "imu_upside_down": False,
+        "phase_frequency_factor_offset": "not-a-number",
+        "joints_offsets": {name: 0.0 for name in JOINT_NAMES},
+    }
+    path = tmp_path / "invalid-phase.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ConfigError, match="phase_frequency_factor_offset must be numeric"):
+        DuckConfig.load(path)
