@@ -25,6 +25,9 @@ configure_motor = "open_duck_x5.tools.configure_motor:main"
 check_motors = "open_duck_x5.tools.check_motors:main"
 find_soft_offsets = "open_duck_x5.tools.find_soft_offsets:main"
 set_servo_mid = "open_duck_x5.tools.set_servo_mid:main"
+verify_contract_snapshot = "open_duck_x5.contract_snapshot:main"
+extract_contract_snapshot = "open_duck_x5.legacy_contract:main"
+probe_single_servo = "open_duck_x5.single_servo_probe:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

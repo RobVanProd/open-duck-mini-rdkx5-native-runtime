@@ -101,3 +101,23 @@ No new action clip or joint-limit clip is added. The 3.75 rad/s envelope monitor
 ## Golden verification still required
 
 Before any policy hardware gate, capture one labeled state from the preserved runtime and compare all 101 elements plus the 14 target outputs field-by-field. Unit tests prove layout and equations; they cannot prove the board's installed driver units, physical axis remap, or live config.
+
+The preserved runtime's existing `sim2real.telemetry.v1` records contain the
+raw ONNX vector and action pipeline. Logging must use
+`--telemetry-every-n 1`, because the previous tick's pre-head-overlay target is
+required to reconstruct the slew limiter. Extract an adjacent pair and run the
+named-field verifier:
+
+```bash
+extract_contract_snapshot legacy-telemetry.jsonl --tick <current-tick> \
+  --output legacy-contract-snapshot.json
+verify_contract_snapshot legacy-contract-snapshot.json \
+  --output artifacts/contracts/legacy-contract-report.json
+```
+
+The extractor independently checks the ONNX names/dimensions, joint names/IDs,
+position slice, velocity scaling, 50 Hz rate, action scale, 5.24 rad/s limiter,
+and confirms that the observation phase equals the prior tick's post-advance
+phase. It rejects captures with the optional action filter enabled because that
+would be a different action contract. A report identifies every mismatch by
+vector index and semantic field name. Any mismatch blocks Gate 5.

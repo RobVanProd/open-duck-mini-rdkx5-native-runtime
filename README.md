@@ -11,7 +11,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Pi inheritance audit | Complete from the preserved reference snapshot |
 | Frozen 101/14 contract | Implemented and unit-tested; hardware golden-vector capture still required |
 | Direct STS3215 bus | Python implementation plus deterministic/fault-injecting mock |
-| Timing probe | Implemented for mock and explicitly gated serial hardware |
+| Timing probe | v2 per-class timing/tracking evidence; explicitly gated serial movement |
 | RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
 | IMU / contacts / policy host | Implemented behind hardware authorization |
 | Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
@@ -90,11 +90,13 @@ Mock results validate code paths, schemas, failure accounting, and artifact prod
 
 The checked-in 1,000-tick mock run used stock Windows scheduling and the shared
 high-resolution monotonic clock. It produced zero transaction failures and zero
-bursts, with bus-time max 2.547 ms. Tick p99 was 22.001 ms and p99.9 was
-22.013 ms, so the mock host does not pass the hardware timing gates. That is an
+bursts, with bus-time max 2.510 ms. Tick p99 was 22.001 ms and p99.9 was
+22.488 ms, so the mock host does not pass the hardware timing gates. Mock
+tracking p95 was 0.00345 rad. That is an
 informational result, not a failure of an X5 gate and not evidence about
 `SCHED_FIFO` or CPU isolation.
 
 Reviewed summaries are in `artifacts/runs/mock/summary.json` and
+`artifacts/runs/mock/single_servo_summary.json`, with the legacy comparison at
 `artifacts/comparisons/baseline_vs_new.mock.json`. Raw JSONL is intentionally
 ignored. `artifacts/manifest.sha256` authenticates every checked-in artifact.

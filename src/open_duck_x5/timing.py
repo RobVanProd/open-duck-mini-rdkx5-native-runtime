@@ -5,9 +5,9 @@ from time import sleep
 
 import numpy as np
 
-from .bus.types import ErrorCode, ServoSnapshot
+from .bus.types import ERROR_NAMES, ErrorCode, ServoSnapshot
 from .clock import clock_ns
-from .constants import CONTROL_PERIOD_NS
+from .constants import ACTION_DIM, CONTROL_PERIOD_NS
 
 
 class AbsoluteTicker:
@@ -42,8 +42,11 @@ class BurstSummary:
 
 
 class TimingSeries:
-    def __init__(self, capacity: int) -> None:
+    def __init__(self, capacity: int, *, tracking_joint_index: int = 0) -> None:
+        if not 0 <= tracking_joint_index < ACTION_DIM:
+            raise ValueError(f"tracking joint index must be in 0..{ACTION_DIM - 1}")
         self.capacity = int(capacity)
+        self.tracking_joint_index = int(tracking_joint_index)
         self.count = 0
         self.tick_period_ns = np.zeros(capacity, dtype=np.int64)
         self.release_lateness_ns = np.zeros(capacity, dtype=np.int64)
@@ -52,9 +55,22 @@ class TimingSeries:
         self.bus_total_ns = np.zeros(capacity, dtype=np.int64)
         self.failed_group_replies = np.zeros(capacity, dtype=np.int16)
         self.failed_transactions = np.zeros(capacity, dtype=np.int16)
+        self.transaction_status_counts = np.zeros(
+            (capacity, len(ErrorCode)), dtype=np.int16
+        )
+        self.partial_bytes = np.zeros(capacity, dtype=np.int16)
+        self.unexpected_packets = np.zeros(capacity, dtype=np.int16)
+        self.tracking_error_rad = np.zeros(capacity, dtype=np.float64)
+        self.tracking_valid = np.zeros(capacity, dtype=np.bool_)
         self._last_tick_start_ns = 0
 
-    def append(self, tick_start_ns: int, release_lateness_ns: int, snapshot: ServoSnapshot) -> None:
+    def append(
+        self,
+        tick_start_ns: int,
+        release_lateness_ns: int,
+        snapshot: ServoSnapshot,
+        target_positions_rad: np.ndarray | None = None,
+    ) -> None:
         if self.count >= self.capacity:
             raise IndexError("timing series capacity exceeded")
         index = self.count
@@ -67,12 +83,25 @@ class TimingSeries:
         self.bus_total_ns[index] = snapshot.bus_total_ns
         group_failures = snapshot.failed_servo_count
         self.failed_group_replies[index] = group_failures
+        counts = self.transaction_status_counts[index]
+        for code in ErrorCode:
+            counts[int(code)] = int(np.count_nonzero(snapshot.status == int(code)))
+        counts[int(snapshot.write_status)] += 1
+        counts[int(snapshot.extended_status)] += 1
+        self.partial_bytes[index] = snapshot.partial_bytes
+        self.unexpected_packets[index] = snapshot.unexpected_packets
         self.failed_transactions[index] = (
-            group_failures
-            + int(snapshot.write_status is not ErrorCode.OK)
-            + int(snapshot.extended_status is not ErrorCode.OK)
-            + snapshot.unexpected_packets
+            ACTION_DIM + 2 - int(counts[int(ErrorCode.OK)]) + snapshot.unexpected_packets
         )
+        if target_positions_rad is not None:
+            if target_positions_rad.shape != (ACTION_DIM,):
+                raise ValueError(f"target positions must have shape ({ACTION_DIM},)")
+            joint = self.tracking_joint_index
+            if not snapshot.stale[joint]:
+                self.tracking_error_rad[index] = abs(
+                    float(snapshot.positions_rad[joint] - target_positions_rad[joint])
+                )
+                self.tracking_valid[index] = True
         self.count += 1
 
     @staticmethod
@@ -109,12 +138,40 @@ class TimingSeries:
         tick_values = self.tick_period_ns[1 : self.count]
         expected_transactions = self.count * 16  # write + 14 grouped replies + one extended read
         failures = int(self.failed_transactions[: self.count].sum())
+        status_counts_array = self.transaction_status_counts[: self.count].sum(axis=0)
+        status_counts = {
+            ERROR_NAMES[int(code)]: int(status_counts_array[int(code)]) for code in ErrorCode
+        }
+        unexpected_count = int(self.unexpected_packets[: self.count].sum())
+        failure_counts = {
+            name: count for name, count in status_counts.items() if name != "ok"
+        }
+        failure_counts["unexpected_packet"] = unexpected_count
         burst = self.burst_summary()
         tick = self._stats(tick_values)
         bus = self._stats(self.bus_total_ns[: self.count])
         failure_rate = failures / expected_transactions if expected_transactions else 0.0
+        tracking_values = self.tracking_error_rad[: self.count][
+            self.tracking_valid[: self.count]
+        ]
+        tracking = (
+            {
+                "samples": int(tracking_values.size),
+                "min": float(np.min(tracking_values)),
+                "mean": float(np.mean(tracking_values)),
+                "p95": float(np.percentile(tracking_values, 95)),
+                "p99": float(np.percentile(tracking_values, 99)),
+                "p99_9": float(np.percentile(tracking_values, 99.9)),
+                "max": float(np.max(tracking_values)),
+            }
+            if tracking_values.size
+            else {
+                key: 0 if key == "samples" else None
+                for key in ("samples", "min", "mean", "p95", "p99", "p99_9", "max")
+            }
+        )
         return {
-            "schema_version": "open_duck_x5.timing_summary.v1",
+            "schema_version": "open_duck_x5.timing_summary.v2",
             "backend": backend,
             "informational_only": informational_only,
             "ticks": self.count,
@@ -125,10 +182,16 @@ class TimingSeries:
             "bus_total_ms": bus,
             "transactions_expected": expected_transactions,
             "transactions_failed": failures,
+            "transaction_status_counts": status_counts,
+            "transaction_failure_counts": failure_counts,
             "transaction_failure_rate": failure_rate,
             "transaction_failure_percent": failure_rate * 100.0,
+            "partial_byte_count": int(self.partial_bytes[: self.count].sum()),
+            "unexpected_packet_count": unexpected_count,
             "read_burst_count": burst.burst_count,
             "max_read_burst_ticks": burst.max_burst_ticks,
+            "tracking_joint_index": self.tracking_joint_index,
+            "tracking_absolute_error_rad": tracking,
             "gates": {
                 "tick_p99_at_most_21_ms": tick["p99"] is not None and tick["p99"] <= 21.0,
                 "tick_p99_9_at_most_22_ms": tick["p99_9"] is not None
@@ -136,5 +199,7 @@ class TimingSeries:
                 "zero_read_bursts": burst.burst_count == 0,
                 "transaction_failure_below_0_1_percent": failure_rate < 0.001,
                 "bus_max_under_5_ms": bus["max"] is not None and bus["max"] < 5.0,
+                "tracking_p95_at_most_0_011_rad": tracking["p95"] is not None
+                and tracking["p95"] <= 0.011,
             },
         }

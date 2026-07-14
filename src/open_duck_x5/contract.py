@@ -131,6 +131,23 @@ class ActionPipeline:
         # This is what the inherited observation stores, including head overlay.
         return self._previous_sent_target
 
+    def seed_previous_targets(
+        self,
+        rate_limited_target_rad: np.ndarray,
+        sent_target_rad: np.ndarray,
+    ) -> None:
+        """Seed one captured legacy tick for field-by-field contract verification."""
+        if rate_limited_target_rad.shape != (ACTION_DIM,):
+            raise ContractShapeError(
+                f"rate-limited target must have shape ({ACTION_DIM},)"
+            )
+        if sent_target_rad.shape != (ACTION_DIM,):
+            raise ContractShapeError(f"sent target must have shape ({ACTION_DIM},)")
+        np.copyto(self._previous_rate_target, rate_limited_target_rad)
+        np.copyto(self.rate_limited_target_rad, rate_limited_target_rad)
+        np.copyto(self._previous_sent_target, sent_target_rad)
+        np.copyto(self.sent_target_rad, sent_target_rad)
+
     def apply(
         self, action: np.ndarray, commands: np.ndarray, soft_offsets_rad: np.ndarray
     ) -> np.ndarray:

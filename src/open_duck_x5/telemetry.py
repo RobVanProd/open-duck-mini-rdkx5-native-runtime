@@ -37,6 +37,15 @@ class ProbeRecord:
     stale: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.bool_)
     )
+    target_positions_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
+    )
+    actual_positions_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
+    )
+    absolute_error_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
+    )
 
     def capture(
         self,
@@ -45,6 +54,7 @@ class ProbeRecord:
         tick_period_ns: int,
         release_lateness_ns: int,
         snapshot: ServoSnapshot,
+        target_positions_rad: np.ndarray,
     ) -> None:
         self.tick = tick
         self.tick_start_ns = tick_start_ns
@@ -64,10 +74,18 @@ class ProbeRecord:
         self.unexpected_packets = snapshot.unexpected_packets
         np.copyto(self.status, snapshot.status)
         np.copyto(self.stale, snapshot.stale)
+        np.copyto(self.target_positions_rad, target_positions_rad)
+        np.copyto(self.actual_positions_rad, snapshot.positions_rad)
+        np.subtract(
+            self.actual_positions_rad,
+            self.target_positions_rad,
+            out=self.absolute_error_rad,
+        )
+        np.absolute(self.absolute_error_rad, out=self.absolute_error_rad)
 
     def as_jsonable(self) -> dict[str, object]:
         return {
-            "schema_version": "open_duck_x5.timing_tick.v1",
+            "schema_version": "open_duck_x5.timing_tick.v2",
             "tick": self.tick,
             "timestamp_monotonic_ns": self.tick_start_ns,
             "tick_period_ms": self.tick_period_ns / 1e6 if self.tick_period_ns else None,
@@ -89,6 +107,11 @@ class ProbeRecord:
                 "present_current_a": self.current_a,
                 "present_voltage_v": self.voltage_v,
                 "present_temperature_c": self.temperature_c,
+            },
+            "motion": {
+                "target_positions_rad": self.target_positions_rad.tolist(),
+                "actual_positions_rad": self.actual_positions_rad.tolist(),
+                "absolute_error_rad": self.absolute_error_rad.tolist(),
             },
         }
 
@@ -114,6 +137,7 @@ class AsyncProbeWriter:
         tick_period_ns: int,
         release_lateness_ns: int,
         snapshot: ServoSnapshot,
+        target_positions_rad: np.ndarray,
     ) -> None:
         try:
             record = self._free.get_nowait()
@@ -126,6 +150,7 @@ class AsyncProbeWriter:
             tick_period_ns,
             release_lateness_ns,
             snapshot,
+            target_positions_rad,
         )
         try:
             self._pending.put_nowait(record)

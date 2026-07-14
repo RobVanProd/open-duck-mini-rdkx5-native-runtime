@@ -5,10 +5,15 @@ Status: `INFORMATIONAL_ONLY`
 - Ticks: 1,000
 - Transactions: 16,000 expected, 0 failed
 - Read bursts: 0
-- Bus max: 2.5472 ms
-- Tick p99: 22.000512 ms
-- Tick p99.9: 22.0126294 ms
+- Bus max: 2.5095 ms
+- Tick p99: 22.001138 ms
+- Tick p99.9: 22.48787100000002 ms
+- Tracking p95: 0.003451687978265439 rad
 - Host: Windows, Python 3.10.11, stock scheduler
+
+The torque-off single-servo mock probe also completed 1,000 reads with zero
+failures or bursts and a read round-trip p99 of 0.0245 ms. Its machine-readable
+result is `artifacts/runs/mock/single_servo_summary.json`.
 
 This run validates the probe, telemetry schema, high-resolution shared clock,
 failure accounting, and comparison pipeline. It misses the hardware tick gates

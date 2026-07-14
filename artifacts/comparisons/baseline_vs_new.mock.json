@@ -9,70 +9,111 @@
   "new": {
     "backend": "mock",
     "bus_total_ms": {
-      "max": 2.5472,
-      "mean": 1.9370785000000001,
-      "min": 0.9643,
-      "p95": 2.0327100000000002,
-      "p99": 2.047805,
-      "p99_9": 2.522025200000002
+      "max": 2.5095,
+      "mean": 1.9253376,
+      "min": 0.8031,
+      "p95": 2.0379,
+      "p99": 2.070901,
+      "p99_9": 2.5063032
     },
     "environment": {
+      "amplitude_rad": 0.03,
       "baudrate": 1000000,
+      "config_path": null,
+      "config_sha256": null,
       "device": "mock://sts3215",
       "frequency_hz": 50.0,
       "platform": "Windows-10-10.0.26200-SP0",
       "python": "3.10.11",
+      "sine_hz": 0.5,
+      "sine_joint": "left_hip_yaw",
       "telemetry_records_dropped": 0,
-      "timeout_ms": 4.0
+      "timeout_ms": 4.0,
+      "torque_enabled": false,
+      "watchdog_consecutive_failures": 3
     },
     "extended_round_trip_ms": {
-      "max": 0.0107,
-      "mean": 0.000981,
+      "max": 0.0234,
+      "mean": 0.0009364999999999999,
       "min": 0.0004,
-      "p95": 0.0018,
-      "p99": 0.0022,
-      "p99_9": 0.00570500000000045
+      "p95": 0.0014049999999999954,
+      "p99": 0.001800999999999999,
+      "p99_9": 0.007815600000001404
     },
     "gates": {
       "bus_max_under_5_ms": true,
       "tick_p99_9_at_most_22_ms": false,
       "tick_p99_at_most_21_ms": false,
+      "tracking_p95_at_most_0_011_rad": true,
       "transaction_failure_below_0_1_percent": true,
       "zero_read_bursts": true
     },
     "group_round_trip_ms": {
-      "max": 2.5401,
-      "mean": 1.9278164,
-      "min": 0.9501,
-      "p95": 2.025145,
-      "p99": 2.039805,
-      "p99_9": 2.5165236000000024
+      "max": 2.5044,
+      "mean": 1.9168744999999998,
+      "min": 0.7964,
+      "p95": 2.029705,
+      "p99": 2.0598170000000002,
+      "p99_9": 2.4994050000000003
     },
+    "halt_reason": null,
     "informational_only": true,
     "max_read_burst_ticks": 0,
+    "partial_byte_count": 0,
     "read_burst_count": 0,
     "release_lateness_ms": {
-      "max": 2.8735,
-      "mean": 1.2548283999999998,
-      "min": 0.0004,
-      "p95": 2.508515,
-      "p99": 2.769345,
-      "p99_9": 2.827246300000004
+      "max": 2.8566,
+      "mean": 1.1337490000000001,
+      "min": 0.0003,
+      "p95": 2.2245549999999996,
+      "p99": 2.7126930000000002,
+      "p99_9": 2.779976700000007
     },
-    "schema_version": "open_duck_x5.timing_summary.v1",
+    "run_status": "COMPLETE",
+    "schema_version": "open_duck_x5.timing_summary.v2",
     "tick_period_ms": {
-      "max": 22.0273,
-      "mean": 20.001885785785788,
-      "min": 17.9763,
-      "p95": 21.5111,
-      "p99": 22.000512,
-      "p99_9": 22.0126294
+      "max": 22.7728,
+      "mean": 20.000115215215214,
+      "min": 17.5085,
+      "p95": 21.50037,
+      "p99": 22.001138,
+      "p99_9": 22.48787100000002
     },
     "ticks": 1000,
+    "ticks_requested": 1000,
+    "tracking_absolute_error_rad": {
+      "max": 0.0034631801101951227,
+      "mean": 0.0021956972319304366,
+      "min": 0.0,
+      "p95": 0.003451687978265439,
+      "p99": 0.0034631801095548493,
+      "p99_9": 0.00346318010955564,
+      "samples": 1000
+    },
+    "tracking_joint_index": 0,
+    "transaction_failure_counts": {
+      "crc": 0,
+      "device": 0,
+      "io": 0,
+      "partial": 0,
+      "timeout": 0,
+      "unexpected_id": 0,
+      "unexpected_packet": 0
+    },
     "transaction_failure_percent": 0.0,
     "transaction_failure_rate": 0.0,
+    "transaction_status_counts": {
+      "crc": 0,
+      "device": 0,
+      "io": 0,
+      "ok": 16000,
+      "partial": 0,
+      "timeout": 0,
+      "unexpected_id": 0
+    },
     "transactions_expected": 16000,
-    "transactions_failed": 0
+    "transactions_failed": 0,
+    "unexpected_packet_count": 0
   },
   "schema_version": "open_duck_x5.baseline_comparison.v1",
   "status": "INFORMATIONAL_MOCK"

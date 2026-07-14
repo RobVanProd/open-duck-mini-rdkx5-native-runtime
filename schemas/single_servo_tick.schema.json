@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open_duck_x5/single_servo_tick.schema.json",
+  "title": "Open Duck X5 single-servo timing tick",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tick",
+    "timestamp_monotonic_ns",
+    "tick_period_ms",
+    "servo_id",
+    "round_trip_ms",
+    "status",
+    "response_length"
+  ],
+  "properties": {
+    "schema_version": {"const": "open_duck_x5.single_servo_tick.v1"},
+    "tick": {"type": "integer", "minimum": 0},
+    "timestamp_monotonic_ns": {"type": "integer", "minimum": 0},
+    "tick_period_ms": {"type": ["number", "null"]},
+    "servo_id": {"type": "integer", "minimum": 0, "maximum": 253},
+    "round_trip_ms": {"type": "number", "minimum": 0},
+    "status": {"type": "string"},
+    "response_length": {"type": "integer", "minimum": 0}
+  },
+  "additionalProperties": false
+}

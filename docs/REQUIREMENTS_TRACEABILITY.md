@@ -2,15 +2,16 @@
 
 | Requirement | Implementation | Offline evidence | Hardware status |
 | --- | --- | --- | --- |
-| 101 observations / 14 actions | `contract.py`, `policy.py` | exact-slice and action-pipeline tests | golden board vector pending |
+| 101 observations / 14 actions | `contract.py`, `policy.py`, snapshot extractor/verifier | independent legacy-formula and named-mismatch tests | golden board vector pending |
 | 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe | 1,000-tick mock summary | Gates 1, 2, and 5 `NOT_RUN` |
+| Gate 1 single-servo echo/read | torque-off `probe_single_servo` | mock JSONL/schema/status test | serial run `NOT_RUN` |
 | `duck_config.json` semantics | `config.py` | config and offset-order tests | existing board file not read |
 | Frozen servo map | `constants.py` | map used by bus and parity tests | physical side/sign check pending |
 | Script parity | `open_duck_x5.tools` and root wrappers | all four tools run on mock | no motor commands run |
 | Crash/exit torque-off | `TorqueGuard`, `Runtime.close` | injected-crash test | board cutoff behavior pending |
 | Direct STS3215 bus | `bus/sts3215.py` | fixed frames and fake-transport tests | serial adapter pending |
 | SyncWrite + grouped read | preallocated bus frames | 14-response transport test | bus-time gate pending |
-| Timeout/CRC/partial/device taxonomy | `ErrorCode`, parser, JSONL | CRC/partial/unexpected tests | real fault distribution pending |
+| Timeout/CRC/partial/device taxonomy | `ErrorCode`, parser, JSONL and v2 summary | zero-preserving per-class count tests | real fault distribution pending |
 | Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests | sustained-rate test pending |
 | Serial minimum latency | verification/install scripts | shell syntax check | driver/sysfs unknown |
 | Round-robin current/voltage/temp | extended read every tick modulo 14 | register decode test | units/value check pending |
@@ -19,7 +20,7 @@
 | Probe-decided Rust escalation | D002 and runbook | mock explicitly non-authoritative | decision pending valid RT run |
 | BNO055 + contacts | `sensors.py` | frozen mapping/polarity in source | labeled tilt/contact gate pending |
 | Common timestamp clock | `clock.py` imported by all producers | coarse-clock issue caught by probe | X5 resolution pending |
-| ONNX warm-up | `OnnxPolicy` I/O binding and warm-up | contract validation in source | real model golden run pending |
+| ONNX warm-up | `OnnxPolicy` I/O binding and warm-up | contract validation plus snapshot tooling | real model golden run pending |
 | 3.75 rad/s telemetry monitor | `ActionPipeline`, control JSONL | envelope test | suspended replay pending |
 | Watchdog >40 ms / consecutive bus faults | `Watchdog` | work/period/failure tests | torque-off latency pending |
 | Xbox/F710 pause parity | `controller.py` | offline code path only | controller mapping check pending |

@@ -12,8 +12,9 @@ The suite covers fixed STS3215 packet vectors, checksum and partial-frame
 classification, grouped state reads, round-robin extended telemetry, numeric
 conversions inherited from `rustypot==0.1.0`, all 101 observation fields, all 14
 actions, history order, phase order, stale-source rejection, config validation,
-mock JSONL schema, authorization guards, watchdog triggers, and torque-off on an
-injected exception.
+field-labeled legacy snapshot extraction/comparison, mock JSONL schema,
+per-error taxonomy, tracking statistics, authorization guards, watchdog
+triggers, and torque-off on an injected exception.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.
