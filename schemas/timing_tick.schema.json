@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open_duck_x5/timing_tick.schema.json",
+  "title": "Open Duck X5 timing tick",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tick",
+    "timestamp_monotonic_ns",
+    "tick_period_ms",
+    "release_lateness_ms",
+    "serial",
+    "extended"
+  ],
+  "properties": {
+    "schema_version": {"const": "open_duck_x5.timing_tick.v1"},
+    "tick": {"type": "integer", "minimum": 0},
+    "timestamp_monotonic_ns": {"type": "integer", "minimum": 0},
+    "tick_period_ms": {"type": ["number", "null"]},
+    "release_lateness_ms": {"type": "number"},
+    "serial": {
+      "type": "object",
+      "required": [
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "bus_total_ms",
+        "write_status",
+        "per_servo_status",
+        "stale",
+        "partial_bytes",
+        "unexpected_packets"
+      ],
+      "properties": {
+        "group_round_trip_ms": {"type": "number", "minimum": 0},
+        "extended_round_trip_ms": {"type": "number", "minimum": 0},
+        "bus_total_ms": {"type": "number", "minimum": 0},
+        "write_status": {"type": "string"},
+        "per_servo_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "string"}
+        },
+        "stale": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "boolean"}
+        },
+        "partial_bytes": {"type": "integer", "minimum": 0},
+        "unexpected_packets": {"type": "integer", "minimum": 0}
+      }
+    },
+    "extended": {
+      "type": "object",
+      "required": [
+        "servo_id",
+        "status",
+        "present_current_raw",
+        "present_current_a",
+        "present_voltage_v",
+        "present_temperature_c"
+      ]
+    }
+  }
+}

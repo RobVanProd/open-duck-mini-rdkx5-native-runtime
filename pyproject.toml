@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-duck-x5-runtime"
+version = "0.1.0"
+description = "Deterministic, measurement-first Open Duck Mini runtime for RDK-X5"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26,<3",
+  "pyserial>=3.5,<4",
+]
+
+[project.optional-dependencies]
+policy = ["onnxruntime>=1.18,<2"]
+hardware = ["smbus2>=0.4.3,<1", "pygame>=2.6,<3"]
+dev = ["pytest>=8,<9", "jsonschema>=4.22,<5", "ruff>=0.6,<1"]
+
+[project.scripts]
+runtime_timing_probe = "open_duck_x5.probe:main"
+open_duck_x5_runtime = "open_duck_x5.runtime:main"
+configure_motor = "open_duck_x5.tools.configure_motor:main"
+check_motors = "open_duck_x5.tools.check_motors:main"
+find_soft_offsets = "open_duck_x5.tools.find_soft_offsets:main"
+set_servo_mid = "open_duck_x5.tools.set_servo_mid:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

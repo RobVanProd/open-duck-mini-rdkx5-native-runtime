@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.coverage
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+
+# Hardware-local configuration, credentials, and raw captures.
+.duck_access/
+duck_config.json
+*.onnx
+*.pkl
+artifacts/runs/**/*.jsonl
+artifacts/runs/**/*.log
+artifacts/runs/**/*.csv
+
+# Keep small, reviewed summaries and the directory structure.
+!artifacts/runs/**/.gitkeep
+!duck_config.example.json

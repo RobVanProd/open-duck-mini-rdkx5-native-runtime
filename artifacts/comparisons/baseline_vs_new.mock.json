@@ -1,0 +1,79 @@
+{
+  "legacy": {
+    "phase_1_full_timing_artifact": null,
+    "read_bursts_observed": true,
+    "tick_max_ms": 26.0,
+    "x008_read_failure_percent": 2.68,
+    "x0_read_failure_percent": 1.07
+  },
+  "new": {
+    "backend": "mock",
+    "bus_total_ms": {
+      "max": 2.5472,
+      "mean": 1.9370785000000001,
+      "min": 0.9643,
+      "p95": 2.0327100000000002,
+      "p99": 2.047805,
+      "p99_9": 2.522025200000002
+    },
+    "environment": {
+      "baudrate": 1000000,
+      "device": "mock://sts3215",
+      "frequency_hz": 50.0,
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.10.11",
+      "telemetry_records_dropped": 0,
+      "timeout_ms": 4.0
+    },
+    "extended_round_trip_ms": {
+      "max": 0.0107,
+      "mean": 0.000981,
+      "min": 0.0004,
+      "p95": 0.0018,
+      "p99": 0.0022,
+      "p99_9": 0.00570500000000045
+    },
+    "gates": {
+      "bus_max_under_5_ms": true,
+      "tick_p99_9_at_most_22_ms": false,
+      "tick_p99_at_most_21_ms": false,
+      "transaction_failure_below_0_1_percent": true,
+      "zero_read_bursts": true
+    },
+    "group_round_trip_ms": {
+      "max": 2.5401,
+      "mean": 1.9278164,
+      "min": 0.9501,
+      "p95": 2.025145,
+      "p99": 2.039805,
+      "p99_9": 2.5165236000000024
+    },
+    "informational_only": true,
+    "max_read_burst_ticks": 0,
+    "read_burst_count": 0,
+    "release_lateness_ms": {
+      "max": 2.8735,
+      "mean": 1.2548283999999998,
+      "min": 0.0004,
+      "p95": 2.508515,
+      "p99": 2.769345,
+      "p99_9": 2.827246300000004
+    },
+    "schema_version": "open_duck_x5.timing_summary.v1",
+    "tick_period_ms": {
+      "max": 22.0273,
+      "mean": 20.001885785785788,
+      "min": 17.9763,
+      "p95": 21.5111,
+      "p99": 22.000512,
+      "p99_9": 22.0126294
+    },
+    "ticks": 1000,
+    "transaction_failure_percent": 0.0,
+    "transaction_failure_rate": 0.0,
+    "transactions_expected": 16000,
+    "transactions_failed": 0
+  },
+  "schema_version": "open_duck_x5.baseline_comparison.v1",
+  "status": "INFORMATIONAL_MOCK"
+}
