@@ -50,6 +50,12 @@ The ONNX input is float32 with shape `[1, 101]`. Normalization is inside the ONN
 
 Startup history is three zero action vectors. Startup previous motor target is `HOME_RAD`.
 
+The `83:97` field is the post-slew, post-head-overlay **commanded logical target**. It
+is not the measured present position (available separately through the position-error
+field), and it must not be treated as equivalent to an actuator-model bridge's
+realized/applied state without training-source evidence. A candidate trained with a
+different definition is semantically incompatible even if its ONNX shape is `[1,101]`.
+
 Required freshness is intentionally out-of-band. The 101-vector has no spare staleness field; adding one would change the policy contract. If any required servo, IMU, or contact sample is stale, the assembler rejects that tick and the runtime does not infer on a mixed-age or silently reused observation.
 
 ## Phase ordering
@@ -121,3 +127,8 @@ and confirms that the observation phase equals the prior tick's post-advance
 phase. It rejects captures with the optional action filter enabled because that
 would be a different action contract. A report identifies every mismatch by
 vector index and semantic field name. Any mismatch blocks Gate 5.
+
+The golden board comparison does not by itself prove candidate-policy training
+semantics. Candidate handoff must additionally establish whether training `obs[83:97]`
+used the post-slew commanded target or a bridge-realized state, whether training sampled
+phase before or after advance, and whether it used the frozen 5.24 rad/s slew behavior.

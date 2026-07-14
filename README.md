@@ -11,6 +11,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Pi inheritance audit | Complete from the preserved reference snapshot |
 | Frozen 101/14 contract | Implemented and unit-tested; hardware golden-vector capture still required |
 | Direct STS3215 bus | Python implementation plus deterministic/fault-injecting mock |
+| Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class timing/tracking evidence; explicitly gated serial movement |
 | RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
 | IMU / contacts / policy host | Implemented behind hardware authorization |
@@ -27,6 +28,10 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 - A stale required servo or sensor sample invalidates the tick; it is never silently substituted into the policy observation.
 
 The exact field map and the inherited one-tick phase-ordering discrepancy are documented in [the contract](docs/OBSERVATION_ACTION_CONTRACT.md).
+
+The deployable policy interface remains exactly 101/14. A simulation or stateful ONNX
+using 115 inputs is not assumed equivalent: it must export the frozen single-input
+interface and prove that `obs[83:97]`, phase ordering, and slew semantics match.
 
 ## Quick start: offline only
 
@@ -60,6 +65,22 @@ Read these before any X5 work:
 - [Phase 0 inheritance audit](docs/PHASE_0_PI_INHERITANCE_AUDIT.md)
 - [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md)
 - [Offline verification](docs/TESTING.md)
+- [Duck evidence collector](docs/DUCK_EVIDENCE_COLLECTION.md)
+
+## Board evidence collector
+
+When the X5 is available, the safe default collector captures the installed runtime,
+board/serial/RT inventory, config, policy interface hashes, and legacy telemetry into a
+local hashed archive. It performs no servo-bus access, inference, movement, or upload:
+
+```bash
+python3 tools/collect_duck_evidence.py \
+  --legacy-root /home/sunrise/project \
+  --notes "pre-gate board inventory"
+```
+
+An optional torque-off single-servo read probe exists, but remains behind the same two
+hardware acknowledgements and requires separate Gate 1 authorization.
 
 ## Layout
 
@@ -90,8 +111,8 @@ Mock results validate code paths, schemas, failure accounting, and artifact prod
 
 The checked-in 1,000-tick mock run used stock Windows scheduling and the shared
 high-resolution monotonic clock. It produced zero transaction failures and zero
-bursts, with bus-time max 2.510 ms. Tick p99 was 22.001 ms and p99.9 was
-22.488 ms, so the mock host does not pass the hardware timing gates. Mock
+bursts, with bus-time max 2.541 ms. Tick p99 was 21.995 ms and p99.9 was
+22.011 ms, so the mock host does not pass the hardware timing gates. Mock
 tracking p95 was 0.00345 rad. That is an
 informational result, not a failure of an X5 gate and not evidence about
 `SCHED_FIFO` or CPU isolation.

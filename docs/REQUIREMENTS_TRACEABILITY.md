@@ -25,6 +25,7 @@
 | Watchdog >40 ms / consecutive bus faults | `Watchdog` | work/period/failure tests | torque-off latency pending |
 | Xbox/F710 controller parity | locked seven-command publication in `controller.py` | axis, A-edge pause, Y-edge head mode, and LB sprint-factor tests | physical controller mapping check pending |
 | Staged authority boundary | dual CLI assertions, runbook, `NOT_RUN` files | guard tests | every gate awaits authorization |
+| Board evidence extraction | safe-default collector, schemas, policy handoff | archive/manifest, secret-skip, 115-D rejection, and guard tests | board collection `NOT_RUN` |
 | Artifact hashing | `tools/hash_artifacts.py` | checked-in SHA-256 manifest | update per authorized gate |
 
 No row marked pending may be treated as passed based on the mock run.

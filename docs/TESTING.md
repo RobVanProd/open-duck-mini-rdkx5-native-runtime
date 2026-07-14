@@ -21,6 +21,9 @@ bound float32 buffers, zero-copy output reuse, and rejection of non-finite data.
 Controller tests cover both right-stick layouts, locked seven-command snapshots,
 A-button pause edges, the inherited Y-button head-control mode, and LB sprint
 phase factor.
+The evidence-collector tests verify safe default operation, schema and manifest
+integrity, likely-credential exclusion, policy-binary exclusion, 115-input ONNX
+rejection, and dual-acknowledgement enforcement before output creation.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.
