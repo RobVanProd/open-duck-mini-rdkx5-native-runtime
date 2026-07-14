@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/control-summary.schema.json",
+  "title": "Open Duck X5 control-run summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source",
+    "backend",
+    "informational_only",
+    "review_status",
+    "hardware_gate_status",
+    "run_status",
+    "halt_reason",
+    "ticks",
+    "ticks_requested",
+    "paused_ticks",
+    "active_policy_ticks",
+    "active_ticks_requested",
+    "telemetry_records_dropped",
+    "provenance",
+    "realtime",
+    "timing",
+    "bus",
+    "sensors",
+    "command",
+    "envelope",
+    "extended_telemetry_coverage",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.control_summary.v1" },
+    "source": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "backend": { "enum": ["mock", "serial"] },
+    "informational_only": { "type": "boolean" },
+    "review_status": { "enum": ["INFORMATIONAL_ONLY", "REVIEW_REQUIRED"] },
+    "hardware_gate_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
+    "run_status": { "enum": ["COMPLETE", "HALTED"] },
+    "halt_reason": { "type": "string", "minLength": 1 },
+    "ticks": { "type": "integer", "minimum": 0 },
+    "ticks_requested": { "type": "integer", "minimum": 0 },
+    "paused_ticks": { "type": "integer", "minimum": 0 },
+    "active_policy_ticks": { "type": "integer", "minimum": 0 },
+    "active_ticks_requested": { "type": "integer", "minimum": 0 },
+    "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
+    "provenance": { "type": "object" },
+    "realtime": { "type": ["object", "null"] },
+    "timing": {
+      "type": "object",
+      "required": ["tick_period_ms", "tick_work_ms"],
+      "properties": {
+        "tick_period_ms": { "$ref": "#/$defs/stats" },
+        "tick_work_ms": { "$ref": "#/$defs/stats" }
+      },
+      "additionalProperties": false
+    },
+    "bus": {
+      "type": "object",
+      "required": [
+        "bus_total_ms",
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "transactions_expected",
+        "transactions_failed",
+        "transaction_failure_rate",
+        "transaction_status_counts",
+        "unexpected_packet_count",
+        "partial_byte_count",
+        "read_burst_count",
+        "max_read_burst_ticks",
+        "stale_servo_sample_count"
+      ],
+      "properties": {
+        "bus_total_ms": { "$ref": "#/$defs/stats" },
+        "group_round_trip_ms": { "$ref": "#/$defs/stats" },
+        "extended_round_trip_ms": { "$ref": "#/$defs/stats" },
+        "transactions_expected": { "type": "integer", "minimum": 0 },
+        "transactions_failed": { "type": "integer", "minimum": 0 },
+        "transaction_failure_rate": { "type": "number", "minimum": 0 },
+        "transaction_status_counts": {
+          "type": "object",
+          "required": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"],
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "unexpected_packet_count": { "type": "integer", "minimum": 0 },
+        "partial_byte_count": { "type": "integer", "minimum": 0 },
+        "read_burst_count": { "type": "integer", "minimum": 0 },
+        "max_read_burst_ticks": { "type": "integer", "minimum": 0 },
+        "stale_servo_sample_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "sensors": {
+      "type": "object",
+      "required": ["imu_age_ms", "contacts_age_ms"],
+      "properties": {
+        "imu_age_ms": { "$ref": "#/$defs/stats" },
+        "contacts_age_ms": { "$ref": "#/$defs/stats" }
+      },
+      "additionalProperties": false
+    },
+    "command": {
+      "type": "object",
+      "required": ["fixed_x", "observed_x", "matches_fixed_x", "max_abs_non_x"],
+      "properties": {
+        "fixed_x": { "type": ["number", "null"] },
+        "observed_x": { "$ref": "#/$defs/stats" },
+        "matches_fixed_x": { "type": "boolean" },
+        "max_abs_non_x": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "envelope": {
+      "type": "object",
+      "required": [
+        "threshold_rad_s",
+        "events_by_joint",
+        "max_abs_target_velocity_rad_s_by_joint",
+        "total_events"
+      ],
+      "properties": {
+        "threshold_rad_s": { "const": 3.75 },
+        "events_by_joint": { "$ref": "#/$defs/jointMapInteger" },
+        "max_abs_target_velocity_rad_s_by_joint": { "$ref": "#/$defs/jointMapNumber" },
+        "total_events": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "extended_telemetry_coverage": {
+      "type": "object",
+      "minProperties": 14,
+      "maxProperties": 14,
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "gates": {
+      "type": "object",
+      "required": [
+        "complete_record_stream",
+        "normal_exit",
+        "realtime_verified_when_required",
+        "policy_ticks_present",
+        "fixed_command_matches",
+        "zero_non_x_commands",
+        "tick_p99_at_most_21_ms",
+        "tick_p99_9_at_most_22_ms",
+        "zero_read_bursts",
+        "zero_partial_bytes",
+        "zero_unexpected_packets",
+        "transaction_failure_below_0_1_percent",
+        "bus_max_under_5_ms",
+        "zero_stale_servo_samples",
+        "gate5_timing_and_bus_candidate"
+      ],
+      "additionalProperties": { "type": "boolean" }
+    }
+  },
+  "$defs": {
+    "nullableNumber": { "type": ["number", "null"] },
+    "stats": {
+      "type": "object",
+      "required": ["min", "mean", "p95", "p99", "p99_9", "max"],
+      "properties": {
+        "min": { "$ref": "#/$defs/nullableNumber" },
+        "mean": { "$ref": "#/$defs/nullableNumber" },
+        "p95": { "$ref": "#/$defs/nullableNumber" },
+        "p99": { "$ref": "#/$defs/nullableNumber" },
+        "p99_9": { "$ref": "#/$defs/nullableNumber" },
+        "max": { "$ref": "#/$defs/nullableNumber" }
+      },
+      "additionalProperties": false
+    },
+    "jointMapInteger": {
+      "type": "object",
+      "minProperties": 14,
+      "maxProperties": 14,
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "jointMapNumber": {
+      "type": "object",
+      "minProperties": 14,
+      "maxProperties": 14,
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    }
+  },
+  "additionalProperties": false
+}

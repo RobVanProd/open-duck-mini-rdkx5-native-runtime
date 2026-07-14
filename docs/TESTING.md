@@ -37,6 +37,11 @@ evidence. Runtime guard tests reject incomplete Gate 5 scope and
 tests protect config/policy/evidence files, while cleanup tests verify that a
 stop during the home move cuts torque and a failed cutoff status cannot look
 successful.
+Control-evidence tests validate startup/tick/event/summary schemas, source and
+config/policy hashes, contiguous tick numbering, timestamp-derived periods,
+fixed-command readback, transaction recounting, round-robin telemetry coverage,
+per-joint envelope reconstruction, output collision guards, and the distinction
+between total ticks and valid policy ticks.
 
 The CI workflow performs only offline operations. It has no board credentials,
 hardware flags, policy file, or grounded execution path.

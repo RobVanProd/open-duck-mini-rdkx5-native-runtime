@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from jsonschema import Draft202012Validator
 
 from open_duck_x5 import runtime as runtime_module
 from open_duck_x5.bus.mock import MockSTS3215Bus
@@ -38,13 +39,25 @@ def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
     ticks = [record for record in records if record["schema_version"].endswith("control_tick.v1")]
     events = [record for record in records if record["schema_version"].endswith("runtime_event.v1")]
+    root = Path(__file__).parents[1]
+    tick_schema = json.loads((root / "schemas/control_tick.schema.json").read_text())
+    event_schema = json.loads((root / "schemas/runtime_event.schema.json").read_text())
     assert len(ticks) == 3
+    for record in ticks:
+        Draft202012Validator(tick_schema).validate(record)
     assert all(record["paused"] for record in ticks)
     assert all(not record["observation_valid"] for record in ticks)
-    assert len(events) == 1
-    assert events[0]["event"] == "runtime_halt"
-    assert events[0]["reason"] == "normal_exit"
-    assert isinstance(events[0]["timestamp_monotonic_ns"], int)
+    assert all(not any(record["over_3_75_rad_s"]) for record in ticks)
+    assert len(events) == 2
+    for record in events:
+        Draft202012Validator(event_schema).validate(record)
+    assert events[0]["event"] == "runtime_start"
+    assert events[0]["details"]["contract_id"].endswith("101x14.v1")
+    assert len(events[0]["details"]["config"]["sha256"]) == 64
+    assert events[1]["event"] == "runtime_halt"
+    assert events[1]["reason"] == "normal_exit"
+    assert events[1]["telemetry_records_dropped"] == 0
+    assert isinstance(events[1]["timestamp_monotonic_ns"], int)
 
 
 def test_runtime_rejects_unsafe_startup_arguments_before_opening_bus(
@@ -109,6 +122,46 @@ def test_runtime_telemetry_cannot_overwrite_config(tmp_path: Path) -> None:
                 "600",
             ],
             "requires --fixed-command-x",
+        ),
+        (
+            [
+                "--gate5-authorized",
+                "--policy",
+                "candidate.onnx",
+                "--max-ticks",
+                "900",
+                "--fixed-command-x",
+                "0",
+            ],
+            "finite --max-active-ticks",
+        ),
+        (
+            [
+                "--gate5-authorized",
+                "--policy",
+                "candidate.onnx",
+                "--max-ticks",
+                "600",
+                "--max-active-ticks",
+                "600",
+                "--fixed-command-x",
+                "0",
+            ],
+            "must exceed --max-active-ticks",
+        ),
+        (
+            [
+                "--gate5-authorized",
+                "--policy",
+                "candidate.onnx",
+                "--max-ticks",
+                "900",
+                "--max-active-ticks",
+                "600",
+                "--fixed-command-x",
+                "0",
+            ],
+            "requires --controller",
         ),
     ],
 )
@@ -176,9 +229,13 @@ def test_serial_gate5_refuses_unpaused_config_before_opening_bus(
                 "--telemetry",
                 str(tmp_path / "never.jsonl"),
                 "--max-ticks",
+                "900",
+                "--max-active-ticks",
                 "600",
                 "--fixed-command-x",
                 "0",
+                "--controller",
+                "xbox",
                 "--gate5-authorized",
                 "--hardware-authorized",
                 "--suspended-or-benched",
@@ -229,9 +286,13 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
             "--telemetry",
             str(tmp_path / "never.jsonl"),
             "--max-ticks",
+            "900",
+            "--max-active-ticks",
             "600",
             "--fixed-command-x",
             "0",
+            "--controller",
+            "xbox",
             "--gate5-authorized",
             "--hardware-authorized",
             "--suspended-or-benched",
@@ -268,6 +329,64 @@ def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
         runtime._update_controller(250_000_002)
 
     assert runtime.paused is False
+
+
+def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
+    class NoisyController:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            output.commands[:] = (0.1, -0.2, 0.7, 0.3, -0.4, 0.5, -0.6)
+            output.pause_toggle = False
+            output.phase_frequency_factor = 1.3
+            output.timestamp_ns = 10_000
+            output.connected = True
+
+    runtime = object.__new__(Runtime)
+    runtime.controller = NoisyController()
+    runtime.controller_readout = ControllerReadout()
+    runtime.commands = np.zeros(7, dtype=np.float64)
+    runtime.args = Namespace(
+        fixed_command_x=0.08,
+        controller="xbox",
+        bus="serial",
+        gate5_authorized=True,
+    )
+    runtime.paused = False
+    runtime.policy = object()
+
+    runtime._update_controller(10_000)
+
+    np.testing.assert_array_equal(runtime.commands, [0.08, 0, 0, 0, 0, 0, 0])
+    assert runtime.controller_readout.phase_frequency_factor == 1.0
+
+
+def test_total_tick_cap_halts_when_active_policy_target_is_not_reached(
+    tmp_path: Path,
+) -> None:
+    telemetry = tmp_path / "active-target-not-reached.jsonl"
+    assert (
+        main(
+            [
+                "--bus",
+                "mock",
+                "--config",
+                str(Path(__file__).parents[1] / "duck_config.example.json"),
+                "--telemetry",
+                str(telemetry),
+                "--home-seconds",
+                "0.001",
+                "--max-ticks",
+                "3",
+                "--max-active-ticks",
+                "2",
+            ]
+        )
+        == 2
+    )
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    halt = [record for record in records if record.get("event") == "runtime_halt"]
+    assert len(halt) == 1
+    assert "active policy target: 0/2" in halt[0]["reason"]
 
 
 def test_runtime_cleanup_reports_failed_torque_off_and_still_closes_bus() -> None:
@@ -376,6 +495,7 @@ def test_active_policy_stale_sensor_halts_and_torques_off(
     monkeypatch.setattr(runtime_module, "MockSTS3215Bus", lambda: bus)
     monkeypatch.setattr(runtime_module, "MockSensorHub", StaleSensorHub)
     monkeypatch.setattr(runtime_module, "OnnxPolicy", lambda _path: FakePolicy())
+    (tmp_path / "candidate.onnx").write_bytes(b"fake-onnx-for-runtime-test")
 
     assert (
         main(

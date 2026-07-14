@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import signal
 import sys
 from contextlib import suppress
@@ -13,7 +14,15 @@ import numpy as np
 from .bus import ErrorCode, MockSTS3215Bus, ServoSnapshot, STS3215Bus
 from .clock import clock_ns
 from .config import ConfigError, DuckConfig
-from .constants import ACTION_DIM, CONTROL_PERIOD_NS, HOME_RAD, SERVO_IDS
+from .constants import (
+    ACTION_DIM,
+    CONTRACT_ID,
+    CONTROL_FREQUENCY_HZ,
+    CONTROL_PERIOD_NS,
+    HOME_RAD,
+    JOINT_NAMES,
+    SERVO_IDS,
+)
 from .contract import ActionPipeline, ObservationAssembler, PhaseClock, StaleObservationError
 from .controller import ControllerReadout, NullController, PygameController
 from .hardware_guard import (
@@ -29,6 +38,14 @@ from .telemetry import AsyncControlWriter, TelemetryError
 from .timing import AbsoluteTicker
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Open Duck Mini deterministic X5 runtime")
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
@@ -41,6 +58,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixed-command-x", type=float)
     parser.add_argument("--telemetry", type=Path, required=True)
     parser.add_argument("--max-ticks", type=int, default=0, help="0 runs until stopped")
+    parser.add_argument(
+        "--max-active-ticks",
+        type=int,
+        default=0,
+        help="stop after this many valid policy ticks; 0 disables the active-tick target",
+    )
     parser.add_argument("--home-seconds", type=float, default=2.0)
     parser.add_argument("--watchdog-failures", type=int, default=3)
     parser.add_argument("--imu-bus", type=int, default=5)
@@ -68,6 +91,8 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         raise ValueError("--watchdog-failures must be positive")
     if args.max_ticks < 0:
         raise ValueError("--max-ticks must be nonnegative")
+    if args.max_active_ticks < 0:
+        raise ValueError("--max-active-ticks must be nonnegative")
     if args.imu_bus < 0:
         raise ValueError("--imu-bus must be nonnegative")
     if not 0 <= args.imu_address <= 0x7F:
@@ -92,7 +117,9 @@ class Runtime:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         validate_runtime_args(args)
-        self.config = DuckConfig.load(args.config)
+        self.config_path = args.config.expanduser().resolve()
+        self.config = DuckConfig.load(self.config_path)
+        self.config_sha256 = _sha256(self.config_path)
         self.offsets = self.config.offsets_array
         self.logical_positions = np.zeros(ACTION_DIM, dtype=np.float64)
         self.logical_velocities = np.zeros(ACTION_DIM, dtype=np.float64)
@@ -146,6 +173,20 @@ class Runtime:
                     raise ValueError(
                         "Gate 5 serial runtime requires --fixed-command-x 0 or 0.08"
                     )
+                if args.max_active_ticks < 1:
+                    raise ValueError(
+                        "Gate 5 serial runtime requires finite --max-active-ticks"
+                    )
+                if args.max_ticks <= args.max_active_ticks:
+                    raise ValueError(
+                        "Gate 5 --max-ticks must exceed --max-active-ticks "
+                        "to bound paused startup time"
+                    )
+                if args.controller == "none":
+                    raise ValueError(
+                        "Gate 5 serial runtime requires --controller xbox or f710 "
+                        "for preserved unpause control"
+                    )
                 if not self.config.start_paused:
                     raise SafetyError(
                         "Gate 5 serial runtime requires start_paused=true in duck_config.json"
@@ -183,6 +224,12 @@ class Runtime:
                 self.sensor_hub = MockSensorHub()
 
             self.policy = OnnxPolicy(args.policy) if args.policy else None
+            self.policy_path = (
+                args.policy.expanduser().resolve() if args.policy is not None else None
+            )
+            self.policy_sha256 = (
+                _sha256(self.policy_path) if self.policy_path is not None else None
+            )
             if args.controller == "none":
                 self.controller = NullController()
             else:
@@ -257,6 +304,16 @@ class Runtime:
                 return
             self.paused = not self.paused
         if (
+            getattr(self.args, "bus", None) == "serial"
+            and getattr(self.args, "gate5_authorized", False)
+        ):
+            # Gate 5 is an exact fixed-command replay. The physical controller
+            # remains the reviewed pause/unpause surface, but joystick/head/LB
+            # state cannot silently change commands or phase speed.
+            self.commands.fill(0.0)
+            self.commands[0] = float(self.args.fixed_command_x)
+            self.controller_readout.phase_frequency_factor = 1.0
+        if (
             not self.paused
             and self.args.controller != "none"
             and (
@@ -266,7 +323,59 @@ class Runtime:
         ):
             raise SafetyError("physical controller state is disconnected or stale")
 
+    def _runtime_start_details(self) -> dict[str, object]:
+        return {
+            "contract_id": CONTRACT_ID,
+            "control_frequency_hz": CONTROL_FREQUENCY_HZ,
+            "control_period_ns": CONTROL_PERIOD_NS,
+            "bus": {
+                "backend": self.args.bus,
+                "device": self.args.device if self.args.bus == "serial" else "mock://sts3215",
+                "baudrate": self.args.baudrate,
+                "timeout_ms": self.args.timeout_ms,
+            },
+            "config": {
+                "path": str(self.config_path),
+                "sha256": self.config_sha256,
+                "start_paused": self.config.start_paused,
+                "imu_upside_down": self.config.imu_upside_down,
+                "phase_frequency_factor_offset": (
+                    self.config.phase_frequency_factor_offset
+                ),
+            },
+            "policy": (
+                {
+                    "path": str(self.policy_path),
+                    "sha256": self.policy_sha256,
+                    "input": {"name": "obs", "shape": [1, 101], "type": "tensor(float)"},
+                    "output": {
+                        "name": "continuous_actions",
+                        "shape": [1, 14],
+                        "type": "tensor(float)",
+                    },
+                }
+                if self.policy_path is not None
+                else None
+            ),
+            "joint_names": list(JOINT_NAMES),
+            "servo_ids": list(SERVO_IDS),
+            "controller": self.args.controller,
+            "fixed_command_x": self.args.fixed_command_x,
+            "max_ticks": self.args.max_ticks,
+            "max_active_ticks": self.args.max_active_ticks,
+            "home_seconds": self.args.home_seconds,
+            "watchdog_consecutive_failures": self.args.watchdog_failures,
+            "realtime_required": self.args.require_realtime,
+            "gate5_authorized": self.args.gate5_authorized,
+            "hardware_authorized": self.args.hardware_authorized,
+            "suspended_or_benched": self.args.suspended_or_benched,
+        }
+
     def run(self) -> None:
+        self.writer.publish_event(
+            "runtime_start",
+            details=self._runtime_start_details(),
+        )
         if self.args.require_realtime:
             if self.realtime_preparation is None:
                 raise RealtimeSetupError("real-time thread partition was not prepared")
@@ -286,8 +395,12 @@ class Runtime:
             ticker = AbsoluteTicker()
             gc.disable()
             tick = 0
+            active_tick = 0
             while not self.stop_requested and (
                 not self.args.max_ticks or tick < self.args.max_ticks
+            ) and (
+                not self.args.max_active_ticks
+                or active_tick < self.args.max_active_ticks
             ):
                 tick_start_ns, _ = ticker.wait()
                 if self.stop_requested:
@@ -353,6 +466,8 @@ class Runtime:
                         ) from exc
                 else:
                     physical_target = self.hold_physical_target
+                    self.action_pipeline.implied_velocity_rad_s.fill(0.0)
+                    self.action_pipeline.over_envelope.fill(False)
 
                 if observation_valid:
                     np.copyto(self.hold_physical_target, physical_target)
@@ -401,7 +516,17 @@ class Runtime:
                     tick_work_ns=watchdog_work_ns,
                     bus_ok=bus_ok,
                 )
+                active_tick += int(observation_valid)
                 tick += 1
+            if (
+                not self.stop_requested
+                and self.args.max_active_ticks
+                and active_tick < self.args.max_active_ticks
+            ):
+                raise SafetyError(
+                    "total tick cap reached before active policy target: "
+                    f"{active_tick}/{self.args.max_active_ticks}"
+                )
 
     def close(self) -> None:
         errors: list[BaseException] = []
@@ -455,6 +580,7 @@ def main(argv: list[str] | None = None) -> int:
     except (
         ConfigError,
         HardwareAuthorizationError,
+        OSError,
         PolicyContractError,
         RealtimeSetupError,
         RuntimeError,

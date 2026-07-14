@@ -125,7 +125,7 @@ separately authorized replay:
 ```bash
 open_duck_x5_runtime --bus serial --config ~/duck_config.json \
   --policy ~/candidate-101.onnx --controller xbox \
-  --fixed-command-x 0 --max-ticks 600 \
+  --fixed-command-x 0 --max-active-ticks 600 --max-ticks 900 \
   --require-realtime --rt-cpu 5 --rt-priority 80 \
   --gate5-authorized --hardware-authorized --suspended-or-benched \
   --telemetry gate5-x0.jsonl
@@ -136,5 +136,24 @@ hold is visually verified. Review and close the `x=0` artifact before Rob
 separately authorizes a new invocation using `--fixed-command-x 0.08`. A 115-D
 or stateful candidate is rejected by the frozen 101/14 host and cannot be used
 as a substitute export.
+
+During serial Gate 5 the controller is pause/unpause-only. The authorized X
+command is fixed, all lateral/yaw/head command fields are zero, and the phase
+factor is 1.0; joystick drift or LB cannot mutate the replay.
+
+After the runtime closes, independently validate and summarize the complete
+stream before reviewing any threshold:
+
+```bash
+summarize_control_run --input gate5-x0.jsonl \
+  --output gate5-x0-summary.json
+python tools/hash_artifacts.py
+python tools/hash_artifacts.py --check
+```
+
+The 900-tick total cap bounds the paused operator window; the run completes only
+after 600 valid policy ticks. Reaching the total cap first is a safety halt.
+Mock summaries are informational, and serial summaries remain
+`REVIEW_REQUIRED` even when their recomputed candidate booleans are green.
 
 Passing Gate 5 ends this workstream. It does not authorize grounded replay or policy deployment.

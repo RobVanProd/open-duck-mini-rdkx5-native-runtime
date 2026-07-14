@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/runtime-event.schema.json",
+  "title": "Open Duck X5 runtime event",
+  "type": "object",
+  "required": ["schema_version", "timestamp_monotonic_ns", "event"],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.runtime_event.v1" },
+    "timestamp_monotonic_ns": { "type": "integer", "minimum": 0 },
+    "event": { "enum": ["runtime_start", "realtime_verified", "runtime_halt"] },
+    "details": { "type": "object" },
+    "reason": { "type": "string", "minLength": 1 },
+    "telemetry_records_dropped": { "type": "integer", "minimum": 0 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "event": { "const": "runtime_start" } } },
+      "then": {
+        "required": ["details"],
+        "properties": { "details": { "$ref": "#/$defs/startup" } }
+      }
+    },
+    {
+      "if": { "properties": { "event": { "const": "realtime_verified" } } },
+      "then": {
+        "required": ["details"],
+        "properties": { "details": { "$ref": "#/$defs/realtime" } }
+      }
+    },
+    {
+      "if": { "properties": { "event": { "const": "runtime_halt" } } },
+      "then": {
+        "required": ["reason", "telemetry_records_dropped"]
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "onnxTensor": {
+      "type": "object",
+      "required": ["name", "shape", "type"],
+      "properties": {
+        "name": { "type": "string" },
+        "shape": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
+        "type": { "const": "tensor(float)" }
+      },
+      "additionalProperties": false
+    },
+    "startup": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "control_frequency_hz",
+        "control_period_ns",
+        "bus",
+        "config",
+        "policy",
+        "joint_names",
+        "servo_ids",
+        "controller",
+        "fixed_command_x",
+        "max_ticks",
+        "max_active_ticks",
+        "home_seconds",
+        "watchdog_consecutive_failures",
+        "realtime_required",
+        "gate5_authorized",
+        "hardware_authorized",
+        "suspended_or_benched"
+      ],
+      "properties": {
+        "contract_id": { "const": "open-duck-mini.best-walk.101x14.v1" },
+        "control_frequency_hz": { "const": 50.0 },
+        "control_period_ns": { "const": 20000000 },
+        "bus": {
+          "type": "object",
+          "required": ["backend", "device", "baudrate", "timeout_ms"],
+          "properties": {
+            "backend": { "enum": ["mock", "serial"] },
+            "device": { "type": "string", "minLength": 1 },
+            "baudrate": { "type": "integer", "minimum": 1 },
+            "timeout_ms": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "config": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256",
+            "start_paused",
+            "imu_upside_down",
+            "phase_frequency_factor_offset"
+          ],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "start_paused": { "type": "boolean" },
+            "imu_upside_down": { "type": "boolean" },
+            "phase_frequency_factor_offset": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "policy": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["path", "sha256", "input", "output"],
+              "properties": {
+                "path": { "type": "string", "minLength": 1 },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "input": { "$ref": "#/$defs/onnxTensor" },
+                "output": { "$ref": "#/$defs/onnxTensor" }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "joint_names": { "type": "array", "minItems": 14, "maxItems": 14, "items": { "type": "string" } },
+        "servo_ids": { "type": "array", "minItems": 14, "maxItems": 14, "items": { "type": "integer" } },
+        "controller": { "enum": ["none", "xbox", "f710"] },
+        "fixed_command_x": { "type": ["number", "null"] },
+        "max_ticks": { "type": "integer", "minimum": 0 },
+        "max_active_ticks": { "type": "integer", "minimum": 0 },
+        "home_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "watchdog_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "realtime_required": { "type": "boolean" },
+        "gate5_authorized": { "type": "boolean" },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "realtime": {
+      "type": "object",
+      "required": [
+        "cpu",
+        "scheduler",
+        "priority",
+        "isolated",
+        "affinity",
+        "initial_affinity",
+        "housekeeping_affinity",
+        "background_threads"
+      ],
+      "properties": {
+        "cpu": { "type": "integer", "minimum": 0 },
+        "scheduler": { "const": "SCHED_FIFO" },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "isolated": { "const": true },
+        "affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+        "initial_affinity": { "type": "array", "minItems": 2, "items": { "type": "integer" } },
+        "housekeeping_affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+        "background_threads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tid", "affinity", "scheduler", "priority"],
+            "properties": {
+              "tid": { "type": "integer", "minimum": 1 },
+              "affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+              "scheduler": { "type": "integer" },
+              "priority": { "type": "integer", "minimum": 0, "maximum": 99 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

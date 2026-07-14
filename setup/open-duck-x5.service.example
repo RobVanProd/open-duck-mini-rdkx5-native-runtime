@@ -9,7 +9,7 @@ Group=open-duck-rt
 WorkingDirectory=/home/sunrise/open-duck-mini-rdkx5-native-runtime
 # Authorization flags are intentionally omitted. Add them only in a transient,
 # reviewed override for the one explicitly authorized suspended/benched gate.
-ExecStart=/home/sunrise/open-duck-x5-venv/bin/open_duck_x5_runtime --bus serial --require-realtime --rt-cpu 5 --rt-priority 80 --config /home/sunrise/duck_config.json --policy /home/sunrise/BEST_WALK_ONNX_2.onnx --controller f710 --telemetry /home/sunrise/duck_logs/runtime.jsonl
+ExecStart=/home/sunrise/open-duck-x5-venv/bin/open_duck_x5_runtime --bus serial --require-realtime --rt-cpu 5 --rt-priority 80 --config /home/sunrise/duck_config.json --policy /home/sunrise/candidate-101.onnx --controller f710 --fixed-command-x 0 --max-active-ticks 600 --max-ticks 900 --telemetry /home/sunrise/duck_logs/runtime.jsonl
 Restart=no
 # All six CPUs must be available at process start. The runtime partitions
 # background/native workers onto 0-4, then moves only the control thread to 5.

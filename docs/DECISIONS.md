@@ -36,3 +36,24 @@ Accepted. Gate 1/2/4 use their dedicated probes. Serial policy execution also
 requires a per-invocation Gate 5 assertion, a 101/14 policy, `start_paused=true`,
 a finite duration, and exact `x=0` or `x=0.08`; each command is authorized and
 reviewed separately.
+
+## D009 — Recompute Gate 5 evidence from a complete JSONL stream
+
+Accepted. The runtime records hashed startup provenance and contiguous tick/event
+records. An offline summarizer recomputes timing, bus failures, bursts, command,
+staleness, telemetry coverage, and envelope events rather than trusting runtime
+counters. Mock runs cannot become hardware evidence, and serial summaries always
+require human review.
+
+## D010 — Separate paused wall-clock bounds from policy duration
+
+Accepted. `--max-ticks` is the hard total-loop cap and
+`--max-active-ticks` is the required number of valid policy ticks. Gate 5 uses a
+bounded paused startup window and cannot silently shorten a 600-tick replay.
+
+## D011 — Make the Gate 5 controller pause-only
+
+Accepted. Exact fixed-command replay cannot depend on joystick drift, head mode,
+or LB state. Serial Gate 5 retains the physical pause/unpause edge but zeros all
+non-X commands and fixes phase speed at 1.0. General controller parity remains
+unchanged outside that gate.

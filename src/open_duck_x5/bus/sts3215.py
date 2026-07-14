@@ -152,6 +152,7 @@ class STS3215Bus:
             raise KeyError(f"unknown servo id: {servo_id}")
         start_ns = clock_ns()
         index = int(self._id_to_index[servo_id])
+        snapshot.extended_servo_id = servo_id
         request = self._extended_read_packets[index]
         self._flush_before_transaction()
         try:
@@ -169,7 +170,6 @@ class STS3215Bus:
         snapshot.unexpected_packets += self._unexpected_packets
         code = ErrorCode(int(self._read_codes[index]))
         snapshot.extended_status = code
-        snapshot.extended_servo_id = servo_id
         snapshot.extended_round_trip_ns = clock_ns() - start_ns
         if code is not ErrorCode.OK:
             return

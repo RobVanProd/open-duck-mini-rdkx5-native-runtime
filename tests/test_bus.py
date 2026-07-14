@@ -116,6 +116,23 @@ def test_direct_bus_group_read_sync_write_and_extended_telemetry() -> None:
     assert bus.write_register(SERVO_IDS[0], 21, b"\x1e") is ErrorCode.OK
 
 
+def test_extended_read_preserves_requested_servo_id_when_write_fails() -> None:
+    class FailingExtendedTransport(FakeTransport):
+        def write(self, data) -> None:
+            frame = bytes(data)
+            if frame[4] == 0x02 and frame[5] == ADDR_PRESENT_LOAD:
+                raise OSError("simulated serial write failure")
+            super().write(data)
+
+    bus = STS3215Bus(transport=FailingExtendedTransport())
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+    bus.read_extended_into(snapshot, SERVO_IDS[4])
+
+    assert snapshot.extended_servo_id == SERVO_IDS[4]
+    assert snapshot.extended_status is ErrorCode.IO
+
+
 def test_group_read_classifies_crc_and_partial_per_servo() -> None:
     for failing_id, expected in ((SERVO_IDS[2], ErrorCode.CRC), (SERVO_IDS[-1], ErrorCode.PARTIAL)):
         transport = FakeTransport(
