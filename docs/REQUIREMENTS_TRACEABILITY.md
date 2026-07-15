@@ -13,7 +13,7 @@
 | SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | CRC mechanism repaired; bus max 7.703526 ms fails <5 ms gate |
 | Timeout/CRC/partial/device taxonomy | `ErrorCode`, parser, JSONL and v2 summary | zero-preserving per-class count tests | preflight isolated CRC ordering and then one ID 13 device-status reply |
 | Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests | sustained-rate test pending |
-| Serial minimum latency | verification/install scripts | shell syntax check | WCH 1a86:55d3 uses 12 Mbit/s `cdc_acm`; no `latency_timer`; transport review required |
+| Serial minimum latency | verification/install scripts | shell syntax check | official WCH CH343 driver built/bound/tested/rolled back; bus max 7.490049 ms, so transport review remains required |
 | Round-robin current/voltage/temp | extended read every tick modulo 14 | register decode test | units/value check pending |
 | SCHED_FIFO + isolated core | pre-spawn housekeeping partition plus verified control-thread isolation in `realtime.py`; exact-list and scheduler preflight | partition/offender/service-mask/parser tests | CPU 7 isolation, housekeeping 0-6, and `SCHED_FIFO 80` verified |
 | Preallocated hot-loop data | arrays, packet frames, telemetry record pools | lint/tests; no JSON I/O in loop | allocation/timing profile pending |

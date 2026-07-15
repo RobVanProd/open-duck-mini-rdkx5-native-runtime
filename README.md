@@ -16,7 +16,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified on X5; Gate 2 tick timing preflight green |
 | IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
-| Hardware gates 1-5 | Gate 1 `PASS_REVIEWED`; Gate 2 `NOT_RUN_BLOCKED_PREFLIGHT`; Gates 3-5 `NOT_RUN` |
+| Hardware gates 1-5 | Gate 1 `PASS_REVIEWED`; Gate 2 `NOT_RUN_BLOCKED_PREFLIGHT` after `cdc_acm` and vendor-driver tests; Gates 3-5 `NOT_RUN` |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract

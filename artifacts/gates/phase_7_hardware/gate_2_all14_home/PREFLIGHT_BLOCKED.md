@@ -94,7 +94,15 @@ remove the measured USB transaction latency. The current WCH device is bound to
 generic `cdc_acm`; the stock X5 `ch341` module does not claim product `55d3`.
 
 Gate 2 remains stopped. Continuing requires a separately reviewed transport
-decision, such as testing the vendor CH343 Linux driver, a different low-latency
-adapter/direct UART path, or an explicit contract review. The existing `<5 ms`
-budget and telemetry cadence must not be silently relaxed. Gates 3-5 remain
-unauthorized.
+decision such as a different low-latency adapter/direct UART path, or an explicit
+contract review. The existing `<5 ms` budget and telemetry cadence must not be
+silently relaxed. Gates 3-5 remain unauthorized.
+
+## Vendor-driver follow-up
+
+The official WCH CH343 Linux driver was subsequently tested under separate
+authorization and rolled back. It produced zero failures in the same 50-tick
+torque-off preflight but total bus mean/max remained
+`5.437868 / 7.490049 ms`. It therefore does not resolve the bus-budget blocker.
+See `CH343_EXPERIMENT.md` and `preflight_ch343_summary.json`. The board is back
+on `cdc_acm`; Gate 2 remains `NOT_RUN_BLOCKED_PREFLIGHT`.

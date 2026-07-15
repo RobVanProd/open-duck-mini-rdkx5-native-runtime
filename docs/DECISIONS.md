@@ -120,3 +120,13 @@ whenever its grouped response preceded ID 14, while an individual 2,000-read ID
 in wire order ending `14,13`; response packets are still routed into frozen
 logical order by their ID. This transport-only repair cannot change observation
 or action semantics and does not waive the Gate 2 bus-time threshold.
+
+## D019 — Reject the CH343 vendor driver as the Gate 2 latency remedy
+
+Accepted. The official WCH driver at pinned upstream commit `9e6eb31` built
+against the exact `6.1.83` headers and was live-bound under an explicit,
+rollback-first authorization. It produced a clean 50-tick torque-off transaction
+stream, but total bus mean/max was `5.437868 / 7.490049 ms` versus the unchanged
+`<5 ms` gate. Tick p99.9 remained green. The module was fully removed and the
+adapter restored to `cdc_acm`. The driver is not retained merely because it
+changed the error counter; it did not solve the governing latency measurement.

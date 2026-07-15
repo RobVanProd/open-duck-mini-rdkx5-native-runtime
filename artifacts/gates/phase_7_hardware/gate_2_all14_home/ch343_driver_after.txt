@@ -1,0 +1,129 @@
+2026-07-15T01:30:43Z
+ff417f9946ab35f0943fa598a06218989ef443f42ae4ef883efbf803573481a2  /lib/modules/6.1.83/extra/ch343.ko
+filename:       /lib/modules/6.1.83/extra/ch343.ko
+alias:          char-major-170-*
+license:        GPL
+version:        V2.2 On 2026.04
+description:    USB serial driver for CH342/CH343/CH344/CH346/CH347/      CH339/CH9101/CH9102/CH9103/CH9104/CH9105/CH9143/CH9111/CH9114, etc.
+author:         WCH
+srcversion:     7F64E1332EEAF038B4471B8
+alias:          usb:v1A86p5610d*dc*dsc*dp*ic*isc*ip*in01*
+alias:          usb:v1A86p55EFd*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55ECd*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55EBd*dc*dsc*dp*ic*isc*ip*in00*
+alias:          usb:v1A86p55E8d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55EAd*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55E9d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55DFd*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D7d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D4d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D8d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55E7d*dc*dsc*dp*ic*isc*ip*in00*
+alias:          usb:v1A86p55DEd*dc*dsc*dp*ic*isc*ip*in02*
+alias:          usb:v1A86p55DEd*dc*dsc*dp*ic*isc*ip*in00*
+alias:          usb:v1A86p55DDd*dc*dsc*dp*ic*isc*ip*in00*
+alias:          usb:v1A86p55DBd*dc*dsc*dp*ic*isc*ip*in00*
+alias:          usb:v1A86p55DAd*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D6d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D5d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D3d*dc*dsc*dp*ic*isc*ip*in*
+alias:          usb:v1A86p55D2d*dc*dsc*dp*ic*isc*ip*in*
+depends:
+name:           ch343
+vermagic:       6.1.83 SMP preempt mod_unload aarch64
+Module                  Size  Used by
+ch343                  36864  0
+usb_f_ecm              24576  2
+usb_f_mass_storage     65536  2
+rfcomm                 86016  16
+vs_drm                172032  1
+vs_x5_syscon_bridge    16384  0
+vio_n2d               274432  1 vs_drm
+galcore               380928  0
+bnep                   28672  2
+snd_soc_hobot_sound_duplex_host    24576  0
+snd_soc_simple_card_utils    28672  1 snd_soc_hobot_sound_duplex_host
+es8311                 45056  0
+designware_i2s         24576  2
+rtc_hpu3501            20480  1
+usb_f_rndis            40960  2
+u_ether                28672  2 usb_f_rndis,usb_f_ecm
+libcomposite           69632  14 usb_f_rndis,usb_f_mass_storage,usb_f_ecm
+leds_gpio              16384  0
+led_class              20480  1 leds_gpio
+bpu_hw_io_x5           24576  0
+bpu_cores              28672  1 bpu_hw_io_x5
+bpu_framework          77824  2 bpu_hw_io_x5,bpu_cores
+hobot_lpwm             45056  0
+hobot_isi_sensor       45056  0
+hobot_gdc              36864  0
+hobot_deserial         45056  0
+vs_vse_nat             61440  0
+vs_dw_crc              16384  2 hobot_gdc,vs_vse_nat
+vs_isp_nat             98304  1 vs_vse_nat
+hobot_mipidbg          28672  0
+hobot_mipicsi         126976  1 hobot_mipidbg
+hobot_camsys           36864  2 hobot_mipicsi,hobot_gdc
+hobot_mipiphy          49152  2 hobot_mipidbg,hobot_mipicsi
+hobot_sensor          344064  1 hobot_isi_sensor
+vs_sif_nat             69632  0
+vs_ops_nat             16384  3 vs_isp_nat,vs_sif_nat,vs_vse_nat
+vs_cam_pulse           16384  1 vs_sif_nat
+hobot_vin_vcon         45056  0
+hobot_vin_vnode        45056  4 hobot_mipicsi,vs_sif_nat,hobot_vin_vcon,hobot_lpwm
+hobot_osd              73728  0
+hobot_jpu              69632  0
+hobot_vpu             122880  0
+hobot_codec_vnode      32768  0
+hobot_vio_common      114688  14 hobot_isi_sensor,vio_n2d,hobot_deserial,hobot_camsys,vs_isp_nat,hobot_vin_vnode,hobot_gdc,hobot_osd,hobot_codec_vnode,vs_sif_nat,hobot_vin_vcon,vs_vse_nat,hobot_sensor,hobot_lpwm
+vs_csi_wrapper         16384  0
+vs_cam_ctrl            16384  4 vs_isp_nat,hobot_gdc,vs_sif_nat,vs_vse_nat
+vs_isc                 32768  13 vs_isp_nat,vs_sif_nat,vs_vse_nat
+binfmt_misc            24576  1
+cdc_acm                40960  0
+aic8800_fdrv          475136  0
+cfg80211              389120  1 aic8800_fdrv
+aic8800_bsp            90112  1 aic8800_fdrv
+sii902x                24576  0
+i2c_mux                16384  1 sii902x
+drm_kms_helper        172032  3 sii902x,vs_x5_syscon_bridge,vs_drm
+syscopyarea            16384  1 drm_kms_helper
+sysfillrect            16384  1 drm_kms_helper
+sysimgblt              16384  1 drm_kms_helper
+fb_sys_fops            16384  1 drm_kms_helper
+spidev                 24576  0
+snd_soc_es8326         45056  1
+tcan4x5x               16384  0
+m_can                  32768  1 tcan4x5x
+can_dev                40960  1 m_can
+evdev                  24576  1
+sch_fq_codel           20480  264
+hb_bl                  16384  0
+goodix_ts              32768  0
+panel_waveshare_dsi    16384  0
+ft5406                 20480  0
+panel_wh_cm480         16384  0
+uvcvideo              106496  0
+videobuf2_vmalloc      20480  1 uvcvideo
+videobuf2_memops       20480  1 videobuf2_vmalloc
+videobuf2_v4l2         32768  1 uvcvideo
+videobuf2_common       53248  4 videobuf2_vmalloc,videobuf2_v4l2,uvcvideo,videobuf2_memops
+hci_uart               49152  1
+btrtl                  28672  1 hci_uart
+btbcm                  20480  0
+bluetooth             790528  42 btrtl,hci_uart,btbcm,bnep,rfcomm
+rfkill                 32768  7 bluetooth,cfg80211
+fuse                  131072  1
+crw-rw---- 1 root dialout 170, 0 Jul 14 21:30 /dev/ttyCH343USB0
+/sys/bus/usb/drivers/usb_ch343
+total 0
+lrwxrwxrwx 1 root root    0 Jul 14 21:30 1-1.1:1.0 -> ../../../../devices/platform/soc/35000000.hsio_apb/35100000.usb3/35100000.usb/xhci-hcd.2.auto/usb1/1-1/1-1.1/1-1.1:1.0
+lrwxrwxrwx 1 root root    0 Jul 14 21:30 1-1.1:1.1 -> ../../../../devices/platform/soc/35000000.hsio_apb/35100000.usb3/35100000.usb/xhci-hcd.2.auto/usb1/1-1/1-1.1/1-1.1:1.1
+--w------- 1 root root 4096 Jul 14 21:30 bind
+lrwxrwxrwx 1 root root    0 Jul 14 21:30 module -> ../../../../module/ch343
+-rw-r--r-- 1 root root 4096 Jul 14 21:30 new_id
+-rw-r--r-- 1 root root 4096 Jul 14 21:30 remove_id
+--w------- 1 root root 4096 Jul 14 21:30 uevent
+--w------- 1 root root 4096 Jul 14 21:30 unbind
+7
+isolcpus=7

@@ -53,6 +53,11 @@ one device-status reply, `0.125%` failures, and `7.703526 ms` max bus time. The
 50 Hz tick p99.9 was green at `20.101307 ms`. Torque was never enabled. See the
 Gate 2 preflight artifact before proposing any transport change.
 
+The separately authorized official WCH CH343 driver experiment produced zero
+transaction failures but total bus mean/max remained
+`5.437868 / 7.490049 ms`. It was rejected and fully rolled back to `cdc_acm`.
+Do not repeat that driver experiment as an unmeasured preference change.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.
