@@ -109,3 +109,14 @@ and can identify a complete fresh timestamp stream. They cannot infer whether
 the operator actually held the robot upright, tilted it in the named direction,
 or pressed the named switch. The data candidate therefore remains subordinate
 to explicit label review.
+
+## D018 — Separate logical servo order from measured SyncRead wire order
+
+Accepted. The frozen logical/action order remains IDs
+`20-24,30-33,10-14`. Torque-off hardware diagnostics reproduced CRCs on ID 13
+whenever its grouped response preceded ID 14, while an individual 2,000-read ID
+13 run and a grouped order with 14 before 13 were clean. Rob confirmed that ID
+13 must be last on this physical chain. SyncRead therefore requests the same IDs
+in wire order ending `14,13`; response packets are still routed into frozen
+logical order by their ID. This transport-only repair cannot change observation
+or action semantics and does not waive the Gate 2 bus-time threshold.

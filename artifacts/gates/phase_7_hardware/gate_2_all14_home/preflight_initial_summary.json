@@ -1,0 +1,265 @@
+{
+  "backend": "serial",
+  "bus_total_ms": {
+    "max": 7.639308,
+    "mean": 5.254025680000001,
+    "min": 3.678236,
+    "p95": 7.550099,
+    "p99": 7.62818108,
+    "p99_9": 7.638195308
+  },
+  "environment": {
+    "amplitude_rad": 0.0,
+    "baudrate": 1000000,
+    "config_path": "/home/sunrise/duck_config.json",
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "device": "/dev/ttyACM0",
+    "frequency_hz": 50.0,
+    "hardware_authorized": true,
+    "moving_gate_authorized": false,
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "python": "3.10.12",
+    "realtime": {
+      "affinity": [
+        7
+      ],
+      "background_threads": [
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6329
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6330
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6331
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6332
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6333
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6334
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6335
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 6344
+        }
+      ],
+      "cpu": 7,
+      "housekeeping_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "initial_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "isolated": true,
+      "priority": 80,
+      "scheduler": "SCHED_FIFO"
+    },
+    "sine_hz": 0.5,
+    "sine_joint": "left_hip_yaw",
+    "suspended_or_benched": true,
+    "telemetry_records_dropped": 0,
+    "timeout_ms": 4.0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "watchdog_consecutive_failures": 2
+  },
+  "extended_round_trip_ms": {
+    "max": 1.19901,
+    "mean": 0.7800708799999999,
+    "min": 0.547462,
+    "p95": 1.17060045,
+    "p99": 1.1879026799999999,
+    "p99_9": 1.197899268
+  },
+  "gates": {
+    "authorization_provenance": true,
+    "bus_max_under_5_ms": false,
+    "complete_record_stream": true,
+    "gate2_home_hold_candidate": false,
+    "gate4_sine_candidate": false,
+    "moving_gate_scope": false,
+    "realtime_verified_when_required": true,
+    "tick_p99_9_at_most_22_ms": true,
+    "tick_p99_at_most_21_ms": true,
+    "torque_off_confirmed": true,
+    "tracking_p95_at_most_0_011_rad": false,
+    "transaction_failure_below_0_1_percent": false,
+    "zero_read_bursts": true
+  },
+  "group_round_trip_ms": {
+    "max": 4.912871,
+    "mean": 3.46111632,
+    "min": 2.443935,
+    "p95": 4.7692514,
+    "p99": 4.8558467599999995,
+    "p99_9": 4.907168576000001
+  },
+  "halt_reason": null,
+  "hardware_gate_status": "REVIEW_REQUIRED",
+  "informational_only": false,
+  "jsonl_sha256": "96fe8142374f5ca983411d6a5632f747f03a09da8aa05e1399b151472e7c666b",
+  "max_read_burst_ticks": 1,
+  "partial_byte_count": 0,
+  "read_burst_count": 0,
+  "release_lateness_ms": {
+    "max": 0.107318,
+    "mean": 0.030098100000000003,
+    "min": 0.001009,
+    "p95": 0.10091919999999999,
+    "p99": 0.10611015,
+    "p99_9": 0.10719721500000001
+  },
+  "review_status": "REVIEW_REQUIRED",
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.timing_summary.v2",
+  "tick_period_ms": {
+    "max": 20.105944,
+    "mean": 20.00024469387755,
+    "min": 19.893693,
+    "p95": 20.0989694,
+    "p99": 20.104624,
+    "p99_9": 20.105812
+  },
+  "ticks": 50,
+  "ticks_requested": 50,
+  "tracking_absolute_error_rad": {
+    "max": null,
+    "mean": null,
+    "min": null,
+    "p95": null,
+    "p99": null,
+    "p99_9": null,
+    "samples": 0
+  },
+  "tracking_joint_index": 0,
+  "transaction_failure_counts": {
+    "crc": 4,
+    "device": 0,
+    "io": 0,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0,
+    "unexpected_packet": 0
+  },
+  "transaction_failure_percent": 0.5,
+  "transaction_failure_rate": 0.005,
+  "transaction_status_counts": {
+    "crc": 4,
+    "device": 0,
+    "io": 0,
+    "ok": 796,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0
+  },
+  "transactions_expected": 800,
+  "transactions_failed": 4,
+  "unexpected_packet_count": 0
+}

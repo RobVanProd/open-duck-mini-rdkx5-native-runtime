@@ -1,6 +1,10 @@
 # Staged Hardware Gate Runbook
 
-Gate 1 is `PASS_REVIEWED`; Gates 2-5 remain `NOT_RUN`. Each invocation requires a fresh, explicit authorization from Rob and a physically suspended or benched robot. Authorization for one gate does not authorize the next.
+Gate 1 is `PASS_REVIEWED`. Gate 2 remains `NOT_RUN` because its authorized
+torque-off preflight failed the bus gates before torque enable. Gates 3-5 remain
+`NOT_RUN`. Each invocation requires a fresh, explicit authorization from Rob and
+a physically suspended or benched robot. Authorization for one gate does not
+authorize the next.
 
 ## Common preflight
 
@@ -42,6 +46,12 @@ failures, zero bursts, zero response-length mismatches, p99.9 round trip
 Gate 1 artifact directory. Gate 2 remains unauthorized.
 
 ## Gate 2 — Fourteen-servo home hold, no policy
+
+Current status: `NOT_RUN_BLOCKED_PREFLIGHT`. The ID-13-last wire-order repair
+removed the reproduced CRC mechanism, but the repeated torque-off preflight had
+one device-status reply, `0.125%` failures, and `7.703526 ms` max bus time. The
+50 Hz tick p99.9 was green at `20.101307 ms`. Torque was never enabled. See the
+Gate 2 preflight artifact before proposing any transport change.
 
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.

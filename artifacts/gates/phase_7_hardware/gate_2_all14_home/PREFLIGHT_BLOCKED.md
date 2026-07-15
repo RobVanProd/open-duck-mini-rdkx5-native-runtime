@@ -1,0 +1,100 @@
+# Hardware Gate 2 Preflight Result
+
+Status: `NOT_RUN_BLOCKED_PREFLIGHT`
+
+Gate 2 was explicitly authorized for a suspended/benched all-14 home hold with
+no policy. Torque-off preflight did not satisfy the frozen bus gates, so torque
+was never enabled, the home move did not begin, and the 10,000-tick moving hold
+was not run. `NOT_RUN.md` therefore remains authoritative for Gate 2 itself.
+
+## Safety and provenance
+
+- final deployed source commit: `9cd4ca0`
+- deployed archive SHA-256:
+  `7e41efeee1aeee562ae53111f22cc6fec044681db82d126e6f9a6c40eb894c16`
+- config SHA-256:
+  `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
+- device: WCH `1a86:55d3`, USB full-speed 12 Mbit/s, Linux `cdc_acm`
+- `/sys` latency timer: unsupported
+- RT provenance: isolated CPU 7, `SCHED_FIFO 80`, background CPUs 0-6
+- every executed bus diagnostic established and finished with torque off
+- no policy inference, goal movement, home entry, or torque enable occurred
+
+The first attempted torque-off preflight stopped before serial open because the
+RT guard used the nonexistent `os.get_native_id`. Commit `6ba0e32` corrected it
+to `threading.get_native_id`, and the real X5 then verified the complete thread
+partition. This failure caused no servo packet.
+
+## Initial all-14 torque-off exchange
+
+Fifty ticks with the original frozen wire order completed with:
+
+- tick p99.9: `20.105812 ms`
+- bus max: `7.639308 ms` (`FAIL`, required below 5 ms)
+- four CRC failures, all on servo 13
+- transaction failure rate: `0.5%` (`FAIL`, required below 0.1%)
+- zero bursts, zero partial bytes, zero unexpected packets, zero telemetry drops
+- final torque-off: `ok`
+
+Machine-readable result: `preflight_initial_summary.json`.
+
+## Servo 13 causal isolation
+
+An individual torque-off probe then read servo 13 for 2,000 ticks with zero
+failures, zero bursts, p99.9 round trip `1.016509 ms`, and final torque-off
+`ok`. The servo and its individual response path are therefore not sufficient
+to reproduce the CRC.
+
+A guarded grouped-read order diagnostic produced:
+
+| Wire order | Completed | CRC result | Group-read max |
+| --- | ---: | --- | ---: |
+| frozen, ending `..., 13, 14` | 239 | 5 on ID 13; stopped on consecutive failed ticks | 4.964103 ms |
+| fully reversed, with `14, 13` | 500 | 0 | 4.439309 ms |
+| rotated, still containing `13, 14` | 500 | 10 on ID 13 | 4.484809 ms |
+
+Rob confirmed the known physical-chain requirement that ID 13 be requested
+last. Commit `9cd4ca0` changes only the wire SyncRead order to end `..., 14, 13`;
+the frozen logical joint/action/servo order is unchanged and replies remain
+routed by ID.
+
+Machine-readable individual result: `diagnostic_id13_summary.json`. The guarded
+order-diagnostic source SHA-256 is
+`fa2031505881fbf1eb40efffc2abeefdc6a06fa49fc909001380c3a7264dca67`.
+
+## Repeated preflight with ID 13 last
+
+The same 50-tick all-14 torque-off exchange then completed with:
+
+- zero CRC failures
+- one device-status reply on servo 13
+- transaction failure rate: `0.125%` (`FAIL`)
+- bus time at or above 5 ms on 25 of 50 ticks
+- bus mean/max: `5.339127 / 7.703526 ms` (`FAIL`)
+- tick p99/p99.9: `20.101217 / 20.101307 ms` (`PASS`)
+- zero bursts, partial bytes, unexpected packets, and telemetry drops
+- final torque-off: `ok`
+
+Machine-readable result: `preflight_id13_last_summary.json`.
+
+## Rejected combined-read diagnostic
+
+A torque-off diagnostic tested replacing the per-tick four-byte state read plus
+one extended read with one 15-byte grouped response. Across 500 ticks, bus
+mean/p99.9/max was `5.133325 / 6.656727 / 6.730143 ms`, with multiple later-ID
+timeouts and CRCs under the unchanged 4 ms deadline. This alternative is not
+selected. Its guarded source SHA-256 is
+`ce0af5b599697cbe5dc0c2ece6120645ff13e20e22d4ac5b943236689755702b`.
+
+## Decision boundary
+
+The Python RT loop's tick timing is green; this evidence does not trigger the
+pre-registered Rust escalation, and a native extension would not by itself
+remove the measured USB transaction latency. The current WCH device is bound to
+generic `cdc_acm`; the stock X5 `ch341` module does not claim product `55d3`.
+
+Gate 2 remains stopped. Continuing requires a separately reviewed transport
+decision, such as testing the vendor CH343 Linux driver, a different low-latency
+adapter/direct UART path, or an explicit contract review. The existing `<5 ms`
+budget and telemetry cadence must not be silently relaxed. Gates 3-5 remain
+unauthorized.
