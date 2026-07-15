@@ -69,6 +69,21 @@ def test_timing_summary_reports_each_failure_class_and_tracking_error() -> None:
     assert summary["unexpected_packet_count"] == 2
     assert summary["tracking_absolute_error_rad"]["p95"] == 0.005
     assert summary["gates"]["tracking_p95_at_most_0_011_rad"] is True
+    assert summary["bus_total_population"] == {
+        "observation": "complete_tick_sweep",
+        "observations": 1,
+        "statistic": "sample_max_over_completed_ticks",
+        "components": [
+            "goal_sync_write_all_14",
+            "state_sync_read_0x82_all_14",
+            "extended_read_one_servo",
+        ],
+    }
+    assert summary["group_round_trip_population"] == {
+        "observation": "one_0x82_request_plus_14_response_burst",
+        "observations": 1,
+        "statistic": "sample_max_over_completed_ticks",
+    }
 
 
 def test_device_alarms_are_reported_without_becoming_transport_failures() -> None:

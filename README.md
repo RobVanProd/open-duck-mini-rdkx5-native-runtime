@@ -12,7 +12,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
 | Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; transport failures and raw device alarms are distinct |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
-| Timing probe | v2 per-class evidence with raw hash, RT/auth/cutoff provenance, and gated movement |
+| Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified on X5; Gate 2 tick timing preflight green |
 | IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |

@@ -122,6 +122,17 @@ conflating the alarm with a transport failure, but it cannot pass the
 from this software correction. See
 `docs/POWER_AND_DEVICE_STATUS_RECONCILIATION.md`.
 
+Read-only attribution on 2026-07-15 reconfirmed that the adapter is WCH/QinHeng
+`1a86:55d3`, `/dev/ttyACM0`, bound to `cdc_acm`. It is not FTDI and exposes no
+`latency_timer`, so an FTDI 16 ms timer write is neither available nor a valid
+test. Before the planned direct-UART A/B, the USB comparison window is now
+frozen at 10,000 torque-off ticks. `bus_total_ms` is the sample distribution of
+complete tick sweeps—14-target SyncWrite, one `0x82` all-14 position/speed burst,
+and one extended read—not a distribution of individual servo transactions.
+The grouped-read distribution separately measures one request plus the complete
+14-response burst. See `USB_ADAPTER_ATTRIBUTION_20260715.md` and
+`USB_10K_TORQUE_OFF_PRE_REGISTRATION.md` in the Gate 2 artifact directory.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

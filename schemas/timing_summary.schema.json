@@ -49,6 +49,33 @@
     "group_round_trip_ms": { "$ref": "#/$defs/stats" },
     "extended_round_trip_ms": { "$ref": "#/$defs/stats" },
     "bus_total_ms": { "$ref": "#/$defs/stats" },
+    "bus_total_population": {
+      "type": "object",
+      "required": ["observation", "observations", "statistic", "components"],
+      "properties": {
+        "observation": { "const": "complete_tick_sweep" },
+        "observations": { "type": "integer", "minimum": 0 },
+        "statistic": { "const": "sample_max_over_completed_ticks" },
+        "components": {
+          "const": [
+            "goal_sync_write_all_14",
+            "state_sync_read_0x82_all_14",
+            "extended_read_one_servo"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "group_round_trip_population": {
+      "type": "object",
+      "required": ["observation", "observations", "statistic"],
+      "properties": {
+        "observation": { "const": "one_0x82_request_plus_14_response_burst" },
+        "observations": { "type": "integer", "minimum": 0 },
+        "statistic": { "const": "sample_max_over_completed_ticks" }
+      },
+      "additionalProperties": false
+    },
     "transactions_expected": { "type": "integer", "minimum": 0 },
     "transactions_failed": { "type": "integer", "minimum": 0 },
     "transaction_status_counts": { "$ref": "#/$defs/statusCounts" },

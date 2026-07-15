@@ -197,3 +197,26 @@ payloads must be stale and that the documented 2S supply is physically wrong.
 The raw captures, voltage readings, configured 4.0/8.0 V thresholds, and alarm
 bytes remain valid historical evidence. See
 `docs/POWER_AND_DEVICE_STATUS_RECONCILIATION.md`.
+
+## D024 — Attribute the USB adapter and freeze the timing population
+
+Accepted. Read-only X5 inventory identifies the adapter as QinHeng/WCH
+`1a86:55d3`, `/dev/ttyACM0`, bound to `cdc_acm`. It is not FTDI, exposes no
+`/dev/ttyUSB0`, and has no sysfs `latency_timer`; the FTDI default-16-ms timer is
+not an available causal knob. The prior CH343 vendor-driver result remains the
+relevant USB-driver A/B, and direct UART is the next transport A/B when Rob is
+present to rewire it.
+
+`bus_total_ms` is frozen as one observation per complete tick sweep: one
+14-target SyncWrite, one `0x82` SyncRead with a contiguous 14-response burst,
+and one round-robin extended read. It is not a per-servo or per-transaction
+maximum. `group_round_trip_ms` separately covers the single `0x82` request and
+complete response burst. The USB attribution window is exactly 10,000 attempted
+ticks at 50 Hz; `max`, p99, and p99.9 are computed over the completed-tick
+population and reported with its observation count. A 50- or 250-tick run may
+debug the harness but cannot decide the USB-versus-UART comparison.
+
+The authorized USB run remains torque-off throughout. It emits the normal
+14-target SyncWrite only to preserve the full runtime bus population; it does
+not enable torque, enter home, move, or infer a policy. See the adapter
+attribution and 10,000-tick pre-registration artifacts under Gate 2.

@@ -3,7 +3,7 @@
 | Requirement | Implementation | Offline evidence | Hardware status |
 | --- | --- | --- | --- |
 | 101 observations / 14 actions | `contract.py`, `policy.py`, snapshot extractor/verifier | independent legacy-formula, named-mismatch tests, corrected-knee board snapshot | deployed golden vector exact; candidate training parity pending |
-| 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe; schema-bound raw/summary provenance | 1,000-tick mock summary, comparison, collision/tamper tests | Gate 2 torque-off tick p99.9 20.101307 ms; moving run blocked by bus gates |
+| 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe; self-describing complete-sweep population and schema-bound provenance | mock summary, population-definition, comparison, collision/tamper tests | 10,000-tick USB torque-off window preregistered; moving run blocked by bus gates |
 | Gate 1 single-servo echo/read | torque-off `probe_single_servo`; raw hash/auth/cutoff/framing summary | mock tick+summary schema and provenance tests | 10,000-read serial run `PASS_REVIEWED` |
 | `duck_config.json` semantics | `config.py` | config, strict boolean, finite phase, and offset-order tests | live file validated and hashed; no writes performed |
 | Frozen servo map | `constants.py` | logical map plus distinct wire-order test | logical map unchanged; ID 13 last removes reproduced grouped-read CRC |
@@ -13,7 +13,7 @@
 | SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | CRC mechanism repaired; bus max 7.703526 ms fails <5 ms gate |
 | Timeout/CRC/partial taxonomy plus device alarms | `ErrorCode`, `ServoSnapshot.device_status`, JSONL and summaries | alarm-bearing payload remains fresh while alarm gate fails; per-class count tests | all-servo status `0x01` captured separately from valid framing; moving run blocked |
 | Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests; valid device-alarm payload is not mislabeled stale | sustained-rate test pending |
-| Serial minimum latency | verification/install scripts | shell syntax check | official WCH CH343 driver built/bound/tested/rolled back; bus max 7.490049 ms, so transport review remains required |
+| Serial minimum latency | verification/install scripts | shell syntax check | `1a86:55d3` CH343 on `cdc_acm`, not FTDI and no `latency_timer`; vendor driver tested/rolled back; direct UART A/B pending |
 | Round-robin current/voltage/temp | extended read every tick modulo 14 with raw device status | register decode and alarm-telemetry tests | voltage raw units confirmed; current/temperature value checks pending |
 | SCHED_FIFO + isolated core | pre-spawn housekeeping partition plus verified control-thread isolation in `realtime.py`; exact-list and scheduler preflight | partition/offender/service-mask/parser tests | CPU 7 isolation, housekeeping 0-6, and `SCHED_FIFO 80` verified |
 | Preallocated hot-loop data | arrays, packet frames, telemetry record pools | lint/tests; no JSON I/O in loop | allocation/timing profile pending |

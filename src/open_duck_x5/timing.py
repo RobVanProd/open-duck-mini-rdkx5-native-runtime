@@ -188,6 +188,21 @@ class TimingSeries:
             "backend": backend,
             "informational_only": informational_only,
             "ticks": self.count,
+            "bus_total_population": {
+                "observation": "complete_tick_sweep",
+                "observations": self.count,
+                "statistic": "sample_max_over_completed_ticks",
+                "components": [
+                    "goal_sync_write_all_14",
+                    "state_sync_read_0x82_all_14",
+                    "extended_read_one_servo",
+                ],
+            },
+            "group_round_trip_population": {
+                "observation": "one_0x82_request_plus_14_response_burst",
+                "observations": self.count,
+                "statistic": "sample_max_over_completed_ticks",
+            },
             "tick_period_ms": tick,
             "release_lateness_ms": self._stats(self.release_lateness_ns[: self.count]),
             "group_round_trip_ms": self._stats(self.group_round_trip_ns[: self.count]),
