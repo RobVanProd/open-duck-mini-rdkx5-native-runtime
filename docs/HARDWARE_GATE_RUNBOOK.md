@@ -86,6 +86,14 @@ diagnostic preserves a voltage byte from a valid device-error response for
 evidence only; the operational runtime still rejects it as stale. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_DIAGNOSTIC_PRE_REGISTRATION.md`.
 
+The authorized read completed all 14 responses: every servo reported status
+`0x01` and measured `8.2-8.4 V`. This proves the common rail is present but does
+not establish whether the units are a 7.4 V variant with an 8.0 V maximum or
+have another configured limit. Do not change supply or EEPROM values. A new
+authorization is required to read model/version registers 3-4 and voltage-limit
+registers 14-15. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/voltage_diagnostic/RESULT.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

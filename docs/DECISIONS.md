@@ -145,3 +145,13 @@ After visible connection inspection and a robot reboot, one authorized retry
 reproduced status `0x01` on all fourteen replies. Repeating the same capture is
 closed; the next distinct step is an explicit torque-off present-voltage read,
 not suppression of the status byte.
+
+## D021 — Preserve device-error telemetry for a read-only voltage diagnosis
+
+Accepted. A diagnostic-only register API may preserve parameters from a valid
+device-error packet while still classifying it as `device`; the operational
+runtime continues to discard that payload and mark the sample stale. The
+authorized register-62 run measured `8.2-8.4 V` on all 14 servos while every
+response asserted voltage error. No EEPROM or supply change follows from this
+alone. Model/version and configured voltage-limit reads require a distinct
+authorization.

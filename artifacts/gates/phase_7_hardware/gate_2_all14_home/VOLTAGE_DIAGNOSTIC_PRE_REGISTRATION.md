@@ -1,6 +1,6 @@
 # All-14 present-voltage diagnostic pre-registration
 
-Status: `AUTHORIZED_NOT_RUN`
+Status: `RUN_COMPLETE_REVIEW_REQUIRED`
 
 Rob explicitly authorized one torque-off, all-14 present-voltage telemetry read
 while the robot is suspended/benched. Torque enable and motion are not
@@ -51,3 +51,7 @@ probe_servo_voltage --bus serial --device /dev/ttyACM0 \
   --hardware-authorized --suspended-or-benched \
   --output /home/sunrise/duck-evidence/voltage-all14/result.json
 ```
+
+The authorized run completed from commit
+`ec4ecb779f601ddc2e0ff0d33d87ce9d7c690aa2`. See
+`voltage_diagnostic/RESULT.md`; Gate 2 remains blocked.

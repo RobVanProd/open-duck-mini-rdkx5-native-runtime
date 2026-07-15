@@ -131,3 +131,11 @@ was `2.125 ms`; cleanup again completed with torque off and no target write.
 See `software_usbmon_voltage_halt_retry/RESULT.md`. Repeating the same capture is
 now closed. The next useful diagnostic is a separately authorized torque-off
 read of present-voltage telemetry without ignoring the device status.
+
+The separately authorized all-14 register-62 diagnostic then completed without
+transport failures. Every servo reported status `0x01` while measuring
+`8.2-8.4 V` (mean `8.257 V`). Initial and final torque-off were `ok`, and no
+goal write occurred. The rail is present and consistent; the leading unresolved
+cause is a configured maximum-voltage threshold below the measured rail. See
+`voltage_diagnostic/RESULT.md`. Gate 2 remains blocked pending a read-only model
+and configured voltage-limit audit.
