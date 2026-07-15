@@ -40,6 +40,30 @@ class ServoSnapshot:
     present_temperature_c: float = 0.0
     partial_bytes: int = 0
     unexpected_packets: int = 0
+    instrumentation_enabled: bool = False
+    trace_bus_start_ns: int = 0
+    trace_bus_end_ns: int = 0
+    trace_write_start_ns: int = 0
+    trace_write_end_ns: int = 0
+    trace_group_start_ns: int = 0
+    trace_group_flush_start_ns: int = 0
+    trace_group_flush_end_ns: int = 0
+    trace_group_write_start_ns: int = 0
+    trace_group_write_end_ns: int = 0
+    trace_group_first_rx_ns: int = 0
+    trace_group_last_rx_ns: int = 0
+    trace_group_end_ns: int = 0
+    trace_group_read_calls: int = 0
+    trace_group_response_complete_ns: np.ndarray | None = None
+    trace_extended_start_ns: int = 0
+    trace_extended_flush_start_ns: int = 0
+    trace_extended_flush_end_ns: int = 0
+    trace_extended_write_start_ns: int = 0
+    trace_extended_write_end_ns: int = 0
+    trace_extended_first_rx_ns: int = 0
+    trace_extended_last_rx_ns: int = 0
+    trace_extended_end_ns: int = 0
+    trace_extended_read_calls: int = 0
 
     @classmethod
     def create(cls) -> ServoSnapshot:
@@ -48,6 +72,7 @@ class ServoSnapshot:
             velocities_rad_s=np.zeros(ACTION_DIM, dtype=np.float64),
             stale=np.ones(ACTION_DIM, dtype=np.bool_),
             status=np.full(ACTION_DIM, int(ErrorCode.TIMEOUT), dtype=np.uint8),
+            trace_group_response_complete_ns=np.zeros(ACTION_DIM, dtype=np.int64),
         )
 
     def begin_tick(self) -> None:
@@ -61,6 +86,31 @@ class ServoSnapshot:
         self.extended_servo_id = -1
         self.partial_bytes = 0
         self.unexpected_packets = 0
+        if self.instrumentation_enabled:
+            self.trace_bus_start_ns = 0
+            self.trace_bus_end_ns = 0
+            self.trace_write_start_ns = 0
+            self.trace_write_end_ns = 0
+            self.trace_group_start_ns = 0
+            self.trace_group_flush_start_ns = 0
+            self.trace_group_flush_end_ns = 0
+            self.trace_group_write_start_ns = 0
+            self.trace_group_write_end_ns = 0
+            self.trace_group_first_rx_ns = 0
+            self.trace_group_last_rx_ns = 0
+            self.trace_group_end_ns = 0
+            self.trace_group_read_calls = 0
+            if self.trace_group_response_complete_ns is not None:
+                self.trace_group_response_complete_ns.fill(0)
+            self.trace_extended_start_ns = 0
+            self.trace_extended_flush_start_ns = 0
+            self.trace_extended_flush_end_ns = 0
+            self.trace_extended_write_start_ns = 0
+            self.trace_extended_write_end_ns = 0
+            self.trace_extended_first_rx_ns = 0
+            self.trace_extended_last_rx_ns = 0
+            self.trace_extended_end_ns = 0
+            self.trace_extended_read_calls = 0
 
     @property
     def all_fresh(self) -> bool:

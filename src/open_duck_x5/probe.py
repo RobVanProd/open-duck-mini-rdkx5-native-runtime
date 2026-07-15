@@ -25,6 +25,7 @@ from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import Watchdog, WatchdogTrip
 from .telemetry import AsyncProbeWriter, TelemetryError
 from .timing import AbsoluteTicker, TimingSeries
+from .transaction_trace import TransactionTraceSeries
 
 
 class ProbeInterrupted(RuntimeError):
@@ -63,6 +64,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rt-priority", type=int, default=80)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
+    parser.add_argument(
+        "--instrument-transactions",
+        action="store_true",
+        help="Capture preallocated application-level transaction stage timestamps.",
+    )
+    parser.add_argument(
+        "--instrumentation-output",
+        type=Path,
+        help="Post-loop JSONL destination for --instrument-transactions.",
+    )
     add_hardware_ack_arguments(parser)
     return parser
 
@@ -148,13 +159,29 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
     output_path = args.output.expanduser().resolve()
     summary_path = args.summary.expanduser().resolve()
-    protected_paths = {summary_path}
+    if args.instrument_transactions != (args.instrumentation_output is not None):
+        raise ValueError(
+            "--instrument-transactions and --instrumentation-output must be used together"
+        )
+    instrumentation_path = (
+        args.instrumentation_output.expanduser().resolve()
+        if args.instrumentation_output is not None
+        else None
+    )
+    protected_paths: set[Path] = set()
     if args.config is not None:
         protected_paths.add(args.config.expanduser().resolve())
     if args.bus == "serial":
         protected_paths.add(Path(args.device).expanduser().resolve())
-    if output_path in protected_paths or summary_path in protected_paths - {summary_path}:
-        raise ValueError("probe output, summary, config, and serial device must be distinct")
+    output_paths = [output_path, summary_path]
+    if instrumentation_path is not None:
+        output_paths.append(instrumentation_path)
+    if len(set(output_paths)) != len(output_paths) or any(
+        path in protected_paths for path in output_paths
+    ):
+        raise ValueError(
+            "probe output, summary, instrumentation, config, and serial device must be distinct"
+        )
     if args.bus == "serial" and args.enable_torque:
         if not args.moving_gate_authorized:
             raise HardwareAuthorizationError(
@@ -198,9 +225,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         informational_only = True
 
     snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = bool(args.instrument_transactions)
     targets = physical_home.copy()
     sine_joint_index = JOINT_NAMES.index(args.sine_joint)
     series = TimingSeries(args.ticks, tracking_joint_index=sine_joint_index)
+    transaction_trace = (
+        TransactionTraceSeries(args.ticks) if args.instrument_transactions else None
+    )
     try:
         writer = AsyncProbeWriter(
             args.output, capacity=min(max(args.ticks, 64), 4096)
@@ -250,6 +281,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             previous_tick_start_ns = tick_start_ns
             tracking_targets = targets if args.bus == "mock" or args.enable_torque else None
             series.append(tick_start_ns, lateness_ns, snapshot, tracking_targets)
+            if transaction_trace is not None:
+                transaction_trace.append(tick, snapshot)
             writer.publish(
                 tick,
                 tick_start_ns,
@@ -282,6 +315,12 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     if torque_off_status is not ErrorCode.OK:
         cutoff_reason = f"cleanup torque-off failed: {torque_off_status.name.lower()}"
         halt_reason = f"{halt_reason}; {cutoff_reason}" if halt_reason else cutoff_reason
+    if transaction_trace is not None and instrumentation_path is not None:
+        try:
+            transaction_trace.write_jsonl(instrumentation_path)
+        except OSError as exc:
+            trace_reason = f"transaction trace write failed: {exc}"
+            halt_reason = f"{halt_reason}; {trace_reason}" if halt_reason else trace_reason
 
     summary = series.summary(backend=args.bus, informational_only=informational_only)
     summary["ticks_requested"] = args.ticks

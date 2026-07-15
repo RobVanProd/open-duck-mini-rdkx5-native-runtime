@@ -92,6 +92,68 @@ def test_probe_refuses_output_summary_collision(tmp_path: Path) -> None:
     assert not collision.exists()
 
 
+def test_probe_requires_instrumentation_flag_and_distinct_output(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "2",
+                "--instrumentation-output",
+                str(tmp_path / "trace.jsonl"),
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+
+    collision = tmp_path / "trace.jsonl"
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "2",
+                "--instrument-transactions",
+                "--instrumentation-output",
+                str(collision),
+                "--output",
+                str(collision),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+
+
+def test_mock_probe_writes_transaction_instrumentation_after_loop(tmp_path: Path) -> None:
+    trace = tmp_path / "trace.jsonl"
+    assert (
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "3",
+                "--mock-latency-ms",
+                "0",
+                "--instrument-transactions",
+                "--instrumentation-output",
+                str(trace),
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+        == 0
+    )
+    records = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines()]
+    assert [record["tick"] for record in records] == [0, 1, 2]
+
+
 def test_mock_moving_probe_runs_slow_home_path(tmp_path: Path) -> None:
     root = Path(__file__).parents[1]
     output = tmp_path / "moving.jsonl"

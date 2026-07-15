@@ -31,6 +31,7 @@ probe_single_servo = "open_duck_x5.single_servo_probe:main"
 probe_sensors = "open_duck_x5.sensor_probe:main"
 collect_duck_evidence = "open_duck_x5.evidence_collector:main"
 summarize_control_run = "open_duck_x5.control_summary:main"
+analyze_usbmon_latency = "open_duck_x5.usbmon_analysis:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

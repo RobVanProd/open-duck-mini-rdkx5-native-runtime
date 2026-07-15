@@ -58,6 +58,11 @@ transaction failures but total bus mean/max remained
 `5.437868 / 7.490049 ms`. It was rejected and fully rolled back to `cdc_acm`.
 Do not repeat that driver experiment as an unmeasured preference change.
 
+The separately authorized three-layer latency diagnostic is documented in
+`USBMON_LOGIC_ANALYZER_DIAGNOSTIC.md`. It remains `NOT_RUN` until the external
+logic analyzer is physically connected and actively capturing. Do not relabel
+a software/usbmon-only capture as the authorized three-layer run.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

@@ -119,6 +119,29 @@ def test_direct_bus_group_read_sync_write_and_extended_telemetry() -> None:
     assert bus.write_register(SERVO_IDS[0], 21, b"\x1e") is ErrorCode.OK
 
 
+def test_instrumented_exchange_captures_preallocated_stage_boundaries() -> None:
+    bus = STS3215Bus(transport=FakeTransport())
+    snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = True
+
+    bus.exchange_into(HOME_RAD, snapshot, 0)
+
+    assert snapshot.trace_bus_start_ns <= snapshot.trace_write_start_ns
+    assert snapshot.trace_write_start_ns <= snapshot.trace_write_end_ns
+    assert snapshot.trace_write_end_ns <= snapshot.trace_group_start_ns
+    assert snapshot.trace_group_write_end_ns <= snapshot.trace_group_first_rx_ns
+    assert snapshot.trace_group_first_rx_ns <= snapshot.trace_group_last_rx_ns
+    assert snapshot.trace_group_last_rx_ns <= snapshot.trace_group_end_ns
+    assert snapshot.trace_group_end_ns <= snapshot.trace_extended_start_ns
+    assert snapshot.trace_extended_write_end_ns <= snapshot.trace_extended_first_rx_ns
+    assert snapshot.trace_extended_first_rx_ns <= snapshot.trace_extended_end_ns
+    assert snapshot.trace_extended_end_ns <= snapshot.trace_bus_end_ns
+    assert snapshot.trace_group_read_calls > 1
+    assert snapshot.trace_extended_read_calls == 1
+    assert snapshot.trace_group_response_complete_ns is not None
+    assert np.all(snapshot.trace_group_response_complete_ns > 0)
+
+
 def test_extended_read_preserves_requested_servo_id_when_write_fails() -> None:
     class FailingExtendedTransport(FakeTransport):
         def write(self, data) -> None:

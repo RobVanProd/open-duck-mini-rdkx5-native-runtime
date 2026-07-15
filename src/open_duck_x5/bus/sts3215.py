@@ -120,19 +120,34 @@ class STS3215Bus:
 
     def read_state_into(self, snapshot: ServoSnapshot) -> None:
         start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_start_ns = start_ns
+            snapshot.trace_group_flush_start_ns = start_ns
         self._flush_before_transaction()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_flush_end_ns = clock_ns()
+            snapshot.trace_group_write_start_ns = clock_ns()
         try:
             self.transport.write(self._sync_read_state)
         except (OSError, TimeoutError):
+            now_ns = clock_ns()
+            if snapshot.instrumentation_enabled:
+                snapshot.trace_group_write_end_ns = now_ns
+                snapshot.trace_group_end_ns = now_ns
             snapshot.status.fill(int(ErrorCode.IO))
             snapshot.stale.fill(True)
-            snapshot.group_round_trip_ns = clock_ns() - start_ns
+            snapshot.group_round_trip_ns = now_ns - start_ns
             return
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_write_end_ns = clock_ns()
         self._collect_packets(
             expected_param_length=4,
             deadline_ns=start_ns + self.transaction_timeout_ns,
+            snapshot=snapshot,
         )
         now_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_end_ns = now_ns
         snapshot.group_round_trip_ns = now_ns - start_ns
         snapshot.sample_time_ns = now_ns
         snapshot.status[:] = self._read_codes
@@ -153,26 +168,42 @@ class STS3215Bus:
         if servo_id not in self.ids:
             raise KeyError(f"unknown servo id: {servo_id}")
         start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_start_ns = start_ns
+            snapshot.trace_extended_flush_start_ns = start_ns
         index = int(self._id_to_index[servo_id])
         snapshot.extended_servo_id = servo_id
         request = self._extended_read_packets[index]
         self._flush_before_transaction()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_flush_end_ns = clock_ns()
+            snapshot.trace_extended_write_start_ns = clock_ns()
         try:
             self.transport.write(request)
         except (OSError, TimeoutError):
+            now_ns = clock_ns()
+            if snapshot.instrumentation_enabled:
+                snapshot.trace_extended_write_end_ns = now_ns
+                snapshot.trace_extended_end_ns = now_ns
             snapshot.extended_status = ErrorCode.IO
-            snapshot.extended_round_trip_ns = clock_ns() - start_ns
+            snapshot.extended_round_trip_ns = now_ns - start_ns
             return
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_write_end_ns = clock_ns()
         self._collect_packets(
             expected_param_length=11,
             deadline_ns=start_ns + self.transaction_timeout_ns,
             only_servo_id=servo_id,
+            snapshot=snapshot,
         )
+        now_ns = clock_ns()
         snapshot.partial_bytes += self._rx_length
         snapshot.unexpected_packets += self._unexpected_packets
         code = ErrorCode(int(self._read_codes[index]))
         snapshot.extended_status = code
-        snapshot.extended_round_trip_ns = clock_ns() - start_ns
+        snapshot.extended_round_trip_ns = now_ns - start_ns
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_end_ns = now_ns
         if code is not ErrorCode.OK:
             return
         row = self._read_data[index]
@@ -187,10 +218,18 @@ class STS3215Bus:
     ) -> None:
         snapshot.begin_tick()
         bus_start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_bus_start_ns = bus_start_ns
+            snapshot.trace_write_start_ns = clock_ns()
         snapshot.write_status = self.write_positions(positions_rad)
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_write_end_ns = clock_ns()
         self.read_state_into(snapshot)
         self.read_extended_into(snapshot, self.ids[tick_index % ACTION_DIM])
-        snapshot.bus_total_ns = clock_ns() - bus_start_ns
+        bus_end_ns = clock_ns()
+        snapshot.bus_total_ns = bus_end_ns - bus_start_ns
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_bus_end_ns = bus_end_ns
 
     def _reset_read_state(self, only_servo_id: int | None) -> None:
         self._read_lengths.fill(0)
@@ -202,7 +241,12 @@ class STS3215Bus:
                     self._read_codes[index] = int(ErrorCode.UNEXPECTED_ID)
 
     def _collect_packets(
-        self, *, expected_param_length: int, deadline_ns: int, only_servo_id: int | None = None
+        self,
+        *,
+        expected_param_length: int,
+        deadline_ns: int,
+        snapshot: ServoSnapshot,
+        only_servo_id: int | None = None,
     ) -> None:
         self._reset_read_state(only_servo_id)
         expected_count = 1 if only_servo_id is not None else ACTION_DIM
@@ -217,9 +261,28 @@ class STS3215Bus:
             )
             if count <= 0:
                 break
+            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            if snapshot.instrumentation_enabled:
+                if only_servo_id is None:
+                    if snapshot.trace_group_first_rx_ns == 0:
+                        snapshot.trace_group_first_rx_ns = receive_ns
+                    snapshot.trace_group_last_rx_ns = receive_ns
+                    snapshot.trace_group_read_calls += 1
+                else:
+                    if snapshot.trace_extended_first_rx_ns == 0:
+                        snapshot.trace_extended_first_rx_ns = receive_ns
+                    snapshot.trace_extended_last_rx_ns = receive_ns
+                    snapshot.trace_extended_read_calls += 1
             self._rx_length += count
             consumed, newly_received = self._parse_available(
-                expected_param_length=expected_param_length, only_servo_id=only_servo_id
+                expected_param_length=expected_param_length,
+                only_servo_id=only_servo_id,
+                completion_ns=receive_ns,
+                response_complete_ns=(
+                    snapshot.trace_group_response_complete_ns
+                    if snapshot.instrumentation_enabled and only_servo_id is None
+                    else None
+                ),
             )
             received_count += newly_received
             if consumed:
@@ -236,7 +299,12 @@ class STS3215Bus:
                     self._read_codes[index] = int(ErrorCode.PARTIAL)
 
     def _parse_available(
-        self, *, expected_param_length: int, only_servo_id: int | None
+        self,
+        *,
+        expected_param_length: int,
+        only_servo_id: int | None,
+        completion_ns: int = 0,
+        response_complete_ns: np.ndarray | None = None,
     ) -> tuple[int, int]:
         cursor = 0
         newly_received = 0
@@ -260,7 +328,10 @@ class STS3215Bus:
                 self._unexpected_packets += 1
                 cursor = header + total_length
                 continue
+            first_seen = not bool(self._read_seen[index])
             self._read_seen[index] = True
+            if first_seen and response_complete_ns is not None:
+                response_complete_ns[index] = completion_ns
             if checksum(frame[2:-1]) != int(frame[-1]):
                 self._read_codes[index] = int(ErrorCode.CRC)
             elif int(frame[4]) != 0:

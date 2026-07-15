@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 2.4989,
-    "mean": 1.9362609,
-    "min": 0.3732,
-    "p95": 2.038505,
-    "p99": 2.0769260000000003,
-    "p99_9": 2.1241751000000337
+    "max": 16.1183,
+    "mean": 15.4229288,
+    "min": 6.669,
+    "p95": 16.04033,
+    "p99": 16.101579,
+    "p99_9": 16.114863800000002
   },
   "environment": {
     "amplitude_rad": 0.03,
@@ -30,16 +30,16 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.0137,
-    "mean": 0.0014367999999999998,
-    "min": 0.0005,
-    "p95": 0.0021,
-    "p99": 0.0032019999999999983,
-    "p99_9": 0.011102600000000235
+    "max": 0.0207,
+    "mean": 0.0028512,
+    "min": 0.0011,
+    "p95": 0.0042,
+    "p99": 0.007111999999999989,
+    "p99_9": 0.017736900000000395
   },
   "gates": {
     "authorization_provenance": true,
-    "bus_max_under_5_ms": true,
+    "bus_max_under_5_ms": false,
     "complete_record_stream": true,
     "gate2_home_hold_candidate": false,
     "gate4_sine_candidate": false,
@@ -53,49 +53,49 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 2.4849,
-    "mean": 1.9237978,
-    "min": 0.3648,
-    "p95": 2.026035,
-    "p99": 2.065712,
-    "p99_9": 2.111673600000034
+    "max": 16.0943,
+    "mean": 15.4079432,
+    "min": 6.6557,
+    "p95": 16.018915,
+    "p99": 16.078228,
+    "p99_9": 16.0924325
   },
   "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "628f369d8bc89fc77cfa454f6bbd66ab85f93d5b97d114730f33bf8c8a1002b3",
+  "jsonl_sha256": "01c06093cd492255fb4b7ac89763f086b77377c45b773d734dc388671ea3e2ec",
   "max_read_burst_ticks": 0,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 2.7533,
-    "mean": 1.2852112,
-    "min": 0.0003,
-    "p95": 2.45553,
-    "p99": 2.679001,
-    "p99_9": 2.7527006
+    "max": 15.6778,
+    "mean": 7.782707200000001,
+    "min": 0.0004,
+    "p95": 14.60268,
+    "p99": 15.570448,
+    "p99_9": 15.659573200000002
   },
   "review_status": "INFORMATIONAL_ONLY",
   "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 22.0153,
-    "mean": 20.001464664664663,
-    "min": 17.5351,
-    "p95": 21.590219999999967,
-    "p99": 21.994922000000003,
-    "p99_9": 22.013803
+    "max": 32.0177,
+    "mean": 20.032137349397594,
+    "min": 14.8195,
+    "p95": 31.726,
+    "p99": 31.803748,
+    "p99_9": 31.981417600000004
   },
-  "ticks": 1000,
-  "ticks_requested": 1000,
+  "ticks": 250,
+  "ticks_requested": 250,
   "tracking_absolute_error_rad": {
     "max": 0.0034631801101951227,
-    "mean": 0.0021956972319304366,
+    "mean": 0.0021663269402231035,
     "min": 0.0,
-    "p95": 0.003451687978265439,
-    "p99": 0.0034631801095548493,
-    "p99_9": 0.00346318010955564,
-    "samples": 1000
+    "p95": 0.0034451701886752516,
+    "p99": 0.0034631801095548484,
+    "p99_9": 0.003463180110035699,
+    "samples": 250
   },
   "tracking_joint_index": 0,
   "transaction_failure_counts": {
@@ -113,12 +113,12 @@
     "crc": 0,
     "device": 0,
     "io": 0,
-    "ok": 16000,
+    "ok": 4000,
     "partial": 0,
     "timeout": 0,
     "unexpected_id": 0
   },
-  "transactions_expected": 16000,
+  "transactions_expected": 4000,
   "transactions_failed": 0,
   "unexpected_packet_count": 0
 }
