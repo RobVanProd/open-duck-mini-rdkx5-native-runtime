@@ -94,6 +94,11 @@ authorization is required to read model/version registers 3-4 and voltage-limit
 registers 14-15. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/voltage_diagnostic/RESULT.md`.
 
+Rob authorized that exact all-14 read and broader autonomous read-only diagnosis
+while motors remain de-energized. The frozen first step reads only addresses 3
+and 14, two bytes each, with torque-off before/after and zero EEPROM writes. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_LIMIT_DIAGNOSTIC_PRE_REGISTRATION.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

@@ -20,7 +20,10 @@ from .protocol import (
 from .transport import ByteTransport, SerialTransport
 from .types import ErrorCode, ServoSnapshot
 
+ADDR_MODEL = 3
 ADDR_ID = 5
+ADDR_MAX_INPUT_VOLTAGE = 14
+ADDR_MIN_INPUT_VOLTAGE = 15
 ADDR_P_COEFFICIENT = 21
 ADDR_TORQUE_ENABLE = 40
 ADDR_ACCELERATION = 41

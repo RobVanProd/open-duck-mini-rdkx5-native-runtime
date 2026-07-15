@@ -42,7 +42,10 @@ class MockSTS3215Bus:
         self.faults = faults
         self._registers = {servo_id: bytearray(256) for servo_id in SERVO_IDS}
         for servo_id, registers in self._registers.items():
+            registers[3:5] = bytes((9, 3))
             registers[5] = servo_id
+            registers[14] = 80
+            registers[15] = 40
             registers[62] = 74
         self._last_update_ns = clock_ns()
         self._active_tick = 0
