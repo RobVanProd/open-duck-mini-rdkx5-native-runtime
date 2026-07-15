@@ -1,0 +1,68 @@
+{
+  "backend": "serial",
+  "environment": {
+    "baudrate": 1000000,
+    "device": "/dev/ttyACM0",
+    "frequency_hz": 50.0,
+    "hardware_authorized": true,
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "python": "3.10.12",
+    "suspended_or_benched": true,
+    "telemetry_records_dropped": 0,
+    "timeout_ms": 4.0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "watchdog_consecutive_failures": 2
+  },
+  "gates": {
+    "authorization_provenance": true,
+    "complete_record_stream": true,
+    "gate1_candidate": true,
+    "ping_ok": true,
+    "torque_off_confirmed": true,
+    "zero_read_bursts": true,
+    "zero_transaction_failures": true,
+    "zero_unexpected_response_lengths": true
+  },
+  "halt_reason": null,
+  "hardware_gate_status": "REVIEW_REQUIRED",
+  "informational_only": false,
+  "jsonl_sha256": "a2c0708f5cb481ce0c21b72dc5976507f36846e732fa83696826de2646f9c311",
+  "max_read_burst_ticks": 0,
+  "ping_status": "ok",
+  "read_burst_count": 0,
+  "review_status": "REVIEW_REQUIRED",
+  "round_trip_ms": {
+    "max": 1.034865,
+    "mean": 0.8043867604999999,
+    "min": 0.37448,
+    "p95": 0.89205185,
+    "p99": 0.9246373800000001,
+    "p99_9": 0.9980074790000011
+  },
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.single_servo_summary.v1",
+  "servo_id": 20,
+  "tick_period_ms": {
+    "max": 20.130398,
+    "mean": 20.00001096439644,
+    "min": 19.879909,
+    "p95": 20.0590646,
+    "p99": 20.083874180000002,
+    "p99_9": 20.090855094000002
+  },
+  "ticks": 10000,
+  "ticks_requested": 10000,
+  "transaction_failure_rate": 0.0,
+  "transaction_status_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "ok": 10000,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0
+  },
+  "transactions_failed": 0,
+  "unexpected_response_length_count": 0
+}

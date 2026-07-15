@@ -5,9 +5,9 @@ Status: `INFORMATIONAL_ONLY`
 - Ticks: 1,000
 - Transactions: 16,000 expected, 0 failed
 - Read bursts: 0
-- Bus max: 2.6741 ms
-- Tick p99: 21.9998 ms
-- Tick p99.9: 22.019401 ms
+- Bus max: 2.5797 ms
+- Tick p99: 22.000702 ms
+- Tick p99.9: 22.0371202 ms
 - Tracking p95: 0.003451687978265439 rad
 - Host: Windows, Python 3.10.11, stock scheduler
 

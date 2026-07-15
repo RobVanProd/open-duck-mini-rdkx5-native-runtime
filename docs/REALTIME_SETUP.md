@@ -10,12 +10,14 @@ same clock domain.
 ## Verified board topology and intended configuration
 
 The 2026-07-15 read-only board inventory reports eight Cortex-A55 CPUs (`0-7`), not
-six. The current kernel command line has no `isolcpus`, `nohz_full`, or `rcu_nocbs`
-arguments; `/sys/devices/system/cpu/isolated` is empty; the process has SCHED_OTHER
-priority 0 on all eight CPUs; and `RLIMIT_RTPRIO` is zero. Timing evidence collected
-in that state cannot decide the native-escalation rule.
+six. The initial kernel command line had no isolation argument;
+`/sys/devices/system/cpu/isolated` was empty; the process had SCHED_OTHER priority 0
+on all eight CPUs; and `RLIMIT_RTPRIO` was zero. Timing evidence collected in that
+state cannot decide the native-escalation rule. The stock 6.1.83 kernel explicitly
+reports `CONFIG_NO_HZ_FULL` unsupported and treats `rcu_nocbs` as unknown, so this
+image must not claim either feature.
 
-- Reserve CPU 7 with kernel arguments: `isolcpus=7 nohz_full=7 rcu_nocbs=7`.
+- Reserve CPU 7 with the supported kernel argument `isolcpus=7`.
 - Keep device IRQs and general services on CPUs 0-6. The captured USB controller IRQ
   is currently handled on CPU 0.
 - Start the process with CPUs 0-7 available. Before creating ONNX, sensor,

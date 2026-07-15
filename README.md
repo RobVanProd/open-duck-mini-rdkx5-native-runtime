@@ -14,9 +14,9 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
-| RT scheduling / affinity | Implemented; X5 currently has 8 CPUs but no isolation/RT privilege, so configured timing verification is `NOT_RUN` |
+| RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified on X5; all-14 timing gate still `NOT_RUN` |
 | IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
-| Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
+| Hardware gates 1-5 | Gate 1 `PASS_REVIEWED`; Gates 2-5 `NOT_RUN` and separately unauthorized |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract

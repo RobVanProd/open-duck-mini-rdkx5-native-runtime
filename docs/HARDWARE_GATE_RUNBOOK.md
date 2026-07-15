@@ -1,12 +1,12 @@
 # Staged Hardware Gate Runbook
 
-All gates are `NOT_RUN`. Each invocation requires a fresh, explicit authorization from Rob and a physically suspended or benched robot. Authorization for one gate does not authorize the next.
+Gate 1 is `PASS_REVIEWED`; Gates 2-5 remain `NOT_RUN`. Each invocation requires a fresh, explicit authorization from Rob and a physically suspended or benched robot. Authorization for one gate does not authorize the next.
 
 ## Common preflight
 
 1. Record repository commit, config SHA-256, policy SHA-256 if applicable, board image/kernel, Python version, serial driver, baud, USB topology, CPU isolation, scheduler, and operator.
 2. Confirm hands clear, robot supported, power cutoff reachable, and `start_paused=true`.
-3. Run `setup/verify_rt_setup.sh 5 80` and `setup/verify_serial_path.sh /dev/ttyACM0`; attach output. RT verification must show exact isolation membership plus successful affinity and `SCHED_FIFO` tests.
+3. Run `taskset -c 0-7 setup/verify_rt_setup.sh 7 80` and `setup/verify_serial_path.sh /dev/ttyACM0`; attach output. An SSH login inherits housekeeping-only affinity after `isolcpus`, so the explicit initial mask is required to reproduce the reviewed service configuration. RT verification must show exact isolation membership plus successful affinity and `SCHED_FIFO` tests.
 4. Pre-register duration, commands, failure threshold, consecutive-failure watchdog count, and stop conditions in the gate artifact.
 5. Use both CLI acknowledgements: `--hardware-authorized --suspended-or-benched`.
 6. Stop on unexpected motion, wrong joint/side/sign, hard overrun, any burst of read failures, or operator concern.
@@ -35,6 +35,11 @@ single-servo result does not satisfy Gate 2's all-14 timing requirement.
 It also binds the raw JSONL SHA-256, both hardware assertions, final torque-off
 status, and unexpected response-length count. `gate1_candidate=true` still
 means `REVIEW_REQUIRED`; it never authorizes Gate 2.
+
+Reviewed 2026-07-15 result: servo 20 completed all 10,000 reads with zero
+failures, zero bursts, zero response-length mismatches, p99.9 round trip
+`0.998007 ms`, tick p99.9 `20.090855 ms`, and final torque-off `ok`. See the
+Gate 1 artifact directory. Gate 2 remains unauthorized.
 
 ## Gate 2 — Fourteen-servo home hold, no policy
 
