@@ -154,7 +154,18 @@ if [[ ! -r "${monitor}" ]]; then
   exit 2
 fi
 
-commit="$(git -C "${repo_dir}" rev-parse HEAD)"
+if commit="$(git -C "${repo_dir}" rev-parse HEAD 2>/dev/null)"; then
+  :
+elif [[ -r "${repo_dir}/SOURCE_COMMIT" ]]; then
+  commit="$(tr -d '[:space:]' < "${repo_dir}/SOURCE_COMMIT")"
+else
+  echo "result=BLOCKED reason=source_commit_unavailable" >&2
+  exit 2
+fi
+if ! [[ "${commit}" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "result=BLOCKED reason=invalid_source_commit value=${commit}" >&2
+  exit 2
+fi
 kernel="$(uname -r)"
 clock_before="$(python3 -c 'import time; print(f"{time.perf_counter_ns()},{time.monotonic_ns()},{time.time_ns()}")')"
 

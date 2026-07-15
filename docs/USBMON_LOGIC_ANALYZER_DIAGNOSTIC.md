@@ -59,7 +59,9 @@ The script has no torque-enable argument. It refuses missing hardware
 acknowledgements, an owned serial device, missing RT/usbmon prerequisites, and
 overwriting an earlier capture. It records commit, kernel, USB bus/device,
 clock anchors, stdout/stderr, hashes, the ordinary timing artifacts, the
-application transaction trace, and raw `usbmon` text.
+application transaction trace, and raw `usbmon` text. An archive deployment
+must include a `SOURCE_COMMIT` file containing the exact 40-character commit;
+the script refuses provenance-free source trees.
 
 Correlate the software layers afterward with:
 
