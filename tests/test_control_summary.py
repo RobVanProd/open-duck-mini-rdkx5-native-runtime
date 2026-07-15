@@ -74,6 +74,8 @@ def test_paused_mock_control_summary_is_structurally_complete_but_not_gate5(
     assert summary["active_policy_ticks"] == 0
     assert summary["bus"]["transactions_expected"] == 80
     assert summary["bus"]["transactions_failed"] == 0
+    assert summary["bus"]["device_alarm_reply_count"] == 0
+    assert summary["bus"]["voltage_alarm_reply_count"] == 0
     assert summary["telemetry_records_dropped"] == 0
     assert summary["safety"] == {
         "torque_off_attempted": True,
@@ -83,6 +85,7 @@ def test_paused_mock_control_summary_is_structurally_complete_but_not_gate5(
     }
     assert summary["gates"]["complete_record_stream"] is True
     assert summary["gates"]["torque_off_confirmed"] is True
+    assert summary["gates"]["zero_device_alarms"] is True
     assert summary["gates"]["policy_ticks_present"] is False
     assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
     assert summary["envelope"]["total_events"] == 0

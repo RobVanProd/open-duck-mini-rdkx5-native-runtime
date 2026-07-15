@@ -48,6 +48,8 @@ def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     assert all(record["paused"] for record in ticks)
     assert all(not record["observation_valid"] for record in ticks)
     assert all(not any(record["over_3_75_rad_s"]) for record in ticks)
+    assert all(record["bus"]["per_servo_device_status"] == [0] * 14 for record in ticks)
+    assert all(record["extended"]["device_status_raw"] == 0 for record in ticks)
     assert len(events) == 2
     for record in events:
         Draft202012Validator(event_schema).validate(record)
@@ -61,6 +63,46 @@ def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     assert events[1]["torque_off_status"] == "ok"
     assert events[1]["torque_off_error"] is None
     assert isinstance(events[1]["timestamp_monotonic_ns"], int)
+
+
+def test_runtime_device_alarm_blocks_before_torque_enable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    config = Path(__file__).parents[1] / "duck_config.example.json"
+    telemetry = tmp_path / "device-alarm-control.jsonl"
+
+    class AlarmBus(MockSTS3215Bus):
+        def read_state_into(self, snapshot) -> None:
+            super().read_state_into(snapshot)
+            snapshot.device_status.fill(0x01)
+
+    bus = AlarmBus(latency_s=0.0)
+    monkeypatch.setattr(runtime_module, "MockSTS3215Bus", lambda: bus)
+
+    assert (
+        main(
+            [
+                "--bus",
+                "mock",
+                "--config",
+                str(config),
+                "--telemetry",
+                str(telemetry),
+                "--home-seconds",
+                "0.001",
+                "--max-ticks",
+                "1",
+            ]
+        )
+        == 2
+    )
+    assert bus.torque_enabled is False
+    records = [
+        json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()
+    ]
+    halt = [record for record in records if record.get("event") == "runtime_halt"]
+    assert len(halt) == 1
+    assert "device alarm" in halt[0]["reason"]
 
 
 def test_runtime_rejects_unsafe_startup_arguments_before_opening_bus(

@@ -21,6 +21,7 @@
     "servo_id": {"type": "integer", "minimum": 0, "maximum": 253},
     "round_trip_ms": {"type": "number", "minimum": 0},
     "status": {"type": "string"},
+    "device_status_raw": {"type": "integer", "minimum": 0, "maximum": 255},
     "response_length": {"type": "integer", "minimum": 0}
   },
   "additionalProperties": false

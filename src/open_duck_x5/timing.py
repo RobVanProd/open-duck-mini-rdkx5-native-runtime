@@ -58,6 +58,8 @@ class TimingSeries:
         self.transaction_status_counts = np.zeros(
             (capacity, len(ErrorCode)), dtype=np.int16
         )
+        self.device_alarm_replies = np.zeros(capacity, dtype=np.int16)
+        self.voltage_alarm_replies = np.zeros(capacity, dtype=np.int16)
         self.partial_bytes = np.zeros(capacity, dtype=np.int16)
         self.unexpected_packets = np.zeros(capacity, dtype=np.int16)
         self.tracking_error_rad = np.zeros(capacity, dtype=np.float64)
@@ -88,6 +90,15 @@ class TimingSeries:
             counts[int(code)] = int(np.count_nonzero(snapshot.status == int(code)))
         counts[int(snapshot.write_status)] += 1
         counts[int(snapshot.extended_status)] += 1
+        group_device_status = snapshot.device_status
+        self.device_alarm_replies[index] = int(
+            np.count_nonzero(group_device_status)
+            + int(snapshot.extended_device_status != 0)
+        )
+        self.voltage_alarm_replies[index] = int(
+            np.count_nonzero(group_device_status & 0x01)
+            + int(bool(snapshot.extended_device_status & 0x01))
+        )
         self.partial_bytes[index] = snapshot.partial_bytes
         self.unexpected_packets[index] = snapshot.unexpected_packets
         self.failed_transactions[index] = (
@@ -143,6 +154,8 @@ class TimingSeries:
             ERROR_NAMES[int(code)]: int(status_counts_array[int(code)]) for code in ErrorCode
         }
         unexpected_count = int(self.unexpected_packets[: self.count].sum())
+        device_alarm_count = int(self.device_alarm_replies[: self.count].sum())
+        voltage_alarm_count = int(self.voltage_alarm_replies[: self.count].sum())
         failure_counts = {
             name: count for name, count in status_counts.items() if name != "ok"
         }
@@ -186,6 +199,8 @@ class TimingSeries:
             "transaction_failure_counts": failure_counts,
             "transaction_failure_rate": failure_rate,
             "transaction_failure_percent": failure_rate * 100.0,
+            "device_alarm_reply_count": device_alarm_count,
+            "voltage_alarm_reply_count": voltage_alarm_count,
             "partial_byte_count": int(self.partial_bytes[: self.count].sum()),
             "unexpected_packet_count": unexpected_count,
             "read_burst_count": burst.burst_count,
@@ -198,6 +213,7 @@ class TimingSeries:
                 and tick["p99_9"] <= 22.0,
                 "zero_read_bursts": burst.burst_count == 0,
                 "transaction_failure_below_0_1_percent": failure_rate < 0.001,
+                "zero_device_alarms": device_alarm_count == 0,
                 "bus_max_under_5_ms": bus["max"] is not None and bus["max"] < 5.0,
                 "tracking_p95_at_most_0_011_rad": tracking["p95"] is not None
                 and tracking["p95"] <= 0.011,

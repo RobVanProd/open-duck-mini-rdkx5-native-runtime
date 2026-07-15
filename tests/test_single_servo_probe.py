@@ -38,6 +38,7 @@ def test_single_servo_probe_records_torque_off_mock_evidence(tmp_path: Path) -> 
         validator.validate(record)
         assert record["servo_id"] == 20
         assert record["status"] == "ok"
+        assert record["device_status_raw"] == 0
         assert record["response_length"] == 2
 
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -51,6 +52,9 @@ def test_single_servo_probe_records_torque_off_mock_evidence(tmp_path: Path) -> 
     assert summary["halt_reason"] is None
     assert summary["ping_status"] == "ok"
     assert summary["transactions_failed"] == 0
+    assert summary["ping_device_status_raw"] == 0
+    assert summary["device_alarm_reply_count"] == 0
+    assert summary["voltage_alarm_reply_count"] == 0
     assert summary["transaction_status_counts"]["ok"] == 10
     assert summary["environment"]["torque_enabled"] is False
     assert summary["environment"]["torque_off_status"] == "ok"
@@ -58,6 +62,7 @@ def test_single_servo_probe_records_torque_off_mock_evidence(tmp_path: Path) -> 
     assert summary["jsonl_sha256"] == hashlib.sha256(output.read_bytes()).hexdigest()
     assert summary["gates"]["complete_record_stream"] is True
     assert summary["gates"]["torque_off_confirmed"] is True
+    assert summary["gates"]["zero_device_alarms"] is True
     assert summary["gates"]["gate1_candidate"] is False
 
 

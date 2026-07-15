@@ -42,6 +42,12 @@
           "maxItems": 14,
           "items": {"type": "string"}
         },
+        "per_servo_device_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "integer", "minimum": 0, "maximum": 255}
+        },
         "stale": {
           "type": "array",
           "minItems": 14,
@@ -61,7 +67,10 @@
         "present_current_a",
         "present_voltage_v",
         "present_temperature_c"
-      ]
+      ],
+      "properties": {
+        "device_status_raw": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
     },
     "motion": {
       "type": "object",

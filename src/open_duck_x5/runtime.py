@@ -46,6 +46,16 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _device_alarm_details(snapshot: ServoSnapshot) -> str:
+    return ", ".join(
+        f"{servo_id}:0x{int(device_status):02x}"
+        for servo_id, device_status in zip(
+            SERVO_IDS, snapshot.device_status, strict=True
+        )
+        if int(device_status) != 0
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Open Duck Mini deterministic X5 runtime")
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
@@ -256,6 +266,11 @@ class Runtime:
                 if int(code) != int(ErrorCode.OK)
             ]
             raise SafetyError("servo verification failed: " + ", ".join(failures))
+        if self.snapshot.device_alarm_count:
+            raise SafetyError(
+                "servo verification reported device alarm: "
+                + _device_alarm_details(self.snapshot)
+            )
 
     def _logical_from_snapshot(self) -> None:
         np.subtract(self.snapshot.positions_rad, self.offsets, out=self.logical_positions)
@@ -287,6 +302,11 @@ class Runtime:
             self.bus.read_state_into(self.snapshot)
             if not self.snapshot.all_fresh:
                 raise SafetyError("home move read failed")
+            if self.snapshot.device_alarm_count:
+                raise SafetyError(
+                    "home move device alarm: "
+                    + _device_alarm_details(self.snapshot)
+                )
         high_gains = [30] * ACTION_DIM
         high_gains[5:9] = [8, 8, 8, 8]
         if self.bus.set_gain_vectors(high_gains) is not ErrorCode.OK:
@@ -416,6 +436,11 @@ class Runtime:
 
                 self.snapshot.begin_tick()
                 self.bus.read_state_into(self.snapshot)
+                if self.snapshot.device_alarm_count:
+                    raise SafetyError(
+                        "control-loop device alarm: "
+                        + _device_alarm_details(self.snapshot)
+                    )
                 self._logical_from_snapshot()
                 self.sensor_hub.read_into(self.sensors, clock_ns())
 
@@ -477,6 +502,12 @@ class Runtime:
                 self.snapshot.write_status = self.bus.write_positions(physical_target)
                 write_elapsed_ns = clock_ns() - write_start_ns
                 self.bus.read_extended_into(self.snapshot, SERVO_IDS[tick % ACTION_DIM])
+                if self.snapshot.extended_device_status:
+                    raise SafetyError(
+                        "extended telemetry device alarm: "
+                        f"{self.snapshot.extended_servo_id}:"
+                        f"0x{self.snapshot.extended_device_status:02x}"
+                    )
                 self.snapshot.bus_total_ns = (
                     self.snapshot.group_round_trip_ns
                     + write_elapsed_ns

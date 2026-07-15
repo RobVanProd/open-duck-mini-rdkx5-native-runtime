@@ -39,10 +39,17 @@
     "ticks": { "type": "integer", "minimum": 0 },
     "ticks_requested": { "type": "integer", "minimum": 2 },
     "ping_status": { "$ref": "#/$defs/errorName" },
+    "ping_device_status_raw": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 255
+    },
     "tick_period_ms": { "$ref": "#/$defs/stats" },
     "round_trip_ms": { "$ref": "#/$defs/stats" },
     "transaction_status_counts": { "$ref": "#/$defs/statusCounts" },
     "transactions_failed": { "type": "integer", "minimum": 0 },
+    "device_alarm_reply_count": { "type": "integer", "minimum": 0 },
+    "voltage_alarm_reply_count": { "type": "integer", "minimum": 0 },
     "unexpected_response_length_count": { "type": "integer", "minimum": 0 },
     "transaction_failure_rate": { "type": "number", "minimum": 0 },
     "read_burst_count": { "type": "integer", "minimum": 0 },

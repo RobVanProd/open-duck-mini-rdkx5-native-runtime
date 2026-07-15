@@ -114,6 +114,8 @@
           "required": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"],
           "additionalProperties": { "type": "integer", "minimum": 0 }
         },
+        "device_alarm_reply_count": { "type": "integer", "minimum": 0 },
+        "voltage_alarm_reply_count": { "type": "integer", "minimum": 0 },
         "unexpected_packet_count": { "type": "integer", "minimum": 0 },
         "partial_byte_count": { "type": "integer", "minimum": 0 },
         "read_burst_count": { "type": "integer", "minimum": 0 },

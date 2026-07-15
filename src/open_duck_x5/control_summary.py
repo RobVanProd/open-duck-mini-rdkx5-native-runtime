@@ -286,6 +286,8 @@ def summarize_control_run(path: Path) -> dict[str, object]:
     unexpected_packets = 0
     partial_bytes = 0
     stale_servo_samples = 0
+    device_alarm_replies = 0
+    voltage_alarm_replies = 0
     paused_ticks = 0
     active_policy_ticks = 0
     command_x_values: list[float] = []
@@ -347,6 +349,22 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         statuses = bus.get("per_servo_status")
         if not isinstance(statuses, list) or len(statuses) != ACTION_DIM:
             raise ControlSummaryError(f"tick {index} per-servo status count is not 14")
+        device_statuses = bus.get("per_servo_device_status")
+        if (
+            not isinstance(device_statuses, list)
+            or len(device_statuses) != ACTION_DIM
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or not 0 <= value <= 255
+                for value in device_statuses
+            )
+        ):
+            raise ControlSummaryError(
+                f"tick {index} per-servo device status must contain 14 bytes"
+            )
+        device_alarm_replies += sum(int(value != 0) for value in device_statuses)
+        voltage_alarm_replies += sum(int(bool(value & 0x01)) for value in device_statuses)
         stale = _require_array(bus.get("stale"), f"tick {index}.stale", ACTION_DIM, booleans=True)
         group_failed = False
         for joint_index, status in enumerate(statuses):
@@ -369,6 +387,17 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         if extended_status not in status_counts:
             raise ControlSummaryError(f"tick {index} has unknown extended status")
         status_counts[str(extended_status)] += 1
+        extended_device_status = extended.get("device_status_raw")
+        if (
+            isinstance(extended_device_status, bool)
+            or not isinstance(extended_device_status, int)
+            or not 0 <= extended_device_status <= 255
+        ):
+            raise ControlSummaryError(
+                f"tick {index} extended device status is not a byte"
+            )
+        device_alarm_replies += int(extended_device_status != 0)
+        voltage_alarm_replies += int(bool(extended_device_status & 0x01))
         expected_extended_id = SERVO_IDS[index % ACTION_DIM]
         if extended.get("servo_id") != expected_extended_id:
             raise ControlSummaryError(
@@ -515,6 +544,7 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "zero_partial_bytes": partial_bytes == 0,
         "zero_unexpected_packets": unexpected_packets == 0,
         "transaction_failure_below_0_1_percent": failure_rate < 0.001,
+        "zero_device_alarms": device_alarm_replies == 0,
         "bus_max_under_5_ms": bus_stats["max"] is not None and bus_stats["max"] < 5.0,
         "zero_stale_servo_samples": stale_servo_samples == 0,
     }
@@ -560,6 +590,8 @@ def summarize_control_run(path: Path) -> dict[str, object]:
             "transactions_failed": transaction_failures,
             "transaction_failure_rate": failure_rate,
             "transaction_status_counts": status_counts,
+            "device_alarm_reply_count": device_alarm_replies,
+            "voltage_alarm_reply_count": voltage_alarm_replies,
             "unexpected_packet_count": unexpected_packets,
             "partial_byte_count": partial_bytes,
             "read_burst_count": burst_count,

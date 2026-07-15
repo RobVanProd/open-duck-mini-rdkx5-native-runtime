@@ -109,6 +109,7 @@ class MockSTS3215Bus:
         np.copyto(snapshot.positions_rad, self.positions)
         np.copyto(snapshot.velocities_rad_s, self.velocities)
         snapshot.status.fill(int(ErrorCode.OK))
+        snapshot.device_status.fill(0)
         snapshot.stale.fill(False)
         self._apply_faults(snapshot)
         snapshot.sample_time_ns = clock_ns()
@@ -135,6 +136,7 @@ class MockSTS3215Bus:
         snapshot.present_voltage_v = 7.4
         snapshot.present_temperature_c = 28.0
         snapshot.extended_status = ErrorCode.OK
+        snapshot.extended_device_status = 0
         end_ns = clock_ns()
         snapshot.extended_round_trip_ns = end_ns - start_ns
         if snapshot.instrumentation_enabled:
@@ -165,6 +167,12 @@ class MockSTS3215Bus:
     def ping(self, servo_id: int, *, timeout_s: float | None = None) -> ErrorCode:
         del timeout_s
         return ErrorCode.OK if servo_id in self.ids else ErrorCode.TIMEOUT
+
+    def ping_with_device_status(
+        self, servo_id: int, *, timeout_s: float | None = None
+    ) -> tuple[ErrorCode, int | None]:
+        status = self.ping(servo_id, timeout_s=timeout_s)
+        return status, (0 if status is ErrorCode.OK else None)
 
     def read_register(self, servo_id: int, address: int, length: int) -> tuple[ErrorCode, bytes]:
         if servo_id not in self.ids:

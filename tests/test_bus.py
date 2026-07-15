@@ -29,10 +29,12 @@ class FakeTransport:
         corrupt_id: int | None = None,
         partial_id: int | None = None,
         include_unexpected: bool = False,
+        device_error: int = 0,
     ) -> None:
         self.corrupt_id = corrupt_id
         self.partial_id = partial_id
         self.include_unexpected = include_unexpected
+        self.device_error = int(device_error)
         self.rx = bytearray()
         self.writes: list[bytes] = []
         self.closed = False
@@ -48,7 +50,9 @@ class FakeTransport:
             partial = b""
             for index, servo_id in enumerate(SERVO_IDS):
                 parameters = struct.pack("<HH", 2048 + index, 100)
-                packet = _status_packet(servo_id, parameters)
+                packet = _status_packet(
+                    servo_id, parameters, error=self.device_error
+                )
                 if servo_id == self.corrupt_id:
                     packet = packet[:-1] + bytes((packet[-1] ^ 1,))
                 if servo_id == self.partial_id:
@@ -59,7 +63,9 @@ class FakeTransport:
         elif instruction == 0x02 and frame[5] == ADDR_PRESENT_LOAD:
             servo_id = frame[2]
             parameters = bytes((0, 0, 74, 28, 0, 0, 0, 0, 0, 18, 0))
-            self.rx.extend(_status_packet(servo_id, parameters))
+            self.rx.extend(
+                _status_packet(servo_id, parameters, error=self.device_error)
+            )
         elif instruction == 0x03 and frame[2] != 0xFE:
             self.rx.extend(_status_packet(frame[2], b""))
 
@@ -184,6 +190,26 @@ def test_group_read_counts_unexpected_packets_without_hiding_fresh_state() -> No
     assert snapshot.unexpected_packets == 1
 
 
+def test_device_alarm_preserves_fresh_group_and_extended_payloads() -> None:
+    bus = STS3215Bus(transport=FakeTransport(device_error=0x01))
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert snapshot.all_fresh
+    assert np.all(snapshot.status == int(ErrorCode.OK))
+    assert np.all(snapshot.device_status == 0x01)
+    assert snapshot.device_alarm_count == len(SERVO_IDS)
+    assert snapshot.positions_rad[0] == 0.0
+
+    bus.read_extended_into(snapshot, SERVO_IDS[0])
+
+    assert snapshot.extended_status is ErrorCode.OK
+    assert snapshot.extended_device_status == 0x01
+    assert snapshot.present_voltage_v == 7.4
+
+
 def test_diagnostic_register_read_preserves_payload_but_normal_read_rejects_it() -> None:
     class VoltageErrorTransport(FakeTransport):
         def write(self, data) -> None:
@@ -198,7 +224,7 @@ def test_diagnostic_register_read_preserves_payload_but_normal_read_rejects_it()
     status, device_error, parameters = bus.read_register_with_device_status(
         SERVO_IDS[0], 62, 1
     )
-    assert status is ErrorCode.DEVICE
+    assert status is ErrorCode.OK
     assert device_error == 0x01
     assert parameters == bytes((74,))
 

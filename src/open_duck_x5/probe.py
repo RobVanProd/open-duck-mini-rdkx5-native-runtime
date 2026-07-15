@@ -86,7 +86,19 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _verify_servos(bus, snapshot: ServoSnapshot) -> None:
+def _device_alarm_details(bus, snapshot: ServoSnapshot) -> str:
+    return ", ".join(
+        f"{servo_id}:0x{int(device_status):02x}"
+        for servo_id, device_status in zip(
+            bus.ids, snapshot.device_status, strict=True
+        )
+        if int(device_status) != 0
+    )
+
+
+def _verify_servos(
+    bus, snapshot: ServoSnapshot, *, reject_device_alarms: bool
+) -> None:
     snapshot.begin_tick()
     bus.read_state_into(snapshot)
     if not snapshot.all_fresh:
@@ -96,6 +108,11 @@ def _verify_servos(bus, snapshot: ServoSnapshot) -> None:
             if int(code) != int(ErrorCode.OK)
         ]
         raise RuntimeError("servo verification failed: " + ", ".join(failures))
+    if reject_device_alarms and snapshot.device_alarm_count:
+        raise RuntimeError(
+            "servo verification reported device alarm: "
+            + _device_alarm_details(bus, snapshot)
+        )
 
 
 def _move_home_slowly(
@@ -108,7 +125,7 @@ def _move_home_slowly(
 ) -> None:
     if home_seconds <= 0:
         raise ValueError("--home-seconds must be positive for a moving gate")
-    _verify_servos(bus, snapshot)
+    _verify_servos(bus, snapshot, reject_device_alarms=True)
     start = snapshot.positions_rad.copy()
     target = start.copy()
     if bus.set_gain_vectors([2] * len(bus.ids)) is not ErrorCode.OK:
@@ -130,6 +147,10 @@ def _move_home_slowly(
         bus.read_state_into(snapshot)
         if not snapshot.all_fresh:
             raise RuntimeError("home move read failed")
+        if snapshot.device_alarm_count:
+            raise RuntimeError(
+                "home move device alarm: " + _device_alarm_details(bus, snapshot)
+            )
     gains = [30] * len(bus.ids)
     gains[5:9] = [8, 8, 8, 8]
     if bus.set_gain_vectors(gains) is not ErrorCode.OK:
@@ -257,7 +278,11 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 priority=args.rt_priority,
             )
         if args.bus == "serial":
-            _verify_servos(bus, snapshot)
+            _verify_servos(
+                bus,
+                snapshot,
+                reject_device_alarms=bool(args.enable_torque),
+            )
         if args.enable_torque:
             _move_home_slowly(
                 bus,
@@ -359,6 +384,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "tick_p99_9_at_most_22_ms",
         "zero_read_bursts",
         "transaction_failure_below_0_1_percent",
+        "zero_device_alarms",
         "bus_max_under_5_ms",
     )
     complete_stream = (

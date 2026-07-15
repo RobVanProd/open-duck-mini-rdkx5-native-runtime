@@ -36,6 +36,7 @@ def main(argv: list[str] | None = None) -> int:
                     "joint": name,
                     "servo_id": servo_id,
                     "status": ErrorCode(int(snapshot.status[index])).name.lower(),
+                    "device_status_raw": int(snapshot.device_status[index]),
                     "position_rad": None
                     if snapshot.stale[index]
                     else float(snapshot.positions_rad[index]),
@@ -43,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
             )
         print(json.dumps({"servos": rows}, indent=2))
         if not snapshot.all_fresh:
+            return 2
+        if snapshot.device_alarm_count:
             return 2
         if not args.move:
             return 0

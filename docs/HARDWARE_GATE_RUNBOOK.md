@@ -63,13 +63,14 @@ The separately authorized latency diagnostic is documented in
 the on-device application trace plus `usbmon`; no external analyzer exists or
 is required. Label it `software-usbmon` and do not claim physical-wire timing.
 
-The first software-only capture halted at startup because all 14 servos returned
-device status `0x01` (input-voltage error). It sent only the initial and final
+The first software-only capture halted at startup because the then-current
+parser classified all 14 status-`0x01` replies as invalid samples. It sent only
+the initial and final
 all-14 torque-off writes plus one SyncRead; it never entered the timing loop or
 wrote a goal position. The captured startup exchange delivered all 14 responses
 in `2.130 ms`, so it already rejects the hypothesized one-millisecond-per-servo
-USB floor. Do not rerun until the servo power condition is checked and Rob gives
-fresh authorization. See
+USB floor. The historical stop was correct under its preregistered parser and is
+not retroactively promoted to a Gate 2 result. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/software_usbmon_voltage_halt/RESULT.md`.
 
 After a connection inspection and robot reboot, one explicitly authorized retry
@@ -83,7 +84,9 @@ Rob subsequently authorized that distinct read-only diagnostic. Its frozen
 scope is register 62 only, one byte per servo, with torque-off before and after,
 the physical order ending `14,13`, and no position or configuration write. The
 diagnostic preserves a voltage byte from a valid device-error response for
-evidence only; the operational runtime still rejects it as stale. See
+evidence only; the then-current operational parser rejected it as stale. D023
+later superseded that parser classification while retaining the alarm as a
+separate safety condition. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_DIAGNOSTIC_PRE_REGISTRATION.md`.
 
 The authorized read completed all 14 responses: every servo reported status
@@ -99,16 +102,29 @@ while motors remain de-energized. The frozen first step reads only addresses 3
 and 14, two bytes each, with torque-off before/after and zero EEPROM writes. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_LIMIT_DIAGNOSTIC_PRE_REGISTRATION.md`.
 
-The read completed and confirmed the root cause: all 14 servos have identical
-model/version `0x0309`, maximum `8.0 V`, and minimum `4.0 V`, while their live
-rail is `8.2-8.4 V`. Do not mask the alarm or raise EEPROM limits. Gate 2 stays
-blocked until the operator supplies an in-range servo rail and a new torque-off
-voltage/status read is clean. See
+The read completed with identical raw version bytes `0x03,0x09`, configured
+maximum `8.0 V`, configured minimum `4.0 V`, and a live `8.2-8.4 V` rail. It
+proved the configured-threshold relationship, but not a servo SKU or an
+incorrect physical supply. Subsequent provenance review confirmed that Frank's
+documented build follows the upstream two-cell-series, nominal-7.4 V design; a
+charged 2S pack normally reaches this measured range. D023 therefore replaces
+the old power-fault conclusion with separate transport-validity and
+device-alarm semantics. Do not mask the alarm or raise EEPROM limits. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/voltage_limit_diagnostic/RESULT.md`.
+
+The corrected software preserves a checksum-valid alarm-bearing payload as
+fresh, records the raw per-servo device status separately, and reports both
+device-alarm and voltage-alarm reply counts. Runtime startup and any
+torque-capable probe still reject an alarm before torque enable. A future
+explicitly authorized torque-off diagnostic can measure the grouped bus without
+conflating the alarm with a transport failure, but it cannot pass the
+`zero_device_alarms` gate. No power, EEPROM, torque, or policy operation follows
+from this software correction. See
+`docs/POWER_AND_DEVICE_STATUS_RECONCILIATION.md`.
 
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
-- Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.
+- Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.
 - Hard tick >40 ms or configured consecutive failures immediately torque off.
 
 The moving probe requires a third, gate-specific assertion in addition to the

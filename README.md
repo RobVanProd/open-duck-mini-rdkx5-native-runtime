@@ -10,7 +10,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | --- | --- |
 | Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
 | Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
-| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13 for the measured physical chain |
+| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; transport failures and raw device alarms are distinct |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
@@ -27,6 +27,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 - `target_rad = home_rad + action * 0.25`, followed by the inherited 5.24 rad/s target slew limit and head-command overlay.
 - `duck_config.json` keeps the existing soft-offset, `imu_upside_down`, `start_paused`, and `phase_frequency_factor_offset` meanings.
 - A stale required servo or sensor sample invalidates the tick; it is never silently substituted into the policy observation.
+- A checksum-valid servo reply with a device alarm retains its fresh payload and raw status; runtime startup still blocks before torque until the alarm is resolved or explicitly reviewed.
 
 The exact field map and the inherited one-tick phase-ordering discrepancy are documented in [the contract](docs/OBSERVATION_ACTION_CONTRACT.md).
 

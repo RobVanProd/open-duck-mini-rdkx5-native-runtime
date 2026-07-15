@@ -73,7 +73,7 @@ def test_single_servo_writer_pool_exhaustion_is_fatal(tmp_path: Path) -> None:
     reserved = writer._free.get_nowait()
     try:
         with pytest.raises(TelemetryError, match="pool exhausted"):
-            writer.publish(0, 0, 0, 0, ErrorCode.OK, 0)
+            writer.publish(0, 0, 0, 0, ErrorCode.OK, 0, 0)
         assert writer.dropped == 1
     finally:
         writer._free.put(reserved)

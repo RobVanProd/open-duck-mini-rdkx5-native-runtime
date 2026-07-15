@@ -69,3 +69,24 @@ def test_timing_summary_reports_each_failure_class_and_tracking_error() -> None:
     assert summary["unexpected_packet_count"] == 2
     assert summary["tracking_absolute_error_rad"]["p95"] == 0.005
     assert summary["gates"]["tracking_p95_at_most_0_011_rad"] is True
+
+
+def test_device_alarms_are_reported_without_becoming_transport_failures() -> None:
+    series = TimingSeries(1)
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+    snapshot.stale.fill(False)
+    snapshot.status.fill(int(ErrorCode.OK))
+    snapshot.device_status[0] = 0x01
+    snapshot.write_status = ErrorCode.OK
+    snapshot.extended_status = ErrorCode.OK
+    snapshot.extended_device_status = 0x01
+
+    series.append(1_000_000_000, 0, snapshot)
+    summary = series.summary(backend="mock", informational_only=True)
+
+    assert summary["transactions_failed"] == 0
+    assert summary["transaction_status_counts"]["ok"] == 16
+    assert summary["device_alarm_reply_count"] == 2
+    assert summary["voltage_alarm_reply_count"] == 2
+    assert summary["gates"]["zero_device_alarms"] is False

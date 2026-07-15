@@ -100,6 +100,7 @@ class STS3215Bus:
         self._read_lengths = np.zeros(ACTION_DIM, dtype=np.uint8)
         self._read_seen = np.zeros(ACTION_DIM, dtype=np.bool_)
         self._read_codes = np.full(ACTION_DIM, int(ErrorCode.TIMEOUT), dtype=np.uint8)
+        self._read_device_status = np.zeros(ACTION_DIM, dtype=np.uint8)
         self._unexpected_packets = 0
 
     def close(self) -> None:
@@ -139,6 +140,7 @@ class STS3215Bus:
                 snapshot.trace_group_write_end_ns = now_ns
                 snapshot.trace_group_end_ns = now_ns
             snapshot.status.fill(int(ErrorCode.IO))
+            snapshot.device_status.fill(0)
             snapshot.stale.fill(True)
             snapshot.group_round_trip_ns = now_ns - start_ns
             return
@@ -155,6 +157,7 @@ class STS3215Bus:
         snapshot.group_round_trip_ns = now_ns - start_ns
         snapshot.sample_time_ns = now_ns
         snapshot.status[:] = self._read_codes
+        snapshot.device_status[:] = self._read_device_status
         snapshot.stale[:] = self._read_codes != int(ErrorCode.OK)
         snapshot.partial_bytes += self._rx_length
         snapshot.unexpected_packets += self._unexpected_packets
@@ -190,6 +193,7 @@ class STS3215Bus:
                 snapshot.trace_extended_write_end_ns = now_ns
                 snapshot.trace_extended_end_ns = now_ns
             snapshot.extended_status = ErrorCode.IO
+            snapshot.extended_device_status = 0
             snapshot.extended_round_trip_ns = now_ns - start_ns
             return
         if snapshot.instrumentation_enabled:
@@ -205,6 +209,7 @@ class STS3215Bus:
         snapshot.unexpected_packets += self._unexpected_packets
         code = ErrorCode(int(self._read_codes[index]))
         snapshot.extended_status = code
+        snapshot.extended_device_status = int(self._read_device_status[index])
         snapshot.extended_round_trip_ns = now_ns - start_ns
         if snapshot.instrumentation_enabled:
             snapshot.trace_extended_end_ns = now_ns
@@ -239,6 +244,7 @@ class STS3215Bus:
         self._read_lengths.fill(0)
         self._read_seen.fill(False)
         self._read_codes.fill(int(ErrorCode.TIMEOUT))
+        self._read_device_status.fill(0)
         if only_servo_id is not None:
             for index, servo_id in enumerate(self.ids):
                 if servo_id != only_servo_id:
@@ -338,14 +344,13 @@ class STS3215Bus:
                 response_complete_ns[index] = completion_ns
             if checksum(frame[2:-1]) != int(frame[-1]):
                 self._read_codes[index] = int(ErrorCode.CRC)
-            elif int(frame[4]) != 0:
-                self._read_codes[index] = int(ErrorCode.DEVICE)
             elif total_length - 6 != expected_param_length:
                 self._read_codes[index] = int(ErrorCode.PARTIAL)
             else:
                 for data_index in range(expected_param_length):
                     self._read_data[index, data_index] = frame[5 + data_index]
                 self._read_lengths[index] = expected_param_length
+                self._read_device_status[index] = int(frame[4])
                 if self._read_codes[index] != int(ErrorCode.OK):
                     newly_received += 1
                 self._read_codes[index] = int(ErrorCode.OK)
@@ -353,16 +358,28 @@ class STS3215Bus:
         return cursor, newly_received
 
     def ping(self, servo_id: int, *, timeout_s: float | None = None) -> ErrorCode:
+        code, device_status = self.ping_with_device_status(
+            servo_id, timeout_s=timeout_s
+        )
+        if code is ErrorCode.OK and device_status:
+            return ErrorCode.DEVICE
+        return code
+
+    def ping_with_device_status(
+        self, servo_id: int, *, timeout_s: float | None = None
+    ) -> tuple[ErrorCode, int | None]:
         if not 0 <= servo_id <= 253:
             raise ValueError("servo id must be in 0..253")
         self._flush_before_transaction()
         try:
             self.transport.write(instruction_packet(servo_id, PING))
         except (OSError, TimeoutError):
-            return ErrorCode.IO
+            return ErrorCode.IO, None
         timeout_ns = self.transaction_timeout_ns if timeout_s is None else int(timeout_s * 1e9)
-        code, _ = self._read_one_generic(servo_id, 0, clock_ns() + timeout_ns)
-        return code
+        code, device_status, _ = self._read_one_generic_with_device_status(
+            servo_id, 0, clock_ns() + timeout_ns
+        )
+        return code, device_status
 
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
         self._flush_before_transaction()
@@ -390,11 +407,12 @@ class STS3215Bus:
     def read_register_with_device_status(
         self, servo_id: int, address: int, length: int
     ) -> tuple[ErrorCode, int | None, bytes]:
-        """Read a register while preserving parameters from a device-error reply.
+        """Read a register and report transport status separately from device alarms.
 
-        This is for diagnostic telemetry only. The normal read path continues to
-        discard parameters from nonzero device-status packets so runtime state
-        cannot silently become fresh when a servo reports an error.
+        A checksum-valid, correctly sized response is ``OK`` even when its device
+        status byte is nonzero. Callers must handle that byte explicitly. The
+        normal ``read_register`` path remains fail-closed and maps a nonzero
+        device status to ``DEVICE`` while discarding its parameters.
         """
         self._flush_before_transaction()
         try:
@@ -408,10 +426,14 @@ class STS3215Bus:
     def _read_one_generic(
         self, servo_id: int, expected_param_length: int, deadline_ns: int
     ) -> tuple[ErrorCode, bytes]:
-        code, _, parameters = self._read_one_generic_with_device_status(
+        code, device_status, parameters = self._read_one_generic_with_device_status(
             servo_id, expected_param_length, deadline_ns
         )
-        return code, parameters if code is ErrorCode.OK else b""
+        if code is not ErrorCode.OK:
+            return code, b""
+        if device_status:
+            return ErrorCode.DEVICE, b""
+        return ErrorCode.OK, parameters
 
     def _read_one_generic_with_device_status(
         self, servo_id: int, expected_param_length: int, deadline_ns: int
@@ -444,11 +466,9 @@ class STS3215Bus:
                 return ErrorCode.CRC, None, b""
             device_error = int(frame[4])
             parameters = bytes(frame[5:-1])
-            if device_error != 0:
-                return ErrorCode.DEVICE, device_error, parameters
             if total - 6 != expected_param_length:
                 return ErrorCode.PARTIAL, 0, b""
-            return ErrorCode.OK, 0, parameters
+            return ErrorCode.OK, device_error, parameters
         return (ErrorCode.PARTIAL if received else ErrorCode.TIMEOUT), None, b""
 
     def sync_write_bytes(self, address: int, values: Sequence[bytes]) -> ErrorCode:

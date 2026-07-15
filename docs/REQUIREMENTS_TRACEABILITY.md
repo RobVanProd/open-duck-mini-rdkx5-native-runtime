@@ -9,12 +9,12 @@
 | Frozen servo map | `constants.py` | logical map plus distinct wire-order test | logical map unchanged; ID 13 last removes reproduced grouped-read CRC |
 | Script parity | `open_duck_x5.tools` and root wrappers | all four tools run on mock | no motor commands run |
 | Crash/exit torque-off | `TorqueGuard`; cutoff-first cleanup; terminal cutoff status | injected-crash, signal-during-home, cleanup-order, failed-cutoff, schema, and summary tests | physical cutoff latency pending |
-| Direct STS3215 bus | `bus/sts3215.py` | fixed frames and fake-transport tests | all-14 torque-off path measured; moving run blocked |
+| Direct STS3215 bus | `bus/sts3215.py`; transport validity and raw device status are separate | fixed frames, alarm-bearing payload, and fake-transport tests | all-14 torque-off path measured; moving run blocked |
 | SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | CRC mechanism repaired; bus max 7.703526 ms fails <5 ms gate |
-| Timeout/CRC/partial/device taxonomy | `ErrorCode`, parser, JSONL and v2 summary | zero-preserving per-class count tests | preflight isolated CRC ordering and then one ID 13 device-status reply |
-| Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests | sustained-rate test pending |
+| Timeout/CRC/partial taxonomy plus device alarms | `ErrorCode`, `ServoSnapshot.device_status`, JSONL and summaries | alarm-bearing payload remains fresh while alarm gate fails; per-class count tests | all-servo status `0x01` captured separately from valid framing; moving run blocked |
+| Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests; valid device-alarm payload is not mislabeled stale | sustained-rate test pending |
 | Serial minimum latency | verification/install scripts | shell syntax check | official WCH CH343 driver built/bound/tested/rolled back; bus max 7.490049 ms, so transport review remains required |
-| Round-robin current/voltage/temp | extended read every tick modulo 14 | register decode test | units/value check pending |
+| Round-robin current/voltage/temp | extended read every tick modulo 14 with raw device status | register decode and alarm-telemetry tests | voltage raw units confirmed; current/temperature value checks pending |
 | SCHED_FIFO + isolated core | pre-spawn housekeeping partition plus verified control-thread isolation in `realtime.py`; exact-list and scheduler preflight | partition/offender/service-mask/parser tests | CPU 7 isolation, housekeeping 0-6, and `SCHED_FIFO 80` verified |
 | Preallocated hot-loop data | arrays, packet frames, telemetry record pools | lint/tests; no JSON I/O in loop | allocation/timing profile pending |
 | Complete evidence stream | bounded writers fail hard on pool/queue overflow or file errors | synchronous-open and forced-exhaustion tests | Gate 1 has 10,000 contiguous records and zero drops |

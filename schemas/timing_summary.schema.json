@@ -76,6 +76,8 @@
     },
     "transaction_failure_rate": { "type": "number", "minimum": 0 },
     "transaction_failure_percent": { "type": "number", "minimum": 0 },
+    "device_alarm_reply_count": { "type": "integer", "minimum": 0 },
+    "voltage_alarm_reply_count": { "type": "integer", "minimum": 0 },
     "partial_byte_count": { "type": "integer", "minimum": 0 },
     "unexpected_packet_count": { "type": "integer", "minimum": 0 },
     "read_burst_count": { "type": "integer", "minimum": 0 },

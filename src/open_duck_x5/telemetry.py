@@ -28,6 +28,7 @@ class ProbeRecord:
     bus_total_ns: int = 0
     write_status: int = 0
     extended_status: int = 0
+    extended_device_status: int = 0
     extended_servo_id: int = -1
     current_raw: int = 0
     current_a: float = 0.0
@@ -36,6 +37,9 @@ class ProbeRecord:
     partial_bytes: int = 0
     unexpected_packets: int = 0
     status: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
+    )
+    device_status: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
     )
     stale: np.ndarray = field(
@@ -69,6 +73,7 @@ class ProbeRecord:
         self.bus_total_ns = snapshot.bus_total_ns
         self.write_status = int(snapshot.write_status)
         self.extended_status = int(snapshot.extended_status)
+        self.extended_device_status = int(snapshot.extended_device_status)
         self.extended_servo_id = snapshot.extended_servo_id
         self.current_raw = snapshot.present_current_raw
         self.current_a = snapshot.present_current_a
@@ -77,6 +82,7 @@ class ProbeRecord:
         self.partial_bytes = snapshot.partial_bytes
         self.unexpected_packets = snapshot.unexpected_packets
         np.copyto(self.status, snapshot.status)
+        np.copyto(self.device_status, snapshot.device_status)
         np.copyto(self.stale, snapshot.stale)
         np.copyto(self.target_positions_rad, target_positions_rad)
         np.copyto(self.actual_positions_rad, snapshot.positions_rad)
@@ -100,6 +106,7 @@ class ProbeRecord:
                 "bus_total_ms": self.bus_total_ns / 1e6,
                 "write_status": ERROR_NAMES[self.write_status],
                 "per_servo_status": [ERROR_NAMES[int(code)] for code in self.status],
+                "per_servo_device_status": self.device_status.tolist(),
                 "stale": self.stale.tolist(),
                 "partial_bytes": self.partial_bytes,
                 "unexpected_packets": self.unexpected_packets,
@@ -107,6 +114,7 @@ class ProbeRecord:
             "extended": {
                 "servo_id": self.extended_servo_id,
                 "status": ERROR_NAMES[self.extended_status],
+                "device_status_raw": self.extended_device_status,
                 "present_current_raw": self.current_raw,
                 "present_current_a": self.current_a,
                 "present_voltage_v": self.voltage_v,
@@ -214,6 +222,7 @@ class ControlRecord:
     bus_total_ns: int = 0
     write_status: int = 0
     extended_status: int = 0
+    extended_device_status: int = 0
     extended_servo_id: int = -1
     current_a: float = 0.0
     voltage_v: float = 0.0
@@ -221,6 +230,9 @@ class ControlRecord:
     partial_bytes: int = 0
     unexpected_packets: int = 0
     status: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
+    )
+    device_status: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
     )
     stale: np.ndarray = field(
@@ -274,6 +286,7 @@ class ControlRecord:
         self.bus_total_ns = snapshot.bus_total_ns
         self.write_status = int(snapshot.write_status)
         self.extended_status = int(snapshot.extended_status)
+        self.extended_device_status = int(snapshot.extended_device_status)
         self.extended_servo_id = snapshot.extended_servo_id
         self.current_a = snapshot.present_current_a
         self.voltage_v = snapshot.present_voltage_v
@@ -281,6 +294,7 @@ class ControlRecord:
         self.partial_bytes = snapshot.partial_bytes
         self.unexpected_packets = snapshot.unexpected_packets
         np.copyto(self.status, snapshot.status)
+        np.copyto(self.device_status, snapshot.device_status)
         np.copyto(self.stale, snapshot.stale)
         np.copyto(self.observation, observation)
         np.copyto(self.action, action)
@@ -308,6 +322,7 @@ class ControlRecord:
                 "bus_total_ms": self.bus_total_ns / 1e6,
                 "write_status": ERROR_NAMES[self.write_status],
                 "per_servo_status": [ERROR_NAMES[int(code)] for code in self.status],
+                "per_servo_device_status": self.device_status.tolist(),
                 "stale": self.stale.tolist(),
                 "partial_bytes": self.partial_bytes,
                 "unexpected_packets": self.unexpected_packets,
@@ -315,6 +330,7 @@ class ControlRecord:
             "extended": {
                 "servo_id": self.extended_servo_id,
                 "status": ERROR_NAMES[self.extended_status],
+                "device_status_raw": self.extended_device_status,
                 "present_current_a": self.current_a,
                 "present_voltage_v": self.voltage_v,
                 "present_temperature_c": self.temperature_c,

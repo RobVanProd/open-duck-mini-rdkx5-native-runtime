@@ -165,3 +165,35 @@ artifact nor a single-servo fault. Runtime startup must continue rejecting it.
 Do not raise EEPROM limits to make the error counter green. Correct the physical
 supply first, then require a clean torque-off voltage/status capture before any
 Gate 2 retry.
+
+## D023 — Separate transport validity from device alarms and correct power provenance
+
+Accepted. Frank Fu's build article delegates the hardware construction to the
+upstream Open Duck Mini v2 instructions. The upstream editable wiring diagram
+specifies two 18650 cells in series, a 7.4 V BMS/output, and a 7.4 V motor-board
+input. The installed servos were also confirmed by the owner as 7.4 V units.
+The observed 8.2-8.4 V rail is therefore consistent with a charged 2S pack; the
+later 3S/12.6 V reconstruction was not the provenance of this robot. Registers
+3-4 are retained as raw version bytes and must not be presented as a confirmed
+servo SKU.
+
+A checksum-valid, correctly sized reply with status byte `0x01` is now recorded
+as a successful transport transaction plus a separate raw device alarm. Its
+position, speed, or telemetry payload remains fresh and observable. Timeouts,
+checksum failures, and partial packets remain transport failures and stale the
+affected sample. This prevents a valid alarm reply from being mislabeled as a
+serial failure without hiding the alarm or laundering the device-alarm count.
+
+Safety stays fail-closed. Runtime startup and every torque-capable probe reject
+any device alarm before torque enable or target writes. A torque-off diagnostic
+may use valid alarm payloads to measure transport timing, but
+`zero_device_alarms` remains false and the run cannot become a Gate 1, Gate 2,
+Gate 4, or Gate 5 candidate. No EEPROM limit, power wiring, torque, or policy
+change is authorized by this decision. Gate 2 also remains blocked by its
+independent `<5 ms` total-bus-time requirement.
+
+This decision supersedes only D020-D022's interpretation that alarm-bearing
+payloads must be stale and that the documented 2S supply is physically wrong.
+The raw captures, voltage readings, configured 4.0/8.0 V thresholds, and alarm
+bytes remain valid historical evidence. See
+`docs/POWER_AND_DEVICE_STATUS_RECONCILIATION.md`.

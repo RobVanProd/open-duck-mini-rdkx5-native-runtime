@@ -42,6 +42,7 @@ class SingleServoRecord:
     tick_period_ns: int = 0
     round_trip_ns: int = 0
     status: int = int(ErrorCode.TIMEOUT)
+    device_status: int = 0
     response_length: int = 0
 
     def capture(
@@ -51,6 +52,7 @@ class SingleServoRecord:
         tick_period_ns: int,
         round_trip_ns: int,
         status: ErrorCode,
+        device_status: int,
         response_length: int,
     ) -> None:
         self.tick = tick
@@ -58,6 +60,7 @@ class SingleServoRecord:
         self.tick_period_ns = tick_period_ns
         self.round_trip_ns = round_trip_ns
         self.status = int(status)
+        self.device_status = int(device_status)
         self.response_length = response_length
 
     def as_jsonable(self, servo_id: int) -> dict[str, object]:
@@ -69,6 +72,7 @@ class SingleServoRecord:
             "servo_id": servo_id,
             "round_trip_ms": self.round_trip_ns / 1e6,
             "status": ERROR_NAMES[self.status],
+            "device_status_raw": self.device_status,
             "response_length": self.response_length,
         }
 
@@ -107,6 +111,7 @@ class AsyncSingleServoWriter:
         tick_period_ns: int,
         round_trip_ns: int,
         status: ErrorCode,
+        device_status: int,
         response_length: int,
     ) -> None:
         self._raise_if_failed()
@@ -123,6 +128,7 @@ class AsyncSingleServoWriter:
             tick_period_ns,
             round_trip_ns,
             status,
+            device_status,
             response_length,
         )
         try:
@@ -266,8 +272,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     round_trip_ns = np.zeros(args.ticks, dtype=np.int64)
     tick_period_ns = np.zeros(args.ticks, dtype=np.int64)
     statuses = np.full(args.ticks, int(ErrorCode.TIMEOUT), dtype=np.uint8)
+    device_statuses = np.zeros(args.ticks, dtype=np.uint8)
     response_lengths = np.zeros(args.ticks, dtype=np.int16)
     ping_status = ErrorCode.TIMEOUT
+    ping_device_status: int | None = None
     previous_tick_ns = 0
     watchdog = Watchdog(
         hard_overrun_ns=2 * int(1e9 / args.frequency_hz),
@@ -277,7 +285,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     torque_off_status = ErrorCode.OK
     completed_ticks = 0
     try:
-        ping_status = bus.ping(args.servo_id)
+        ping_status, ping_device_status = bus.ping_with_device_status(args.servo_id)
         if ping_status is not ErrorCode.OK:
             raise RuntimeError(
                 f"servo {args.servo_id} ping failed: {ping_status.name.lower()}"
@@ -290,12 +298,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             )
             previous_tick_ns = tick_start_ns
             transaction_start_ns = clock_ns()
-            status, response = bus.read_register(
+            status, device_status, response = bus.read_register_with_device_status(
                 args.servo_id, ADDR_PRESENT_POSITION, 2
             )
             elapsed_ns = clock_ns() - transaction_start_ns
             round_trip_ns[tick] = elapsed_ns
             statuses[tick] = int(status)
+            device_statuses[tick] = int(device_status or 0)
             response_lengths[tick] = len(response)
             writer.publish(
                 tick,
@@ -303,6 +312,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 int(tick_period_ns[tick]),
                 elapsed_ns,
                 status,
+                int(device_status or 0),
                 len(response),
             )
             completed_ticks = tick + 1
@@ -330,6 +340,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     }
     failures = completed_statuses != int(ErrorCode.OK)
     failure_count = int(np.count_nonzero(failures))
+    device_alarm_count = int(np.count_nonzero(device_statuses[:completed_ticks]))
+    voltage_alarm_count = int(
+        np.count_nonzero(device_statuses[:completed_ticks] & 0x01)
+    )
     unexpected_response_lengths = int(
         np.count_nonzero(response_lengths[:completed_ticks] != 2)
     )
@@ -350,10 +364,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "ticks": completed_ticks,
         "ticks_requested": args.ticks,
         "ping_status": ping_status.name.lower(),
+        "ping_device_status_raw": ping_device_status,
         "tick_period_ms": _stats_ns(tick_period_ns[1:completed_ticks]),
         "round_trip_ms": _stats_ns(round_trip_ns[:completed_ticks]),
         "transaction_status_counts": status_counts,
         "transactions_failed": failure_count,
+        "device_alarm_reply_count": device_alarm_count,
+        "voltage_alarm_reply_count": voltage_alarm_count,
         "unexpected_response_length_count": unexpected_response_lengths,
         "transaction_failure_rate": (
             failure_count / completed_ticks if completed_ticks else 0.0
@@ -391,6 +408,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "authorization_provenance": authorization_provenance,
         "ping_ok": ping_status is ErrorCode.OK,
         "zero_transaction_failures": failure_count == 0,
+        "zero_device_alarms": device_alarm_count == 0
+        and not bool(ping_device_status),
         "zero_unexpected_response_lengths": unexpected_response_lengths == 0,
         "zero_read_bursts": burst_count == 0,
         "gate1_candidate": args.bus == "serial"
@@ -399,6 +418,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         and authorization_provenance
         and ping_status is ErrorCode.OK
         and failure_count == 0
+        and device_alarm_count == 0
+        and not bool(ping_device_status)
         and unexpected_response_lengths == 0
         and burst_count == 0,
     }

@@ -40,6 +40,8 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
         assert len(record["motion"]["target_positions_rad"]) == 14
         assert len(record["motion"]["actual_positions_rad"]) == 14
         assert len(record["motion"]["absolute_error_rad"]) == 14
+        assert record["serial"]["per_servo_device_status"] == [0] * 14
+        assert record["extended"]["device_status_raw"] == 0
 
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     summary_schema_path = Path(__file__).parents[1] / "schemas" / "timing_summary.schema.json"
@@ -53,6 +55,8 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
     assert summary["informational_only"] is True
     assert summary["ticks"] == 12
     assert summary["transactions_failed"] == 0
+    assert summary["device_alarm_reply_count"] == 0
+    assert summary["voltage_alarm_reply_count"] == 0
     assert summary["transaction_status_counts"]["ok"] == 12 * 16
     assert summary["transaction_failure_counts"] == {
         "timeout": 0,
@@ -69,6 +73,7 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
     assert summary["environment"]["realtime"] is None
     assert summary["environment"]["torque_off_status"] == "ok"
     assert summary["gates"]["complete_record_stream"] is True
+    assert summary["gates"]["zero_device_alarms"] is True
     assert summary["gates"]["torque_off_confirmed"] is True
     assert summary["gates"]["gate2_home_hold_candidate"] is False
     assert summary["gates"]["gate4_sine_candidate"] is False
