@@ -28,6 +28,7 @@ ADDR_GOAL_POSITION = 42
 ADDR_LOCK = 55
 ADDR_PRESENT_POSITION = 56
 ADDR_PRESENT_LOAD = 60
+ADDR_PRESENT_VOLTAGE = 62
 ADDR_MAXIMUM_ACCELERATION = 85
 
 
@@ -383,9 +384,35 @@ class STS3215Bus:
             servo_id, length, clock_ns() + self.transaction_timeout_ns
         )
 
+    def read_register_with_device_status(
+        self, servo_id: int, address: int, length: int
+    ) -> tuple[ErrorCode, int | None, bytes]:
+        """Read a register while preserving parameters from a device-error reply.
+
+        This is for diagnostic telemetry only. The normal read path continues to
+        discard parameters from nonzero device-status packets so runtime state
+        cannot silently become fresh when a servo reports an error.
+        """
+        self._flush_before_transaction()
+        try:
+            self.transport.write(instruction_packet(servo_id, READ, bytes((address, length))))
+        except (OSError, TimeoutError):
+            return ErrorCode.IO, None, b""
+        return self._read_one_generic_with_device_status(
+            servo_id, length, clock_ns() + self.transaction_timeout_ns
+        )
+
     def _read_one_generic(
         self, servo_id: int, expected_param_length: int, deadline_ns: int
     ) -> tuple[ErrorCode, bytes]:
+        code, _, parameters = self._read_one_generic_with_device_status(
+            servo_id, expected_param_length, deadline_ns
+        )
+        return code, parameters if code is ErrorCode.OK else b""
+
+    def _read_one_generic_with_device_status(
+        self, servo_id: int, expected_param_length: int, deadline_ns: int
+    ) -> tuple[ErrorCode, int | None, bytes]:
         buffer = bytearray(64)
         view = memoryview(buffer)
         received = 0
@@ -397,27 +424,29 @@ class STS3215Bus:
             header = buffer.find(b"\xff\xff", 0, received)
             if header < 0:
                 if received == len(buffer):
-                    return ErrorCode.PARTIAL, b""
+                    return ErrorCode.PARTIAL, None, b""
                 continue
             if received < header + 4:
                 continue
             packet_length = int(buffer[header + 3])
             total = 4 + packet_length
             if packet_length < 2 or total > len(buffer):
-                return ErrorCode.PARTIAL, b""
+                return ErrorCode.PARTIAL, None, b""
             if received < header + total:
                 continue
             frame = view[header : header + total]
             if int(frame[2]) != servo_id:
-                return ErrorCode.UNEXPECTED_ID, b""
+                return ErrorCode.UNEXPECTED_ID, None, b""
             if checksum(frame[2:-1]) != int(frame[-1]):
-                return ErrorCode.CRC, b""
-            if int(frame[4]) != 0:
-                return ErrorCode.DEVICE, b""
+                return ErrorCode.CRC, None, b""
+            device_error = int(frame[4])
+            parameters = bytes(frame[5:-1])
+            if device_error != 0:
+                return ErrorCode.DEVICE, device_error, parameters
             if total - 6 != expected_param_length:
-                return ErrorCode.PARTIAL, b""
-            return ErrorCode.OK, bytes(frame[5:-1])
-        return (ErrorCode.PARTIAL if received else ErrorCode.TIMEOUT), b""
+                return ErrorCode.PARTIAL, 0, b""
+            return ErrorCode.OK, 0, parameters
+        return (ErrorCode.PARTIAL if received else ErrorCode.TIMEOUT), None, b""
 
     def sync_write_bytes(self, address: int, values: Sequence[bytes]) -> ErrorCode:
         if len(values) != ACTION_DIM:

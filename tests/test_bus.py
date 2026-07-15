@@ -182,3 +182,26 @@ def test_group_read_counts_unexpected_packets_without_hiding_fresh_state() -> No
     bus.read_state_into(snapshot)
     assert snapshot.all_fresh
     assert snapshot.unexpected_packets == 1
+
+
+def test_diagnostic_register_read_preserves_payload_but_normal_read_rejects_it() -> None:
+    class VoltageErrorTransport(FakeTransport):
+        def write(self, data) -> None:
+            frame = bytes(data)
+            if frame[4] == 0x02 and frame[5] == 62:
+                self.writes.append(frame)
+                self.rx.extend(_status_packet(frame[2], bytes((74,)), error=0x01))
+                return
+            super().write(data)
+
+    bus = STS3215Bus(transport=VoltageErrorTransport())
+    status, device_error, parameters = bus.read_register_with_device_status(
+        SERVO_IDS[0], 62, 1
+    )
+    assert status is ErrorCode.DEVICE
+    assert device_error == 0x01
+    assert parameters == bytes((74,))
+
+    status, parameters = bus.read_register(SERVO_IDS[0], 62, 1)
+    assert status is ErrorCode.DEVICE
+    assert parameters == b""

@@ -79,6 +79,13 @@ present-voltage register read is the next distinct torque-off diagnostic and
 requires separate authorization. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/software_usbmon_voltage_halt_retry/RESULT.md`.
 
+Rob subsequently authorized that distinct read-only diagnostic. Its frozen
+scope is register 62 only, one byte per servo, with torque-off before and after,
+the physical order ending `14,13`, and no position or configuration write. The
+diagnostic preserves a voltage byte from a valid device-error response for
+evidence only; the operational runtime still rejects it as stale. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_DIAGNOSTIC_PRE_REGISTRATION.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

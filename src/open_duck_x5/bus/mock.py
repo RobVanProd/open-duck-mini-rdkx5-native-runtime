@@ -43,6 +43,7 @@ class MockSTS3215Bus:
         self._registers = {servo_id: bytearray(256) for servo_id in SERVO_IDS}
         for servo_id, registers in self._registers.items():
             registers[5] = servo_id
+            registers[62] = 74
         self._last_update_ns = clock_ns()
         self._active_tick = 0
 
@@ -170,6 +171,12 @@ class MockSTS3215Bus:
             raw = int(4096.0 * (math.pi + float(self.positions[index])) / TWO_PI)
             return ErrorCode.OK, struct.pack("<h", raw)
         return ErrorCode.OK, bytes(self._registers[servo_id][address : address + length])
+
+    def read_register_with_device_status(
+        self, servo_id: int, address: int, length: int
+    ) -> tuple[ErrorCode, int | None, bytes]:
+        status, parameters = self.read_register(servo_id, address, length)
+        return status, (0 if status is ErrorCode.OK else None), parameters
 
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
         if servo_id not in self.ids:
