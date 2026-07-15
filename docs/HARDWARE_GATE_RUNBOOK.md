@@ -63,6 +63,15 @@ The separately authorized latency diagnostic is documented in
 the on-device application trace plus `usbmon`; no external analyzer exists or
 is required. Label it `software-usbmon` and do not claim physical-wire timing.
 
+The first software-only capture halted at startup because all 14 servos returned
+device status `0x01` (input-voltage error). It sent only the initial and final
+all-14 torque-off writes plus one SyncRead; it never entered the timing loop or
+wrote a goal position. The captured startup exchange delivered all 14 responses
+in `2.130 ms`, so it already rejects the hypothesized one-millisecond-per-servo
+USB floor. Do not rerun until the servo power condition is checked and Rob gives
+fresh authorization. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/software_usbmon_voltage_halt/RESULT.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

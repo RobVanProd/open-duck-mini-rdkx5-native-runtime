@@ -130,3 +130,13 @@ stream, but total bus mean/max was `5.437868 / 7.490049 ms` versus the unchanged
 `<5 ms` gate. Tick p99.9 remained green. The module was fully removed and the
 adapter restored to `cdc_acm`. The driver is not retained merely because it
 changed the error counter; it did not solve the governing latency measurement.
+
+## D020 — Stop USB timing capture on an all-servo voltage fault
+
+Accepted. The software-only application plus `usbmon` capture received valid
+framing from every servo, but each packet reported device status `0x01`, the
+protocol's input-voltage error bit. The startup verifier must continue treating
+those samples as invalid; it may not suppress the device error to manufacture a
+timing result. The trace proves that no goal-position packet or torque enable was
+sent and that final torque-off completed. A new diagnostic requires the servo
+supply condition to be checked and fresh explicit authorization.

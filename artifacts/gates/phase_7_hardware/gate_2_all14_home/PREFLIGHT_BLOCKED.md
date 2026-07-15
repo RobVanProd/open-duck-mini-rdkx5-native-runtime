@@ -106,3 +106,20 @@ torque-off preflight but total bus mean/max remained
 `5.437868 / 7.490049 ms`. It therefore does not resolve the bus-budget blocker.
 See `CH343_EXPERIMENT.md` and `preflight_ch343_summary.json`. The board is back
 on `cdc_acm`; Gate 2 remains `NOT_RUN_BLOCKED_PREFLIGHT`.
+
+## Software-only USB latency follow-up
+
+Rob clarified that no external logic analyzer was available or required. An
+authorized application-instrumented plus Linux `usbmon` diagnostic was deployed
+from commit `a50d32d22b7e60167a0087fd29ea02141628b1f5`. The probe established
+torque off, received all 14 startup replies in the reviewed wire order, and then
+halted because every servo reported status `0x01` (input-voltage error). The
+50-tick loop never began, no goal target was written, and final cleanup sent a
+second all-14 torque-off packet.
+
+The startup SyncRead completed all fourteen USB responses in `2.130 ms`, with
+successive response completions separated by `123-147 us`. This rules out a
+one-millisecond USB-frame delay per servo in this exchange, but it is not a
+completed Gate 2 timing result. See `software_usbmon_voltage_halt/RESULT.md`.
+Another run is blocked until the servo supply condition is checked and a fresh
+torque-off diagnostic is explicitly authorized.
