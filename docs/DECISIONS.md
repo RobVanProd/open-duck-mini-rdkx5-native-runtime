@@ -140,3 +140,8 @@ those samples as invalid; it may not suppress the device error to manufacture a
 timing result. The trace proves that no goal-position packet or torque enable was
 sent and that final torque-off completed. A new diagnostic requires the servo
 supply condition to be checked and fresh explicit authorization.
+
+After visible connection inspection and a robot reboot, one authorized retry
+reproduced status `0x01` on all fourteen replies. Repeating the same capture is
+closed; the next distinct step is an explicit torque-off present-voltage read,
+not suppression of the status byte.

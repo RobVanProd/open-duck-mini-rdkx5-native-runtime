@@ -72,6 +72,13 @@ USB floor. Do not rerun until the servo power condition is checked and Rob gives
 fresh authorization. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/software_usbmon_voltage_halt/RESULT.md`.
 
+After a connection inspection and robot reboot, one explicitly authorized retry
+reproduced `0x01` on all 14 replies and again stopped before the loop. The second
+fourteen-response interval was `2.125 ms`. Do not repeat the same capture; a
+present-voltage register read is the next distinct torque-off diagnostic and
+requires separate authorization. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/software_usbmon_voltage_halt_retry/RESULT.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.

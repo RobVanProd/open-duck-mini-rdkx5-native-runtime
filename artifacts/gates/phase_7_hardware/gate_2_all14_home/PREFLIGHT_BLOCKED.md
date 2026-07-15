@@ -123,3 +123,11 @@ one-millisecond USB-frame delay per servo in this exchange, but it is not a
 completed Gate 2 timing result. See `software_usbmon_voltage_halt/RESULT.md`.
 Another run is blocked until the servo supply condition is checked and a fresh
 torque-off diagnostic is explicitly authorized.
+
+Rob inspected the visible connections, rebooted the robot, and authorized one
+retry. The retry independently reproduced status `0x01` on all fourteen startup
+replies and halted before the timing loop. Its fourteen-response USB interval
+was `2.125 ms`; cleanup again completed with torque off and no target write.
+See `software_usbmon_voltage_halt_retry/RESULT.md`. Repeating the same capture is
+now closed. The next useful diagnostic is a separately authorized torque-off
+read of present-voltage telemetry without ignoring the device status.
