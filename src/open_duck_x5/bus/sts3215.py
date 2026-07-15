@@ -7,7 +7,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from ..clock import clock_ns
-from ..constants import ACTION_DIM, SERVO_IDS, TWO_PI
+from ..constants import ACTION_DIM, SERVO_IDS, SERVO_SYNC_READ_IDS, TWO_PI
 from .protocol import (
     BROADCAST_ID,
     PING,
@@ -71,7 +71,9 @@ class STS3215Bus:
         for index, servo_id in enumerate(self.ids):
             self._id_to_index[servo_id] = index
 
-        self._sync_read_state = sync_read_packet(self.ids, ADDR_PRESENT_POSITION, 4)
+        self._sync_read_state = sync_read_packet(
+            SERVO_SYNC_READ_IDS, ADDR_PRESENT_POSITION, 4
+        )
         self._extended_read_packets = tuple(
             instruction_packet(servo_id, READ, bytes((ADDR_PRESENT_LOAD, 11)))
             for servo_id in self.ids

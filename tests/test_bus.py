@@ -14,7 +14,7 @@ from open_duck_x5.bus.sts3215 import (
     raw_speed_to_rad_s,
 )
 from open_duck_x5.bus.types import ErrorCode, ServoSnapshot
-from open_duck_x5.constants import HOME_RAD, SERVO_IDS
+from open_duck_x5.constants import HOME_RAD, SERVO_IDS, SERVO_SYNC_READ_IDS
 
 
 def _status_packet(servo_id: int, parameters: bytes, *, error: int = 0) -> bytes:
@@ -100,6 +100,9 @@ def test_direct_bus_group_read_sync_write_and_extended_telemetry() -> None:
     assert checksum(write_frame[2:-1]) == write_frame[-1]
 
     bus.read_state_into(snapshot)
+    read_frame = transport.writes[-1]
+    assert read_frame[4] == 0x82
+    assert tuple(read_frame[7:-1]) == SERVO_SYNC_READ_IDS
     assert snapshot.all_fresh
     assert np.all(snapshot.status == int(ErrorCode.OK))
     assert snapshot.positions_rad[0] == 0.0
