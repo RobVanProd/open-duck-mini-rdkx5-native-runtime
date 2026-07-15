@@ -3,17 +3,17 @@
 | Requirement | Implementation | Offline evidence | Hardware status |
 | --- | --- | --- | --- |
 | 101 observations / 14 actions | `contract.py`, `policy.py`, snapshot extractor/verifier | independent legacy-formula, named-mismatch tests, corrected-knee board snapshot | deployed golden vector exact; candidate training parity pending |
-| 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe; self-describing complete-sweep population and schema-bound provenance | mock summary, population-definition, comparison, collision/tamper tests | 10,000-tick USB torque-off window preregistered; moving run blocked by bus gates |
+| 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe; self-describing complete-sweep population and schema-bound provenance | mock summary, population-definition, comparison, collision/tamper tests | USB 10,000-tick p99/p99.9 20.101184/20.105310 ms pass; moving run blocked by bus gates |
 | Gate 1 single-servo echo/read | torque-off `probe_single_servo`; raw hash/auth/cutoff/framing summary | mock tick+summary schema and provenance tests | 10,000-read serial run `PASS_REVIEWED` |
 | `duck_config.json` semantics | `config.py` | config, strict boolean, finite phase, and offset-order tests | live file validated and hashed; no writes performed |
 | Frozen servo map | `constants.py` | logical map plus distinct wire-order test | logical map unchanged; ID 13 last removes reproduced grouped-read CRC |
 | Script parity | `open_duck_x5.tools` and root wrappers | all four tools run on mock | no motor commands run |
 | Crash/exit torque-off | `TorqueGuard`; cutoff-first cleanup; terminal cutoff status | injected-crash, signal-during-home, cleanup-order, failed-cutoff, schema, and summary tests | physical cutoff latency pending |
 | Direct STS3215 bus | `bus/sts3215.py`; transport validity and raw device status are separate | fixed frames, alarm-bearing payload, and fake-transport tests | all-14 torque-off path measured; moving run blocked |
-| SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | CRC mechanism repaired; bus max 7.703526 ms fails <5 ms gate |
+| SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | frozen 10,000-sweep USB max 8.293083 ms fails <5 ms; `0x82` burst max 5.200234 ms |
 | Timeout/CRC/partial taxonomy plus device alarms | `ErrorCode`, `ServoSnapshot.device_status`, JSONL and summaries | alarm-bearing payload remains fresh while alarm gate fails; per-class count tests | all-servo status `0x01` captured separately from valid framing; moving run blocked |
 | Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests; valid device-alarm payload is not mislabeled stale | sustained-rate test pending |
-| Serial minimum latency | verification/install scripts | shell syntax check | `1a86:55d3` CH343 on `cdc_acm`, not FTDI and no `latency_timer`; vendor driver tested/rolled back; direct UART A/B pending |
+| Serial minimum latency | verification/install scripts | shell syntax check | `1a86:55d3` CH343 on `cdc_acm`, not FTDI/no `latency_timer`; 10,000-tick USB window fails bus budget; direct UART A/B pending |
 | Round-robin current/voltage/temp | extended read every tick modulo 14 with raw device status | register decode and alarm-telemetry tests | voltage raw units confirmed; current/temperature value checks pending |
 | SCHED_FIFO + isolated core | pre-spawn housekeeping partition plus verified control-thread isolation in `realtime.py`; exact-list and scheduler preflight | partition/offender/service-mask/parser tests | CPU 7 isolation, housekeeping 0-6, and `SCHED_FIFO 80` verified |
 | Preallocated hot-loop data | arrays, packet frames, telemetry record pools | lint/tests; no JSON I/O in loop | allocation/timing profile pending |

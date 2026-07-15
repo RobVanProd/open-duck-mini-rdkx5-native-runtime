@@ -220,3 +220,26 @@ The authorized USB run remains torque-off throughout. It emits the normal
 14-target SyncWrite only to preserve the full runtime bus population; it does
 not enable torque, enter home, move, or infer a policy. See the adapter
 attribution and 10,000-tick pre-registration artifacts under Gate 2.
+
+## D025 — USB fails the complete-sweep budget over the frozen 10,000-tick window
+
+Accepted. The torque-off USB run completed all 10,000 ticks with verified
+`SCHED_FIFO 80` on isolated CPU 7, final torque-off `ok`, no halt, and no
+telemetry drops. Tick p99/p99.9 passed at `20.101184/20.105310 ms`, so the
+Python-to-Rust escalation criterion remains false.
+
+The complete-sweep bus population measured mean/p99.9/max
+`5.440859/8.060332/8.293083 ms`; 5,103 of 10,000 sweeps were at or above 5 ms.
+The single `0x82` request plus 14-response burst measured
+`3.575249/5.136984/5.200234 ms`. The `<5 ms` complete-sweep gate therefore fails
+decisively over the preregistered window. Four isolated transport failures among
+160,000 expected outcomes (`0.0025%`) pass the failure-rate and burst gates but
+do not change the bus-time result.
+
+Application tracing shows the responses already arrive as a burst rather than
+fourteen host round trips. The remaining USB result combines adapter/driver
+turnaround, response-stream duration, and Python parsing tail. Direct X5 UART is
+selected as the next controlled transport A/B after Rob performs the physical
+wiring change; it must repeat the same 10,000-tick population and statistics.
+No wiring change, torque, motion, Rust escalation, or later gate is authorized
+by this decision.

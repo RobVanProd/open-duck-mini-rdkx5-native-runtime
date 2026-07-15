@@ -133,6 +133,18 @@ The grouped-read distribution separately measures one request plus the complete
 14-response burst. See `USB_ADAPTER_ATTRIBUTION_20260715.md` and
 `USB_10K_TORQUE_OFF_PRE_REGISTRATION.md` in the Gate 2 artifact directory.
 
+That frozen USB run is complete. All 10,000 torque-off ticks and transaction
+traces were recorded with final cutoff `ok`. Complete-sweep
+mean/p99.9/max was `5.440859/8.060332/8.293083 ms`, with 5,103 sweeps at or
+above 5 ms. The `0x82` request plus complete response burst had
+mean/p99.9/max `3.575249/5.136984/5.200234 ms`. Tick p99/p99.9 remained green at
+`20.101184/20.105310 ms`. Four isolated transport failures among 160,000
+expected outcomes yield `0.0025%` with zero bursts. USB therefore fails the
+complete-sweep bus gate while Python loop determinism passes. See
+`usb_10k_torque_off/RESULT.md`. The next transport A/B is direct X5 UART using
+the identical window after Rob performs and verifies the wiring change; it is
+not yet run or authorized by this result.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.
