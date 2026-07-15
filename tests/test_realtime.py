@@ -66,7 +66,7 @@ def install_fake_scheduler(
     monkeypatch.setattr(realtime, "isolated_cpus", lambda: {5})
     monkeypatch.setattr(realtime.os, "cpu_count", lambda: 6)
     monkeypatch.setattr(
-        realtime.os, "get_native_id", lambda: scheduler.control_tid, raising=False
+        realtime.threading, "get_native_id", lambda: scheduler.control_tid
     )
     monkeypatch.setattr(
         realtime.os, "sched_getaffinity", scheduler.get_affinity, raising=False

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gc
 import os
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -69,9 +70,12 @@ def _require_linux_scheduler() -> None:
         "sched_getscheduler",
         "sched_getparam",
         "sched_setscheduler",
-        "get_native_id",
     )
-    if os.name != "posix" or any(not hasattr(os, name) for name in required):
+    if (
+        os.name != "posix"
+        or any(not hasattr(os, name) for name in required)
+        or not hasattr(threading, "get_native_id")
+    ):
         raise RealtimeSetupError("SCHED_FIFO setup is supported only on Linux")
 
 
@@ -130,7 +134,7 @@ def prepare_realtime(
         raise RealtimeSetupError(
             "no housekeeping CPU remains; do not pin the whole service to the control CPU"
         )
-    control_tid = os.get_native_id()
+    control_tid = threading.get_native_id()
     try:
         os.sched_setaffinity(0, set(housekeeping))
         # Usually only the main thread exists here. Partition any earlier native
@@ -178,7 +182,7 @@ def configure_realtime(
             "RT verification failed: "
             f"policy={policy}, priority={actual_priority}, affinity={affinity}"
         )
-    control_tid = os.get_native_id()
+    control_tid = threading.get_native_id()
     thread_states = process_thread_state()
     control_states = [state for state in thread_states if state.tid == control_tid]
     if len(control_states) != 1 or control_states[0].affinity != (cpu,):
