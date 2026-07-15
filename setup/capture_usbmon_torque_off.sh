@@ -5,6 +5,7 @@ device="/dev/ttyACM0"
 ticks=50
 output_dir=""
 config=""
+capture_scope=""
 hardware_authorized=0
 suspended_or_benched=0
 
@@ -12,12 +13,12 @@ usage() {
   cat <<'EOF'
 Usage: sudo setup/capture_usbmon_torque_off.sh \
   --output-dir DIR [--device /dev/ttyACM0] [--ticks 50] [--config FILE] \
+  --capture-scope software-usbmon \
   --hardware-authorized --suspended-or-benched
 
 Captures usbmon and preallocated application transaction timestamps around the
 all-14 torque-off timing probe. This script has no torque-enable or motion path.
-Start the external logic analyzer before invoking it; correlate captures with
-the round-robin extended-read servo ID recorded for every tick.
+The scope is explicitly software-only; it does not require external equipment.
 EOF
 }
 
@@ -37,6 +38,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --config)
       config="$2"
+      shift 2
+      ;;
+    --capture-scope)
+      capture_scope="$2"
       shift 2
       ;;
     --hardware-authorized)
@@ -69,6 +74,10 @@ if [[ "${hardware_authorized}" -ne 1 || "${suspended_or_benched}" -ne 1 ]]; then
 fi
 if [[ -z "${output_dir}" ]]; then
   echo "result=BLOCKED reason=output_dir_required" >&2
+  exit 2
+fi
+if [[ "${capture_scope}" != "software-usbmon" ]]; then
+  echo "result=BLOCKED reason=software_usbmon_capture_scope_required" >&2
   exit 2
 fi
 if ! [[ "${ticks}" =~ ^[0-9]+$ ]] || [[ "${ticks}" -lt 2 ]]; then
@@ -218,7 +227,7 @@ clock_after="$(python3 -c 'import time; print(f"{time.perf_counter_ns()},{time.m
 
 python3 - "${output_dir}/metadata.json" "${commit}" "${kernel}" "${device}" \
   "${usb_bus}" "${usb_device}" "${ticks}" "${probe_status}" \
-  "${clock_before}" "${clock_after}" <<'PY'
+  "${clock_before}" "${clock_after}" "${capture_scope}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -234,6 +243,7 @@ from pathlib import Path
     probe_status,
     clock_before,
     clock_after,
+    capture_scope,
 ) = sys.argv[1:]
 
 def clock_anchor(value: str) -> dict[str, int]:
@@ -253,11 +263,12 @@ payload = {
     "usb_device": int(usb_device),
     "ticks_requested": int(ticks),
     "probe_exit_status": int(probe_status),
+    "capture_scope": capture_scope,
     "torque_enable_requested": False,
     "moving_gate_authorized": False,
     "clock_anchor_before": clock_anchor(clock_before),
     "clock_anchor_after": clock_anchor(clock_after),
-    "logic_analyzer_alignment": "round-robin extended-read servo ID",
+    "external_logic_analyzer_present": False,
 }
 Path(output).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 PY

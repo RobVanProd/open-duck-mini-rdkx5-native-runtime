@@ -1,12 +1,15 @@
 # USB/serial latency attribution diagnostic
 
 This diagnostic is evidence-only. It does not advance Gate 2, enable torque,
-move a joint, or run a policy. It captures three views of the same all-14
-transaction sequence:
+move a joint, or run a policy. The on-device diagnostic captures two views of
+the same all-14 transaction sequence:
 
 1. preallocated application timestamps from `STS3215Bus`;
-2. kernel bulk-URB submission/completion events from `usbmon`;
-3. an external logic-analyzer trace of the physical STS half-duplex data line.
+2. kernel bulk-URB submission/completion events from `usbmon`.
+
+No external analyzer or other physical test equipment is required. A physical
+logic-analyzer trace is an optional later enhancement, not part of the current
+software capture.
 
 The application trace is default-off. When enabled, the hot loop stores scalar
 timestamps, read-call counts, and fourteen response-completion timestamps into
@@ -22,10 +25,11 @@ does not alter goal positions, servo configuration, wire order, or the frozen
 policy contract. SyncRead remains in the reviewed wire order ending `14,13`.
 
 `usbmon` observes URB submission and completion, not individual USB tokens.
-The logic analyzer is therefore required to separate USB/bridge residence from
-physical UART serialization and servo turnaround.
+The two software layers can attribute application/kernel queuing and bound the
+remaining bridge/physical-wire interval, but cannot directly split CH343
+firmware residence from UART serialization and servo turnaround.
 
-## Physical analyzer requirements
+## Optional physical analyzer
 
 - Connect analyzer ground to robot/adapter ground and its data input to the STS
   half-duplex signal through an input rated for the measured bus voltage.
@@ -37,9 +41,8 @@ physical UART serialization and servo turnaround.
   supported. Record analyzer model, software version, threshold, sample rate,
   channel, and probe point.
 
-Do not infer a logic-analyzer result from `usbmon`. If the analyzer is absent or
-not connected, label the three-layer run `NOT_RUN` and do not substitute a
-two-layer capture under the same authorization description.
+Do not infer a physical-wire measurement from `usbmon`. The current run is
+explicitly labeled `software-usbmon`, so no physical trace is implied.
 
 ## Board command
 
@@ -52,6 +55,7 @@ sudo setup/capture_usbmon_torque_off.sh \
   --config /home/sunrise/duck_config.json \
   --ticks 50 \
   --output-dir /home/sunrise/duck-evidence/usbmon-logic-diagnostic \
+  --capture-scope software-usbmon \
   --hardware-authorized --suspended-or-benched
 ```
 

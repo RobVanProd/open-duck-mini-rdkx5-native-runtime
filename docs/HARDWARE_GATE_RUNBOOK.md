@@ -58,10 +58,10 @@ transaction failures but total bus mean/max remained
 `5.437868 / 7.490049 ms`. It was rejected and fully rolled back to `cdc_acm`.
 Do not repeat that driver experiment as an unmeasured preference change.
 
-The separately authorized three-layer latency diagnostic is documented in
-`USBMON_LOGIC_ANALYZER_DIAGNOSTIC.md`. It remains `NOT_RUN` until the external
-logic analyzer is physically connected and actively capturing. Do not relabel
-a software/usbmon-only capture as the authorized three-layer run.
+The separately authorized latency diagnostic is documented in
+`USBMON_LOGIC_ANALYZER_DIAGNOSTIC.md`. Rob clarified that the intended scope is
+the on-device application trace plus `usbmon`; no external analyzer exists or
+is required. Label it `software-usbmon` and do not claim physical-wire timing.
 
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
