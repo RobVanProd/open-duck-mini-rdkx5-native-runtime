@@ -93,7 +93,13 @@ def extract_contract_snapshot(
     action_scale = float(_nested(current, "control", "action_scale"))
     max_velocity = float(_nested(current, "control", "max_motor_velocity_rad_s"))
     control_frequency = float(_nested(current, "control", "control_freq_hz"))
-    cutoff_frequency = float(_nested(current, "control", "cutoff_frequency_hz"))
+    cutoff_frequency_raw = _nested(current, "control", "cutoff_frequency_hz")
+    # The preserved runtime serializes a disabled optional filter as JSON null.
+    # Treat that as the contract's zero/disabled value instead of rejecting an
+    # otherwise valid board capture with float(None).
+    cutoff_frequency = (
+        0.0 if cutoff_frequency_raw is None else float(cutoff_frequency_raw)
+    )
     if (
         abs(action_scale - 0.25) > tolerance
         or abs(max_velocity - 5.24) > tolerance
@@ -111,6 +117,17 @@ def extract_contract_snapshot(
         ACTION_DIM,
         "previous motor_targets_post_rate_limit_rad",
     )
+    previous_sent = _array(
+        _nested(previous, "action", "motor_targets_sent_rad"),
+        ACTION_DIM,
+        "previous motor_targets_sent_rad",
+    )
+    if not np.allclose(
+        observation[83:97], previous_sent, atol=tolerance, rtol=0
+    ):
+        raise ContractSnapshotError(
+            "observation previous-motor-target slice does not match the prior sent target"
+        )
     sent = _array(
         _nested(current, "action", "motor_targets_sent_rad"),
         ACTION_DIM,

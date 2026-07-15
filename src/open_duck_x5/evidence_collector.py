@@ -322,15 +322,32 @@ def _clock_and_bus_inventory() -> dict[str, object]:
         cpu_frequencies.append(entry)
 
     i2c_adapters: list[dict[str, object]] = []
-    for adapter in sorted(Path("/sys/class/i2c-adapter").glob("i2c-*")):
-        entry = {"path": str(adapter)}
-        name_path = adapter / "name"
-        try:
-            entry["name"] = name_path.read_text(encoding="utf-8", errors="replace").strip()
-            entry["realpath"] = str(adapter.resolve())
-        except OSError as exc:
-            entry["error"] = f"{type(exc).__name__}: {exc}"
-        i2c_adapters.append(entry)
+    seen_adapters: set[str] = set()
+    # Mainline systems commonly expose /sys/class/i2c-adapter. The RDK-X5
+    # 6.1 image instead exposes the same adapters through i2c-dev and the bus
+    # device tree, even though `i2cdetect -l` reports them normally.
+    for root in (
+        Path("/sys/class/i2c-adapter"),
+        Path("/sys/class/i2c-dev"),
+        Path("/sys/bus/i2c/devices"),
+    ):
+        for adapter in sorted(root.glob("i2c-*")):
+            if adapter.name in seen_adapters:
+                continue
+            seen_adapters.add(adapter.name)
+            entry: dict[str, object] = {"path": str(adapter)}
+            try:
+                entry["realpath"] = str(adapter.resolve())
+                name_path = adapter / "name"
+                if not name_path.is_file():
+                    name_path = adapter / "device" / "name"
+                if name_path.is_file():
+                    entry["name"] = name_path.read_text(
+                        encoding="utf-8", errors="replace"
+                    ).strip()
+            except OSError as exc:
+                entry["error"] = f"{type(exc).__name__}: {exc}"
+            i2c_adapters.append(entry)
     return {"cpu_frequency": cpu_frequencies, "i2c_adapters": i2c_adapters}
 
 

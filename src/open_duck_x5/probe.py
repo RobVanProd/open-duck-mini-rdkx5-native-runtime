@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--home-seconds", type=float, default=2.0)
     parser.add_argument("--watchdog-failures", type=int, default=3)
     parser.add_argument("--require-realtime", action="store_true")
-    parser.add_argument("--rt-cpu", type=int, default=5)
+    parser.add_argument("--rt-cpu", type=int, default=7)
     parser.add_argument("--rt-priority", type=int, default=80)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)

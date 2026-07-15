@@ -16,9 +16,13 @@ Accepted. Runtime and parity tools share the direct STS3215 implementation. pypo
 
 Accepted. The frozen 101-vector has no staleness slots. A stale required input invalidates the tick; it is never silently reused for inference.
 
-## D005 — Preserve deployed phase order pending golden evidence
+## D005 — Preserve deployed phase order confirmed by golden evidence
 
-Accepted provisionally. The inherited real runtime's phase order is preserved even though prior audit found training/MuJoCo advance phase earlier. Policy hardware gates remain blocked until a golden 101-element comparison is reviewed.
+Accepted for the runtime contract. The corrected-knee board capture passes all 101
+observation elements and proves the observation phase equals the prior tick's
+post-advance phase. Prior training/MuJoCo code advanced phase before constructing its
+observation, so policy hardware gates remain blocked until the selected candidate's
+training/export source proves semantic parity.
 
 ## D006 — No grounded execution surface
 

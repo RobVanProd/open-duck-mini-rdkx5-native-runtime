@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-core="${1:-5}"
+core="${1:-7}"
 priority="${2:-80}"
 failed=0
 

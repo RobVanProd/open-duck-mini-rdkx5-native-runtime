@@ -14,10 +14,11 @@ python3 tools/collect_duck_evidence.py \
   --notes "pre-gate board inventory"
 ```
 
-The collector searches the legacy root and the user's home directory for
-`duck_config.json`, ONNX candidates, and JSONL telemetry. If it finds more than one
-config or policy, it records every candidate and asks for an exact selection in its
-warnings. Rerun with explicit paths when needed:
+The collector searches the legacy root for configs, ONNX candidates, and JSONL
+telemetry, and also checks `~/duck_config.json`. Models and logs stored elsewhere in
+the home directory are not recursively scanned because that would traverse virtual
+environments, caches, and potentially unrelated large files. Select those with exact
+paths:
 
 ```bash
 python3 tools/collect_duck_evidence.py \

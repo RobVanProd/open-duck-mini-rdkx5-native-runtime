@@ -8,13 +8,13 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 
 | Area | Status |
 | --- | --- |
-| Pi inheritance audit | Complete from the preserved reference snapshot |
-| Frozen 101/14 contract | Implemented and unit-tested; hardware golden-vector capture still required |
+| Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
+| Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
 | Direct STS3215 bus | Python implementation plus deterministic/fault-injecting mock |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
-| RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
+| RT scheduling / affinity | Implemented; X5 currently has 8 CPUs but no isolation/RT privilege, so configured timing verification is `NOT_RUN` |
 | IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
 | Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
 | Grounded replay | Out of scope |

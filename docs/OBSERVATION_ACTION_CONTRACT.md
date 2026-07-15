@@ -104,9 +104,13 @@ No new action clip or joint-limit clip is added. The 3.75 rad/s envelope monitor
 - `joints_offsets`: mapping of all 14 joint names to soft offsets in radians, applied with the equations above.
 - `expression_features`: accepted unchanged for file compatibility; expression devices are outside the deterministic motion hot path.
 
-## Golden verification still required
+## Golden verification result and remaining candidate gate
 
-Before any policy hardware gate, capture one labeled state from the preserved runtime and compare all 101 elements plus the 14 target outputs field-by-field. Unit tests prove layout and equations; they cannot prove the board's installed driver units, physical axis remap, or live config.
+The preserved-runtime comparison now passes against adjacent ticks 0 and 1 from
+the corrected-knee suspended capture. `artifacts/contracts/legacy-contract-report.json`
+reports zero mismatches and zero maximum absolute difference across all 101
+observation elements, all 14 logical sent targets, and all 14 physical targets. The
+captured config uses the corrected left-knee soft offset `0.0371` rad.
 
 The preserved runtime's existing `sim2real.telemetry.v1` records contain the
 raw ONNX vector and action pipeline. Logging must use
@@ -124,9 +128,11 @@ verify_contract_snapshot legacy-contract-snapshot.json \
 The extractor independently checks the ONNX names/dimensions, joint names/IDs,
 position slice, velocity scaling, 50 Hz rate, action scale, 5.24 rad/s limiter,
 and confirms that the observation phase equals the prior tick's post-advance
-phase. It rejects captures with the optional action filter enabled because that
-would be a different action contract. A report identifies every mismatch by
-vector index and semantic field name. Any mismatch blocks Gate 5.
+phase. It accepts the preserved JSON `null` representation for a disabled optional
+filter and rejects any enabled filter because that would be a different action
+contract. It also requires `obs[83:97]` to equal the prior sent target. A report
+identifies every mismatch by vector index and semantic field name. Any future
+mismatch blocks Gate 5.
 
 The golden board comparison does not by itself prove candidate-policy training
 semantics. Candidate handoff must additionally establish whether training `obs[83:97]`

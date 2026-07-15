@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-core="${1:-5}"
+core="${1:-7}"
 
 echo "Recommended kernel arguments for the dedicated control CPU:"
 echo "isolcpus=${core} nohz_full=${core} rcu_nocbs=${core}"

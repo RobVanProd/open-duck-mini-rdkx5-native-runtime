@@ -69,7 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--imu-bus", type=int, default=5)
     parser.add_argument("--imu-address", type=lambda value: int(value, 0), default=0x28)
     parser.add_argument("--require-realtime", action="store_true")
-    parser.add_argument("--rt-cpu", type=int, default=5)
+    parser.add_argument("--rt-cpu", type=int, default=7)
     parser.add_argument("--rt-priority", type=int, default=80)
     parser.add_argument(
         "--gate5-authorized",

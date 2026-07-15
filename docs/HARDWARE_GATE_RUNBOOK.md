@@ -48,7 +48,7 @@ two common hardware assertions:
 
 ```bash
 runtime_timing_probe --bus serial --config ~/duck_config.json \
-  --require-realtime --rt-cpu 5 --rt-priority 80 \
+  --require-realtime --rt-cpu 7 --rt-priority 80 \
   --enable-torque --moving-gate-authorized \
   --watchdog-failures 2 \
   --hardware-authorized --suspended-or-benched \
@@ -108,7 +108,7 @@ authorization for the named joint:
 
 ```bash
 runtime_timing_probe --bus serial --config ~/duck_config.json \
-  --require-realtime --rt-cpu 5 --rt-priority 80 \
+  --require-realtime --rt-cpu 7 --rt-priority 80 \
   --enable-torque --moving-gate-authorized \
   --watchdog-failures 2 \
   --hardware-authorized --suspended-or-benched \
@@ -137,7 +137,7 @@ separately authorized replay:
 open_duck_x5_runtime --bus serial --config ~/duck_config.json \
   --policy ~/candidate-101.onnx --controller xbox \
   --fixed-command-x 0 --max-active-ticks 600 --max-ticks 900 \
-  --require-realtime --rt-cpu 5 --rt-priority 80 \
+  --require-realtime --rt-cpu 7 --rt-priority 80 \
   --gate5-authorized --hardware-authorized --suspended-or-benched \
   --telemetry gate5-x0.jsonl
 ```

@@ -124,7 +124,8 @@ def test_extracts_same_tick_snapshot_from_preserved_telemetry() -> None:
         "schema_version": "sim2real.telemetry.v1",
         "tick": 40,
         "action": {
-            "motor_targets_post_rate_limit_rad": inputs["previous_rate_target_rad"]
+            "motor_targets_post_rate_limit_rad": inputs["previous_rate_target_rad"],
+            "motor_targets_sent_rad": inputs["previous_motor_target_rad"],
         },
         "control": {"imitation_phase": inputs["phase"]},
     }
@@ -135,7 +136,7 @@ def test_extracts_same_tick_snapshot_from_preserved_telemetry() -> None:
             "control_freq_hz": 50.0,
             "action_scale": 0.25,
             "max_motor_velocity_rad_s": 5.24,
-            "cutoff_frequency_hz": 0.0,
+            "cutoff_frequency_hz": None,
             "imitation_phase": [99.0, 99.0],
         },
         "policy": {
@@ -163,3 +164,55 @@ def test_extracts_same_tick_snapshot_from_preserved_telemetry() -> None:
     np.testing.assert_allclose(extracted["inputs"]["phase"], inputs["phase"])
     assert extracted["inputs"]["phase"] != current["control"]["imitation_phase"]
     assert verify_contract_snapshot(extracted)["passed"] is True
+
+
+def test_rejects_previous_motor_target_that_is_not_the_prior_sent_target() -> None:
+    expected = _legacy_snapshot()
+    inputs = expected["inputs"]
+    outputs = expected["legacy_outputs"]
+    previous = {
+        "schema_version": "sim2real.telemetry.v1",
+        "tick": 10,
+        "action": {
+            "motor_targets_post_rate_limit_rad": inputs["previous_rate_target_rad"],
+            "motor_targets_sent_rad": np.asarray(
+                inputs["previous_motor_target_rad"], dtype=np.float64
+            ).tolist(),
+        },
+        "control": {"imitation_phase": inputs["phase"]},
+    }
+    current = {
+        "schema_version": "sim2real.telemetry.v1",
+        "tick": 11,
+        "control": {
+            "control_freq_hz": 50.0,
+            "action_scale": 0.25,
+            "max_motor_velocity_rad_s": 5.24,
+            "cutoff_frequency_hz": None,
+            "imitation_phase": [99.0, 99.0],
+        },
+        "policy": {
+            "input_name": "obs",
+            "output_name": "continuous_actions",
+            "observation_dim": 101,
+            "action_dim": 14,
+        },
+        "joints": {
+            "names": list(JOINT_NAMES),
+            "servo_ids": list(SERVO_IDS),
+            "offsets_rad": inputs["soft_offsets_rad"],
+            "actual_position_rad": inputs["positions_rad"],
+            "actual_velocity_rad_s": inputs["velocities_rad_s"],
+        },
+        "observation": {"raw_vector": outputs["observation"]},
+        "action": {
+            "onnx_action": inputs["action"],
+            "motor_targets_sent_rad": outputs["sent_target_rad"],
+        },
+    }
+    previous["action"]["motor_targets_sent_rad"][0] += 0.1
+
+    with np.testing.assert_raises_regex(
+        ValueError, "previous-motor-target slice does not match the prior sent target"
+    ):
+        extract_contract_snapshot(previous, current, source="mismatched-prior-target")
