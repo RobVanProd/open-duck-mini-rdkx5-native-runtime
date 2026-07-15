@@ -1,6 +1,6 @@
 # All-14 model and voltage-limit diagnostic pre-registration
 
-Status: `AUTHORIZED_NOT_RUN`
+Status: `RUN_COMPLETE_ROOT_CAUSE_CONFIRMED`
 
 Rob authorized autonomous work while motors remain de-energized and explicitly
 authorized a torque-off all-14 read of model/version registers 3-4 and
@@ -40,3 +40,8 @@ probe_servo_voltage_limits --bus serial --device /dev/ttyACM0 \
   --hardware-authorized --suspended-or-benched \
   --output /home/sunrise/duck-evidence/voltage-limits-all14/result.json
 ```
+
+The authorized run completed from commit
+`c634af78d78d378b396b80dc2dd6ad7cde300477`. See
+`voltage_limit_diagnostic/RESULT.md`. All 14 units have an `8.0 V` configured
+maximum while reporting a live `8.2-8.4 V` rail; Gate 2 remains blocked.

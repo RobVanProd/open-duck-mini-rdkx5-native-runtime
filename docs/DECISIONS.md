@@ -155,3 +155,13 @@ authorized register-62 run measured `8.2-8.4 V` on all 14 servos while every
 response asserted voltage error. No EEPROM or supply change follows from this
 alone. Model/version and configured voltage-limit reads require a distinct
 authorization.
+
+## D022 — Treat the all-servo voltage status as a real supply-limit mismatch
+
+Accepted. All 14 servos read back identical model/version `0x0309`, maximum
+input voltage `8.0 V`, and minimum `4.0 V`; their live register-62 voltage is
+`8.2-8.4 V`. The persistent status `0x01` is therefore neither a baud/parser
+artifact nor a single-servo fault. Runtime startup must continue rejecting it.
+Do not raise EEPROM limits to make the error counter green. Correct the physical
+supply first, then require a clean torque-off voltage/status capture before any
+Gate 2 retry.

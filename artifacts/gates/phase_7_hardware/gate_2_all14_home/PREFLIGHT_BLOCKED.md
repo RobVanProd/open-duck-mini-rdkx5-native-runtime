@@ -139,3 +139,11 @@ goal write occurred. The rail is present and consistent; the leading unresolved
 cause is a configured maximum-voltage threshold below the measured rail. See
 `voltage_diagnostic/RESULT.md`. Gate 2 remains blocked pending a read-only model
 and configured voltage-limit audit.
+
+That audit is now complete. Every servo returned model/version `0x0309`, maximum
+input voltage `8.0 V`, and minimum input voltage `4.0 V`. Combined with the
+measured `8.2-8.4 V` rail, this confirms a common supply-above-configured-maximum
+root cause for the persistent all-servo `0x01` status. See
+`voltage_limit_diagnostic/RESULT.md`. No EEPROM or supply change was made. Gate 2
+remains blocked until the physical servo supply is brought into the supported
+range and a torque-off status/voltage read is clean.

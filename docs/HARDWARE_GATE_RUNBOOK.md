@@ -99,6 +99,13 @@ while motors remain de-energized. The frozen first step reads only addresses 3
 and 14, two bytes each, with torque-off before/after and zero EEPROM writes. See
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/VOLTAGE_LIMIT_DIAGNOSTIC_PRE_REGISTRATION.md`.
 
+The read completed and confirmed the root cause: all 14 servos have identical
+model/version `0x0309`, maximum `8.0 V`, and minimum `4.0 V`, while their live
+rail is `8.2-8.4 V`. Do not mask the alarm or raise EEPROM limits. Gate 2 stays
+blocked until the operator supplies an in-range servo rail and a new torque-off
+voltage/status read is clean. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/voltage_limit_diagnostic/RESULT.md`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, total bus time max < 5 ms.
