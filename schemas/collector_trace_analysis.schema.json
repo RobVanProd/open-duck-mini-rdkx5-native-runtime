@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/collector-trace-analysis.schema.json",
+  "title": "Open Duck X5 collector trace analysis",
+  "type": "object",
+  "required": ["schema_version", "quantile_method", "datasets", "comparison"],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.collector_trace_analysis.v1" },
+    "quantile_method": { "const": "numpy.percentile default linear interpolation" },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/dataset" }
+    },
+    "comparison": {
+      "oneOf": [
+        { "$ref": "#/$defs/comparison" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "dataset": {
+      "type": "object",
+      "required": [
+        "label",
+        "raw_inputs",
+        "records",
+        "group_failures",
+        "collector_observation",
+        "phase_us",
+        "old_deadline",
+        "correlations",
+        "per_servo"
+      ],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "raw_inputs": {
+          "type": "object",
+          "required": [
+            "transaction_trace_path",
+            "transaction_trace_sha256",
+            "timing_path",
+            "timing_sha256"
+          ],
+          "properties": {
+            "transaction_trace_path": { "type": "string", "minLength": 1 },
+            "transaction_trace_sha256": { "$ref": "#/$defs/sha256" },
+            "timing_path": { "type": "string", "minLength": 1 },
+            "timing_sha256": { "$ref": "#/$defs/sha256" }
+          },
+          "additionalProperties": false
+        },
+        "records": { "type": "object" },
+        "group_failures": { "type": "object" },
+        "collector_observation": { "type": "object" },
+        "phase_us": { "type": "object" },
+        "old_deadline": { "type": "object" },
+        "correlations": { "type": "object" },
+        "per_servo": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "type": "object" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "operation",
+        "first_label",
+        "second_label",
+        "phase_delta_us",
+        "group_failure_percent_delta",
+        "group_read_calls_mean_delta"
+      ],
+      "additionalProperties": true
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
