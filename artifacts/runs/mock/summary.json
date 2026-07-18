@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 2.9189,
-    "mean": 1.9523368,
-    "min": 0.6805,
-    "p95": 2.076875,
-    "p99": 2.2181519999999995,
-    "p99_9": 2.8160132000000138
+    "max": 3.0137,
+    "mean": 1.6816648,
+    "min": 0.8455,
+    "p95": 2.495075,
+    "p99": 2.770479999999999,
+    "p99_9": 2.9810312000000043
   },
   "bus_total_population": {
     "components": [
@@ -41,12 +41,12 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.0298,
-    "mean": 0.0019388,
-    "min": 0.001,
-    "p95": 0.0031549999999999985,
-    "p99": 0.004507999999999993,
-    "p99_9": 0.023824000000000796
+    "max": 0.0675,
+    "mean": 0.0030903999999999997,
+    "min": 0.0011,
+    "p95": 0.005054999999999999,
+    "p99": 0.006550999999999999,
+    "p99_9": 0.052535100000002
   },
   "gates": {
     "authorization_provenance": true,
@@ -56,7 +56,7 @@
     "gate4_sine_candidate": false,
     "moving_gate_scope": true,
     "realtime_verified_when_required": true,
-    "tick_p99_9_at_most_22_ms": true,
+    "tick_p99_9_at_most_22_ms": false,
     "tick_p99_at_most_21_ms": false,
     "torque_off_confirmed": true,
     "tracking_p95_at_most_0_011_rad": true,
@@ -65,12 +65,12 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 2.8975,
-    "mean": 1.9374144,
-    "min": 0.6703,
-    "p95": 2.0621050000000003,
-    "p99": 2.2050509999999997,
-    "p99_9": 2.7961072000000136
+    "max": 2.9891,
+    "mean": 1.6602667999999998,
+    "min": 0.8189,
+    "p95": 2.47966,
+    "p99": 2.746049999999999,
+    "p99_9": 2.9557589000000046
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
@@ -80,28 +80,28 @@
   "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "dd10d40e6fcde3ab42c46a8d7db89c8d1681594f6a3e0ec4ec757b18eb9c4c87",
+  "jsonl_sha256": "bd9b42af36d9db92b458ab901537a12f21b552a3b01e582c04811ad7a259d697",
   "max_read_burst_ticks": 0,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 2.3999,
-    "mean": 0.9167656000000001,
-    "min": 0.0004,
-    "p95": 1.8705699999999998,
-    "p99": 2.1147299999999998,
-    "p99_9": 2.333093300000009
+    "max": 6.1272,
+    "mean": 1.4170172000000003,
+    "min": 0.0005,
+    "p95": 2.289564999999999,
+    "p99": 4.347773999999995,
+    "p99_9": 5.818813500000041
   },
   "review_status": "INFORMATIONAL_ONLY",
   "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 21.8043,
-    "mean": 20.003706024096388,
-    "min": 18.0736,
-    "p95": 21.05814,
-    "p99": 21.525312,
-    "p99_9": 21.751178400000008
+    "max": 23.92,
+    "mean": 20.006093172690765,
+    "min": 15.7016,
+    "p95": 21.58708,
+    "p99": 22.743864000000002,
+    "p99_9": 23.746573600000026
   },
   "ticks": 250,
   "ticks_requested": 250,

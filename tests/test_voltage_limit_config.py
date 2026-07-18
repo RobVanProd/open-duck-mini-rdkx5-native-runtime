@@ -338,3 +338,113 @@ def test_mixed_80_84_preflight_resumes_without_rewriting_completed_servos(
         SERVO_SYNC_READ_IDS[3:]
     )
     assert ("write", 22, ADDR_LOCK, b"\x01") in writes
+
+
+def test_lost_write_ack_and_first_readback_recover_with_read_only_retry(
+    monkeypatch, tmp_path: Path
+) -> None:
+    class LostAckAndReadBus(FakeSerialBus):
+        def __init__(self, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
+            self.armed_servo: int | None = None
+            self.read_failed = False
+
+        def write_register_with_device_status(
+            self, servo_id: int, address: int, data: bytes
+        ):
+            result = super().write_register_with_device_status(
+                servo_id, address, data
+            )
+            if address == ADDR_MAX_INPUT_VOLTAGE and self.armed_servo is None:
+                self.armed_servo = servo_id
+                return ErrorCode.TIMEOUT, None
+            return result
+
+        def read_register_with_device_status(
+            self, servo_id: int, address: int, length: int
+        ):
+            if (
+                servo_id == self.armed_servo
+                and address == ADDR_MAX_INPUT_VOLTAGE
+                and not self.read_failed
+            ):
+                self.read_failed = True
+                self.actions.append(("read", servo_id, address, length))
+                return ErrorCode.TIMEOUT, None, b""
+            return super().read_register_with_device_status(
+                servo_id, address, length
+            )
+
+    FakeSerialBus.instances.clear()
+    FakeSerialBus.persist_voltage_alarm = False
+    FakeSerialBus.initial_max = 80
+    FakeSerialBus.initial_max_by_id = None
+    FakeSerialBus.initial_lock_by_id = None
+    monkeypatch.setattr(
+        "open_duck_x5.voltage_limit_config.STS3215Bus", LostAckAndReadBus
+    )
+    output = tmp_path / "configured.json"
+    assert main(_serial_args(output)) == 0
+    summary = _validate(output)
+    assert summary["finding"] == "configured_all14"
+    journal = output.with_suffix(".jsonl").read_text(encoding="utf-8")
+    assert '"event": "verification_read_retry"' in journal
+    assert '"event": "verification_read_recovered"' in journal
+    assert '"event": "write_ack_recovered_by_readback"' in journal
+
+
+def test_three_failed_readbacks_halt_without_rewriting_limit(
+    monkeypatch, tmp_path: Path
+) -> None:
+    class ExhaustedReadbackBus(FakeSerialBus):
+        def __init__(self, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
+            self.armed_servo: int | None = None
+            self.failures = 0
+
+        def write_register_with_device_status(
+            self, servo_id: int, address: int, data: bytes
+        ):
+            result = super().write_register_with_device_status(
+                servo_id, address, data
+            )
+            if address == ADDR_MAX_INPUT_VOLTAGE and self.armed_servo is None:
+                self.armed_servo = servo_id
+            return result
+
+        def read_register_with_device_status(
+            self, servo_id: int, address: int, length: int
+        ):
+            if (
+                servo_id == self.armed_servo
+                and address == ADDR_MAX_INPUT_VOLTAGE
+                and self.failures < 3
+            ):
+                self.failures += 1
+                self.actions.append(("read", servo_id, address, length))
+                return ErrorCode.TIMEOUT, None, b""
+            return super().read_register_with_device_status(
+                servo_id, address, length
+            )
+
+    FakeSerialBus.instances.clear()
+    FakeSerialBus.persist_voltage_alarm = False
+    FakeSerialBus.initial_max = 80
+    FakeSerialBus.initial_max_by_id = None
+    FakeSerialBus.initial_lock_by_id = None
+    monkeypatch.setattr(
+        "open_duck_x5.voltage_limit_config.STS3215Bus", ExhaustedReadbackBus
+    )
+    output = tmp_path / "halted.json"
+    assert main(_serial_args(output)) == 2
+    summary = _validate(output)
+    assert "read failed after 3 attempts" in summary["halt_reason"]
+    assert summary["safety"]["maximum_voltage_write_attempt_count"] == 1
+    writes = [
+        action
+        for action in FakeSerialBus.instances[0].actions
+        if isinstance(action, tuple)
+        and action[0] == "write"
+        and action[2] == ADDR_MAX_INPUT_VOLTAGE
+    ]
+    assert writes == [("write", 20, ADDR_MAX_INPUT_VOLTAGE, b"\x54")]

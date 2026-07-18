@@ -197,6 +197,14 @@ uniform-state command. Follow
 counts as recovered only when an immediate exact register readback proves the
 write landed.
 
+That recovery verified locks on IDs 20-22, updated IDs 23 and 24, and halted on
+ID 30 after its write ACK and first independent read both timed out. Emergency
+relock read back 1; the final audit read ID 30 at raw `84,40` with a clear
+alarm. The remaining exact recovery is frozen in
+`VOLTAGE_LIMIT_8V4_FINAL_RECOVERY_PRE_REGISTRATION.md`. It adds up to three
+read-only verification attempts and never retransmits a write. Existing raw-84
+units remain read/lock/status verification only.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

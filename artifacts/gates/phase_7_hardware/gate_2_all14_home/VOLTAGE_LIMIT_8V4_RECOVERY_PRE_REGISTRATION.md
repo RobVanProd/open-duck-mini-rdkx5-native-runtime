@@ -1,6 +1,6 @@
 # Partial 8.4 V alarm configuration recovery pre-registration
 
-Status: `AUTHORIZED_NOT_RUN_OFFLINE_VALIDATION`
+Status: `RUN_HALTED_PARTIAL_FINAL_RECOVERY_NOT_RUN`
 
 The first authorized run halted with the measured state `84,40` on IDs
 20-22 and `80,40` on IDs 23 onward. Final torque-off succeeded. ID 22's lock

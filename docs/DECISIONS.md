@@ -357,3 +357,19 @@ the sequence halts and follows the relock/torque-off path.
 This is a fail-closed refinement of configuration evidence, not retry-based
 error suppression. It changes no runtime transaction taxonomy, timing gate,
 policy contract, torque behavior, or motion authority.
+
+## D031 — Retry only independent configuration readback, never the write
+
+Accepted after the first D030 recovery halted safely. ID 30's maximum write ACK
+timed out, then its first independent limit read timed out; the final audit read
+raw `84,40`, proving the single write landed. Its emergency relock ACK was
+partial, while the immediate lock read returned 1. The final state is fully
+known and all touched units are locked.
+
+The next recovery permits exactly three attempts for a required configuration
+read. Each attempt flushes stale input, transmits a new READ instruction, and is
+journaled. It does not retransmit an unlock, maximum, or relock write. A write
+ACK error is recoverable only after exact readback; a wrong value or three
+failed reads remains a hard halt. This bounded read-only mechanism addresses
+the observed response loss without chasing an empty error counter or changing
+the operational runtime's failure taxonomy.

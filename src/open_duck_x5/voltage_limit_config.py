@@ -28,6 +28,7 @@ EXPECTED_MAX_RAW = 80
 EXPECTED_MIN_RAW = 40
 TARGET_MAX_RAW = 84
 VOLTAGE_ERROR_MASK = 0x01
+VERIFICATION_READ_ATTEMPTS = 3
 
 
 class ConfigurationHalt(RuntimeError):
@@ -116,13 +117,38 @@ def _require_read(
     address: int,
     length: int,
 ) -> tuple[int, bytes]:
-    status, device_status, data = _read(bus, journal, servo_id, address, length)
-    if status is not ErrorCode.OK or device_status is None or len(data) != length:
-        raise ConfigurationHalt(
-            f"servo {servo_id} register {address} read failed: "
-            f"transport={_status_name(status)} length={len(data)}/{length}"
+    last_status = ErrorCode.TIMEOUT
+    last_length = 0
+    for attempt in range(1, VERIFICATION_READ_ATTEMPTS + 1):
+        status, device_status, data = _read(
+            bus, journal, servo_id, address, length
         )
-    return device_status, data
+        last_status = status
+        last_length = len(data)
+        if status is ErrorCode.OK and device_status is not None and len(data) == length:
+            if attempt > 1:
+                journal.write(
+                    "verification_read_recovered",
+                    servo_id=servo_id,
+                    address=address,
+                    attempt=attempt,
+                    data=list(data),
+                )
+            return device_status, data
+        if attempt < VERIFICATION_READ_ATTEMPTS:
+            journal.write(
+                "verification_read_retry",
+                servo_id=servo_id,
+                address=address,
+                failed_attempt=attempt,
+                transport_status=_status_name(status),
+                response_length=len(data),
+            )
+    raise ConfigurationHalt(
+        f"servo {servo_id} register {address} read failed after "
+        f"{VERIFICATION_READ_ATTEMPTS} attempts: "
+        f"transport={_status_name(last_status)} length={last_length}/{length}"
+    )
 
 
 def _write(
@@ -551,6 +577,7 @@ def run_configuration(args: argparse.Namespace) -> dict[str, Any]:
             "hardware_authorized": bool(args.hardware_authorized),
             "suspended_or_benched": bool(args.suspended_or_benched),
             "eeprom_confirmation": bool(args.confirm_max_voltage_8v4),
+            "verification_read_attempts": VERIFICATION_READ_ATTEMPTS,
         },
         "safety": {
             "torque_enable_requested": False,
