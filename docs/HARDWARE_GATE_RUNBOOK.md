@@ -205,6 +205,13 @@ alarm. The remaining exact recovery is frozen in
 read-only verification attempts and never retransmits a write. Existing raw-84
 units remain read/lock/status verification only.
 
+The final recovery completed from commit `da28f532`: all 14 units now read raw
+`84,40`, device status 0, and 8.2-8.4 V; all known locks are 1 and final
+torque-off is `ok`. See `voltage_limit_8v4_complete/RESULT.md`. This clears the
+voltage alarm only. Gate 2 remains blocked by the last authoritative bus-time
+result until the separately preregistered fixed-length collector A/B runs and
+passes.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

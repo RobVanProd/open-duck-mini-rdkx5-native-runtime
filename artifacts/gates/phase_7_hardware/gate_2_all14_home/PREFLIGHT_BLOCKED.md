@@ -147,3 +147,16 @@ root cause for the persistent all-servo `0x01` status. See
 `voltage_limit_diagnostic/RESULT.md`. No EEPROM or supply change was made. Gate 2
 remains blocked until the physical servo supply is brought into the supported
 range and a torque-off status/voltage read is clean.
+
+## 2026-07-18 voltage-alarm configuration complete
+
+Subsequent model documentation and owner authorization selected the installed
+STS3215 8.4 V upper limit. The guarded torque-off configuration is complete:
+all 14 servos read raw maximum/minimum `84,40`, device status 0, and present
+voltage 8.2-8.4 V. All known locks and final torque-off verified; no motor was
+energized. See `voltage_limit_8v4_complete/RESULT.md`.
+
+This supersedes only the voltage-alarm portion of the blocker above. Gate 2
+remains blocked because the last authoritative complete-sweep maximum exceeds
+5 ms; only the separately preregistered fixed-length SyncRead collector A/B can
+replace that timing result.

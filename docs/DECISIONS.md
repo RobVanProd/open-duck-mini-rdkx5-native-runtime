@@ -373,3 +373,21 @@ ACK error is recoverable only after exact readback; a wrong value or three
 failed reads remains a hard halt. This bounded read-only mechanism addresses
 the observed response loss without chasing an empty error counter or changing
 the operational runtime's failure taxonomy.
+
+## D032 — Accept the verified all-14 8.4 V alarm configuration
+
+Accepted as configuration evidence only. The final recovery verified lock 1
+and clear voltage status on the six already-targeted units, then updated only
+the eight remaining raw-80 units. Final reads returned raw `84,40`, device
+status 0, and 8.2-8.4 V on every servo. Initial/final torque-off were `ok`, all
+known unlocked units were relocked, and the operation issued no torque enable,
+goal position, minimum-limit, policy, or motion command.
+
+Three maximum-write acknowledgements and their first independent readbacks were
+lost; each second read returned exact `84,40`. No write was retransmitted. This
+supports the bounded configuration-readback rule but does not alter runtime
+error classification or establish timing determinism.
+
+The voltage-alarm blocker is cleared. Gate 2 remains blocked by the independent
+authoritative complete-sweep maximum above 5 ms. Only the separately
+preregistered fixed-length collector A/B can replace that timing evidence.

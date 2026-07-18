@@ -1,6 +1,6 @@
 # Final partial 8.4 V alarm recovery pre-registration
 
-Status: `AUTHORIZED_NOT_RUN_OFFLINE_VALIDATION`
+Status: `RUN_COMPLETE_REVIEWED`
 
 The first recovery left a fully measured, safe state: IDs 20, 21, 22, 23, 24,
 and 30 are raw `84,40`, lock 1, and voltage-alarm clear; IDs 31, 32, 33, 10,
@@ -34,3 +34,6 @@ is on its stand. This operation cannot advance Gate 2.
 No minimum-limit, torque-enable, goal-position, gain, ID, baud, offset, policy,
 timing-probe, or motion command is allowed. A complete configuration remains
 separate from the `<5 ms` Gate 2 timing blocker.
+
+The exact run from commit `da28f5325d9fc5ed55233a95e5e24fe5416e60c3`
+completed. See `voltage_limit_8v4_complete/RESULT.md`.

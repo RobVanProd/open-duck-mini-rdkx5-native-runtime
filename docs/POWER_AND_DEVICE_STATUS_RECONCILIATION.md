@@ -66,3 +66,16 @@ No EEPROM voltage-limit change, power-wiring change, torque enable, movement, or
 policy deployment is authorized by this reconciliation. Gate 2 remains blocked
 both by the unresolved device alarm and by the independent measured total-bus
 maximum above the preregistered `<5 ms` threshold.
+
+## Subsequent reviewed configuration
+
+After this reconciliation, the owner supplied the installed motor's 8.4 V
+upper rating and explicitly authorized a guarded torque-off alarm correction.
+The final reviewed run changed only maximum-input-voltage register 14 from raw
+80 to 84, retained minimum raw 40, and verified raw `84,40`, device status 0,
+and 8.2-8.4 V on all fourteen units. All locks and final torque-off verified;
+no torque enable, target, policy, or motion ran. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/voltage_limit_8v4_complete/RESULT.md`.
+
+This subsequent result clears the device-alarm condition but does not change
+the independent failed Gate 2 bus-time measurement.

@@ -1,0 +1,605 @@
+{
+  "backend": "serial",
+  "canary_servo_id": 31,
+  "environment": {
+    "baudrate": 1000000,
+    "device": "/dev/ttyS1",
+    "eeprom_confirmation": true,
+    "hardware_authorized": true,
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "python": "3.10.12",
+    "repository_commit": "da28f5325d9fc5ed55233a95e5e24fe5416e60c3",
+    "suspended_or_benched": true,
+    "timeout_ms": 10.0,
+    "verification_read_attempts": 3
+  },
+  "expected_initial": {
+    "max_voltage_raw": 80,
+    "min_voltage_raw": 40
+  },
+  "final_records": [
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 20
+      },
+      "servo_id": 20,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 20,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 21
+      },
+      "servo_id": 21,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 21,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 22
+      },
+      "servo_id": 22,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 22,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 23
+      },
+      "servo_id": 23,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 84,
+        "present_voltage_v": 8.4,
+        "servo_id": 23,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 24
+      },
+      "servo_id": 24,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 24,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 30
+      },
+      "servo_id": 30,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 30,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 31
+      },
+      "servo_id": 31,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 31,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 32
+      },
+      "servo_id": 32,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 32,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 33
+      },
+      "servo_id": 33,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 33,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 10
+      },
+      "servo_id": 10,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 10,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 11
+      },
+      "servo_id": 11,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 11,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 12
+      },
+      "servo_id": 12,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 12,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 14
+      },
+      "servo_id": 14,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 14,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 13
+      },
+      "servo_id": 13,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 13,
+        "voltage_alarm": false
+      }
+    }
+  ],
+  "finding": "resumed_and_configured_all14",
+  "halt_reason": null,
+  "hardware_gate_status": "NOT_ADVANCED_CONFIGURATION_ONLY",
+  "informational_only": false,
+  "journal": "/home/sunrise/duck-evidence/voltage-limit-8v4-final-da28f532/journal.jsonl",
+  "preexisting_verified": [
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 20
+      },
+      "lock_raw": 1,
+      "servo_id": 20,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 20,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 21
+      },
+      "lock_raw": 1,
+      "servo_id": 21,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 21,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 22
+      },
+      "lock_raw": 1,
+      "servo_id": 22,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 22,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 23
+      },
+      "lock_raw": 1,
+      "servo_id": 23,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 84,
+        "present_voltage_v": 8.4,
+        "servo_id": 23,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 24
+      },
+      "lock_raw": 1,
+      "servo_id": 24,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 24,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 30
+      },
+      "lock_raw": 1,
+      "servo_id": 30,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 30,
+        "voltage_alarm": false
+      }
+    }
+  ],
+  "preflight": [
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 20
+    },
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 21
+    },
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 22
+    },
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 23
+    },
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 24
+    },
+    {
+      "device_status_raw": 0,
+      "max_voltage_raw": 84,
+      "min_voltage_raw": 40,
+      "servo_id": 30
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 31
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 32
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 33
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 10
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 11
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 12
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 14
+    },
+    {
+      "device_status_raw": 1,
+      "max_voltage_raw": 80,
+      "min_voltage_raw": 40,
+      "servo_id": 13
+    }
+  ],
+  "read_order": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    30,
+    31,
+    32,
+    33,
+    10,
+    11,
+    12,
+    14,
+    13
+  ],
+  "review_status": "REVIEW_REQUIRED",
+  "run_status": "COMPLETE",
+  "safety": {
+    "all_known_unlocked_servos_relocked": true,
+    "final_torque_off_status": "ok",
+    "goal_position_write_count": 0,
+    "initial_torque_off_status": "ok",
+    "lock_control_write_attempt_count": 16,
+    "maximum_voltage_write_attempt_count": 8,
+    "minimum_voltage_write_count": 0,
+    "torque_enable_requested": false
+  },
+  "schema_version": "open_duck_x5.voltage_limit_configuration.v1",
+  "target": {
+    "max_voltage_raw": 84,
+    "min_voltage_raw": 40
+  },
+  "updates": [
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 31
+      },
+      "servo_id": 31,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 31,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 1,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 32
+      },
+      "servo_id": 32,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 32,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 33
+      },
+      "servo_id": 33,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 33,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 10
+      },
+      "servo_id": 10,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 10,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 11
+      },
+      "servo_id": 11,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 11,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 0,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 12
+      },
+      "servo_id": 12,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 12,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 1,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 14
+      },
+      "servo_id": 14,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 82,
+        "present_voltage_v": 8.200000000000001,
+        "servo_id": 14,
+        "voltage_alarm": false
+      }
+    },
+    {
+      "limits": {
+        "device_status_raw": 1,
+        "max_voltage_raw": 84,
+        "min_voltage_raw": 40,
+        "servo_id": 13
+      },
+      "servo_id": 13,
+      "voltage": {
+        "device_status_raw": 0,
+        "present_voltage_raw": 83,
+        "present_voltage_v": 8.3,
+        "servo_id": 13,
+        "voltage_alarm": false
+      }
+    }
+  ],
+  "volts_per_count": 0.1
+}
