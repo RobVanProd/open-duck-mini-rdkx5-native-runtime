@@ -143,7 +143,16 @@ expected outcomes yield `0.0025%` with zero bursts. USB therefore fails the
 complete-sweep bus gate while Python loop determinism passes. See
 `usb_10k_torque_off/RESULT.md`. The next transport A/B is direct X5 UART using
 the identical window after Rob performs and verifies the wiring change; it is
-not yet run or authorized by this result.
+not authorized by the USB result.
+
+Rob subsequently removed USB and connected the adapter UART header to X5 pins
+8/10 plus ground. Read-only attribution found `/dev/ttyS1` on
+`34070000.serial`, driven by `dw-apb-uart`, with UART1 RX/TX pinmux active, no
+owner, and zero TX/RX counters. The CH343 is absent from `lsusb`. Rob then
+confirmed that the robot is on its stand and directed the preregistered
+10,000-tick torque-off A/B to continue. See
+`UART_ADAPTER_ATTRIBUTION_20260718.md` and
+`UART_10K_TORQUE_OFF_PRE_REGISTRATION.md`.
 
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.

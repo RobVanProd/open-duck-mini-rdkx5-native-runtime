@@ -243,3 +243,18 @@ selected as the next controlled transport A/B after Rob performs the physical
 wiring change; it must repeat the same 10,000-tick population and statistics.
 No wiring change, torque, motion, Rust escalation, or later gate is authorized
 by this decision.
+
+## D026 — Attribute direct UART before opening the port
+
+Accepted. After Rob removed the USB cable and moved the Waveshare adapter to its
+UART connection, read-only inventory identified `/dev/ttyS1` as X5 UART1:
+device-tree alias `serial1` resolves to `34070000.serial`, the active driver is
+`dw-apb-uart`, and pinctrl assigns `lsio_uart1_rx/tx` to `uart1grp`. The CH343
+USB device is absent, no process owns `/dev/ttyS1`, and its kernel counters were
+`tx:0 rx:0`; attribution therefore caused no UART traffic.
+
+The UART A/B is frozen at the same 10,000 complete-sweep population and
+statistics as USB. Rob subsequently confirmed that the robot is on its stand
+and directed the torque-off comparison to continue. No shorter wiring check may
+be substituted for the comparison window, although a failed guarded startup may
+stop before the population begins.

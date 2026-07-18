@@ -13,7 +13,7 @@
 | SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13 | 14-response and exact request-order tests | frozen 10,000-sweep USB max 8.293083 ms fails <5 ms; `0x82` burst max 5.200234 ms |
 | Timeout/CRC/partial taxonomy plus device alarms | `ErrorCode`, `ServoSnapshot.device_status`, JSONL and summaries | alarm-bearing payload remains fresh while alarm gate fails; per-class count tests | all-servo status `0x01` captured separately from valid framing; moving run blocked |
 | Explicit staleness | `ServoSnapshot`, assembler rejection | stale-source tests; valid device-alarm payload is not mislabeled stale | sustained-rate test pending |
-| Serial minimum latency | verification/install scripts | shell syntax check | `1a86:55d3` CH343 on `cdc_acm`, not FTDI/no `latency_timer`; 10,000-tick USB window fails bus budget; direct UART A/B pending |
+| Serial minimum latency | verification/install scripts | shell syntax check | USB 10,000-tick window fails; direct `/dev/ttyS1` UART attributed with zero pre-probe counters; 10,000-tick torque-off A/B authorized on stand |
 | Round-robin current/voltage/temp | extended read every tick modulo 14 with raw device status | register decode and alarm-telemetry tests | voltage raw units confirmed; current/temperature value checks pending |
 | SCHED_FIFO + isolated core | pre-spawn housekeeping partition plus verified control-thread isolation in `realtime.py`; exact-list and scheduler preflight | partition/offender/service-mask/parser tests | CPU 7 isolation, housekeeping 0-6, and `SCHED_FIFO 80` verified |
 | Preallocated hot-loop data | arrays, packet frames, telemetry record pools | lint/tests; no JSON I/O in loop | allocation/timing profile pending |
