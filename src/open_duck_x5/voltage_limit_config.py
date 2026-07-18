@@ -131,7 +131,7 @@ def _write(
     servo_id: int,
     address: int,
     data: bytes,
-) -> int:
+) -> tuple[ErrorCode, int | None]:
     start_ns = clock_ns()
     status, device_status = bus.write_register_with_device_status(
         servo_id, address, data
@@ -145,12 +145,7 @@ def _write(
         device_status_raw=device_status,
         round_trip_ms=(clock_ns() - start_ns) / 1e6,
     )
-    if status is not ErrorCode.OK or device_status is None:
-        raise ConfigurationHalt(
-            f"servo {servo_id} register {address} write failed: "
-            f"transport={_status_name(status)}"
-        )
-    return device_status
+    return status, device_status
 
 
 def _read_limits(
@@ -193,11 +188,20 @@ def _relock(
     emergency: bool = False,
 ) -> None:
     write_attempts["lock"] += 1
-    _write(bus, journal, servo_id, ADDR_LOCK, b"\x01")
+    status, _ = _write(bus, journal, servo_id, ADDR_LOCK, b"\x01")
     _, lock_data = _require_read(bus, journal, servo_id, ADDR_LOCK, 1)
     if lock_data != b"\x01":
         raise ConfigurationHalt(
-            f"servo {servo_id} EEPROM relock did not verify: {lock_data.hex()}"
+            f"servo {servo_id} EEPROM relock did not verify after "
+            f"{_status_name(status)} acknowledgement: {lock_data.hex()}"
+        )
+    if status is not ErrorCode.OK:
+        journal.write(
+            "write_ack_recovered_by_readback",
+            servo_id=servo_id,
+            address=ADDR_LOCK,
+            transport_status=_status_name(status),
+            verified_data=[1],
         )
     unlocked.discard(servo_id)
     journal.write(
@@ -218,15 +222,24 @@ def _configure_servo(
     # is lost.  Track the unit as possibly unlocked before transmission so the
     # finally path always attempts a relock.
     unlocked.add(servo_id)
-    _write(bus, journal, servo_id, ADDR_LOCK, b"\x00")
+    unlock_status, _ = _write(bus, journal, servo_id, ADDR_LOCK, b"\x00")
     _, lock_data = _require_read(bus, journal, servo_id, ADDR_LOCK, 1)
     if lock_data != b"\x00":
         raise ConfigurationHalt(
-            f"servo {servo_id} EEPROM unlock did not verify: {lock_data.hex()}"
+            f"servo {servo_id} EEPROM unlock did not verify after "
+            f"{_status_name(unlock_status)} acknowledgement: {lock_data.hex()}"
+        )
+    if unlock_status is not ErrorCode.OK:
+        journal.write(
+            "write_ack_recovered_by_readback",
+            servo_id=servo_id,
+            address=ADDR_LOCK,
+            transport_status=_status_name(unlock_status),
+            verified_data=[0],
         )
 
     write_attempts["maximum_voltage"] += 1
-    _write(
+    limit_status, _ = _write(
         bus,
         journal,
         servo_id,
@@ -239,8 +252,17 @@ def _configure_servo(
         or limits["min_voltage_raw"] != EXPECTED_MIN_RAW
     ):
         raise ConfigurationHalt(
-            f"servo {servo_id} limit write did not verify: "
+            f"servo {servo_id} limit write did not verify after "
+            f"{_status_name(limit_status)} acknowledgement: "
             f"max={limits['max_voltage_raw']} min={limits['min_voltage_raw']}"
+        )
+    if limit_status is not ErrorCode.OK:
+        journal.write(
+            "write_ack_recovered_by_readback",
+            servo_id=servo_id,
+            address=ADDR_MAX_INPUT_VOLTAGE,
+            transport_status=_status_name(limit_status),
+            verified_data=[TARGET_MAX_RAW, EXPECTED_MIN_RAW],
         )
     _relock(bus, journal, servo_id, unlocked, write_attempts)
 
@@ -251,6 +273,37 @@ def _configure_servo(
         )
     journal.write("servo_update_verified", servo_id=servo_id)
     return {"limits": limits, "voltage": voltage}
+
+
+def _verify_existing_target(
+    bus: MockSTS3215Bus | STS3215Bus,
+    journal: Journal,
+    servo_id: int,
+    limits: dict[str, int],
+    unlocked: set[int],
+    write_attempts: dict[str, int],
+) -> dict[str, Any]:
+    _, lock_data = _require_read(bus, journal, servo_id, ADDR_LOCK, 1)
+    if lock_data == b"\x00":
+        unlocked.add(servo_id)
+        journal.write("preexisting_target_found_unlocked", servo_id=servo_id)
+        _relock(bus, journal, servo_id, unlocked, write_attempts, emergency=True)
+    elif lock_data != b"\x01":
+        raise ConfigurationHalt(
+            f"servo {servo_id} has unexpected EEPROM lock value {lock_data.hex()}"
+        )
+    voltage = _read_voltage_status(bus, journal, servo_id)
+    if voltage["voltage_alarm"]:
+        raise ConfigurationHalt(
+            f"servo {servo_id} retained voltage alarm with existing 8.4 V limit"
+        )
+    journal.write("preexisting_target_verified", servo_id=servo_id)
+    return {
+        "servo_id": servo_id,
+        "lock_raw": 1,
+        "limits": limits,
+        "voltage": voltage,
+    }
 
 
 def _write_summary(path: Path, summary: dict[str, Any]) -> None:
@@ -312,6 +365,7 @@ def run_configuration(args: argparse.Namespace) -> dict[str, Any]:
     halt_reason: str | None = None
     finding = "configuration_not_started"
     preflight: list[dict[str, int]] = []
+    preexisting_verified: list[dict[str, Any]] = []
     updates: list[dict[str, Any]] = []
     final_records: list[dict[str, Any]] = []
     unlocked: set[int] = set()
@@ -332,24 +386,54 @@ def run_configuration(args: argparse.Namespace) -> dict[str, Any]:
             (record["max_voltage_raw"], record["min_voltage_raw"])
             for record in preflight
         }
-        if observed == {(TARGET_MAX_RAW, EXPECTED_MIN_RAW)}:
-            finding = "already_configured"
-        elif observed != {(EXPECTED_MAX_RAW, EXPECTED_MIN_RAW)}:
+        allowed = {
+            (EXPECTED_MAX_RAW, EXPECTED_MIN_RAW),
+            (TARGET_MAX_RAW, EXPECTED_MIN_RAW),
+        }
+        if not observed.issubset(allowed):
             finding = "preflight_mismatch"
             raise ConfigurationHalt(
-                "preflight limits were not uniformly expected 8.0/4.0 V or already-set 8.4/4.0 V: "
+                "preflight limits were outside the recoverable 8.0/4.0 V and 8.4/4.0 V states: "
                 f"{sorted(observed)}"
             )
+        preflight_by_id = {record["servo_id"]: record for record in preflight}
+        already_targeted = [
+            servo_id
+            for servo_id in SERVO_SYNC_READ_IDS
+            if preflight_by_id[servo_id]["max_voltage_raw"] == TARGET_MAX_RAW
+        ]
+        pending = [
+            servo_id
+            for servo_id in SERVO_SYNC_READ_IDS
+            if preflight_by_id[servo_id]["max_voltage_raw"] == EXPECTED_MAX_RAW
+        ]
+        for servo_id in already_targeted:
+            preexisting_verified.append(
+                _verify_existing_target(
+                    bus,
+                    journal,
+                    servo_id,
+                    preflight_by_id[servo_id],
+                    unlocked,
+                    write_attempts,
+                )
+            )
+        if not pending:
+            finding = "already_configured"
         else:
-            for servo_id in SERVO_SYNC_READ_IDS:
+            for servo_id in pending:
                 # Each successful servo update consists of unlock, one limit
-                # write, verified relock, and a voltage-status read.  ID 20 is
-                # intentionally first and therefore serves as the canary.
+                # write, verified relock, and a voltage-status read. The first
+                # pending ID is the canary for a fresh or resumed run.
                 update = _configure_servo(
                     bus, journal, servo_id, unlocked, write_attempts
                 )
                 updates.append({"servo_id": servo_id, **update})
-            finding = "configured_all14"
+            finding = (
+                "resumed_and_configured_all14"
+                if already_targeted
+                else "configured_all14"
+            )
 
         for servo_id in SERVO_SYNC_READ_IDS:
             limits = _read_limits(bus, journal, servo_id)
@@ -435,7 +519,14 @@ def run_configuration(args: argparse.Namespace) -> dict[str, Any]:
         "halt_reason": halt_reason,
         "finding": finding,
         "read_order": list(SERVO_SYNC_READ_IDS),
-        "canary_servo_id": SERVO_SYNC_READ_IDS[0],
+        "canary_servo_id": next(
+            (
+                record["servo_id"]
+                for record in preflight
+                if record["max_voltage_raw"] == EXPECTED_MAX_RAW
+            ),
+            None,
+        ),
         "volts_per_count": 0.1,
         "expected_initial": {
             "max_voltage_raw": EXPECTED_MAX_RAW,
@@ -446,6 +537,7 @@ def run_configuration(args: argparse.Namespace) -> dict[str, Any]:
             "min_voltage_raw": EXPECTED_MIN_RAW,
         },
         "preflight": preflight,
+        "preexisting_verified": preexisting_verified,
         "updates": updates,
         "final_records": final_records,
         "journal": str(journal_path),

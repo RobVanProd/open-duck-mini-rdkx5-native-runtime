@@ -337,3 +337,23 @@ or motion command exists in this operation.
 The configuration result must be reviewed separately. Gate 2 remains blocked
 by the independent `<5 ms` complete-sweep bus budget, and the fixed-length
 collector A/B remains a different, separately controlled torque-off test.
+
+## D030 — Recover acknowledgement loss by exact register readback
+
+Accepted after the first D029 run halted safely. IDs 20-22 read back raw
+`84,40` with a clear voltage alarm, proving ID 22's maximum write landed despite
+its missing acknowledgement. The emergency relock acknowledgement was also
+missing, so no further write is allowed until register 55 is independently
+read and, if necessary, relocked.
+
+The recovery accepts only the measured mixture of raw `80,40` and `84,40`.
+Already-targeted units are never rewritten: their lock and voltage status are
+verified first. A lock value 0 is changed only to 1 and read back. The first
+remaining raw-80 unit becomes the recovery canary. For unlock, limit, and
+relock writes, a transport-level acknowledgement failure is recoverable only
+when an immediate independent read returns the exact requested value; otherwise
+the sequence halts and follows the relock/torque-off path.
+
+This is a fail-closed refinement of configuration evidence, not retry-based
+error suppression. It changes no runtime transaction taxonomy, timing gate,
+policy contract, torque behavior, or motion authority.

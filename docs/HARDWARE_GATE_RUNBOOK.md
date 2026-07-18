@@ -188,6 +188,15 @@ verify and relock every servo individually, and retain an fsync'd journal. No
 minimum-limit, target, torque-enable, policy, or motion write is permitted.
 Gate 2 remains blocked even if the voltage alarm clears.
 
+The first configuration run halted after IDs 20-22 read back 8.4 V; ID 22 lost
+both its limit-write and emergency-relock acknowledgements, although final
+limit/status reads were clean and final torque-off succeeded. Do not rerun the
+uniform-state command. Follow
+`VOLTAGE_LIMIT_8V4_RECOVERY_PRE_REGISTRATION.md`: verify/relock the existing
+8.4 V units, then resume only at the first raw-80 unit. An acknowledgement loss
+counts as recovered only when an immediate exact register readback proves the
+write landed.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

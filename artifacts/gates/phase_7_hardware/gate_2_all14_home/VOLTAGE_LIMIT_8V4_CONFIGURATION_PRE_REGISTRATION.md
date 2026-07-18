@@ -1,6 +1,6 @@
 # All-14 maximum-voltage alarm 8.4 V configuration pre-registration
 
-Status: `AUTHORIZED_NOT_RUN_OFFLINE_VALIDATION`
+Status: `RUN_HALTED_PARTIAL_RECOVERY_NOT_RUN`
 
 Rob identified the installed servos as the 7.4 V STS3215 variant, supplied a
 maximum rating of 8.4 V, requested that the voltage alarms be set accordingly,
@@ -68,3 +68,10 @@ configure_servo_voltage_limits --bus serial --device /dev/ttyS1 \
 
 No timing probe, torque-enabled check, home hold, or policy run follows
 automatically. The result must be copied back, reviewed, and hashed first.
+
+The exact run from commit `ce161b57cd3fb7d393cfcf175ba70b2f74fa10bb`
+halted after IDs 20-22 accepted raw 84. See
+`voltage_limit_8v4_partial/RESULT.md`. The uniform-preflight rule in this
+document governed that first run and is not retroactively changed. Recovery of
+the measured mixed state is separately frozen in
+`VOLTAGE_LIMIT_8V4_RECOVERY_PRE_REGISTRATION.md`.
