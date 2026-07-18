@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 2.6353,
-    "mean": 1.9571668000000002,
-    "min": 0.9561,
-    "p95": 2.110125,
-    "p99": 2.509092,
-    "p99_9": 2.6103004000000034
+    "max": 2.6057,
+    "mean": 1.8024227999999998,
+    "min": 0.8789,
+    "p95": 2.1110299999999995,
+    "p99": 2.5339229999999997,
+    "p99_9": 2.6036582000000004
   },
   "bus_total_population": {
     "components": [
@@ -41,12 +41,12 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.008,
-    "mean": 0.0019868,
+    "max": 0.0327,
+    "mean": 0.0020524,
     "min": 0.0009,
-    "p95": 0.0028,
-    "p99": 0.00456099999999999,
-    "p99_9": 0.007352600000000087
+    "p95": 0.0030549999999999983,
+    "p99": 0.00571199999999999,
+    "p99_9": 0.028043700000000622
   },
   "gates": {
     "authorization_provenance": true,
@@ -56,7 +56,7 @@
     "gate4_sine_candidate": false,
     "moving_gate_scope": true,
     "realtime_verified_when_required": true,
-    "tick_p99_9_at_most_22_ms": false,
+    "tick_p99_9_at_most_22_ms": true,
     "tick_p99_at_most_21_ms": false,
     "torque_off_confirmed": true,
     "tracking_p95_at_most_0_011_rad": true,
@@ -65,12 +65,12 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 2.6205,
-    "mean": 1.9424844000000003,
-    "min": 0.9387,
-    "p95": 2.09321,
-    "p99": 2.4964,
-    "p99_9": 2.595151800000003
+    "max": 2.5876,
+    "mean": 1.7873128000000003,
+    "min": 0.8664,
+    "p95": 2.0958349999999992,
+    "p99": 2.522156,
+    "p99_9": 2.5851100000000002
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
@@ -80,28 +80,28 @@
   "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "86264382762b4fa23125c221640df0d55ef864c5ed94c7600eeeca066eb8e230",
+  "jsonl_sha256": "188a627a8687743f3e7bcf17673a5f9ae2182cdd670979105587ed1a21078826",
   "max_read_burst_ticks": 0,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 2.6235,
-    "mean": 0.9468707999999999,
-    "min": 0.0004,
-    "p95": 2.100215,
-    "p99": 2.435603999999999,
-    "p99_9": 2.6051238000000025
+    "max": 2.0872,
+    "mean": 0.831026,
+    "min": 0.0017,
+    "p95": 1.4057899999999997,
+    "p99": 1.8203239999999998,
+    "p99_9": 2.0391928000000066
   },
   "review_status": "INFORMATIONAL_ONLY",
   "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 22.2575,
-    "mean": 20.00281847389558,
-    "min": 17.8475,
-    "p95": 21.55908,
-    "p99": 21.677004,
-    "p99_9": 22.210404800000006
+    "max": 22.0592,
+    "mean": 20.002857429718876,
+    "min": 18.1208,
+    "p95": 20.576459999999997,
+    "p99": 21.043931999999998,
+    "p99_9": 21.810927200000037
   },
   "ticks": 250,
   "ticks_requested": 250,

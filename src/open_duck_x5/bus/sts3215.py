@@ -102,6 +102,13 @@ class STS3215Bus:
         self._read_codes = np.full(ACTION_DIM, int(ErrorCode.TIMEOUT), dtype=np.uint8)
         self._read_device_status = np.zeros(ACTION_DIM, dtype=np.uint8)
         self._unexpected_packets = 0
+        # A four-byte all-servo SyncRead returns fourteen fixed ten-byte status
+        # packets.  Keep receive-chunk boundaries preallocated so the common
+        # path can collect the complete response train before parsing it while
+        # still retaining per-response instrumentation timestamps.
+        self._rx_chunk_end = np.zeros(len(self._rx), dtype=np.int64)
+        self._rx_chunk_time_ns = np.zeros(len(self._rx), dtype=np.int64)
+        self._rx_chunk_count = 0
 
     def close(self) -> None:
         self.transport.close()
@@ -144,11 +151,15 @@ class STS3215Bus:
             snapshot.stale.fill(True)
             snapshot.group_round_trip_ns = now_ns - start_ns
             return
+        write_end_ns = clock_ns()
         if snapshot.instrumentation_enabled:
-            snapshot.trace_group_write_end_ns = clock_ns()
-        self._collect_packets(
+            snapshot.trace_group_write_end_ns = write_end_ns
+        self._collect_sync_read_burst(
             expected_param_length=4,
-            deadline_ns=start_ns + self.transaction_timeout_ns,
+            # The response timeout governs response collection.  Starting it
+            # before reset_input_buffer() and request transmission silently
+            # stole part of the four-millisecond receive budget from late IDs.
+            deadline_ns=write_end_ns + self.transaction_timeout_ns,
             snapshot=snapshot,
         )
         now_ns = clock_ns()
@@ -196,11 +207,12 @@ class STS3215Bus:
             snapshot.extended_device_status = 0
             snapshot.extended_round_trip_ns = now_ns - start_ns
             return
+        write_end_ns = clock_ns()
         if snapshot.instrumentation_enabled:
-            snapshot.trace_extended_write_end_ns = clock_ns()
+            snapshot.trace_extended_write_end_ns = write_end_ns
         self._collect_packets(
             expected_param_length=11,
-            deadline_ns=start_ns + self.transaction_timeout_ns,
+            deadline_ns=write_end_ns + self.transaction_timeout_ns,
             only_servo_id=servo_id,
             snapshot=snapshot,
         )
@@ -284,7 +296,7 @@ class STS3215Bus:
                     snapshot.trace_extended_last_rx_ns = receive_ns
                     snapshot.trace_extended_read_calls += 1
             self._rx_length += count
-            consumed, newly_received = self._parse_available(
+            consumed, newly_seen = self._parse_available(
                 expected_param_length=expected_param_length,
                 only_servo_id=only_servo_id,
                 completion_ns=receive_ns,
@@ -294,7 +306,7 @@ class STS3215Bus:
                     else None
                 ),
             )
-            received_count += newly_received
+            received_count += newly_seen
             if consumed:
                 remaining = self._rx_length - consumed
                 if remaining:
@@ -308,6 +320,133 @@ class STS3215Bus:
                 if index >= 0 and not self._read_seen[index]:
                     self._read_codes[index] = int(ErrorCode.PARTIAL)
 
+    def _collect_sync_read_burst(
+        self,
+        *,
+        expected_param_length: int,
+        deadline_ns: int,
+        snapshot: ServoSnapshot,
+    ) -> None:
+        """Collect one fixed-size SyncRead response train, then parse it once.
+
+        Feetech SyncRead returns one fixed-length status packet for every ID in
+        request order.  The normal path therefore knows the exact byte count in
+        advance.  Parsing and compacting after every short nonblocking read made
+        Python processing part of the inter-servo receive timing and consumed
+        the deadline while later responses were already arriving.
+
+        The common path below performs no packet parsing until the complete
+        expected train has reached the preallocated buffer.  Only an anomalous
+        train (unexpected/duplicate bytes or a missing requested ID) enters the
+        bounded incremental recovery path.
+        """
+
+        self._reset_read_state(None)
+        expected_packet_length = expected_param_length + 6
+        expected_bytes = expected_packet_length * ACTION_DIM
+        self._rx_length = 0
+        self._unexpected_packets = 0
+        self._rx_chunk_count = 0
+        stream_received = 0
+        stream_base_offset = 0
+
+        while stream_received < expected_bytes and clock_ns() < deadline_ns:
+            count = self.transport.read_some_into(
+                self._rx_view[self._rx_length : expected_bytes], deadline_ns
+            )
+            if count <= 0:
+                break
+            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            self._rx_length += count
+            stream_received += count
+            self._record_group_receive(snapshot, stream_received, receive_ns)
+
+        self._record_group_parse(snapshot)
+        consumed, seen_count = self._parse_available(
+            expected_param_length=expected_param_length,
+            only_servo_id=None,
+            response_complete_ns=(
+                snapshot.trace_group_response_complete_ns
+                if snapshot.instrumentation_enabled
+                else None
+            ),
+            stream_base_offset=stream_base_offset,
+        )
+        if consumed:
+            remaining = self._rx_length - consumed
+            if remaining:
+                self._rx[:remaining] = self._rx[consumed : self._rx_length]
+            self._rx_length = remaining
+            stream_base_offset += consumed
+
+        # Rare bounded recovery: an unexpected or duplicate packet can occupy
+        # part of the expected-length prefix.  Continue only until every
+        # requested ID has been seen or the same absolute deadline expires.
+        while seen_count < ACTION_DIM and clock_ns() < deadline_ns:
+            if self._rx_length >= len(self._rx):
+                break
+            count = self.transport.read_some_into(
+                self._rx_view[self._rx_length :], deadline_ns
+            )
+            if count <= 0:
+                break
+            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            self._rx_length += count
+            stream_received += count
+            self._record_group_receive(snapshot, stream_received, receive_ns)
+            self._record_group_parse(snapshot)
+            consumed, newly_seen = self._parse_available(
+                expected_param_length=expected_param_length,
+                only_servo_id=None,
+                response_complete_ns=(
+                    snapshot.trace_group_response_complete_ns
+                    if snapshot.instrumentation_enabled
+                    else None
+                ),
+                stream_base_offset=stream_base_offset,
+            )
+            seen_count += newly_seen
+            if consumed:
+                remaining = self._rx_length - consumed
+                if remaining:
+                    self._rx[:remaining] = self._rx[consumed : self._rx_length]
+                self._rx_length = remaining
+                stream_base_offset += consumed
+
+        if self._rx_length >= 4 and self._rx[0] == 0xFF and self._rx[1] == 0xFF:
+            servo_id = int(self._rx[2])
+            if servo_id < len(self._id_to_index):
+                index = int(self._id_to_index[servo_id])
+                if index >= 0 and not self._read_seen[index]:
+                    self._read_codes[index] = int(ErrorCode.PARTIAL)
+
+    def _record_group_receive(
+        self, snapshot: ServoSnapshot, stream_end_offset: int, receive_ns: int
+    ) -> None:
+        if not snapshot.instrumentation_enabled:
+            return
+        if snapshot.trace_group_first_rx_ns == 0:
+            snapshot.trace_group_first_rx_ns = receive_ns
+        snapshot.trace_group_last_rx_ns = receive_ns
+        snapshot.trace_group_read_calls += 1
+        if self._rx_chunk_count < len(self._rx_chunk_end):
+            self._rx_chunk_end[self._rx_chunk_count] = stream_end_offset
+            self._rx_chunk_time_ns[self._rx_chunk_count] = receive_ns
+            self._rx_chunk_count += 1
+
+    def _record_group_parse(self, snapshot: ServoSnapshot) -> None:
+        if not snapshot.instrumentation_enabled:
+            return
+        snapshot.trace_group_parse_calls += 1
+        if snapshot.trace_group_parse_calls == 1:
+            snapshot.trace_group_first_parse_bytes = self._rx_length
+
+    def _completion_time_for_stream_offset(self, stream_end_offset: int) -> int:
+        for index in range(self._rx_chunk_count):
+            if int(self._rx_chunk_end[index]) >= stream_end_offset:
+                return int(self._rx_chunk_time_ns[index])
+        return 0
+
     def _parse_available(
         self,
         *,
@@ -315,22 +454,23 @@ class STS3215Bus:
         only_servo_id: int | None,
         completion_ns: int = 0,
         response_complete_ns: np.ndarray | None = None,
+        stream_base_offset: int = 0,
     ) -> tuple[int, int]:
         cursor = 0
-        newly_received = 0
+        newly_seen = 0
         while cursor + 4 <= self._rx_length:
             header = self._rx.find(b"\xff\xff", cursor, self._rx_length)
             if header < 0:
-                return max(0, self._rx_length - 1), newly_received
+                return max(0, self._rx_length - 1), newly_seen
             if header + 4 > self._rx_length:
-                return header, newly_received
+                return header, newly_seen
             packet_length = int(self._rx[header + 3])
             total_length = 4 + packet_length
             if packet_length < 2 or total_length > 64:
                 cursor = header + 1
                 continue
             if header + total_length > self._rx_length:
-                return header, newly_received
+                return header, newly_seen
             servo_id = int(self._rx[header + 2])
             index = int(self._id_to_index[servo_id]) if servo_id < 254 else -1
             frame = self._rx_view[header : header + total_length]
@@ -341,7 +481,14 @@ class STS3215Bus:
             first_seen = not bool(self._read_seen[index])
             self._read_seen[index] = True
             if first_seen and response_complete_ns is not None:
-                response_complete_ns[index] = completion_ns
+                frame_end_offset = stream_base_offset + header + total_length
+                response_complete_ns[index] = (
+                    completion_ns
+                    if completion_ns
+                    else self._completion_time_for_stream_offset(frame_end_offset)
+                )
+            if first_seen:
+                newly_seen += 1
             if checksum(frame[2:-1]) != int(frame[-1]):
                 self._read_codes[index] = int(ErrorCode.CRC)
             elif total_length - 6 != expected_param_length:
@@ -351,11 +498,9 @@ class STS3215Bus:
                     self._read_data[index, data_index] = frame[5 + data_index]
                 self._read_lengths[index] = expected_param_length
                 self._read_device_status[index] = int(frame[4])
-                if self._read_codes[index] != int(ErrorCode.OK):
-                    newly_received += 1
                 self._read_codes[index] = int(ErrorCode.OK)
             cursor = header + total_length
-        return cursor, newly_received
+        return cursor, newly_seen
 
     def ping(self, servo_id: int, *, timeout_s: float | None = None) -> ErrorCode:
         code, device_status = self.ping_with_device_status(

@@ -2,13 +2,13 @@
 
 Status: `INFORMATIONAL_ONLY`
 
-- Ticks: 1,000
-- Transactions: 16,000 expected, 0 failed
+- Ticks: 250
+- Transactions: 4,000 expected, 0 failed
 - Read bursts: 0
-- Bus max: 2.4989 ms
-- Tick p99: 21.994922 ms
-- Tick p99.9: 22.013803 ms
-- Tracking p95: 0.003451687978265439 rad
+- Bus max: 2.6057 ms
+- Tick p99: 21.043932 ms
+- Tick p99.9: 21.810927 ms
+- Tracking p95: 0.0034451701886752516 rad
 - Host: Windows, Python 3.10.11, stock scheduler
 
 The torque-off single-servo mock probe also completed 1,000 reads with zero

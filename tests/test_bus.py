@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import struct
+import time
 
 import numpy as np
 
@@ -30,13 +31,21 @@ class FakeTransport:
         partial_id: int | None = None,
         include_unexpected: bool = False,
         device_error: int = 0,
+        read_chunk_size: int = 23,
+        response_order: tuple[int, ...] | None = None,
+        omit_ids: tuple[int, ...] = (),
     ) -> None:
         self.corrupt_id = corrupt_id
         self.partial_id = partial_id
         self.include_unexpected = include_unexpected
         self.device_error = int(device_error)
+        self.read_chunk_size = int(read_chunk_size)
+        self.response_order = response_order
+        self.omit_ids = omit_ids
         self.rx = bytearray()
         self.writes: list[bytes] = []
+        self.sync_read_response_orders: list[tuple[int, ...]] = []
+        self.read_calls = 0
         self.closed = False
 
     def write(self, data) -> None:
@@ -44,11 +53,17 @@ class FakeTransport:
         self.writes.append(frame)
         instruction = frame[4]
         if instruction == 0x82:
+            requested_ids = tuple(frame[7:-1])
+            self.sync_read_response_orders.append(requested_ids)
             packets: list[bytes] = []
             if self.include_unexpected:
                 packets.append(_status_packet(99, b"\x00\x08\x00\x00"))
             partial = b""
-            for index, servo_id in enumerate(SERVO_IDS):
+            response_ids = requested_ids if self.response_order is None else self.response_order
+            for servo_id in response_ids:
+                if servo_id in self.omit_ids:
+                    continue
+                index = SERVO_IDS.index(servo_id)
                 parameters = struct.pack("<HH", 2048 + index, 100)
                 packet = _status_packet(
                     servo_id, parameters, error=self.device_error
@@ -71,9 +86,10 @@ class FakeTransport:
 
     def read_some_into(self, target, deadline_ns: int) -> int:
         del deadline_ns
+        self.read_calls += 1
         if not self.rx:
             return 0
-        count = min(len(target), len(self.rx), 23)
+        count = min(len(target), len(self.rx), self.read_chunk_size)
         target[:count] = self.rx[:count]
         del self.rx[:count]
         return count
@@ -109,6 +125,7 @@ def test_direct_bus_group_read_sync_write_and_extended_telemetry() -> None:
     read_frame = transport.writes[-1]
     assert read_frame[4] == 0x82
     assert tuple(read_frame[7:-1]) == SERVO_SYNC_READ_IDS
+    assert transport.sync_read_response_orders[-1] == SERVO_SYNC_READ_IDS
     assert snapshot.all_fresh
     assert np.all(snapshot.status == int(ErrorCode.OK))
     assert snapshot.positions_rad[0] == 0.0
@@ -148,6 +165,86 @@ def test_instrumented_exchange_captures_preallocated_stage_boundaries() -> None:
     assert np.all(snapshot.trace_group_response_complete_ns > 0)
 
 
+def test_group_read_collects_one_byte_fragments_before_parsing() -> None:
+    class ParseCountingBus(STS3215Bus):
+        def __init__(self, **kwargs) -> None:
+            super().__init__(**kwargs)
+            self.parse_rx_lengths: list[int] = []
+
+        def _parse_available(self, **kwargs):
+            self.parse_rx_lengths.append(self._rx_length)
+            return super()._parse_available(**kwargs)
+
+    transport = FakeTransport(read_chunk_size=1)
+    bus = ParseCountingBus(transport=transport)
+    snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = True
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert snapshot.all_fresh
+    assert snapshot.trace_group_read_calls == 140
+    assert snapshot.trace_group_parse_calls == 1
+    assert snapshot.trace_group_first_parse_bytes == 140
+    assert bus.parse_rx_lengths == [140]
+    response_times = snapshot.trace_group_response_complete_ns
+    assert response_times is not None
+    wire_times = [response_times[SERVO_IDS.index(servo_id)] for servo_id in SERVO_SYNC_READ_IDS]
+    assert wire_times == sorted(wire_times)
+
+
+def test_group_response_deadline_starts_after_request_write() -> None:
+    class SlowWriteTransport(FakeTransport):
+        def write(self, data) -> None:
+            super().write(data)
+            if bytes(data)[4] == 0x82:
+                time.sleep(0.002)
+
+    bus = STS3215Bus(
+        transport=SlowWriteTransport(read_chunk_size=140),
+        transaction_timeout_s=0.001,
+    )
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert snapshot.all_fresh
+
+
+def test_group_read_routes_a_complete_out_of_order_train_by_servo_id() -> None:
+    transport = FakeTransport(
+        response_order=tuple(reversed(SERVO_SYNC_READ_IDS)),
+        read_chunk_size=140,
+    )
+    bus = STS3215Bus(transport=transport)
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert snapshot.all_fresh
+    np.testing.assert_array_less(snapshot.positions_rad[:-1], snapshot.positions_rad[1:])
+
+
+def test_group_read_marks_only_an_omitted_id_stale() -> None:
+    omitted_id = SERVO_SYNC_READ_IDS[6]
+    bus = STS3215Bus(
+        transport=FakeTransport(omit_ids=(omitted_id,), read_chunk_size=140),
+        transaction_timeout_s=0.001,
+    )
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    omitted_index = SERVO_IDS.index(omitted_id)
+    assert snapshot.failed_servo_count == 1
+    assert snapshot.stale[omitted_index]
+    assert ErrorCode(int(snapshot.status[omitted_index])) is ErrorCode.TIMEOUT
+
+
 def test_extended_read_preserves_requested_servo_id_when_write_fails() -> None:
     class FailingExtendedTransport(FakeTransport):
         def write(self, data) -> None:
@@ -166,7 +263,10 @@ def test_extended_read_preserves_requested_servo_id_when_write_fails() -> None:
 
 
 def test_group_read_classifies_crc_and_partial_per_servo() -> None:
-    for failing_id, expected in ((SERVO_IDS[2], ErrorCode.CRC), (SERVO_IDS[-1], ErrorCode.PARTIAL)):
+    for failing_id, expected in (
+        (SERVO_IDS[2], ErrorCode.CRC),
+        (SERVO_SYNC_READ_IDS[-1], ErrorCode.PARTIAL),
+    ):
         transport = FakeTransport(
             corrupt_id=failing_id if expected is ErrorCode.CRC else None,
             partial_id=failing_id if expected is ErrorCode.PARTIAL else None,
@@ -179,6 +279,18 @@ def test_group_read_classifies_crc_and_partial_per_servo() -> None:
         assert snapshot.stale[index]
         assert ErrorCode(int(snapshot.status[index])) is expected
         assert snapshot.failed_servo_count == 1
+
+
+def test_complete_crc_frame_does_not_wait_for_a_replacement_packet() -> None:
+    transport = FakeTransport(corrupt_id=SERVO_IDS[2], read_chunk_size=140)
+    bus = STS3215Bus(transport=transport, transaction_timeout_s=0.05)
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert transport.read_calls == 1
+    assert ErrorCode(int(snapshot.status[2])) is ErrorCode.CRC
 
 
 def test_group_read_counts_unexpected_packets_without_hiding_fresh_state() -> None:

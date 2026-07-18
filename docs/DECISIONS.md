@@ -283,3 +283,31 @@ as the governing cause, and direct UART is closed as its remedy. Any next step
 must explicitly review the transaction/parser architecture and bus budget; it
 may not silently relax the gate, remove required telemetry, or jump to Rust by
 preference.
+
+## D028 — Test the fixed-length SyncRead collector before changing architecture
+
+Accepted as an offline implementation decision; hardware result remains
+`NOT_RUN`. Feetech's protocol fixes each four-byte all-servo state reply at ten
+bytes and requires replies in the request's ID order. The normal fourteen-servo
+response train is therefore exactly 140 bytes. The prior collector instead
+parsed and compacted after every nonblocking read and started its fixed response
+deadline before input flush and request transmission. Application parsing was
+therefore interleaved with arrival of the later responses, and the next input
+flush could discard a late remainder.
+
+The Python bus now collects the expected 140 bytes into its preallocated buffer,
+then parses the normal train once. The response deadline begins after the
+SyncRead request write returns. Unexpected, duplicate, missing, corrupt, and
+partial trains retain the existing explicit taxonomy and enter only a bounded
+recovery path. Logical/action order remains frozen; wire order still ends
+`14,13`; telemetry cadence, timeout value, bus gate, and Rust escalation rule are
+unchanged.
+
+Transaction trace v2 records collector mode, parse-call count, and bytes present
+at the first parse. Offline tests cover every one-byte fragmentation boundary,
+wire-order generation, out-of-order ID routing, unexpected-packet recovery,
+omitted-ID timeout, CRC, partial response, and a request write longer than the
+response timeout. These tests establish the software mechanism but cannot pass
+Gate 2. The next hardware action is only the separately preregistered matched
+10,000-tick torque-off A/B; no torque, motion, policy, threshold relaxation, or
+additional hardware follows from this decision.

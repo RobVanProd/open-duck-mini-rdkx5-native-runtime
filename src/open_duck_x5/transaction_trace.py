@@ -53,6 +53,8 @@ class TransactionTraceSeries:
         self.tick = np.zeros(capacity, dtype=np.int64)
         self.extended_servo_id = np.full(capacity, -1, dtype=np.int16)
         self.group_read_calls = np.zeros(capacity, dtype=np.int16)
+        self.group_parse_calls = np.zeros(capacity, dtype=np.int16)
+        self.group_first_parse_bytes = np.zeros(capacity, dtype=np.int16)
         self.extended_read_calls = np.zeros(capacity, dtype=np.int16)
         self.timestamps_ns = np.zeros((capacity, len(_SCALAR_FIELDS)), dtype=np.int64)
         self.group_response_complete_ns = np.zeros(
@@ -68,6 +70,8 @@ class TransactionTraceSeries:
         self.tick[index] = int(tick)
         self.extended_servo_id[index] = int(snapshot.extended_servo_id)
         self.group_read_calls[index] = int(snapshot.trace_group_read_calls)
+        self.group_parse_calls[index] = int(snapshot.trace_group_parse_calls)
+        self.group_first_parse_bytes[index] = int(snapshot.trace_group_first_parse_bytes)
         self.extended_read_calls[index] = int(snapshot.trace_extended_read_calls)
         row = self.timestamps_ns[index]
         for field_index, field_name in enumerate(_SCALAR_FIELDS):
@@ -91,7 +95,7 @@ class TransactionTraceSeries:
                 }
                 response_times = self.group_response_complete_ns[index]
                 record = {
-                    "schema_version": "open_duck_x5.transaction_trace.v1",
+                    "schema_version": "open_duck_x5.transaction_trace.v2",
                     "tick": int(self.tick[index]),
                     "clock": "time.perf_counter_ns",
                     "sync_marker": {
@@ -104,6 +108,14 @@ class TransactionTraceSeries:
                     "read_calls": {
                         "group": int(self.group_read_calls[index]),
                         "extended": int(self.extended_read_calls[index]),
+                    },
+                    "group_collector": {
+                        "mode": "exact_length_then_parse",
+                        "expected_bytes": 140,
+                        "parse_calls": int(self.group_parse_calls[index]),
+                        "bytes_before_first_parse": int(
+                            self.group_first_parse_bytes[index]
+                        ),
                     },
                     "durations_us": {
                         "bus_total": _duration_us(

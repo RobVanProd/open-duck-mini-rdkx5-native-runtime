@@ -119,6 +119,8 @@ class MockSTS3215Bus:
             snapshot.trace_group_last_rx_ns = snapshot.sample_time_ns
             snapshot.trace_group_end_ns = snapshot.sample_time_ns
             snapshot.trace_group_read_calls = 1
+            snapshot.trace_group_parse_calls = 1
+            snapshot.trace_group_first_parse_bytes = 140
             if snapshot.trace_group_response_complete_ns is not None:
                 snapshot.trace_group_response_complete_ns.fill(snapshot.sample_time_ns)
 

@@ -56,6 +56,8 @@ class ServoSnapshot:
     trace_group_last_rx_ns: int = 0
     trace_group_end_ns: int = 0
     trace_group_read_calls: int = 0
+    trace_group_parse_calls: int = 0
+    trace_group_first_parse_bytes: int = 0
     trace_group_response_complete_ns: np.ndarray | None = None
     trace_extended_start_ns: int = 0
     trace_extended_flush_start_ns: int = 0
@@ -105,6 +107,8 @@ class ServoSnapshot:
             self.trace_group_last_rx_ns = 0
             self.trace_group_end_ns = 0
             self.trace_group_read_calls = 0
+            self.trace_group_parse_calls = 0
+            self.trace_group_first_parse_bytes = 0
             if self.trace_group_response_complete_ns is not None:
                 self.trace_group_response_complete_ns.fill(0)
             self.trace_extended_start_ns = 0

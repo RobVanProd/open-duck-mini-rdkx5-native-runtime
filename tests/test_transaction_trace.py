@@ -23,11 +23,17 @@ def test_transaction_trace_is_captured_in_loop_and_serialized_afterward(
     series.write_jsonl(output)
 
     record = json.loads(output.read_text(encoding="utf-8"))
-    assert record["schema_version"] == "open_duck_x5.transaction_trace.v1"
+    assert record["schema_version"] == "open_duck_x5.transaction_trace.v2"
     assert record["tick"] == 0
     assert record["clock"] == "time.perf_counter_ns"
     assert record["sync_marker"]["extended_servo_id"] == SERVO_IDS[0]
     assert record["sync_marker"]["sync_read_wire_order"] == list(SERVO_SYNC_READ_IDS)
     assert record["logical_servo_ids"] == list(SERVO_IDS)
     assert len(record["group_response_complete_ns_logical_order"]) == 14
+    assert record["group_collector"] == {
+        "mode": "exact_length_then_parse",
+        "expected_bytes": 140,
+        "parse_calls": 1,
+        "bytes_before_first_parse": 140,
+    }
     assert record["durations_us"]["bus_total"] is not None

@@ -10,7 +10,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | --- | --- |
 | Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
 | Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
-| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; transport failures and raw device alarms are distinct |
+| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; exact 140-byte state burst is collected before one-pass parsing; hardware A/B pending |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |

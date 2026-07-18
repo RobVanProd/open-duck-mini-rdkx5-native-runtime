@@ -168,6 +168,17 @@ increase the deadline, relax the bus gate, remove round-robin telemetry, or
 escalate to Rust without a new explicit reviewed decision consistent with the
 frozen native-escalation rule.
 
+The next software candidate changes the receive collector, not the transport:
+the normal four-byte SyncRead now accumulates its known 140-byte response train
+before parsing once, and its four-millisecond response deadline starts after the
+request write. This is offline-tested only. Transaction trace v2 must show
+`mode=exact_length_then_parse`, `parse_calls=1`, and
+`bytes_before_first_parse=140` on every normal complete train. The candidate may
+be tested on hardware only under the exact scope in
+`SYNC_READ_COLLECTOR_AB_PRE_REGISTRATION.md`; until that complete artifact is
+reviewed, the earlier USB/UART result remains authoritative and Gate 2 remains
+`NOT_RUN_BLOCKED_PREFLIGHT`.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.
