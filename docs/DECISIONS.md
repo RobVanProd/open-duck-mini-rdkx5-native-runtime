@@ -311,3 +311,29 @@ response timeout. These tests establish the software mechanism but cannot pass
 Gate 2. The next hardware action is only the separately preregistered matched
 10,000-tick torque-off A/B; no torque, motion, policy, threshold relaxation, or
 additional hardware follows from this decision.
+
+## D029 — Set the STS3215 maximum-voltage alarm to its documented 8.4 V limit
+
+Accepted for one guarded, torque-off configuration run; hardware result remains
+`NOT_RUN`. The owner's motor specification and Feetech's STS3215 product manual
+identify 8.4 V as the upper supported voltage. The installed charged-2S rail
+was measured at 8.2-8.4 V while all fourteen servos held a configured 8.0 V
+maximum, exactly accounting for their common voltage-alarm bit.
+
+D023 correctly prevented an unreviewed EEPROM change; this decision supersedes
+only that prohibition now that the servo voltage limit, 2S power provenance,
+exact stored values, and owner authorization are established. It does not
+change the supply, ignore an alarm, or reinterpret the result as a timing pass.
+
+The update changes only register 14 from raw 80 to raw 84. Register 15 remains
+raw 40. A dedicated tool requires read-before-write across all 14 IDs, a
+servo-20 canary, individual unlock/write/readback/relock transactions, a
+post-write present-voltage/status check, a final all-servo audit, and an fsync'd
+journal. Unexpected or mixed values halt before any EEPROM write. A persistent
+canary voltage alarm halts before the remaining 13 units. Every crash path
+attempts relock and all-servo torque off; no torque enable, goal target, policy,
+or motion command exists in this operation.
+
+The configuration result must be reviewed separately. Gate 2 remains blocked
+by the independent `<5 ms` complete-sweep bus budget, and the fixed-length
+collector A/B remains a different, separately controlled torque-off test.

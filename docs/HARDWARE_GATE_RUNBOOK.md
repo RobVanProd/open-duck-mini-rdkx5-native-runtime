@@ -179,6 +179,15 @@ be tested on hardware only under the exact scope in
 reviewed, the earlier USB/UART result remains authoritative and Gate 2 remains
 `NOT_RUN_BLOCKED_PREFLIGHT`.
 
+The owner subsequently authorized a separate torque-off EEPROM correction after
+confirming the STS3215 upper rating is 8.4 V and that the robot is on its stand.
+This is not a Gate 2 timing run. Its frozen scope is in
+`VOLTAGE_LIMIT_8V4_CONFIGURATION_PRE_REGISTRATION.md`: preflight all limits,
+change only register 14 from raw 80 to 84, use servo 20 as a clean-alarm canary,
+verify and relock every servo individually, and retain an fsync'd journal. No
+minimum-limit, target, torque-enable, policy, or motion write is permitted.
+Gate 2 remains blocked even if the voltage alarm clears.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

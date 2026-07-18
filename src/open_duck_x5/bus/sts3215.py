@@ -527,17 +527,37 @@ class STS3215Bus:
         return code, device_status
 
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
+        status, device_status = self.write_register_with_device_status(
+            servo_id, address, data
+        )
+        if status is ErrorCode.OK and device_status:
+            return ErrorCode.DEVICE
+        return status
+
+    def write_register_with_device_status(
+        self, servo_id: int, address: int, data: bytes
+    ) -> tuple[ErrorCode, int | None]:
+        """Write a register while keeping transport and device status separate.
+
+        Configuration writes sometimes need to clear the condition currently
+        asserted in the device-status byte.  Treating that alarm as a transport
+        failure makes a verified, fail-closed repair impossible.  This method
+        still requires a checksum-valid, correctly sized acknowledgement; it
+        merely returns the alarm byte to the caller instead of collapsing it
+        into :class:`ErrorCode.DEVICE`.
+        """
+
         self._flush_before_transaction()
         try:
             self.transport.write(instruction_packet(servo_id, WRITE, bytes((address,)) + data))
         except (OSError, TimeoutError):
-            return ErrorCode.IO
-        status, _ = self._read_one_generic(
+            return ErrorCode.IO, None
+        status, device_status, _ = self._read_one_generic_with_device_status(
             servo_id,
             0,
             clock_ns() + self.transaction_timeout_ns,
         )
-        return status
+        return status, device_status
 
     def read_register(self, servo_id: int, address: int, length: int) -> tuple[ErrorCode, bytes]:
         self._flush_before_transaction()

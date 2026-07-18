@@ -34,6 +34,7 @@ summarize_control_run = "open_duck_x5.control_summary:main"
 analyze_usbmon_latency = "open_duck_x5.usbmon_analysis:main"
 probe_servo_voltage = "open_duck_x5.voltage_probe:main"
 probe_servo_voltage_limits = "open_duck_x5.voltage_limit_probe:main"
+configure_servo_voltage_limits = "open_duck_x5.voltage_limit_config:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

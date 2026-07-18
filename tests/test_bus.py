@@ -82,7 +82,7 @@ class FakeTransport:
                 _status_packet(servo_id, parameters, error=self.device_error)
             )
         elif instruction == 0x03 and frame[2] != 0xFE:
-            self.rx.extend(_status_packet(frame[2], b""))
+            self.rx.extend(_status_packet(frame[2], b"", error=self.device_error))
 
     def read_some_into(self, target, deadline_ns: int) -> int:
         del deadline_ns
@@ -343,3 +343,16 @@ def test_diagnostic_register_read_preserves_payload_but_normal_read_rejects_it()
     status, parameters = bus.read_register(SERVO_IDS[0], 62, 1)
     assert status is ErrorCode.DEVICE
     assert parameters == b""
+
+
+def test_configuration_write_preserves_device_alarm_separately() -> None:
+    transport = FakeTransport(device_error=0x01)
+    bus = STS3215Bus(transport=transport)
+
+    status, device_error = bus.write_register_with_device_status(
+        SERVO_IDS[0], 14, b"\x54"
+    )
+
+    assert status is ErrorCode.OK
+    assert device_error == 0x01
+    assert bus.write_register(SERVO_IDS[0], 14, b"\x54") is ErrorCode.DEVICE

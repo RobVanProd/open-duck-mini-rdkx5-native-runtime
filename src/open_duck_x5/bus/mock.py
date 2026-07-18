@@ -46,6 +46,7 @@ class MockSTS3215Bus:
             registers[5] = servo_id
             registers[14] = 80
             registers[15] = 40
+            registers[55] = 1
             registers[62] = 74
         self._last_update_ns = clock_ns()
         self._active_tick = 0
@@ -192,7 +193,17 @@ class MockSTS3215Bus:
         return status, (0 if status is ErrorCode.OK else None), parameters
 
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
+        status, device_status = self.write_register_with_device_status(
+            servo_id, address, data
+        )
+        if status is ErrorCode.OK and device_status:
+            return ErrorCode.DEVICE
+        return status
+
+    def write_register_with_device_status(
+        self, servo_id: int, address: int, data: bytes
+    ) -> tuple[ErrorCode, int | None]:
         if servo_id not in self.ids:
-            return ErrorCode.TIMEOUT
+            return ErrorCode.TIMEOUT, None
         self._registers[servo_id][address : address + len(data)] = data
-        return ErrorCode.OK
+        return ErrorCode.OK, 0
