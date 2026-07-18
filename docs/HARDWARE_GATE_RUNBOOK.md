@@ -154,6 +154,20 @@ confirmed that the robot is on its stand and directed the preregistered
 `UART_ADAPTER_ATTRIBUTION_20260718.md` and
 `UART_10K_TORQUE_OFF_PRE_REGISTRATION.md`.
 
+The UART A/B completed all 10,000 ticks with final torque-off `ok`. Complete
+sweep mean/p99.9/max was `5.363831/7.961047/8.353692 ms`; the grouped `0x82`
+burst was `3.747957/5.220183/5.347762 ms`. This is not materially better than
+USB and fails the same `<5 ms` gate. Tick p99/p99.9 stayed green at
+`20.102866/20.127047 ms`. UART had 145/160,000 logical failures (`0.090625%`),
+zero CRCs, and zero temporal bursts; exact expected kernel TX/RX byte counts
+localize the late-ID timeouts to the 4 ms user-space collection deadline rather
+than omitted wire bytes. See `uart_10k_torque_off/RESULT.md`.
+
+Direct UART is closed as the USB-latency remedy. Gate 2 remains stopped. Do not
+increase the deadline, relax the bus gate, remove round-robin telemetry, or
+escalate to Rust without a new explicit reviewed decision consistent with the
+frozen native-escalation rule.
+
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.
 - Required: tick p99 <= 21 ms, p99.9 <= 22 ms, zero failure bursts, transaction failure < 0.1%, zero device alarms, total bus time max < 5 ms.

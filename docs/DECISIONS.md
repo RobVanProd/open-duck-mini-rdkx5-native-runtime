@@ -258,3 +258,28 @@ statistics as USB. Rob subsequently confirmed that the robot is on its stand
 and directed the torque-off comparison to continue. No shorter wiring check may
 be substituted for the comparison window, although a failed guarded startup may
 stop before the population begins.
+
+## D027 — Direct UART does not clear the complete-sweep bus budget
+
+Accepted. The `/dev/ttyS1` torque-off A/B completed all 10,000 ticks with final
+cutoff `ok`, no halt, and no telemetry drops. Complete-sweep
+mean/p99.9/max was `5.363831/7.961047/8.353692 ms`, versus USB
+`5.440859/8.060332/8.293083 ms`. The negligible mean/tail improvement and
+slightly worse maximum fail the unchanged `<5 ms` gate. The grouped `0x82`
+burst was worse on UART at mean/p99.9/max
+`3.747957/5.220183/5.347762 ms`.
+
+UART produced 145 logical failures among 160,000 expected outcomes
+(`0.090625%`): 142 timeouts and three partial packets, isolated across 52 ticks
+and concentrated on late wire-order IDs 11-14. Kernel UART counters increased
+by exactly the expected `800094 TX` and `1570140 RX` bytes, with zero parsed CRC
+failures. The physical driver received the expected byte volume; late replies
+crossed the fixed 4 ms user-space collection deadline. Extending that deadline
+cannot satisfy a strict complete-sweep maximum below 5 ms.
+
+Tick p99/p99.9 remained green at `20.102866/20.127047 ms`; the frozen native
+escalation criterion is not triggered. The CH343/cdc_acm USB adapter is closed
+as the governing cause, and direct UART is closed as its remedy. Any next step
+must explicitly review the transaction/parser architecture and bus budget; it
+may not silently relax the gate, remove required telemetry, or jump to Rust by
+preference.

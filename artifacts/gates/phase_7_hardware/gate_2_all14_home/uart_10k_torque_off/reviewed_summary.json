@@ -1,0 +1,167 @@
+{
+  "schema_version": "open_duck_x5.uart_10k_review.v1",
+  "status": "COMPLETE_REVIEWED_BLOCKED",
+  "source": {
+    "commit": "d8707ceb6caaa1ea3812499b59d6c39416918bb5",
+    "archive_sha256": "c754a898a45502e94215191a50183b641762687c81ebc04c29a346c08c979549",
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
+  },
+  "endpoint": {
+    "device": "/dev/ttyS1",
+    "driver": "dw-apb-uart",
+    "device_tree": "34070000.serial",
+    "usb_serial_present": false,
+    "baudrate": 1000000,
+    "kernel_tx_bytes_before": 0,
+    "kernel_tx_bytes_after": 800094,
+    "kernel_rx_bytes_before": 0,
+    "kernel_rx_bytes_after": 1570140,
+    "expected_tx_bytes": 800094,
+    "expected_rx_bytes": 1570140
+  },
+  "population": {
+    "attempted_ticks": 10000,
+    "completed_ticks": 10000,
+    "frequency_hz": 50.0,
+    "bus_observation": "one all-14 goal SyncWrite plus one 0x82 all-14 position/speed response burst plus one round-robin extended read",
+    "group_observation": "one 0x82 request plus one contiguous 14-response burst",
+    "statistic": "sample maximum over completed ticks"
+  },
+  "safety": {
+    "robot_support": "stand",
+    "torque_enabled": false,
+    "final_torque_off": "ok",
+    "policy_inference": false,
+    "home_move": false,
+    "target_amplitude_rad": 0.0,
+    "halt_reason": null,
+    "telemetry_records_dropped": 0
+  },
+  "realtime": {
+    "isolated_cpu": 7,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "tick_period_ms": {
+      "p99": 20.1028659,
+      "p99_9": 20.127047366,
+      "max": 20.158971
+    }
+  },
+  "complete_sweep_ms": {
+    "min": 3.624717,
+    "mean": 5.3638314984,
+    "p95": 7.47606565,
+    "p99": 7.78997894,
+    "p99_9": 7.961047309,
+    "max": 8.353692,
+    "samples_at_or_above_5_ms": 4588,
+    "under_5_ms_gate": false
+  },
+  "group_0x82_ms": {
+    "min": 2.623506,
+    "mean": 3.7479573948,
+    "p95": 5.00668465,
+    "p99": 5.04749315,
+    "p99_9": 5.220183041,
+    "max": 5.347762,
+    "samples_at_or_above_5_ms": 669
+  },
+  "extended_read_ms": {
+    "min": 0.460134,
+    "mean": 0.7447175772,
+    "p95": 1.07452335,
+    "p99": 1.12092714,
+    "p99_9": 1.172256574,
+    "max": 1.203435
+  },
+  "transport": {
+    "transactions_expected": 160000,
+    "transactions_failed": 145,
+    "failure_rate": 0.00090625,
+    "failure_percent": 0.090625,
+    "failure_ticks": 52,
+    "failures": {
+      "timeout": 142,
+      "crc": 0,
+      "partial": 3,
+      "device": 0,
+      "unexpected_id": 0,
+      "io": 0,
+      "unexpected_packet": 0
+    },
+    "failures_by_servo_id": {
+      "11": 6,
+      "12": 41,
+      "13": 52,
+      "14": 46
+    },
+    "read_burst_count": 0,
+    "partial_byte_count": 36,
+    "transaction_failure_below_0_1_percent": true
+  },
+  "device_alarms": {
+    "alarm_replies": 146432,
+    "voltage_alarm_replies": 146432,
+    "zero_device_alarms_gate": false
+  },
+  "application_stage_us": {
+    "sync_write_call": {
+      "mean": 208.306,
+      "p99_9": 721.777,
+      "max": 788.794
+    },
+    "group_tx_return_to_first_rx": {
+      "mean": 1037.988,
+      "p99_9": 1271.798,
+      "max": 1385.295
+    },
+    "group_rx_span": {
+      "mean": 1986.245,
+      "p99_9": 2874.49,
+      "max": 3102.364
+    },
+    "group_parse_tail": {
+      "mean": 644.17,
+      "p99_9": 1961.129,
+      "max": 2112.562
+    },
+    "extended_tx_return_to_first_rx": {
+      "mean": 384.383,
+      "p99_9": 548.127,
+      "max": 575.71
+    },
+    "extended_parse_tail": {
+      "mean": 189.561,
+      "p99_9": 395.422,
+      "max": 435.722
+    }
+  },
+  "usb_ab": {
+    "complete_sweep_mean_delta_ms_uart_minus_usb": -0.0770274598,
+    "complete_sweep_p99_9_delta_ms_uart_minus_usb": -0.099285108,
+    "complete_sweep_max_delta_ms_uart_minus_usb": 0.060609,
+    "group_mean_delta_ms_uart_minus_usb": 0.1727083844,
+    "group_p99_9_delta_ms_uart_minus_usb": 0.083198915,
+    "group_max_delta_ms_uart_minus_usb": 0.147528,
+    "usb_transactions_failed": 4,
+    "uart_transactions_failed": 145,
+    "material_bus_budget_improvement": false
+  },
+  "raw_evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/uart10k-torque-off-20260718",
+    "timing_records": 10000,
+    "transaction_trace_records": 10000,
+    "timing_jsonl_sha256": "db720462e6d25a9ec4fc5646f31d7dd7c12b0d1c0c8fed7d9e8e8ef76bf77664",
+    "summary_sha256": "b2801780551490ef28bfbe16c3011fe0594f5f31f90474af4d36f89bfd5abacf",
+    "transaction_trace_sha256": "f76e734e853fe757d315cec1c0e6db70543603f2254f143321bc2ab6282992f5"
+  },
+  "decision": {
+    "uart_complete_sweep_pass": false,
+    "tick_timing_pass": true,
+    "failure_rate_pass": true,
+    "zero_burst_pass": true,
+    "gate_2_candidate": false,
+    "usb_adapter_is_governing_cause": false,
+    "native_escalation_triggered": false
+  }
+}
