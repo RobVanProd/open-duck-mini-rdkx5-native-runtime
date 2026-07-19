@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 import open_duck_x5.winner_v2 as winner_v2
+import open_duck_x5.winner_v2_verifier as winner_v2_verifier
 from open_duck_x5.constants import ACTION_DIM, CONTROL_PERIOD_NS, HOME_RAD
 from open_duck_x5.winner_v2 import (
     P30BridgeObserver,
@@ -560,3 +561,24 @@ def test_direct_reaction_com_template_is_exact_policy_packet() -> None:
         if key != "id"
     )
     assert missing == 30
+
+
+def test_verifier_writes_cross_platform_lf_json(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        winner_v2_verifier,
+        "verify_handoff",
+        lambda _root: {"status": "PASS_TEST", "value": 1},
+    )
+    output = tmp_path / "result.json"
+    assert (
+        winner_v2_verifier.main(
+            ["--artifact-root", str(tmp_path), "--output", str(output)]
+        )
+        == 0
+    )
+    payload = output.read_bytes()
+    assert b"\r\n" not in payload
+    assert payload.endswith(b"\n")

@@ -674,7 +674,7 @@ def main(argv: list[str] | None = None) -> int:
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(payload, encoding="utf-8")
+        args.output.write_text(payload, encoding="utf-8", newline="\n")
     print(payload, end="")
     return 0 if str(result["status"]).startswith("PASS_") else 2
 
