@@ -65,6 +65,7 @@ and `start_paused=true`.
 
 Read these before any X5 work:
 
+- [Active rebuild reconciliation](docs/ACTIVE_REBUILD_RECONCILIATION_20260719.md)
 - [Hardware gate runbook](docs/HARDWARE_GATE_RUNBOOK.md)
 - [Real-time setup](docs/REALTIME_SETUP.md)
 - [Serial latency verification](docs/SERIAL_LATENCY.md)
