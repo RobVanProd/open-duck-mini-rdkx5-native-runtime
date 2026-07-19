@@ -29,8 +29,8 @@ def _arguments() -> str:
 def test_gate3_runner_freezes_complete_no_servo_population() -> None:
     script = _script()
     assert "__FROZEN_GATE3_" not in script
-    assert "1792d9c6975c328a7349efb5b4baec57852d39b3" in script
-    assert "3ab9e7161e04f4faf39acaf03bca3ad4868eab7b16ec94f2861cb10b64866ed0" in script
+    assert "aac7410f241a5419af2257ba9635e6755d7b5ae8" in script
+    assert "d41e516ec52558ec169c0f8f017d8959aed657a999786ed5e8e7716895ced9a0" in script
     assert "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b" in script
     assert "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be" in script
     assert "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08" in script
@@ -38,6 +38,7 @@ def test_gate3_runner_freezes_complete_no_servo_population() -> None:
     assert 'readonly frequency_hz="50"' in script
     assert 'readonly sensor_frequency_hz="100"' in script
     assert 'readonly stale_after_ms="40"' in script
+    assert 'readonly initial_sample_ready_timeout_s="2.0"' in script
     assert 'readonly imu_bus="5"' in script
     assert 'readonly imu_address="0x28"' in script
     assert "servo_bus_accessed" in script

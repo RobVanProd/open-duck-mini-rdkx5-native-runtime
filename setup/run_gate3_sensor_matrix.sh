@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly expected_source_commit="1792d9c6975c328a7349efb5b4baec57852d39b3"
-readonly expected_archive_sha256="3ab9e7161e04f4faf39acaf03bca3ad4868eab7b16ec94f2861cb10b64866ed0"
+readonly expected_source_commit="aac7410f241a5419af2257ba9635e6755d7b5ae8"
+readonly expected_archive_sha256="d41e516ec52558ec169c0f8f017d8959aed657a999786ed5e8e7716895ced9a0"
 readonly expected_config_sha256="131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 readonly expected_calibration_profile_sha256="e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be"
 readonly expected_calibration_source_sha256="a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
@@ -12,6 +12,7 @@ readonly samples="250"
 readonly frequency_hz="50"
 readonly sensor_frequency_hz="100"
 readonly stale_after_ms="40"
+readonly initial_sample_ready_timeout_s="2.0"
 readonly imu_bus="5"
 readonly imu_address="0x28"
 readonly -a labels=(
@@ -44,7 +45,7 @@ Usage: setup/run_gate3_sensor_matrix.sh \
   --source-archive /home/sunrise/open-duck-x5-gate3-<commit>.tar.gz \
   --config /home/sunrise/duck_config.json \
   --calibration-dir /home/sunrise/gate3/calibration-20260718 \
-  --output-dir /home/sunrise/gate3/sensor-matrix-20260718 \
+  --output-dir /home/sunrise/gate3/sensor-matrix-20260718-readybarrier \
   --hardware-authorized --suspended-or-benched
 
 Runs exactly nine interactive, no-servo Gate 3 sensor captures. Before each
@@ -224,7 +225,7 @@ write_metadata() {
     "${expected_source_commit}" "${actual_archive_sha256}" \
     "${actual_config_sha256}" "${actual_profile_sha256}" \
     "${actual_source_sha256}" "${actual_smbus2_version}" \
-    "${completed_labels}" <<'PY'
+    "${initial_sample_ready_timeout_s}" "${completed_labels}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -238,6 +239,7 @@ from pathlib import Path
     profile_sha256,
     calibration_source_sha256,
     smbus2_version,
+    initial_sample_ready_timeout_s,
     completed_labels,
 ) = sys.argv[1:]
 payload = {
@@ -265,6 +267,7 @@ payload = {
     "frequency_hz": 50.0,
     "sensor_frequency_hz": 100.0,
     "stale_after_ms": 40.0,
+    "initial_sample_ready_timeout_s": float(initial_sample_ready_timeout_s),
     "servo_bus_accessed": False,
     "torque_enabled": False,
     "goal_position_writes": 0,

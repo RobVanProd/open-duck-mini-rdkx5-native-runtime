@@ -46,9 +46,9 @@ type the same label passed to the probe before each run.
   (`LSIO_UART2_TX`) and physical pin 13 / BCM27 claims GPIO 379
   (`LSIO_UART7_RX`) as inputs, then releases both cleanly.
 - The exact reviewed source/archive hashes are frozen in the launcher:
-  source commit `1792d9c6975c328a7349efb5b4baec57852d39b3` and
+  corrected source commit `aac7410f241a5419af2257ba9635e6755d7b5ae8` and
   source archive SHA-256
-  `3ab9e7161e04f4faf39acaf03bca3ad4868eab7b16ec94f2861cb10b64866ed0`.
+  `d41e516ec52558ec169c0f8f017d8959aed657a999786ed5e8e7716895ced9a0`.
 
 The GPIO mapping and chip identity are verified by the 2026-07-18 readiness
 inventory. The separately guarded physical calibration is now complete: profile
@@ -68,20 +68,19 @@ that publication is fresh, and only then instantiate the ticker that defines
 the 250-row population. A timeout or stale initial publication publishes no
 label evidence.
 
-The historical launcher form used for the halted attempt was:
+The corrected rerun launcher form is:
 
 ```bash
 bash setup/run_gate3_sensor_matrix.sh \
-  --source-archive /home/sunrise/open-duck-x5-gate3-1792d9c6975c328a7349efb5b4baec57852d39b3.tar.gz \
+  --source-archive /home/sunrise/open-duck-x5-gate3-aac7410f241a5419af2257ba9635e6755d7b5ae8.tar.gz \
   --config /home/sunrise/duck_config.json \
   --calibration-dir /home/sunrise/gate3/calibration-20260718 \
-  --output-dir /home/sunrise/gate3/sensor-matrix-20260718 \
+  --output-dir /home/sunrise/gate3/sensor-matrix-20260718-readybarrier \
   --hardware-authorized --suspended-or-benched
 ```
 
-That source/output pair must not be reused. A corrected source archive and a
-new output directory will be frozen after offline verification. The corrected
-launcher remains blocked until Rob separately authorizes the complete
+The halted source/output pair must not be reused. This corrected launcher
+remains blocked until its separate launcher commit passes CI and Rob authorizes the complete
 nine-label Gate 3 rerun while physically present at the supported robot.
 
 ## Data gates

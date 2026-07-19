@@ -291,17 +291,17 @@ writes a target, or runs a policy:
 
 ```bash
 bash setup/run_gate3_sensor_matrix.sh \
-  --source-archive /home/sunrise/open-duck-x5-gate3-1792d9c6975c328a7349efb5b4baec57852d39b3.tar.gz \
+  --source-archive /home/sunrise/open-duck-x5-gate3-aac7410f241a5419af2257ba9635e6755d7b5ae8.tar.gz \
   --config /home/sunrise/duck_config.json \
   --calibration-dir /home/sunrise/gate3/calibration-20260718 \
-  --output-dir /home/sunrise/gate3/sensor-matrix-20260718 \
+  --output-dir /home/sunrise/gate3/sensor-matrix-20260718-readybarrier \
   --hardware-authorized --suspended-or-benched
 ```
 
-The command above is the historical halted-attempt command and must not be
-reused. Its output is preserved at the named board path and reduced under
-`startup_stale_halt_20260718/`. A corrected archive/output command will replace
-it only after the startup-ready barrier is frozen and CI is green.
+The halted attempt's older source and `sensor-matrix-20260718` output must not
+be reused. Its output remains preserved and is reduced under
+`startup_stale_halt_20260718/`. The corrected command above is blocked until
+the launcher commit is green and Rob gives fresh explicit rerun authorization.
 
 The launcher prompts in frozen order for `upright`, `nose_forward`,
 `nose_back`, `left_tilt`, `right_tilt`, `no_contacts`, `left_contact`,
