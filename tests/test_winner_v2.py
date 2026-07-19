@@ -570,7 +570,7 @@ def test_verifier_writes_cross_platform_lf_json(
     monkeypatch.setattr(
         winner_v2_verifier,
         "verify_handoff",
-        lambda _root: {"status": "PASS_TEST", "value": 1},
+        lambda _root, **_kwargs: {"status": "PASS_TEST", "value": 1},
     )
     output = tmp_path / "result.json"
     assert (
@@ -582,3 +582,49 @@ def test_verifier_writes_cross_platform_lf_json(
     payload = output.read_bytes()
     assert b"\r\n" not in payload
     assert payload.endswith(b"\n")
+
+
+@pytest.mark.parametrize(
+    ("updates", "expected"),
+    [
+        ({}, "PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE"),
+        (
+            {"raw_mismatch_count": 1, "raw_error_counts": 1},
+            "PASS_RECURSIVE_NATIVE_RESOLUTION_CLOSURE",
+        ),
+        (
+            {
+                "target_error_rad": np.nextafter(
+                    winner_v2_verifier.STS_HALF_LSB_RAD, np.inf
+                )
+            },
+            "HOLD_RECURSIVE_NUMERIC_CLOSURE",
+        ),
+        (
+            {"raw_error_counts": 2},
+            "HOLD_RECURSIVE_NUMERIC_CLOSURE",
+        ),
+        (
+            {"component_passed": False},
+            "INVALID_RECURSIVE_CROSS_CPU_STUDY",
+        ),
+    ],
+)
+def test_native_resolution_decision_uses_preregistered_boundaries(
+    updates: dict[str, object],
+    expected: str,
+) -> None:
+    arguments: dict[str, object] = {
+        "component_passed": True,
+        "recursive_x0_exact": True,
+        "target_error_rad": winner_v2_verifier.STS_HALF_LSB_RAD,
+        "observer_error_rad": winner_v2_verifier.STS_HALF_LSB_RAD,
+        "raw_error_counts": 0,
+        "raw_mismatch_count": 0,
+        "classifications_unchanged": True,
+        "raw_range_valid": True,
+    }
+    arguments.update(updates)
+    decision, passed = winner_v2_verifier.native_resolution_decision(**arguments)
+    assert decision == expected
+    assert passed is expected.startswith("PASS_")

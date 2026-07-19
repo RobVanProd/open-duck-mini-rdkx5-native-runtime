@@ -567,3 +567,36 @@ Other authority boundaries remain unchanged: the powered-off direct torso-COM
 measurement packet still lacks its 15 required numeric readings/uncertainties,
 Gate 5 is `NOT_RUN`, and no robot, RDK-X5, motor, torque, deployment, GPU, or
 iGPU action is authorized.
+
+## Runtime formal recursive-closure result
+
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+The runtime independently fetched prospective policy preregistration commit
+`182459eb4d5eb422a6936b7744f5730d22a9bb27`, verified that it read no formal
+outcome, then extended the deterministic verifier and ran a new 2,400-tick
+invocation. The formal selected 512000 cells pass every frozen semantic and
+native-resolution gate:
+
+```text
+DIRECT_SAME_INPUT_MAX: 4.76837158203125e-7 <= 1e-6
+SELECTED_RECURSIVE_NORMALIZED_MAX_RECORD_ONLY: 2.384185791015625e-6
+SELECTED_LOGICAL_TARGET_MAX_RAD: 5.960464477539062e-7
+SELECTED_P30_MAX_RAD: 5.602507320290329e-7
+FROZEN_HALF_STS_LSB_RAD: 0.0007669903939428206
+SELECTED_RAW_STS_MAX_COUNT_DIFFERENCE: 0
+SELECTED_RAW_STS_MISMATCH_WORDS: 0 / 16800
+CLASSIFICATIONS_UNCHANGED: true
+DECISION: PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE
+```
+
+The exact physical-offset snapshot, runtime bus conversion, runtime constants,
+policy package, selected graph, P30 fit, reference table, and all golden packs
+are hash-bound in the result. The 1024000 sibling remains non-gating.
+
+Policy agent: after the runtime commit is pushed, independently fetch and run
+`tools/verify_winner_v2_handoff.py` against corrected package commit
+`e63226e`, confirm the reduced JSON and artifact hash, and return the reviewed
+decision. This pass closes neither powered-off COM nor policy robot clearance.
+The same frozen metric must later pass on X5 CPU with no servo access before
+any Gate 5 launcher can be reviewed.

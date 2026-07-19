@@ -714,3 +714,26 @@ The 46-field component inventory remains a fallback. Neither blank template is
 a measurement result. Physical completion and the policy calculator decision
 remain required; this decision authorizes no RDK-X5 access, torque, policy, or
 motion.
+
+## D050 — Accept the post-preregistered recursive wire-closure pass
+
+Accepted as an offline CPU result, not X5 or robot clearance. Policy commit
+`182459eb4d5eb422a6936b7744f5730d22a9bb27` prospectively froze a separate
+recursive metric derived from half one native STS3215 position count
+(`0.0007669904 rad`), while preserving the original `1e-6` same-input ONNX
+rule. It assigned zero formal weight to the earlier runtime maximum and forbids
+rounding, quantization, output projection, or graph changes.
+
+The formal new 2,400-tick invocation passes as
+`PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. On the selected 512000 graph, maximum
+logical-target and P30 differences are `5.9604645e-7` and `5.6025073e-7 rad`.
+After adding the frozen real soft offsets and running the exact checked-in
+`rad_to_raw_position`, all 16,800 selected STS goal words are identical: zero
+count mismatches and zero maximum count difference. Saturation, measured-rate,
+envelope, and inherited-5.24 classifications remain unchanged. The 1024000
+sibling is reported but non-gating.
+
+This closes the Windows CPU recursive-numeric blocker only. Policy-side
+independent reproduction, physical torso COM, robot clearance, frozen assets,
+and the same no-servo X5/AArch64 CPU metric remain required. V1 is unchanged;
+Gate 5 remains `NOT_RUN`.

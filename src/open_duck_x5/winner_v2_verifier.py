@@ -12,7 +12,8 @@ from typing import Any
 
 import numpy as np
 
-from .constants import ACTION_DIM, CONTROL_PERIOD_NS, HOME_RAD
+from .bus.sts3215 import rad_to_raw_position
+from .constants import ACTION_DIM, CONTROL_PERIOD_NS, HOME_RAD, JOINT_NAMES
 from .winner_v2 import (
     WINNER_V2_HANDOFF_CORRECTION_COMMIT,
     WINNER_V2_HANDOFF_MANIFEST_SHA256,
@@ -34,6 +35,40 @@ from .winner_v2 import (
 TOLERANCE = 1.0e-6
 EXPECTED_TICKS_PER_CELL = 600
 EXPECTED_CELLS = 4
+RECURSIVE_PREREGISTRATION_COMMIT = "182459eb4d5eb422a6936b7744f5730d22a9bb27"
+RUNTIME_STS3215_SOURCE_SHA256 = (
+    "a52b5a1551dce7940aadbd1b6446b91a796d279875d77ee247e4ef1cd43b4aa8"
+)
+RUNTIME_CONSTANTS_SOURCE_SHA256 = (
+    "80ff38cd4a4436b445754051f1de608797f051f1886b142a29bf4f5f8b2f2ca3"
+)
+SOFT_OFFSET_SNAPSHOT_SHA256 = (
+    "298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff"
+)
+STS_POSITION_COUNTS_PER_REVOLUTION = 4096
+STS_POSITION_LSB_RAD = 2.0 * np.pi / STS_POSITION_COUNTS_PER_REVOLUTION
+STS_HALF_LSB_RAD = np.pi / STS_POSITION_COUNTS_PER_REVOLUTION
+MAX_RAW_GOAL_DIFFERENCE = 1
+EXPECTED_SOFT_OFFSETS_RAD = np.asarray(
+    [
+        0.0844,
+        0.0721,
+        -0.089,
+        0.0371,
+        -0.0767,
+        0.0245,
+        0.0,
+        -0.089,
+        -0.0399,
+        0.0951,
+        -0.0476,
+        0.066,
+        0.0798,
+        0.1887,
+    ],
+    dtype=np.float64,
+)
+EXPECTED_SOFT_OFFSETS_RAD.setflags(write=False)
 
 
 def _maximum_error(left: np.ndarray, right: np.ndarray) -> float:
@@ -69,6 +104,71 @@ def _environment() -> dict[str, str]:
         "onnxruntime": metadata.version("onnxruntime"),
         "onnx_execution_provider": "CPUExecutionProvider",
     }
+
+
+def _runtime_identity(runtime_root: Path) -> dict[str, object]:
+    runtime_root = runtime_root.resolve()
+    sts_path = runtime_root / "src" / "open_duck_x5" / "bus" / "sts3215.py"
+    constants_path = runtime_root / "src" / "open_duck_x5" / "constants.py"
+    snapshot_path = (
+        runtime_root / "artifacts" / "contracts" / "legacy-contract-snapshot.json"
+    )
+    _require(
+        sha256_file(sts_path) == RUNTIME_STS3215_SOURCE_SHA256,
+        "runtime STS3215 conversion source identity changed",
+    )
+    _require(
+        sha256_file(constants_path) == RUNTIME_CONSTANTS_SOURCE_SHA256,
+        "runtime constants source identity changed",
+    )
+    _require(
+        sha256_file(snapshot_path) == SOFT_OFFSET_SNAPSHOT_SHA256,
+        "physical soft-offset snapshot identity changed",
+    )
+    snapshot = _load_json(snapshot_path)
+    inputs = snapshot.get("inputs")
+    _require(isinstance(inputs, dict), "contract snapshot inputs are missing")
+    offsets = np.asarray(inputs.get("soft_offsets_rad"), dtype=np.float64)
+    _require(
+        offsets.shape == (ACTION_DIM,)
+        and np.array_equal(offsets, EXPECTED_SOFT_OFFSETS_RAD),
+        "physical soft offsets differ from the frozen recursive preregistration",
+    )
+    return {
+        "sts3215_source_sha256": RUNTIME_STS3215_SOURCE_SHA256,
+        "constants_source_sha256": RUNTIME_CONSTANTS_SOURCE_SHA256,
+        "soft_offset_snapshot_sha256": SOFT_OFFSET_SNAPSHOT_SHA256,
+        "soft_offsets_rad": offsets.tolist(),
+    }
+
+
+def native_resolution_decision(
+    *,
+    component_passed: bool,
+    recursive_x0_exact: bool,
+    target_error_rad: float,
+    observer_error_rad: float,
+    raw_error_counts: int,
+    raw_mismatch_count: int,
+    classifications_unchanged: bool,
+    raw_range_valid: bool,
+) -> tuple[str, bool]:
+    passed = bool(
+        component_passed
+        and recursive_x0_exact
+        and target_error_rad <= STS_HALF_LSB_RAD
+        and observer_error_rad <= STS_HALF_LSB_RAD
+        and raw_error_counts <= MAX_RAW_GOAL_DIFFERENCE
+        and classifications_unchanged
+        and raw_range_valid
+    )
+    if passed and raw_mismatch_count == 0:
+        return "PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE", True
+    if passed:
+        return "PASS_RECURSIVE_NATIVE_RESOLUTION_CLOSURE", True
+    if component_passed:
+        return "HOLD_RECURSIVE_NUMERIC_CLOSURE", False
+    return "INVALID_RECURSIVE_CROSS_CPU_STUDY", False
 
 
 def _verify_manifest(root: Path) -> dict[str, Any]:
@@ -360,6 +460,7 @@ def _verify_recursive_cell(
     root: Path,
     policy_path: Path,
     pack_path: Path,
+    soft_offsets_rad: np.ndarray,
 ) -> dict[str, object]:
     transaction = _make_transaction(
         root,
@@ -379,6 +480,15 @@ def _verify_recursive_cell(
         "phase_after": 0.0,
     }
     x0_bit_exact = True
+    target_error_by_joint = np.zeros(ACTION_DIM, dtype=np.float64)
+    observer_error_by_joint = np.zeros(ACTION_DIM, dtype=np.float64)
+    raw_error_by_joint = np.zeros(ACTION_DIM, dtype=np.int64)
+    raw_runtime = np.zeros(ACTION_DIM, dtype=np.int64)
+    raw_golden = np.zeros(ACTION_DIM, dtype=np.int64)
+    raw_mismatch_count = 0
+    first_raw_mismatch: dict[str, object] | None = None
+    runtime_saturation_any = False
+    runtime_rate_excess_any = False
     with np.load(pack_path, allow_pickle=False) as pack:
         _require(pack["obs"].shape == (600, 115), f"invalid obs shape in {pack_path.name}")
         _require(
@@ -388,6 +498,10 @@ def _verify_recursive_cell(
         _require(
             not bool(np.any(pack["external_5p24_limiter_changed"])),
             f"golden pack records a changed 5.24 limiter: {pack_path.name}",
+        )
+        golden_saturation_any = bool(np.any(pack["action_saturated"]))
+        golden_rate_excess_any = bool(
+            np.any(pack["sent_target_rate_excess_rad_s"] > 0.0)
         )
         command_x = float(pack["command_raw"][0, 0])
         for tick in range(EXPECTED_TICKS_PER_CELL):
@@ -410,7 +524,9 @@ def _verify_recursive_cell(
                 metrics["phase_before"],
                 _maximum_error(transaction.phase.value, pack["phase_before"][tick]),
             )
-            transaction.stage_tick(**_stage_arguments(pack, tick))
+            arguments = _stage_arguments(pack, tick)
+            arguments["soft_offsets_rad"] = soft_offsets_rad
+            transaction.stage_tick(**arguments)
             metrics["observation"] = max(
                 metrics["observation"],
                 _maximum_error(transaction.observation_view, pack["obs"][tick]),
@@ -442,6 +558,47 @@ def _verify_recursive_cell(
                     pack["sent_target_rad"][tick],
                 ),
             )
+            target_error = np.abs(
+                transaction.action_pipeline.logical_target_rad.astype(np.float64)
+                - np.asarray(pack["sent_target_rad"][tick], dtype=np.float64)
+            )
+            np.maximum(target_error_by_joint, target_error, out=target_error_by_joint)
+            runtime_saturation_any = bool(
+                runtime_saturation_any
+                or np.any(np.abs(transaction.normalized_action_view) >= 1.0)
+            )
+            runtime_rate_excess_any = bool(
+                runtime_rate_excess_any
+                or np.any(transaction.action_pipeline.graph_rate_excess_rad_s > 0.0)
+            )
+            golden_physical_target = (
+                np.asarray(pack["sent_target_rad"][tick], dtype=np.float64)
+                + soft_offsets_rad
+            )
+            for joint_index in range(ACTION_DIM):
+                raw_runtime[joint_index] = rad_to_raw_position(
+                    float(transaction.physical_target_view[joint_index])
+                )
+                raw_golden[joint_index] = rad_to_raw_position(
+                    float(golden_physical_target[joint_index])
+                )
+                difference = abs(
+                    int(raw_runtime[joint_index]) - int(raw_golden[joint_index])
+                )
+                raw_error_by_joint[joint_index] = max(
+                    int(raw_error_by_joint[joint_index]), difference
+                )
+                if difference:
+                    raw_mismatch_count += 1
+                    if first_raw_mismatch is None:
+                        first_raw_mismatch = {
+                            "tick": tick,
+                            "joint_index": joint_index,
+                            "joint_name": JOINT_NAMES[joint_index],
+                            "runtime_raw": int(raw_runtime[joint_index]),
+                            "golden_raw": int(raw_golden[joint_index]),
+                            "absolute_count_difference": difference,
+                        }
             if command_x == 0.0:
                 x0_bit_exact = bool(
                     x0_bit_exact
@@ -453,8 +610,31 @@ def _verify_recursive_cell(
                         transaction.policy.staged_state_view,
                         np.zeros(ACTION_DIM, dtype=np.float32),
                     )
+                    and np.array_equal(
+                        transaction.action_pipeline.logical_target_rad,
+                        pack["sent_target_rad"][tick],
+                    )
                 )
             transaction.complete_send(write_succeeded=True)
+            observer_error = np.abs(
+                transaction.observer.value_view.astype(np.float64)
+                - np.asarray(
+                    pack["observer_estimate_next_tick_rad"][tick], dtype=np.float64
+                )
+            )
+            np.maximum(
+                observer_error_by_joint,
+                observer_error,
+                out=observer_error_by_joint,
+            )
+            if command_x == 0.0:
+                x0_bit_exact = bool(
+                    x0_bit_exact
+                    and np.array_equal(
+                        transaction.observer.value_view,
+                        pack["observer_estimate_next_tick_rad"][tick],
+                    )
+                )
             metrics["observer_next"] = max(
                 metrics["observer_next"],
                 _maximum_error(
@@ -478,6 +658,22 @@ def _verify_recursive_cell(
                 f"phase-index-after mismatch at {pack_path.name}:{tick}",
             )
 
+    maximum_target_error_rad = float(target_error_by_joint.max())
+    maximum_observer_error_rad = float(observer_error_by_joint.max())
+    maximum_raw_error = int(raw_error_by_joint.max())
+    classifications = {
+        "golden_saturation_any": golden_saturation_any,
+        "runtime_saturation_any": runtime_saturation_any,
+        "saturation_unchanged": (
+            runtime_saturation_any == golden_saturation_any
+        ),
+        "golden_rate_or_envelope_excess_any": golden_rate_excess_any,
+        "runtime_rate_or_envelope_excess_any": runtime_rate_excess_any,
+        "rate_and_envelope_unchanged": (
+            runtime_rate_excess_any == golden_rate_excess_any
+        ),
+        "external_5p24_limiter_identity": True,
+    }
     return {
         "policy": policy_path.name,
         "policy_sha256": sha256_file(policy_path),
@@ -487,11 +683,41 @@ def _verify_recursive_cell(
         "ticks": transaction.committed_ticks,
         "max_abs_error": metrics,
         "x0_action_and_state_bit_exact_zero": x0_bit_exact,
+        "classifications": classifications,
+        "native_resolution": {
+            "sts_position_lsb_rad": STS_POSITION_LSB_RAD,
+            "sts_half_lsb_rad": STS_HALF_LSB_RAD,
+            "maximum_logical_target_error_rad": maximum_target_error_rad,
+            "maximum_p30_observer_error_rad": maximum_observer_error_rad,
+            "maximum_target_error_sts_counts": (
+                maximum_target_error_rad / STS_POSITION_LSB_RAD
+            ),
+            "maximum_raw_goal_absolute_count_difference": maximum_raw_error,
+            "raw_goal_mismatch_count": raw_mismatch_count,
+            "first_raw_goal_mismatch": first_raw_mismatch,
+            "raw_goal_in_signed_multiturn_range": True,
+            "logical_target_error_by_joint_rad": {
+                name: float(target_error_by_joint[index])
+                for index, name in enumerate(JOINT_NAMES)
+            },
+            "p30_observer_error_by_joint_rad": {
+                name: float(observer_error_by_joint[index])
+                for index, name in enumerate(JOINT_NAMES)
+            },
+            "raw_goal_error_by_joint_counts": {
+                name: int(raw_error_by_joint[index])
+                for index, name in enumerate(JOINT_NAMES)
+            },
+        },
     }
 
 
-def verify_handoff(root: Path) -> dict[str, object]:
+def verify_handoff(root: Path, *, runtime_root: Path | None = None) -> dict[str, object]:
     root = root.resolve()
+    runtime_identity = _runtime_identity(runtime_root or Path.cwd())
+    soft_offsets_rad = np.asarray(
+        runtime_identity["soft_offsets_rad"], dtype=np.float64
+    )
     manifest_result = _verify_manifest(root)
     policy_contract = _load_json(root / "policy_contract.json")
     observation_map = _load_json(root / "observation_map.json")
@@ -553,7 +779,14 @@ def verify_handoff(root: Path) -> dict[str, object]:
             pack_path = root / "golden" / f"T2_EQUAL_{step}_x{command:.3f}.npz"
             semantic_cells.append(_verify_semantic_cell(root, pack_path))
             policy_cells.append(_verify_policy_chain(policy_path, pack_path))
-            recursive_cells.append(_verify_recursive_cell(root, policy_path, pack_path))
+            recursive_cells.append(
+                _verify_recursive_cell(
+                    root,
+                    policy_path,
+                    pack_path,
+                    soft_offsets_rad,
+                )
+            )
     _require(len(semantic_cells) == EXPECTED_CELLS, "expected four golden cells")
     total_ticks = sum(int(cell["ticks"]) for cell in recursive_cells)
     semantic_max_error = max(
@@ -583,10 +816,16 @@ def verify_handoff(root: Path) -> dict[str, object]:
         if cell["policy_sha256"] != WINNER_V2_SELECTED_POLICY_SHA256
         for value in cell["max_abs_error"].values()
     )
-    x0_exact = all(
+    direct_x0_exact = all(
         bool(cell["x0_action_and_state_bit_exact_zero"])
         for cell in policy_cells
         if float(cell["command_x"]) == 0.0
+    )
+    recursive_x0_exact = all(
+        bool(cell["x0_action_and_state_bit_exact_zero"])
+        for cell in recursive_cells
+        if cell["policy_sha256"] == WINNER_V2_SELECTED_POLICY_SHA256
+        and float(cell["command_x"]) == 0.0
     )
     first_policy = root / "policies" / "T2_EQUAL_512000.onnx"
     first_pack = root / "golden" / "T2_EQUAL_512000_x0.000.npz"
@@ -596,21 +835,66 @@ def verify_handoff(root: Path) -> dict[str, object]:
         total_ticks == EXPECTED_CELLS * EXPECTED_TICKS_PER_CELL
         and semantic_max_error <= TOLERANCE
         and policy_max_error <= TOLERANCE
-        and x0_exact
+        and direct_x0_exact
         and faults_pass
     )
-    recursive_passed = selected_recursive_max_error <= TOLERANCE
-    passed = component_passed and recursive_passed
-    if passed:
-        status = "PASS_2400_TICK_OFFLINE_RUNTIME_V2_BLOCKED_FOR_COM_AND_CLEARANCE"
-    elif component_passed:
-        status = "HOLD_RECURSIVE_NUMERIC_CLOSURE_TOLERANCE_REVIEW"
-    else:
-        status = "FAIL_WINNER_V2_OFFLINE_VERIFICATION"
+    selected_recursive_cells = [
+        cell
+        for cell in recursive_cells
+        if cell["policy_sha256"] == WINNER_V2_SELECTED_POLICY_SHA256
+    ]
+    selected_target_error_rad = max(
+        float(cell["native_resolution"]["maximum_logical_target_error_rad"])
+        for cell in selected_recursive_cells
+    )
+    selected_observer_error_rad = max(
+        float(cell["native_resolution"]["maximum_p30_observer_error_rad"])
+        for cell in selected_recursive_cells
+    )
+    selected_raw_error_counts = max(
+        int(cell["native_resolution"]["maximum_raw_goal_absolute_count_difference"])
+        for cell in selected_recursive_cells
+    )
+    selected_raw_mismatch_count = sum(
+        int(cell["native_resolution"]["raw_goal_mismatch_count"])
+        for cell in selected_recursive_cells
+    )
+    selected_classifications_unchanged = all(
+        bool(cell["classifications"]["saturation_unchanged"])
+        and bool(cell["classifications"]["rate_and_envelope_unchanged"])
+        and bool(cell["classifications"]["external_5p24_limiter_identity"])
+        for cell in selected_recursive_cells
+    )
+    selected_raw_range_valid = all(
+        bool(cell["native_resolution"]["raw_goal_in_signed_multiturn_range"])
+        for cell in selected_recursive_cells
+    )
+    status, recursive_passed = native_resolution_decision(
+        component_passed=component_passed,
+        recursive_x0_exact=recursive_x0_exact,
+        target_error_rad=selected_target_error_rad,
+        observer_error_rad=selected_observer_error_rad,
+        raw_error_counts=selected_raw_error_counts,
+        raw_mismatch_count=selected_raw_mismatch_count,
+        classifications_unchanged=selected_classifications_unchanged,
+        raw_range_valid=selected_raw_range_valid,
+    )
+    remaining_blockers = [
+        "completed powered-off direct-reaction torso COM packet",
+        "policy-side robot_clearance=true decision",
+        "reviewed frozen runtime/policy/config asset set",
+        "X5 CPU-only replay under this same frozen native-resolution metric",
+    ]
+    if not recursive_passed:
+        remaining_blockers.insert(
+            0, "selected graph failed the frozen recursive native-resolution gate"
+        )
     return {
-        "schema_version": "open_duck_x5.winner_v2_offline_verification.v1",
+        "schema_version": "open_duck_x5.winner_v2_offline_verification.v2",
         "status": status,
+        "overall_disposition": "BLOCKED_FOR_COM_CLEARANCE_AND_X5_CPU_PREFLIGHT",
         "environment": _environment(),
+        "runtime_identity": runtime_identity,
         "artifact_root_name": root.name,
         "manifest_sha256": manifest_result["manifest_sha256"],
         "manifest_files_checked": manifest_result["files_checked"],
@@ -625,6 +909,17 @@ def verify_handoff(root: Path) -> dict[str, object]:
             "selection_evidence_commit": WINNER_V2_POLICY_SELECTION_EVIDENCE_COMMIT,
             "selection_result_sha256": WINNER_V2_POLICY_SELECTION_RESULT_SHA256,
         },
+        "recursive_preregistration": {
+            "commit": RECURSIVE_PREREGISTRATION_COMMIT,
+            "formal_prior_runtime_outcome_weight": False,
+            "direct_same_input_tolerance": TOLERANCE,
+            "sts_position_counts_per_revolution": (
+                STS_POSITION_COUNTS_PER_REVOLUTION
+            ),
+            "sts_position_lsb_rad": STS_POSITION_LSB_RAD,
+            "sts_half_lsb_rad": STS_HALF_LSB_RAD,
+            "raw_goal_max_abs_count_difference": MAX_RAW_GOAL_DIFFERENCE,
+        },
         "semantic_cells": semantic_cells,
         "policy_chain_cells": policy_cells,
         "recursive_runtime_cells": recursive_cells,
@@ -637,7 +932,24 @@ def verify_handoff(root: Path) -> dict[str, object]:
         "audit_recursive_runtime_max_abs_error": audit_recursive_max_error,
         "component_contract_passed": component_passed,
         "recursive_numeric_closure_passed": recursive_passed,
-        "x0_action_and_state_bit_exact_zero": x0_exact,
+        "direct_x0_action_and_state_bit_exact_zero": direct_x0_exact,
+        "recursive_x0_action_state_target_observer_bit_exact": recursive_x0_exact,
+        "native_resolution_gate": {
+            "selected_logical_target_max_abs_error_rad": selected_target_error_rad,
+            "selected_p30_observer_max_abs_error_rad": selected_observer_error_rad,
+            "selected_raw_goal_max_abs_count_difference": (
+                selected_raw_error_counts
+            ),
+            "selected_raw_goal_mismatch_count": selected_raw_mismatch_count,
+            "selected_classifications_unchanged": (
+                selected_classifications_unchanged
+            ),
+            "selected_raw_goal_range_valid": selected_raw_range_valid,
+            "selected_normalized_action_state_max_abs_error_record_only": (
+                selected_recursive_max_error
+            ),
+            "audit_checkpoint_is_non_gating": True,
+        },
         "fault_injection": fault_injection,
         "authority": {
             "cpu_only": True,
@@ -646,12 +958,7 @@ def verify_handoff(root: Path) -> dict[str, object]:
             "gate5": False,
             "robot_clearance": False,
         },
-        "remaining_blockers": [
-            "reviewed tolerance/decision for recursive cross-CPU numeric closure",
-            "completed powered-off direct-reaction torso COM packet",
-            "policy-side robot_clearance=true decision",
-            "reviewed frozen runtime/policy/config asset set",
-        ],
+        "remaining_blockers": remaining_blockers,
     }
 
 
@@ -660,6 +967,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Verify the reviewed winner-v2 handoff through all 2,400 CPU ticks"
     )
     parser.add_argument("--artifact-root", type=Path, required=True)
+    parser.add_argument("--runtime-root", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path)
     return parser
 
@@ -667,7 +975,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        result = verify_handoff(args.artifact_root)
+        result = verify_handoff(args.artifact_root, runtime_root=args.runtime_root)
     except (OSError, RuntimeError, ValueError, WinnerV2ContractError) as exc:
         print(f"winner-v2 verification failed: {exc}")
         return 2

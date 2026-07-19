@@ -1,6 +1,6 @@
 # Winner-v2 Runtime-v2 Offline Review
 
-Status: `HOLD_RECURSIVE_NUMERIC_CLOSURE_TOLERANCE_REVIEW`
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE — BLOCKED_FOR_COM_AND_X5_PREFLIGHT`
 
 This review covers a separate, default-disabled 115-D winner-v2 implementation.
 It does not modify or route around the frozen 101-D v1 runtime. It has no
@@ -84,33 +84,39 @@ The verifier evaluates four 600-tick cells: selected/audit graphs at `x=0` and
 | Runtime semantic assembly | `2.086162567138672e-7` | pass at `1e-6` |
 | Assembled `obs` tensors | `0` over every field/tick | bit-exact |
 | Frozen-observation ONNX state chain | `4.76837158203125e-7` | pass at `1e-6` |
-| Selected fully recursive action/history chain | `2.384185791015625e-6` | held; no rule preregistered |
-| Audit-only fully recursive action/history chain | `3.814697265625e-6` | held; no rule preregistered |
-| Selected recursive physical target | `5.960464477539062e-7 rad` | recorded |
-| Selected recursive P30 target | `5.602507320290329e-7 rad` | recorded |
+| Selected fully recursive action/history chain | `2.384185791015625e-6` | record-only normalized difference |
+| Audit-only fully recursive action/history chain | `3.814697265625e-6` | non-gating audit |
+| Selected recursive logical target | `5.960464477539062e-7 rad` | pass versus half-LSB `0.0007669904 rad` |
+| Selected recursive P30 target | `5.602507320290329e-7 rad` | pass versus half-LSB `0.0007669904 rad` |
+| Selected raw STS goal difference | `0` counts over 16,800 words | bit-exact wire closure |
 
 Every x=0 action and recurrent state is bit-exact zero. Fault injection passes
 for failed-send rollback, stale data, mixed sample epochs, unsupported command,
 and nonfinite sensor input.
 
-The recursive difference is ordinary float32 cross-CPU ONNX output variation
-feeding back through both recurrent state and observation history. It must not
-be hidden with host rounding, quantization, projection, or post-hoc tolerance.
-The policy side must preregister a recursive cross-CPU acceptance metric before
-this result can be classified.
+The policy side preregistered a separate physical-space closure metric at
+commit `182459eb4d5eb422a6936b7744f5730d22a9bb27`, before the formal rerun.
+It preserves the direct same-input `1e-6` rule and derives its recursive bound
+from half one 4096-count STS3215 position quantum. With the frozen real soft
+offsets and exact runtime `rad_to_raw_position` conversion, every selected raw
+goal word is bit-exact. Saturation, measured-rate/envelope, and inherited-5.24
+classifications remain unchanged. No rounding, quantization, projection, or
+host action repair was introduced.
 
 The machine-readable result is
 `artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json`.
 
 ## Remaining gates
 
-1. Receive a preregistered recursive cross-CPU numeric-closure rule.
+1. Have the policy repository independently rerun the committed formal
+   verifier and record its decision.
 2. Complete the powered-off direct-reaction torso-COM packet and receive the
    policy repository's reviewed result.
 3. Receive policy-side `robot_clearance: true`.
 4. Freeze the accepted runtime, selected graph, fit, reference, config, and
    evidence hashes.
-5. Only then prepare a no-servo X5 CPU benchmark and a separately reviewed,
+5. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
+   after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
 
 Gate 5 remains `NOT_RUN`. Grounded work remains out of scope.
