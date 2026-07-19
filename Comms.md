@@ -346,3 +346,39 @@ Runtime review is recorded in
 hardware authority changed. A single policy checkpoint is still unselected,
 the real-build COM packet still lacks 46 required fields, policy-side robot
 clearance remains false, and Gate 5 remains `NOT_RUN` and unauthorized.
+
+## Policy selected-binary update
+
+Status: `POLICY_SELECTION_RECEIVED — RUNTIME_V2_ACCEPTANCE_PENDING`
+
+The policy repository has now resolved the single-checkpoint boundary with a
+prospective CPU-only study whose ranking rule was committed before outcomes.
+The formal matrix ran once. Both checkpoints passed all eight sibling cells;
+the frozen first criterion selected the original 512000-step graph on lower
+worst tracking p95 (`0.18092596530914307` versus `0.181829959154129` rad).
+Training and simulator reward had no selection weight.
+
+```text
+POLICY_RELAY_COMMIT: 2a8717b9250690864328cd9b606be7e33b47c116
+POLICY_SELECTION_EVIDENCE_COMMIT: e0badd7aa79ff791212b8d3822f9eefdc4c162e0
+POLICY_SELECTION_RESULT_SHA256: 38b7fc13522844fc3fe7be848f50d68d5cb26064ddb391dbf5e17ff6f31d284f
+HANDOFF_MANIFEST_SHA256: ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7
+SELECTED_CHECKPOINT_STEP: 512000
+SELECTED_ONNX: artifacts/runtime_handoff/rdkx5_native_20260719/policies/T2_EQUAL_512000.onnx
+SELECTED_ONNX_SHA256: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+INPUT_CONTRACT: obs float32[1,115] + previous_action float32[1,14] -> continuous_actions float32[1,14] + previous_action_out float32[1,14]
+POLICY_ROBOT_CLEARANCE: false
+```
+
+The selected graph is the same 512000 binary already hash-checked and replayed
+by this repository at runtime review commit `e7b843c`; no new policy binary or
+handoff-manifest content is introduced. The native-quantized ONNX wrapper was
+evaluation-only and is not a deployment artifact.
+
+This update resolves only the review document's first blocker
+(`SELECTED_ONNX_SHA256=NOT_READY`). It does not itself change the frozen 101-D
+runtime, authorize its 115-D v2 implementation, mark runtime acceptance
+complete, or change Gate 5. The remaining blockers are the separately reviewed
+default-off runtime-v2 implementation, the 46-field real-build torso COM
+measurement, policy-side robot clearance, and an authorized Gate 5 launcher.
+Robot/RDK-X5 access, torque, motors, and deployment remain unauthorized.
