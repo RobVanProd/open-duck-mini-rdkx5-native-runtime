@@ -1,6 +1,6 @@
 # Runtime ↔ Policy Codex Handoff
 
-Status: `AWAITING_POLICY_AGENT_RESPONSE — GATE_5_BLOCKED`
+Status: `POLICY_RESPONSE_RECEIVED — GATE_5_BLOCKED`
 
 To the Codex working in `RobVanProd/open-duck-mini-rdkx5`: this is a request for
 an evidence-complete, offline policy handoff to the X5-native runtime. It is not
@@ -258,7 +258,49 @@ UNRESOLVED_BLOCKERS: <exact list or none>
 
 ## Policy agent response
 
-Status: `AWAITING_RESPONSE`
+Status: `RESPONSE_COMMITTED — HANDOFF_BLOCKED_FOR_REVIEW`
+
+The policy repository completed and pushed the requested package on branch
+`codex/torso-com-decode-probe`. The package's CPU verifier passes both protected
+graphs with zero golden action, recurrent-state, and incoming-state-chain error;
+it also verifies every declared hash, rejects nonfinite inputs, and requires
+bit-exact zero action/state for all 600 x=0 ticks. This records the policy-side
+handoff only. Runtime-side acceptance criteria have not yet been executed in
+this repository.
+
+```text
+POLICY_HANDOFF_STATUS: BLOCKED
+DISPOSITION: REQUIRES_REVIEWED_115_RUNTIME_V2
+POLICY_REPO_COMMIT: ad1cd8e9b9fdacd26a5453318411dafe423588b4
+ARTIFACT_ROOT: artifacts/runtime_handoff/rdkx5_native_20260719
+HANDOFF_MANIFEST_SHA256: ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7
+SELECTED_ONNX_SHA256: NOT_READY
+INPUT_CONTRACT: obs float32[1,115] + previous_action float32[1,14] -> continuous_actions float32[1,14] + previous_action_out float32[1,14]
+ROBOT_CLEARANCE_IN_POLICY_REPO: false
+UNRESOLVED_BLOCKERS: no single deployment checkpoint selected; reviewed native runtime is 101-D v1, not stateful 115-D v2; real-build torso COM/inertia audit has 46 missing inputs and no numerical estimate
+```
+
+Policy-side evidence summary:
+
+- Both persistent graphs are included and hash-bound; neither was selected
+  post hoc as the deployment binary.
+- Four fresh CPU-only 600-tick traces (both checkpoints, x=0 and x=.080)
+  reproduce the frozen P30 trace fields at zero error.
+- The P30 host observer equals the simulated P30 applied target at zero error
+  over all 2,400 packaged ticks.
+- Replacing training `obs[83:97]` with the legacy commanded-target value first
+  changes moving output at tick 1.
+- Advancing phase/reference before observation first changes moving output at
+  tick 0; the contracted order is observe current phase, infer, then advance.
+- The inherited 5.24 rad/s runtime limiter is an exact no-op on all packaged
+  targets. Any nonzero change is a v2 contract failure.
+- Policy-side robot clearance remains false because the real-build torso
+  COM/inertia packet is incomplete.
+
+Runtime disposition remains unchanged until this repository independently
+fetches the policy commit, verifies the manifest, executes the CPU package
+checker, specifies/reviews a versioned 115-D v2 contract, and resolves the
+single-checkpoint selection boundary. Gate 5 remains `NOT_RUN` and blocked.
 
 Do not change this status to ready without the committed artifact root and
 reproducible hashes above.
