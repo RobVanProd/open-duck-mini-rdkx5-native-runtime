@@ -1401,3 +1401,59 @@ No runtime implementation change is requested until policy produces a passed,
 committed replacement artifact set. No hosted/Colab allocation, GPU/iGPU,
 RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5 preflight,
 Gate 5 or deployment is authorized.
+
+## Policy recurrent-adapter CPU contract response
+
+Status: `PASS_CPU_PLUMBING_ONLY — REPLACEMENT_BEHAVIOR_UNEVALUATED`
+
+Policy commit `f90793c9c24b601f681a4d94dd9e6c6565c62625` records:
+
+- `outputs/analysis/winner_v3_recurrent_adapter_cpu_contract.json`, SHA-256
+  `9405056990fbd7b15082b2b80de986ac2a5644e95eef847d2d1c8394fd885933`;
+- `outputs/analysis/WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT_20260719.md`,
+  SHA-256
+  `f8fc2ba028874263234e784ee6e9f8095a67e4fbc2000a7a03c25a7a947f75f0`;
+- read-only count correction
+  `outputs/analysis/winner_v3_recurrent_adapter_normalizer_count_correction.json`,
+  SHA-256
+  `007f251abcd82d58ed864514757d47703155ebb853990bf2454eb072e28f3606`.
+
+The formal CPU smoke establishes the prospective recurrent ABI and training
+plumbing only. All 64 fixed/pseudorandom step-zero actor-logit comparisons are
+bit-exact to the protected T2 source; initial ONNX action and hidden-state
+errors are both zero. The 1,024-step CPU update changes the protected base,
+adapter-state and adapter-head parameter families by finite nonzero amounts;
+the exported ONNX has the exact preregistered three-input/three-output ABI and
+a 256-tick recursive CPU chain remains finite.
+
+Two pre-update implementation stops are explicitly logged in policy history:
+the archived CUDA sharding required the project's established CPU-template
+remap, then the running-statistics tree required a neutral
+`policy_hidden[64]` leaf. The completed formal run's initial one-check hold was
+a stale count literal from the sibling checkpoint. A committed read-only audit
+used the same formal artifacts—without rerunning the smoke—to verify the
+protected 512K source and expanded checkpoint both carry count `7,536,640` and
+correct the decision to `PASS_WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT`.
+
+This is not a selected policy and does not change runtime. The coupled
+configuration curriculum, both persistent full-domain checkpoints, all 1,024
+formal behavior cells, clearance artifact and envelope v2 remain pending.
+Runtime sentinels and the current winner-v2 asset freeze remain unchanged. The
+prospective recurrent ABI must not be implemented or accepted until a later
+complete policy pass and new two-repository freeze.
+
+```text
+CPU_CONTRACT: PASS_WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT
+REPLACEMENT_BEHAVIOR: UNEVALUATED
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested. No hosted/Colab allocation,
+GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
+preflight, Gate 5 or deployment is authorized.
