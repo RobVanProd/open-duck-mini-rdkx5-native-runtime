@@ -1011,3 +1011,19 @@ The reviewer writes outside the immutable run directory and preserves
 `REVIEW_REQUIRED` plus all-false hardware authority. A self-reported preflight
 summary or coherently rehashed tamper is therefore insufficient. This adds no
 robot, serial, torque, motion, deployment, or Gate 5 authority.
+
+## D064 — Compute envelope closure before modifying either launcher
+
+Accepted offline only. The policy-envelope closure tool requires an
+independently supplied envelope SHA-256, validates the complete 73-bound schema,
+requires the expected policy repository and 115-D contract, and confirms the
+envelope ONNX equals the runtime's currently selected ONNX. It pins both
+pending launcher template hashes and computes the two exact post-replacement
+hashes in memory without writing either script.
+
+A changed ONNX is not patched into the launchers; it stops with a requirement
+to repeat the two-repository asset freeze. A structurally accepted closure plan
+still requires external verification of the policy commit and preregistration
+artifact, then an exact two-line sentinel replacement and reviewer re-freeze.
+All robot, serial, torque, motion, deployment, and Gate 5 authority remains
+false.

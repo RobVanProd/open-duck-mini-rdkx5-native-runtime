@@ -1131,3 +1131,24 @@ It rehashes the complete evidence population, recomputes all 20,000 timing
 samples and gates from JSONL, verifies the exact frozen identities and governor
 restoration, and rejects coherently rehashed summary/governor/runner tampering.
 Its output remains `REVIEW_REQUIRED` with all hardware authority false.
+
+## Runtime deterministic policy-envelope closure
+
+Status: `READY_PENDING_POLICY_ENVELOPE — NO_LAUNCHER_EDIT`
+
+Runtime commit `d98a7588a07c94a9648a31b4b4d071b92a307ff6` adds
+`prepare_policy_envelope_closure`; its implementation SHA-256 is
+`999056af944e19706383c9f0b1457028d50e08456079411c81fc3f1b07e486e5`.
+The tool requires the independently supplied envelope SHA-256, validates the
+complete supported-configuration schema, and requires policy repository
+`RobVanProd/open-duck-mini-rdkx5`, contract `winner-v2-115d`, and the exact
+currently frozen ONNX SHA-256. It verifies the existing automatic-calibration
+and X5 CPU-preflight launcher hashes, then computes both exact post-sentinel
+hashes without modifying either file.
+
+If the policy response selects a different ONNX, the tool deliberately rejects
+closure and requires a new two-repository asset freeze. If the ONNX is
+unchanged, structural acceptance still requires runtime to verify the policy
+commit and preregistration artifact before applying exactly the two sentinel
+replacements and re-freezing the preflight reviewer. No hardware or motion
+authority changes.

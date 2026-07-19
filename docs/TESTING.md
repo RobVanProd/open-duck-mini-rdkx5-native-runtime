@@ -98,6 +98,7 @@ The stateful winner-v2 X5 preflight has a separate no-servo entry point:
 ```bash
 preflight_winner_v2_cpu --help
 review_winner_v2_cpu_preflight --help
+prepare_policy_envelope_closure --help
 bash -n setup/run_winner_v2_cpu_preflight.sh
 ```
 
@@ -108,6 +109,12 @@ After the frozen X5 invocation, run the independent reviewer with the immutable
 run directory, the exact preregistered envelope SHA-256, and an output path
 outside that directory. Acceptance requires its recomputation of all 20,000
 JSONL samples; the preflight summary alone is not evidence.
+
+Before replacing either pending-envelope sentinel, run the no-write closure
+checker with the envelope path and its independently supplied SHA-256. It
+validates the policy envelope and current asset identity, pins both launcher
+templates, and reports their exact candidate hashes without modifying them. A
+new ONNX must stop here for a complete two-repository asset re-freeze.
 
 Mock timing is informational only. It validates accounting and artifact
 production; it cannot authorize a phase or trigger the native-extension

@@ -36,6 +36,10 @@ measurement, or policy inference is used.
   `7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`
 - final launcher SHA-256 after inserting the reviewed envelope identity:
   `PENDING — NO PHYSICAL RUN PERMITTED`
+- deterministic no-write closure implementation commit:
+  `d98a7588a07c94a9648a31b4b4d071b92a307ff6`
+- `src/open_duck_x5/policy_envelope_closure.py` SHA-256:
+  `999056af944e19706383c9f0b1457028d50e08456079411c81fc3f1b07e486e5`
 
 The source archive can be reproduced only as:
 
@@ -110,7 +114,10 @@ policy envelope. There is no measurement waiver and no closest-result pass.
 After the policy envelope arrives, runtime must independently validate it and
 commit a closure artifact containing its repository commit, artifact path,
 artifact SHA-256, selected ONNX SHA-256, and the final launcher SHA-256 after
-the one-value sentinel replacement. Only
+the one-value sentinel replacement. The frozen no-write closure tool must first
+confirm both pending launcher template hashes, independently supplied envelope
+SHA-256, complete envelope schema, and exact selected ONNX identity. A changed
+ONNX blocks closure and requires a new two-repository asset freeze. Only
 then may Rob explicitly authorize this exact supported moving sequence.
 
 Current authority remains: physical collection `NOT_RUN`, robot clearance

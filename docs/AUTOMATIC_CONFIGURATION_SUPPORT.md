@@ -176,6 +176,14 @@ checked-in form contains a non-SHA policy-envelope sentinel and exits before
 checking `/dev/ttyS1`; the only remaining launcher edit is replacement with the
 independently reviewed envelope SHA-256 followed by a new hash closure.
 
+`prepare_policy_envelope_closure` makes that future edit reviewable before it
+happens. It accepts the envelope only with an independently supplied matching
+SHA-256, validates its complete schema, requires the exact currently frozen
+selected ONNX, pins both pending launcher templates, and computes the exact two
+candidate hashes without writing the scripts. A changed ONNX fails with an
+asset-refreeze requirement; structural acceptance still leaves policy commit
+and preregistration provenance review outstanding.
+
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
 be represented in the policy domain rather than entered manually. Missing a
 contract-required leg, neck/head actuator, IMU, or contact sensor cannot be
