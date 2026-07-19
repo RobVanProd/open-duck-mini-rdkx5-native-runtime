@@ -380,27 +380,30 @@ independent current-validator pass are recorded under
 
 ## Gate 4 — Sine sweeps
 
-- Suspended; one approved joint/group at a time.
-- Frequencies: 0.25 and 0.5 Hz. Amplitude: 0.03 rad.
+- Suspended/benched; the frozen joint is `left_hip_yaw` (servo ID 20).
+- Frequencies: 0.25 then 0.5 Hz. Amplitude: 0.03 rad.
+- Populations: a 10,000-tick torque-off preflight and 10,000 ticks at each
+  frequency. The 0.5 Hz population is blocked unless 0.25 Hz passes.
 - Required simultaneously: tracking p95 <= 0.011 rad and all Gate 2 timing limits green.
 
-Run 0.25 Hz and 0.5 Hz as separate reviewed artifacts. Example after explicit
-authorization for the named joint:
+Use the frozen launcher only after its published source/archive hashes have
+green CI and Rob gives fresh authorization for the exact moving sequence:
 
 ```bash
-runtime_timing_probe --bus serial --config ~/duck_config.json \
-  --require-realtime --rt-cpu 7 --rt-priority 80 \
-  --enable-torque --moving-gate-authorized \
-  --watchdog-failures 2 \
-  --hardware-authorized --suspended-or-benched \
-  --sine-joint left_hip_yaw --sine-hz 0.25 --amplitude-rad 0.03 \
-  --ticks 10000 --output gate4-025.jsonl --summary gate4-025-summary.json
+sudo setup/run_gate4_sine_tracking.sh \
+  --source-archive /home/sunrise/open-duck-x5-gate4-<commit>.tar.gz \
+  --config /home/sunrise/duck_config.json \
+  --output-dir /home/sunrise/duck-evidence/gate4-left-hip-yaw-<date> \
+  --hardware-authorized --suspended-or-benched --moving-gate-authorized
 ```
 
 Timing schema v2 records all 14 sent targets, actual positions, and absolute
 errors. The summary calculates tracking p95 directly; a timing-only artifact
 with torque disabled reports no valid tracking samples and cannot pass Gate 4.
-Only exact 0.25/0.5 Hz, 0.03 rad runs can set the Gate 4 candidate field.
+The independent Gate 4 validator rehashes and reconstructs both sine streams;
+only exact 0.25/0.5 Hz, 0.03 rad runs can produce `REVIEW_CANDIDATE`. See
+`artifacts/gates/phase_7_hardware/gate_4_sine_tracking/PRE_REGISTRATION.md` for
+the complete frozen thresholds and stop rules.
 
 ## Gate 5 — Suspended policy replay
 

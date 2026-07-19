@@ -68,6 +68,12 @@ authorization assertions, RT partition, moving-gate scope, and final cutoff
 status. The comparison builder rejects halted/incomplete summaries, refuses
 source overwrite, and labels serial results `REVIEW_REQUIRED` rather than
 minting an automatic hardware pass.
+Gate 4 adds a frozen sequential launcher and an independent raw-stream
+validator. The validator reconstructs the exact left-hip-yaw sine target for
+every row, rehashes the JSONL, recomputes timing/tracking statistics, and rejects
+summary booleans that disagree with the direct values. Static launcher tests
+prove that device, joint, amplitude, frequency order, duration, and RT settings
+cannot be overridden from the command line.
 Gate 1 uses the same evidence discipline for its torque-off single-servo stream,
 including response framing and a hardware-only review candidate field.
 

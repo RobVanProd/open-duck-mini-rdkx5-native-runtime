@@ -301,6 +301,43 @@ def test_probe_home_move_hard_overrun_reaches_torque_off(
     assert bus.torque_enabled is False
 
 
+def test_moving_probe_device_alarm_halts_and_reaches_torque_off(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    class AlarmBus(probe.MockSTS3215Bus):
+        def exchange_into(self, target_positions_rad, snapshot, tick):
+            result = super().exchange_into(target_positions_rad, snapshot, tick)
+            snapshot.device_status[0] = 0x01
+            return result
+
+    bus = AlarmBus(latency_s=0.0)
+    monkeypatch.setattr(probe, "MockSTS3215Bus", lambda **_kwargs: bus)
+    args = probe.build_parser().parse_args(
+        [
+            "--bus",
+            "mock",
+            "--enable-torque",
+            "--home-seconds",
+            "0.001",
+            "--ticks",
+            "2",
+            "--mock-latency-ms",
+            "0",
+            "--output",
+            str(tmp_path / "alarm.jsonl"),
+            "--summary",
+            str(tmp_path / "alarm-summary.json"),
+        ]
+    )
+    args.stop_signal = None
+
+    summary = probe.run_probe(args)
+
+    assert summary["run_status"] == "HALTED"
+    assert summary["halt_reason"] == "servo device alarm during moving probe: 20:0x01"
+    assert bus.torque_enabled is False
+
+
 def test_serial_movement_needs_gate_assertion_before_opening_bus(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         main(

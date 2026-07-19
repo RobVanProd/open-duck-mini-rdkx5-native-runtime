@@ -87,13 +87,19 @@ def _sha256(path: Path) -> str:
 
 
 def _device_alarm_details(bus, snapshot: ServoSnapshot) -> str:
-    return ", ".join(
+    details = [
         f"{servo_id}:0x{int(device_status):02x}"
         for servo_id, device_status in zip(
             bus.ids, snapshot.device_status, strict=True
         )
         if int(device_status) != 0
-    )
+    ]
+    if snapshot.extended_device_status:
+        details.append(
+            f"extended-{snapshot.extended_servo_id}:"
+            f"0x{int(snapshot.extended_device_status):02x}"
+        )
+    return ", ".join(details)
 
 
 def _verify_servos(
@@ -108,7 +114,7 @@ def _verify_servos(
             if int(code) != int(ErrorCode.OK)
         ]
         raise RuntimeError("servo verification failed: " + ", ".join(failures))
-    if reject_device_alarms and snapshot.device_alarm_count:
+    if reject_device_alarms and snapshot.any_device_alarm:
         raise RuntimeError(
             "servo verification reported device alarm: "
             + _device_alarm_details(bus, snapshot)
@@ -149,7 +155,7 @@ def _move_home_slowly(
         bus.read_state_into(snapshot)
         if not snapshot.all_fresh:
             raise RuntimeError("home move read failed")
-        if snapshot.device_alarm_count:
+        if snapshot.any_device_alarm:
             raise RuntimeError(
                 "home move device alarm: " + _device_alarm_details(bus, snapshot)
             )
@@ -312,6 +318,11 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             targets[:] = physical_home
             targets[sine_joint_index] += args.amplitude_rad * math.sin(phase)
             bus.exchange_into(targets, snapshot, tick)
+            if args.enable_torque and snapshot.any_device_alarm:
+                raise WatchdogTrip(
+                    "servo device alarm during moving probe: "
+                    + _device_alarm_details(bus, snapshot)
+                )
             tick_period_ns = (
                 tick_start_ns - previous_tick_start_ns if previous_tick_start_ns else 0
             )
