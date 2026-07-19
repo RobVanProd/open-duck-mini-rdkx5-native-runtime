@@ -1,0 +1,26 @@
+{
+  "amplitude_rad": 0.03,
+  "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+  "final_validation_status": 0,
+  "frequency_order_hz": [
+    0.25,
+    0.5
+  ],
+  "governor_restore_status": 0,
+  "home_seconds": 5.0,
+  "policy_loaded": false,
+  "preflight_probe_status": 0,
+  "preflight_torque_enable_requested": false,
+  "preflight_validation_status": 0,
+  "schema_version": "open_duck_x5.gate4_runner.v1",
+  "serial_device": "/dev/ttyS1",
+  "sine_0_25_probe_status": 0,
+  "sine_0_25_validation_status": 0,
+  "sine_0_5_probe_status": 0,
+  "sine_0_5_validation_status": 0,
+  "sine_joint": "left_hip_yaw",
+  "sine_torque_enable_requested": true,
+  "source_archive_sha256": "5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8",
+  "source_commit": "c5f27598b68fa7d69d81d0675f50a06435ecdaf8",
+  "ticks_per_stage": 10000
+}

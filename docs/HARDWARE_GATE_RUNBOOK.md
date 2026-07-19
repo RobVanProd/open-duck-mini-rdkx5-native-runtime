@@ -405,6 +405,14 @@ only exact 0.25/0.5 Hz, 0.03 rad runs can produce `REVIEW_CANDIDATE`. See
 `artifacts/gates/phase_7_hardware/gate_4_sine_tracking/PRE_REGISTRATION.md` for
 the complete frozen thresholds and stop rules.
 
+Reviewed result: the exact frozen sequence completed on 2026-07-19. Both
+10,000-tick moving populations passed: tracking p95 was `0.006940 rad` at
+0.25 Hz and `0.009892 rad` at 0.5 Hz; worst tick p99.9 was `20.010044 ms` and
+worst bus maximum was `4.574218 ms`, with zero transaction failures, bursts,
+alarms, or telemetry drops. Torque-off and governor restoration were confirmed.
+Rob observed smooth motion with nothing weird. Gate 4 is `PASS_REVIEWED`; this
+does not authorize Gate 5.
+
 ## Gate 5 — Suspended policy replay
 
 - Golden observation/action comparison must already pass.

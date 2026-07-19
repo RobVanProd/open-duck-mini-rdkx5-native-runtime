@@ -14,13 +14,13 @@ Current rebuild state:
 
 ```text
 This repository and branch agent/measurement-contract-evidence are the active
-RDK-X5 runtime rebuild. Hardware Gates 1-3 are PASS_REVIEWED. Gate 4 is the
-next sequential gate: its source/archive/launcher/validator contract is frozen,
-CI is green, and execution remains NOT_RUN until Rob gives the exact supported
-left-hip-yaw sine-sequence authorization required by the preregistration.
+RDK-X5 runtime rebuild. Hardware Gates 1-4 are PASS_REVIEWED. Gate 4 completed
+the exact frozen supported left-hip-yaw sine sequence with timing and tracking
+gates simultaneously green, and its reduced evidence is committed.
 
 Gate 4 has no policy or COM dependency. The separate ground-up winner is a
 stateful 115-D family and is not silently compatible with this repository's
-frozen 101x14.v1 Gate 5 interface. Do not feed it to Gate 5, add an adapter, or
-change observation semantics without a separately reviewed handoff decision.
+frozen 101x14.v1 Gate 5 interface. Gate 5 remains NOT_RUN and unauthorized. Do
+not feed the 115-D winner to Gate 5, add an adapter, or change observation
+semantics without a separately reviewed handoff decision.
 ```

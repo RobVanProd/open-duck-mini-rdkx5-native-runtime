@@ -1,0 +1,16 @@
+{
+  "amplitude_rad": 0.0,
+  "bus_max_ms": 4.37426,
+  "frequency_hz": 0.25,
+  "moving": false,
+  "read_burst_count": 0,
+  "stage": "preflight",
+  "summary_sha256": "fff44a1c35b2dcae4b22a074bdea2e58b14d27451242c35ae0fbd61faee29192",
+  "tick_p99_9_ms": 20.009002002,
+  "tick_p99_ms": 20.002752,
+  "ticks": 10000,
+  "timing_sha256": "a2c9e6cb053b4728b0cd10069e7e9933599ee368654bf0d5ba299801300cc803",
+  "torque_off_status": "ok",
+  "tracking_p95_rad": null,
+  "transaction_failure_percent": 0.0
+}

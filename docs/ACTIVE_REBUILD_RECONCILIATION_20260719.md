@@ -1,6 +1,6 @@
 # Active Rebuild Track Reconciliation
 
-Status: `NATIVE_RUNTIME_ACTIVE_GATE4_NEXT`
+Status: `NATIVE_RUNTIME_GATE4_PASS_GATE5_BLOCKED`
 
 ## Authority split
 
@@ -29,35 +29,33 @@ Pinned policy evidence at source commit
 
 On branch `agent/measurement-contract-evidence`:
 
-- Gates 1, 2, and 3 are `PASS_REVIEWED` with committed reduced evidence;
-- Gate 4 is `NOT_RUN` and fully frozen at source commit
+- Gates 1, 2, 3, and 4 are `PASS_REVIEWED` with committed reduced evidence;
+- Gate 4 used the source frozen at commit
   `c5f27598b68fa7d69d81d0675f50a06435ecdaf8`;
 - its source archive SHA-256 is
   `5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8`;
-- binding commit `2d2e46c99d6c890676bc2cb4a5c2501b9a2b33b9` is the branch tip at
-  reconciliation time;
-- PR #1 is mergeable and both offline CI checks pass;
+- binding commit `2d2e46c99d6c890676bc2cb4a5c2501b9a2b33b9` froze the launcher and
+  validator before execution;
+- the exact 30,000-tick sequence completed on 2026-07-19, with tracking p95
+  `0.006940 rad` at 0.25 Hz and `0.009892 rad` at 0.5 Hz;
+- worst tick p99.9 was `20.010044 ms`, worst bus maximum was `4.574218 ms`, and
+  transaction failures, read bursts, alarms, and telemetry drops were all zero;
+- final torque-off, UART release, and governor restoration were confirmed;
+- Rob observed smooth motion with nothing weird;
+- PR #1 carries the reviewed reduced evidence and offline CI checks;
 - a fresh local CPU verification passes ruff, 214 pytest cases, the required
   250-tick mock population, and the complete artifact manifest.
 
 The fresh local mock remains `INFORMATIONAL_ONLY`; it is not Gate 4 evidence
 and its host-specific timing values are not promoted into a reviewed artifact.
 
-## Correct next boundary
+## Current boundary
 
-Gate 4 is the next sequential rebuild step. It uses no policy or ONNX graph and
-does not depend on the unresolved real-build torso-COM measurement. Its exact
-physical scope remains the preregistered supported/benched left-hip-yaw
-(servo 20) sequence: torque-off 10,000-tick preflight, then 0.03 rad at 0.25 Hz,
-then 0.5 Hz only if the first moving population independently passes.
-
-The gate remains unauthorized until Rob explicitly approves that exact moving
-sequence while physically present. No parameter, joint, duration, frequency,
-amplitude, timing threshold, or stop rule may change after authorization.
-
-If Gate 4 passes, Gate 5 is still a separate decision. A legacy 101-D policy
+Gate 4 is complete and does not authorize Gate 5. A legacy 101-D policy
 can exercise the frozen 101x14.v1 stack only under its Gate 5 contract. The
 115-D composite winner requires a separately reviewed interface/handoff path;
 it must not be mislabeled as 101-D, wrapped ad hoc, or treated as robot-cleared.
 The separate COM measurement remains relevant to eventual winner deployment,
-not to completion of native-runtime Gate 4.
+not to the completed native-runtime Gate 4. Until the observation/action handoff
+is resolved with golden vectors and an explicitly reviewed deployable export,
+Gate 5 remains `NOT_RUN`, blocked, and unauthorized.
