@@ -21,11 +21,12 @@ pitch/roll rate, and acceleration norm.
 
 `validate_configuration_support` verifies one complete evidence chain:
 
-- an `open_duck_x5.automatic_configuration_profile.v3` generated profile;
+- an `open_duck_x5.automatic_configuration_profile.v4` generated profile;
 - its immutable excitation JSONL and metadata inputs;
 - the exact `duck_config.json` whose soft offsets define physical home; and
 - an `open_duck_x5.supported_configuration_envelope.v1` artifact produced by
-  the policy repository after its robustness gate passes.
+  the policy repository after its robustness gate passes and frozen before the
+  physical response is collected.
 
 The validator is strict and fail-closed. It requires:
 
@@ -46,10 +47,13 @@ The validator is strict and fail-closed. It requires:
   configurations; and
 - every automatically observed metric inside the policy-provided bounds.
 
-Before comparison, the validator regenerates the profile from the supplied
-trace, metadata, and configuration. The profile must reproduce structurally
-and numerically (maximum absolute numeric difference `1e-9`) and its three
-SHA-256 identities must match those raw inputs. Supplying a hand-edited profile
+Before comparison, the validator verifies that the envelope file SHA-256 is the
+same identity precommitted in the physical metadata/profile. It then
+regenerates the profile from the supplied trace, metadata, and configuration.
+The profile must reproduce structurally
+and numerically (maximum absolute numeric difference `1e-9`), its three
+raw-input SHA-256 identities must match, and its fourth identity must match the
+precommitted envelope. Supplying a hand-edited profile
 with plausible hash strings cannot produce the full-chain PASS status.
 
 The profile schema has no field for an entered mass, COM, inertia, scale
@@ -80,15 +84,16 @@ or manually measured evidence is rejected.
 `build_automatic_configuration_profile` converts immutable raw excitation
 evidence into the profile above. It accepts:
 
-- `open_duck_x5.configuration_excitation_metadata.v2` JSON; and
+- `open_duck_x5.configuration_excitation_metadata.v3` JSON; and
 - contiguous `open_duck_x5.configuration_excitation_tick.v2` JSONL.
 
 The metadata freezes 50 Hz, the complete tick count, one contiguous stage per
 joint in frozen joint order, fit horizon, minimum excitation, current-sample
 coverage, hardware inventory, authorization, supported state, zero telemetry
 drops, final torque-off, the exact configuration SHA-256, and the physical home
-vector derived from frozen home plus that configuration's soft offsets. It has
-no accepted physical-parameter field.
+vector derived from frozen home plus that configuration's soft offsets. Serial
+metadata also requires the already-frozen policy-envelope SHA-256. It has no
+accepted physical-parameter field.
 
 Every raw row contains the stage label, tick and bus timing, 14 sent targets,
 14 measured positions, per-joint current samples or nulls, gyro, acceleration,
@@ -129,7 +134,9 @@ using a smooth two-frequency signal that begins and ends at home, stays within
 preallocated background writer. The serial path requires isolated-core
 `SCHED_FIFO`, the exact BNO055 calibration, and all four explicit assertions:
 `--hardware-authorized`, `--suspended-or-benched`,
-`--moving-gate-authorized`, and `--configuration-calibration-authorized`.
+`--moving-gate-authorized`, and `--configuration-calibration-authorized`, plus
+`--policy-envelope` pointing to a structurally valid, already-passed policy
+envelope. The envelope is parsed and hashed before the serial bus is opened.
 
 The collector preserves this sequence:
 
@@ -154,8 +161,8 @@ collect_automatic_configuration \
 ```
 
 The serial command is intentionally not presented as an executable gate: its
-source/config/calibration hashes and exact motion authorization must be frozen
-in a reviewed run artifact first. No physical collection has been run or
+source/config/calibration/envelope hashes and exact motion authorization must
+be frozen in a reviewed run artifact first. No physical collection has been run or
 authorized by this work, so physical status remains `NOT_RUN`.
 
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
@@ -164,6 +171,7 @@ contract-required leg, neck/head actuator, IMU, or contact sensor cannot be
 silently hidden from the frozen policy interface; walking remains disabled,
 while torque-off diagnostics can still report the missing hardware.
 
-This module does not modify the frozen 101-D v1 observation contract or the
-separate 115-D winner-v2 contract, does not load ONNX, and has no serial, GPIO,
-I2C, torque, or motion path.
+The profile builder and support validator do not modify the frozen 101-D v1
+observation contract or the separate 115-D winner-v2 contract and never load
+ONNX. The distinct guarded collector owns the serial, GPIO, I2C, torque, and
+bounded calibration-motion path described above.

@@ -10,9 +10,9 @@ from typing import Any
 
 from .constants import CONTROL_FREQUENCY_HZ, JOINT_NAMES, SERVO_IDS
 
-PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v3"
+PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v4"
 ENVELOPE_SCHEMA_VERSION = "open_duck_x5.supported_configuration_envelope.v1"
-RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v2"
+RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v3"
 AUTOMATIC_METHOD = "automatic_supported_excitation"
 MINIMUM_TORSO_X_COM_M = (-0.05, 0.05)
 
@@ -156,6 +156,7 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
             "trace_sha256",
             "metadata_sha256",
             "configuration_sha256",
+            "policy_envelope_sha256",
             "manual_measurements_used",
             "hardware_authorized",
             "motion_authorized",
@@ -175,6 +176,7 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
     _sha256_string(source["trace_sha256"], "profile.source.trace_sha256")
     _sha256_string(source["metadata_sha256"], "profile.source.metadata_sha256")
     _sha256_string(source["configuration_sha256"], "profile.source.configuration_sha256")
+    policy_envelope_sha256 = source["policy_envelope_sha256"]
     if _boolean(
         source["manual_measurements_used"],
         "profile.source.manual_measurements_used",
@@ -194,6 +196,10 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
 
     issues: list[str] = []
     if backend == "mock":
+        if policy_envelope_sha256 is not None:
+            raise ConfigurationSupportError(
+                "mock profile cannot claim a preregistered policy envelope"
+            )
         if (
             not informational_only
             or hardware_authorized
@@ -206,6 +212,10 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
             )
         issues.append("source.informational_only_mock")
     else:
+        _sha256_string(
+            policy_envelope_sha256,
+            "profile.source.policy_envelope_sha256",
+        )
         if informational_only:
             raise ConfigurationSupportError("serial profile cannot be informational_only")
         if not hardware_authorized:
@@ -444,6 +454,13 @@ def _validate_envelope(envelope: dict[str, Any]) -> dict[str, tuple[float, float
     return flattened
 
 
+def validate_supported_configuration_envelope_data(
+    envelope: dict[str, Any],
+) -> dict[str, tuple[float, float]]:
+    """Validate a policy envelope before any physical response is observed."""
+    return _validate_envelope(envelope)
+
+
 def _evaluate_profile_against_envelope(
     profile: dict[str, Any],
     envelope: dict[str, Any],
@@ -588,6 +605,11 @@ def validate_configuration_support(
     profile = _load_object(profile_path, "automatic configuration profile")
     envelope = _load_object(envelope_path, "supported configuration envelope")
     _validate_profile(profile)
+    envelope_sha256 = _sha256(envelope_path)
+    if profile["source"]["policy_envelope_sha256"] != envelope_sha256:
+        raise ConfigurationSupportError(
+            "profile was not collected against this preregistered policy envelope"
+        )
 
     # Local import avoids a module cycle: the profile builder uses the strict
     # profile schema validator above before returning a generated artifact.
@@ -638,7 +660,8 @@ def validate_configuration_support(
         },
         "envelope": {
             "path": str(envelope_path),
-            "sha256": _sha256(envelope_path),
+            "sha256": envelope_sha256,
+            "precommitted_before_collection": True,
             "policy": envelope["policy"],
             "preregistration": envelope["preregistration"],
         },

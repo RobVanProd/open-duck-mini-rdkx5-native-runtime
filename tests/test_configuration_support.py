@@ -27,6 +27,7 @@ def _profile() -> dict[str, object]:
             "trace_sha256": "a" * 64,
             "metadata_sha256": "b" * 64,
             "configuration_sha256": "c" * 64,
+            "policy_envelope_sha256": "f" * 64,
             "manual_measurements_used": False,
             "hardware_authorized": True,
             "motion_authorized": True,

@@ -22,6 +22,7 @@ from .configuration_profile import (
     TICK_SCHEMA_VERSION,
     build_automatic_configuration_profile,
 )
+from .configuration_support import validate_supported_configuration_envelope_data
 from .constants import ACTION_DIM, CONTROL_FREQUENCY_HZ, HOME_RAD, JOINT_NAMES, SERVO_IDS
 from .hardware_guard import (
     HardwareAuthorizationError,
@@ -254,7 +255,9 @@ def _raise_if_stop_requested(args: argparse.Namespace) -> None:
         raise ProbeInterrupted(f"signal:{signum}")
 
 
-def _validate_arguments(args: argparse.Namespace) -> tuple[Path, Path, Path, Path, Path]:
+def _validate_arguments(
+    args: argparse.Namespace,
+) -> tuple[Path, Path, Path, Path, Path, Path | None]:
     if args.baudrate <= 0:
         raise ValueError("--baudrate must be positive")
     if not math.isfinite(args.timeout_ms) or args.timeout_ms <= 0.0:
@@ -269,6 +272,9 @@ def _validate_arguments(args: argparse.Namespace) -> tuple[Path, Path, Path, Pat
     metadata = args.metadata.expanduser().resolve()
     profile = args.profile.expanduser().resolve()
     configuration = args.config.expanduser().resolve()
+    policy_envelope = (
+        args.policy_envelope.expanduser().resolve() if args.policy_envelope is not None else None
+    )
     partial = trace.with_name(trace.name + ".partial")
     metadata_temporary = metadata.with_name(metadata.name + ".tmp")
     profile_temporary = profile.with_name(profile.name + ".tmp")
@@ -283,6 +289,8 @@ def _validate_arguments(args: argparse.Namespace) -> tuple[Path, Path, Path, Pat
     if len(outputs) != 6:
         raise ValueError("collector output and temporary paths must be distinct")
     protected = {configuration}
+    if policy_envelope is not None:
+        protected.add(policy_envelope)
     if args.imu_calibration is not None:
         protected.add(args.imu_calibration.expanduser().resolve())
     if args.bus == "serial":
@@ -307,9 +315,15 @@ def _validate_arguments(args: argparse.Namespace) -> tuple[Path, Path, Path, Pat
             )
         if args.imu_calibration is None:
             raise ValueError("serial configuration calibration requires --imu-calibration")
+        if policy_envelope is None:
+            raise ValueError(
+                "serial configuration calibration requires a preregistered --policy-envelope"
+            )
         if not args.require_realtime:
             raise RealtimeSetupError("serial configuration calibration requires --require-realtime")
-    return trace, metadata, profile, configuration, partial
+    elif policy_envelope is not None:
+        raise ValueError("--policy-envelope is reserved for physical serial collection")
+    return trace, metadata, profile, configuration, partial, policy_envelope
 
 
 def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
@@ -328,6 +342,7 @@ def _metadata(
     configuration_sha256: str,
     physical_home: np.ndarray,
     torque_off_confirmed: bool,
+    policy_envelope_sha256: str | None,
     imu_calibration_sha256: str | None,
     imu_calibration_source_sha256: str | None,
 ) -> dict[str, Any]:
@@ -365,6 +380,7 @@ def _metadata(
         "torque_off_confirmed": torque_off_confirmed,
         "telemetry_drop_count": 0,
         "configuration_sha256": configuration_sha256,
+        "policy_envelope_sha256": policy_envelope_sha256,
         "imu_calibration_sha256": imu_calibration_sha256,
         "imu_calibration_source_sha256": imu_calibration_source_sha256,
         "physical_home_rad": physical_home.tolist(),
@@ -379,10 +395,31 @@ def _metadata(
 
 
 def run_collector(args: argparse.Namespace) -> dict[str, Any]:
-    trace_path, metadata_path, profile_path, config_path, partial_path = _validate_arguments(args)
+    (
+        trace_path,
+        metadata_path,
+        profile_path,
+        config_path,
+        partial_path,
+        policy_envelope_path,
+    ) = _validate_arguments(args)
     configuration = DuckConfig.load(config_path)
     physical_home = HOME_RAD + configuration.offsets_array
     configuration_sha256 = _sha256(config_path)
+    policy_envelope_sha256: str | None = None
+    if policy_envelope_path is not None:
+        try:
+            policy_envelope = json.loads(policy_envelope_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ConfigurationCollectionError(
+                f"cannot read preregistered policy envelope: {exc}"
+            ) from exc
+        if not isinstance(policy_envelope, dict):
+            raise ConfigurationCollectionError(
+                "preregistered policy envelope must be a JSON object"
+            )
+        validate_supported_configuration_envelope_data(policy_envelope)
+        policy_envelope_sha256 = _sha256(policy_envelope_path)
 
     preparation = None
     if args.bus == "serial":
@@ -534,6 +571,7 @@ def run_collector(args: argparse.Namespace) -> dict[str, Any]:
         configuration_sha256=configuration_sha256,
         physical_home=physical_home,
         torque_off_confirmed=True,
+        policy_envelope_sha256=policy_envelope_sha256,
         imu_calibration_sha256=imu_calibration_sha256,
         imu_calibration_source_sha256=imu_calibration_source_sha256,
     )
@@ -573,6 +611,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mock-no-wait", action="store_true")
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--imu-calibration", type=Path)
+    parser.add_argument("--policy-envelope", type=Path)
     parser.add_argument("--i2c-bus", type=int, default=5)
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=7)

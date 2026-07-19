@@ -56,12 +56,14 @@ def test_mock_collector_emits_complete_informational_evidence_chain(tmp_path: Pa
     assert metadata["hardware_authorized"] is False
     assert metadata["motion_authorized"] is False
     assert metadata["configuration_calibration_authorized"] is False
+    assert metadata["policy_envelope_sha256"] is None
     assert metadata["imu_calibration_sha256"] is None
     assert metadata["imu_calibration_source_sha256"] is None
     assert metadata["inventory"]["responding_servo_ids"] == list(SERVO_IDS)
     assert metadata["torque_off_confirmed"] is True
     assert profile["source"]["backend"] == "mock"
     assert profile["source"]["informational_only"] is True
+    assert profile["source"]["policy_envelope_sha256"] is None
     assert validate_automatic_profile_data(profile) == ["source.informational_only_mock"]
 
     reproduced = build_automatic_configuration_profile(
@@ -105,6 +107,40 @@ def test_mock_no_wait_is_forbidden_for_serial_backend(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         main(["--bus", "serial", "--mock-no-wait", *_output_arguments(tmp_path)])
     assert list(tmp_path.iterdir()) == []
+
+
+def test_serial_collector_requires_valid_preregistered_envelope_before_bus_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    opened = False
+
+    def forbidden_bus(*args, **kwargs):
+        nonlocal opened
+        del args, kwargs
+        opened = True
+        raise AssertionError("serial bus must not open")
+
+    envelope = tmp_path / "envelope.json"
+    envelope.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(configuration_collector, "STS3215Bus", forbidden_bus)
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "serial",
+                "--imu-calibration",
+                str(tmp_path / "imu.json"),
+                "--policy-envelope",
+                str(envelope),
+                "--require-realtime",
+                "--hardware-authorized",
+                "--suspended-or-benched",
+                "--moving-gate-authorized",
+                "--configuration-calibration-authorized",
+                *_output_arguments(tmp_path),
+            ]
+        )
+    assert opened is False
 
 
 def test_mid_trace_failure_cuts_torque_and_publishes_no_final_artifact(

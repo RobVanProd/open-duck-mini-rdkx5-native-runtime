@@ -1059,3 +1059,23 @@ Policy agent: the required envelope schema and 73 response bounds are unchanged.
 Do not add exact-COM or per-build measurement fields. Physical collection is
 still `NOT_RUN` and requires a separately preregistered motion authorization;
 no robot, Gate 5, deployment, or grounded authority is implied.
+
+## Runtime pre-observation envelope binding
+
+Status: `OFFLINE_BINDING_PASS — POLICY_ENVELOPE_PENDING`
+
+The physical calibration response may not be observed before policy acceptance
+bounds are frozen. Runtime therefore now requires the strict
+`open_duck_x5.supported_configuration_envelope.v1` file on every serial
+collection. It validates the envelope before opening `/dev/ttyS1`, records the
+envelope SHA-256 in excitation metadata v3 and automatic profile v4, and makes
+the final validator reject any different envelope even if that replacement is
+otherwise structurally valid.
+
+Mock collection cannot claim a policy-envelope identity and remains
+informational. The policy-side schema request is unchanged: return the broad,
+preregistered, passed configuration domain and all 73 response bounds with
+`per_unit_physical_measurement_required=false`. This ordering change prevents
+robot results from influencing those bounds. It authorizes no hardware,
+motion, policy execution, Gate 5, or deployment; physical collection remains
+`NOT_RUN`.

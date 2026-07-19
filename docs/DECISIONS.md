@@ -936,3 +936,19 @@ physical pass. Extraction now rejects tick p99 above `21 ms`, p99.9 above
 freshness rules. The complete mock chain and injected cutoff/fault cases pass
 offline. This decision grants no physical calibration run, Gate 5, deployment,
 or robot clearance.
+
+## D059 — Freeze the policy envelope before observing a physical response
+
+Accepted offline only. The serial automatic-configuration collector must not
+produce the robot response first and let policy bounds be selected afterward.
+It now requires a strict, already-passed
+`open_duck_x5.supported_configuration_envelope.v1` file, validates it before
+opening the serial bus, and records its SHA-256 in metadata v3 and profile v4.
+Mock evidence cannot claim an envelope identity.
+
+The full-chain validator recomputes the supplied envelope SHA-256 and requires
+it to equal the precommitted profile identity before reproducing or comparing
+the 73 response metrics. A later, even structurally valid envelope therefore
+cannot be substituted after seeing the robot. This change accepts no manual
+measurement and grants no hardware, motion, policy, deployment, or Gate 5
+authority. Physical collection remains `NOT_RUN`.

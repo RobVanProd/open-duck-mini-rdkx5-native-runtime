@@ -72,6 +72,7 @@ def _evidence(*, backend: str = "serial") -> tuple[dict[str, object], list[dict[
         "torque_off_confirmed": True,
         "telemetry_drop_count": 0,
         "configuration_sha256": CONFIGURATION_SHA256,
+        "policy_envelope_sha256": "9" * 64 if backend == "serial" else None,
         "imu_calibration_sha256": "7" * 64 if backend == "serial" else None,
         "imu_calibration_source_sha256": "8" * 64 if backend == "serial" else None,
         "physical_home_rad": HOME_RAD.tolist(),
@@ -194,8 +195,16 @@ def _support_envelope() -> dict[str, object]:
     }
 
 
+def _write_policy_envelope(tmp_path: Path) -> tuple[Path, str]:
+    path = tmp_path / "envelope.json"
+    path.write_text(json.dumps(_support_envelope()), encoding="utf-8")
+    return path, hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def test_trace_is_fitted_into_profile_and_passes_support_validator(tmp_path: Path) -> None:
     metadata, rows = _evidence()
+    envelope_path, envelope_sha256 = _write_policy_envelope(tmp_path)
+    metadata["policy_envelope_sha256"] = envelope_sha256
     trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
 
     profile = build_automatic_configuration_profile(
@@ -211,6 +220,7 @@ def test_trace_is_fitted_into_profile_and_passes_support_validator(tmp_path: Pat
         == hashlib.sha256(metadata_path.read_bytes()).hexdigest()
     )
     assert profile["source"]["configuration_sha256"] == CONFIGURATION_SHA256
+    assert profile["source"]["policy_envelope_sha256"] == envelope_sha256
     assert profile["sample_contract"]["tick_count"] == STAGE_TICKS * 14
     assert set(profile["joint_response"]) == set(JOINT_NAMES)
     for response in profile["joint_response"].values():
@@ -219,9 +229,7 @@ def test_trace_is_fitted_into_profile_and_passes_support_validator(tmp_path: Pat
         assert response["time_constant_s"] == pytest.approx(-0.02 / math.log(POLE), abs=1e-9)
 
     profile_path = tmp_path / "profile.json"
-    envelope_path = tmp_path / "envelope.json"
     profile_path.write_text(json.dumps(profile), encoding="utf-8")
-    envelope_path.write_text(json.dumps(_support_envelope()), encoding="utf-8")
     decision = validate_configuration_support(
         profile_path=profile_path,
         envelope_path=envelope_path,
@@ -251,6 +259,8 @@ def test_mock_profile_is_permanently_informational(tmp_path: Path) -> None:
 
 def test_support_cli_verifies_complete_raw_evidence_chain(tmp_path: Path) -> None:
     metadata, rows = _evidence()
+    envelope_path, envelope_sha256 = _write_policy_envelope(tmp_path)
+    metadata["policy_envelope_sha256"] = envelope_sha256
     trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
     profile = build_automatic_configuration_profile(
         trace_path=trace,
@@ -258,10 +268,8 @@ def test_support_cli_verifies_complete_raw_evidence_chain(tmp_path: Path) -> Non
         configuration_path=CONFIGURATION_PATH,
     )
     profile_path = tmp_path / "profile.json"
-    envelope_path = tmp_path / "envelope.json"
     output_path = tmp_path / "result.json"
     profile_path.write_text(json.dumps(profile), encoding="utf-8")
-    envelope_path.write_text(json.dumps(_support_envelope()), encoding="utf-8")
 
     assert (
         support_main(
@@ -289,6 +297,8 @@ def test_support_cli_verifies_complete_raw_evidence_chain(tmp_path: Path) -> Non
 
 def test_tampered_profile_cannot_pass_raw_evidence_reproduction(tmp_path: Path) -> None:
     metadata, rows = _evidence()
+    envelope_path, envelope_sha256 = _write_policy_envelope(tmp_path)
+    metadata["policy_envelope_sha256"] = envelope_sha256
     trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
     profile = build_automatic_configuration_profile(
         trace_path=trace,
@@ -297,11 +307,36 @@ def test_tampered_profile_cannot_pass_raw_evidence_reproduction(tmp_path: Path) 
     )
     profile["joint_response"][JOINT_NAMES[0]]["gain_ratio"] += 1e-6
     profile_path = tmp_path / "profile.json"
-    envelope_path = tmp_path / "envelope.json"
     profile_path.write_text(json.dumps(profile), encoding="utf-8")
-    envelope_path.write_text(json.dumps(_support_envelope()), encoding="utf-8")
 
     with pytest.raises(ConfigurationSupportError, match="reproduced profile"):
+        validate_configuration_support(
+            profile_path=profile_path,
+            envelope_path=envelope_path,
+            trace_path=trace,
+            metadata_path=metadata_path,
+            configuration_path=CONFIGURATION_PATH,
+        )
+
+
+def test_profile_cannot_be_compared_to_post_collection_envelope(tmp_path: Path) -> None:
+    metadata, rows = _evidence()
+    envelope_path, envelope_sha256 = _write_policy_envelope(tmp_path)
+    metadata["policy_envelope_sha256"] = envelope_sha256
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+    profile = build_automatic_configuration_profile(
+        trace_path=trace,
+        metadata_path=metadata_path,
+        configuration_path=CONFIGURATION_PATH,
+    )
+    profile_path = tmp_path / "profile.json"
+    profile_path.write_text(json.dumps(profile), encoding="utf-8")
+
+    changed_envelope = _support_envelope()
+    changed_envelope["configuration_domain"]["held_out_sample_count"] = 33
+    envelope_path.write_text(json.dumps(changed_envelope), encoding="utf-8")
+
+    with pytest.raises(ConfigurationSupportError, match="not collected against this"):
         validate_configuration_support(
             profile_path=profile_path,
             envelope_path=envelope_path,

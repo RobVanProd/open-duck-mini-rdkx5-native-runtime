@@ -25,7 +25,7 @@ from .constants import (
     SERVO_IDS,
 )
 
-METADATA_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_metadata.v2"
+METADATA_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_metadata.v3"
 TICK_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_tick.v2"
 MAXIMUM_CALIBRATION_TARGET_VELOCITY_RAD_S = 0.25
 MAXIMUM_CALIBRATION_TARGET_SPAN_RAD = 0.06
@@ -118,6 +118,7 @@ def _load_metadata(path: Path) -> dict[str, Any]:
             "torque_off_confirmed",
             "telemetry_drop_count",
             "configuration_sha256",
+            "policy_envelope_sha256",
             "imu_calibration_sha256",
             "imu_calibration_source_sha256",
             "physical_home_rad",
@@ -197,6 +198,10 @@ def _load_metadata(path: Path) -> dict[str, Any]:
             or metadata["imu_calibration_source_sha256"] is not None
         ):
             raise ConfigurationProfileError("mock metadata cannot claim IMU calibration hashes")
+        if metadata["policy_envelope_sha256"] is not None:
+            raise ConfigurationProfileError(
+                "mock metadata cannot claim a preregistered policy envelope"
+            )
     elif informational_only:
         raise ConfigurationProfileError("serial metadata cannot be informational_only")
     elif (
@@ -209,7 +214,11 @@ def _load_metadata(path: Path) -> dict[str, Any]:
             "serial metadata lacks exact hardware, motion, or supported-state authority"
         )
     else:
-        for key in ("imu_calibration_sha256", "imu_calibration_source_sha256"):
+        for key in (
+            "policy_envelope_sha256",
+            "imu_calibration_sha256",
+            "imu_calibration_source_sha256",
+        ):
             value = metadata[key]
             if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
                 raise ConfigurationProfileError(f"metadata.{key} is invalid")
@@ -603,6 +612,7 @@ def build_automatic_configuration_profile(
             "trace_sha256": _sha256(trace_path),
             "metadata_sha256": _sha256(metadata_path),
             "configuration_sha256": str(metadata["configuration_sha256"]),
+            "policy_envelope_sha256": metadata["policy_envelope_sha256"],
             "manual_measurements_used": False,
             "hardware_authorized": bool(metadata["hardware_authorized"]),
             "motion_authorized": bool(metadata["motion_authorized"]),
