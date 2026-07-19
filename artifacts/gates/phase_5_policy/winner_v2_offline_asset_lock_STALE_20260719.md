@@ -23,3 +23,7 @@ Do not regenerate or promote the asset lock until the policy repository
 independently validates that corrected reduced artifact and commits its final
 acceptance-result identity. No formal outcome rerun, threshold change, X5,
 robot, Gate 5, torque, or motion is authorized by this correction.
+
+`tools/verify_winner_v2_asset_lock.py` also rejects this exact stale SHA-256
+before evaluating any lock contents. A later independently revalidated lock
+must have a different byte identity to pass.

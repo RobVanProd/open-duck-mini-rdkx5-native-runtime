@@ -780,6 +780,8 @@ the reduced report directly from unchanged full-result SHA-256
 reduced SHA-256 is `1292772e...65dc5e`.
 
 Asset-lock SHA-256 `4da893b3...de940` is now historical and must not be
-promoted. Policy must independently validate the correction and commit its
-final result identity before the runtime regenerates the final lock. Physical
-COM, X5, Gate 5, deployment, and robot clearance remain blocked.
+promoted. The asset-lock verifier rejects that exact revoked hash before
+examining the lock. Policy must independently validate the correction and
+commit its final result identity before the runtime regenerates the final
+lock. Physical COM, X5, Gate 5, deployment, and robot clearance remain
+blocked.

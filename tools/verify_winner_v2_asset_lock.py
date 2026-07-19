@@ -20,6 +20,11 @@ EXPECTED_LIVE_CONFIG_SHA256 = (
     "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 )
 EXPECTED_POLICY_ACCEPTANCE_COMMIT = "fab1feaa8d136fed0ab33d5590d0eec88ef90d8f"
+REVOKED_ASSET_LOCK_SHA256 = frozenset(
+    {
+        "4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940",
+    }
+)
 EXPECTED_OFFSETS_RAD = [
     0.0844,
     0.0721,
@@ -74,6 +79,11 @@ def verify_asset_lock(
     runtime_root: Path,
     policy_repo_root: Path,
 ) -> dict[str, object]:
+    lock_sha256 = sha256_file(lock_path)
+    require(
+        lock_sha256 not in REVOKED_ASSET_LOCK_SHA256,
+        f"asset lock is explicitly stale/revoked: {lock_sha256}",
+    )
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
     require(lock["schema_version"] == EXPECTED_SCHEMA, "asset-lock schema changed")
     require(lock["status"] == EXPECTED_STATUS, "asset-lock status changed")
@@ -176,7 +186,7 @@ def verify_asset_lock(
     return {
         "schema_version": "open_duck_x5.winner_v2_asset_lock_verification.v1",
         "status": "PASS_FROZEN_OFFLINE_ASSET_LOCK",
-        "asset_lock_sha256": sha256_file(lock_path),
+        "asset_lock_sha256": lock_sha256,
         "runtime_files_checked": runtime_checked,
         "runtime_evidence_files_checked": runtime_evidence_checked,
         "policy_package_files_checked": policy_checked,

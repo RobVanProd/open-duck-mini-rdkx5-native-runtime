@@ -35,6 +35,19 @@ def test_asset_lock_keeps_all_hardware_authority_false(tmp_path: Path) -> None:
         )
 
 
+def test_asset_lock_verifier_refuses_revoked_historical_lock(tmp_path: Path) -> None:
+    lock_path = Path(
+        "artifacts/gates/phase_5_policy/"
+        "winner_v2_offline_asset_lock_20260719.json"
+    )
+    with pytest.raises(AssetLockError, match="explicitly stale/revoked"):
+        verify_asset_lock(
+            lock_path,
+            runtime_root=tmp_path,
+            policy_repo_root=tmp_path,
+        )
+
+
 def test_asset_lock_freezes_corrected_knee_and_runtime_semantics() -> None:
     lock = _load_lock()
     semantics = lock["config_asset"]["semantics"]
