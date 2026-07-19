@@ -669,3 +669,48 @@ Only a separately specified, default-off, versioned v2 implementation and
 golden verifier may follow. No single policy checkpoint is selected, the
 real-build COM calculator still lacks 46 inputs, policy-side robot clearance
 is false, and no Gate 5, deployment, RDK-X5, or robot action is authorized.
+
+## D047 — Accept the policy-side 512000 checkpoint selection
+
+Accepted as an offline asset-selection decision, not deployment authority.
+Policy evidence commit `e0badd7aa79ff791212b8d3822f9eefdc4c162e0`
+preregistered and ran one native-quantized sibling matrix. Both checkpoints
+passed all eight cells; the frozen first criterion selected 512000 on lower
+worst tracking p95 (`0.1809259653` versus `0.1818299592 rad`). Reward and
+training curves carried no weight.
+
+The selected ONNX SHA-256 is
+`99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de`.
+The 1024000 graph remains audit-only. This closes D046's checkpoint-selection
+blocker only; it does not clear runtime-v2, COM, Gate 5, or the robot.
+
+## D048 — Hold runtime-v2 on reviewed semantics, not forced bit identity
+
+Accepted as an offline implementation disposition. The isolated/default-off
+115-D transaction matches all four golden observation tensors bit-exactly and
+passes its semantic, frozen-observation ONNX, x=0, and fault-injection checks.
+It also exposed that handoff metadata labels action histories one tick too new:
+the golden contract is `t-2/t-3/t-4`, while stateful `previous_action` is
+`t-1`. The policy repository committed the metadata-only correction, and this
+runtime independently reproduced its v1.1 manifest and all 2,400 history rows.
+
+On this CPU, fully recursive float32 feedback reaches `2.3841858e-6` for the
+selected graph even though its target error stays `5.9604645e-7 rad`. No host
+rounding, output projection, or post-hoc relaxation is accepted. Runtime-v2
+remains held until a prospective cross-CPU recursive metric is reviewed. V1
+remains unchanged and Gate 5 remains `NOT_RUN`.
+
+## D049 — Prefer the contracted direct-reaction torso-COM route
+
+Accepted as an operator-data route only. Policy commit `e5e9fb8` contracts a
+powered-off two-support measurement of the complete torso-fixed deployment
+assembly. Its exact blank template SHA-256 is
+`30229a80df15292bc36bcb143c28c46838bf826856ebd00cf156e2654c93af55`.
+It uses three unload/reload trials, simultaneous support reactions, an
+independent same-specimen mass, conservative uncertainties, and a minimum
+complete-uncertainty support separation of `0.060 m`.
+
+The 46-field component inventory remains a fallback. Neither blank template is
+a measurement result. Physical completion and the policy calculator decision
+remain required; this decision authorizes no RDK-X5 access, torque, policy, or
+motion.

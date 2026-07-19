@@ -469,3 +469,44 @@ provide another contract-preserving verification method. Do not retroactively
 call the direct `1e-6` ONNX tolerance a recursive tolerance unless the evidence
 supports that interpretation. The X5 CPU-only benchmark can later measure the
 same quantity, but runtime-v2 acceptance remains held until the rule is frozen.
+
+## Runtime-v2 offline implementation and direct-COM update
+
+Status: `COMPONENT_CONTRACT_PASS — RECURSIVE_ACCEPTANCE_HELD`
+
+The separate/default-disabled runtime-v2 transaction is implemented without
+serial, GPIO, I2C, torque, policy CLI, or v1 integration. Across the complete
+2,400-tick handoff, all assembled observations are bit-exact, semantic maximum
+error is `2.0861626e-7`, frozen-observation ONNX state-chain maximum error is
+`4.7683716e-7`, and every x=0 action/state is bit-exact zero. Failed-send
+rollback and stale/mixed-epoch/unsupported/nonfinite faults all reject without
+committed state.
+
+The runtime independently fetched policy commits `e0dc826` and `aa6a446`.
+They preregister the correct history semantics (`t-2/t-3/t-4`, state input
+`t-1`) and freeze pre-correction identities. The runtime will not remove that
+blocker until the corrected v1.1 package, manifest, and PASS result are
+committed and independently reproduced.
+
+The policy-contracted direct-reaction torso-COM template from commit `e5e9fb8`
+is also pinned locally byte-for-byte at SHA-256
+`30229a80df15292bc36bcb143c28c46838bf826856ebd00cf156e2654c93af55`.
+That two-support/three-trial route is now preferred over the 46-field component
+fallback, but no physical values have been invented or collected. Policy-side
+robot clearance and Gate 5 remain false/`NOT_RUN`.
+
+## Runtime acceptance of corrected action-history package
+
+Status: `PASS_CORRECTED_V1_1_METADATA — RECURSIVE_RULE_STILL_HELD`
+
+The runtime independently fetched policy commit
+`e63226eb5b60a9a96cca4bfbb20ef231c0cada64`, reproduced replacement manifest
+SHA-256 `d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5`,
+checked all 21 files, and ran the corrected package smoke. The selected 512000
+ONNX, audit sibling, all four golden packs, P30 fit, and reference table remain
+byte-identical. The v1.1 map reports `t-2/t-3/t-4`; its checker and the runtime
+both reproduce those histories plus state input `t-1` over all 2,400 ticks.
+
+This closes the action-history metadata blocker. It does not resolve the
+separate recursive cross-CPU rule, powered-off COM measurement, policy-side
+robot clearance, frozen deployable asset set, or Gate 5.

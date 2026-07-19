@@ -1,0 +1,22 @@
+{
+  "components": [
+    {"id": "printed_torso_and_fasteners", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "rdk_x5_board", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "rdk_x5_thermal_and_mount", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "rdk_x5_cables_and_adapters", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "battery_cells_pack", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "battery_bms_charger_wiring", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "servo_bus_imu_power_hardware", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null},
+    {"id": "build_specific_covers_or_ballast", "mass_kg": null, "mass_uncertainty_kg": null, "x_m": null, "x_uncertainty_m": null, "source": null}
+  ],
+  "coordinate_contract": {
+    "datum_description": null,
+    "datum_origin_x_in_trunk_assembly_m": null,
+    "datum_origin_x_uncertainty_m": null,
+    "positive_x_description": null,
+    "axis_sign_to_trunk_assembly_x": null,
+    "transform_evidence": null,
+    "unit": "m"
+  },
+  "schema_version": "real_build_torso_com_measurement.v2"
+}

@@ -1,0 +1,60 @@
+{
+  "apparatus": {
+    "independent_total_mass_evidence": null,
+    "independent_total_mass_kg": null,
+    "independent_total_mass_uncertainty_kg": null,
+    "scale_a_uncertainty_kg": null,
+    "scale_b_uncertainty_kg": null,
+    "scale_calibration_evidence": null,
+    "support_a_uncertainty_m": null,
+    "support_a_x_relative_to_datum_m": null,
+    "support_b_uncertainty_m": null,
+    "support_b_x_relative_to_datum_m": null,
+    "support_position_evidence": null
+  },
+  "coordinate_contract": {
+    "axis_sign_to_trunk_assembly_x": 1,
+    "datum_description": "midpoint of the left and right hip-yaw rotation axes",
+    "datum_origin_x_in_trunk_assembly_m": -0.019,
+    "datum_origin_x_uncertainty_m": null,
+    "physical_datum_evidence": null,
+    "positive_x_description": "robot forward/toe direction at deterministic home"
+  },
+  "provenance": {
+    "break_radius_result_sha256": "6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32",
+    "open_duck_mini_commit": "b23317a485b3cec7d8417f352478778b3475173c",
+    "sim_xml_sha256": "968b18de4e3f55b31252155f52779fa490989f5da92bc9b308e0bb4e81d6bb5c",
+    "urdf_sha256": "a42c5ff3213b4662d81708807d698ab63d4e7432a54b4112728969d45928b54b"
+  },
+  "schema_version": "real_build_torso_com_direct_reaction_measurement.v1",
+  "specimen_contract": {
+    "all_torso_fixed_deployment_components_installed": null,
+    "articulated_children_excluded_at_left_right_hip_yaw_and_neck_pitch": null,
+    "deployment_configuration_evidence": null,
+    "inventory_attestation": null,
+    "isolated_specimen_evidence": null,
+    "no_external_load_paths": null,
+    "powered_off_and_electrically_disconnected": null,
+    "specimen_description": null
+  },
+  "trials": [
+    {
+      "evidence": null,
+      "id": "trial_1",
+      "reaction_a_kg": null,
+      "reaction_b_kg": null
+    },
+    {
+      "evidence": null,
+      "id": "trial_2",
+      "reaction_a_kg": null,
+      "reaction_b_kg": null
+    },
+    {
+      "evidence": null,
+      "id": "trial_3",
+      "reaction_a_kg": null,
+      "reaction_b_kg": null
+    }
+  ]
+}
