@@ -430,3 +430,33 @@ explicit anomaly recovery. It must preserve every status, checksum, ID-routing,
 staleness, and instrumentation invariant and be benchmarked before a separately
 authorized torque-off A/B. Tick p99/p99.9 passed, so the preregistered Rust
 escalation criterion remains false.
+
+## D035 — Do not spend a serial run on parser speed alone
+
+Accepted after source-bound CPU-only benchmarking on the X5. The fixed-order
+parser preserves status, staleness, position, and velocity outputs and is
+1.92× faster without transaction tracing. Under the ten-chunk instrumentation
+matching the hardware diagnostic, it saves 259 us mean. That improvement is
+smaller than the measured 656 us mean deficit and cannot reasonably clear the
+8.352 ms maximum by itself.
+
+The fixed parser remains the correct normal-path implementation with generic
+anomaly recovery, but it is not independently promoted to another 10,000-tick
+serial run. This prevents sampling another predictable gate failure merely
+because the implementation is faster in isolation.
+
+## D036 — Test RT CPU frequency before changing bus architecture again
+
+Accepted as the next one-variable hardware hypothesis; execution remains
+`NOT_AUTHORIZED_NOT_RUN`. In the exact-collector trace, group parse tail and
+read-call count correlate at `-0.953669`: fewer wakeups precede dramatically
+slower parsing. The entire CPU cluster remains on `schedutil` with a 300 MHz to
+1.5 GHz range, so the isolated 50 Hz loop can wake below maximum frequency.
+
+The continuous CPU benchmark showed no governor benefit because it keeps the
+core busy. The falsification must therefore use the matched 50 Hz serial
+population: rerun the accepted exact collector while changing only policy0 to
+`performance`, then restore `schedutil`. A material relative improvement is
+preregistered, but Gate 2 still requires the absolute `<5 ms` maximum. Failure
+stops the branch; it does not authorize a parser/no-instrumentation combination
+or a threshold change.

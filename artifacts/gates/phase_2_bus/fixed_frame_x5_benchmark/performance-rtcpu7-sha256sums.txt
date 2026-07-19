@@ -1,0 +1,6 @@
+370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/governor-after-restore.txt
+370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/governor-before.txt
+4cab62e134aeb01974c0134f6d31d72fc01a21c863ab2e3022c64178df3b763a  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/governor-during.txt
+8ca5a832e6b333af56cdb4a04fea34cc21e7041eb327e2fcae3dc4c280d4f7f5  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/result.json
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/stderr.txt
+8ca5a832e6b333af56cdb4a04fea34cc21e7041eb327e2fcae3dc4c280d4f7f5  /home/sunrise/duck-evidence/fixed-frame-benchmark-performance-6138f02/stdout.txt

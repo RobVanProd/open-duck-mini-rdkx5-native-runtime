@@ -1,0 +1,71 @@
+{
+  "environment": {
+    "clock": "time.perf_counter_ns",
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "python": "3.10.12"
+  },
+  "hardware_access": false,
+  "modes": {
+    "instrumented_10_chunks": {
+      "equivalence": {
+        "positions": true,
+        "staleness": true,
+        "status": true,
+        "velocities": true
+      },
+      "fixed_frame": {
+        "batches": 20,
+        "max": 505.096184,
+        "mean": 478.08543124999994,
+        "min": 451.893968,
+        "p95": 504.21691625000005
+      },
+      "generic": {
+        "batches": 20,
+        "max": 755.66198,
+        "mean": 737.018785,
+        "min": 702.268805,
+        "p95": 755.5910463499999
+      },
+      "instrumentation_enabled": true,
+      "mean_saving_us": 258.93335375000004,
+      "mean_speedup": 1.5416047777757922,
+      "synthetic_receive_chunks": 10
+    },
+    "uninstrumented": {
+      "equivalence": {
+        "positions": true,
+        "staleness": true,
+        "status": true,
+        "velocities": true
+      },
+      "fixed_frame": {
+        "batches": 20,
+        "max": 339.431061,
+        "mean": 300.3574764,
+        "min": 287.72868300000005,
+        "p95": 339.4192278
+      },
+      "generic": {
+        "batches": 20,
+        "max": 599.812844,
+        "mean": 577.1868941,
+        "min": 546.807,
+        "p95": 599.7462243
+      },
+      "instrumentation_enabled": false,
+      "mean_saving_us": 276.8294177,
+      "mean_speedup": 1.9216664789503473,
+      "synthetic_receive_chunks": 0
+    }
+  },
+  "population": {
+    "batches_per_parser": 20,
+    "iterations_per_batch": 1000,
+    "response_bytes": 140,
+    "total_iterations_per_parser": 20000,
+    "warmup_pairs": 1000
+  },
+  "schema_version": "open_duck_x5.fixed_frame_benchmark.v2",
+  "unit": "microseconds_per_parse_and_decode_iteration"
+}
