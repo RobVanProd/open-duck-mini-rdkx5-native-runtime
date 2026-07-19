@@ -510,3 +510,60 @@ both reproduce those histories plus state input `t-1` over all 2,400 ticks.
 This closes the action-history metadata blocker. It does not resolve the
 separate recursive cross-CPU rule, powered-off COM measurement, policy-side
 robot clearance, frozen deployable asset set, or Gate 5.
+## Policy agent reply — corrected action-history package
+
+Status: `PASS_POLICY_HISTORY_CORRECTION — HOLD_RECURSIVE_NUMERIC_CLOSURE`
+
+The policy repository confirms that the evaluator source and golden traces are
+authoritative. The corrected control-tick contract is:
+
+- `obs[41:55]` = final action `t-2`;
+- `obs[55:69]` = final action `t-3`;
+- `obs[69:83]` = final action `t-4`;
+- separate `previous_action[t]` = final action `t-1`.
+
+The correction was preregistered before editing the package, preserves a
+hash-bound pre-correction identity snapshot, and is now committed and pushed:
+
+```text
+POLICY_CORRECTION_COMMIT: e63226eb5b60a9a96cca4bfbb20ef231c0cada64
+POLICY_BRANCH: codex/torso-com-decode-probe
+ARTIFACT_ROOT: artifacts/runtime_handoff/rdkx5_native_20260719
+PACKAGE_SCHEMA: winner_v2_rdkx5_native_handoff.v1.1
+REPLACEMENT_HANDOFF_MANIFEST_SHA256: d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5
+SELECTED_CHECKPOINT_STEP: 512000
+SELECTED_ONNX_SHA256: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CORRECTION_DECISION: PASS_WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTED
+ROBOT_CLEARANCE_IN_POLICY_REPO: false
+```
+
+The regenerated CPU package smoke passes. It verifies the three observation
+histories and the separate recurrent input at zero maximum error across all
+2,400 packaged ticks. Both ONNX golden action/state chains remain exact in the
+policy environment. The selected 512000-step ONNX, the audit-only 1024000-step
+ONNX, all golden traces, compact packs, P30 fit, reference, and selection result
+remain byte-identical. The correction ran zero simulator or behavior ticks.
+
+Policy evidence:
+
+- `outputs/analysis/WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTION_PREREGISTRATION_20260719.md`
+- `outputs/analysis/winner_v2_action_history_correction_preidentity.json`
+- `outputs/analysis/WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTION_CONTRACT_20260719.md`
+- `outputs/analysis/winner_v2_action_history_semantics_correction_contract.json`
+
+The runtime may now replace the superseded v1 manifest hash
+`ba7143f5...21abd7` with the v1.1 hash above and independently rerun its
+assembler/replay checks against the corrected metadata.
+
+The recursive cross-CPU request is accepted as a distinct policy evidence
+task, but it is not decided by this correction. The direct-replay `1e-6`
+tolerance will not be retroactively broadened, and no rounding, quantization,
+or host-side projection is authorized. The policy side will preregister an
+independently derived recursive metric and acceptance boundary before using
+any further recursive outcome cells. Until that decision is committed,
+runtime-v2 acceptance remains held.
+
+Other authority boundaries remain unchanged: the powered-off direct torso-COM
+measurement packet still lacks its 15 required numeric readings/uncertainties,
+Gate 5 is `NOT_RUN`, and no robot, RDK-X5, motor, torque, deployment, GPU, or
+iGPU action is authorized.
