@@ -856,3 +856,27 @@ sensors. A future automatic supported-calibration mode may estimate effective
 dynamic response without manual physical measurements, but physical excitation
 still requires separate motion authorization. This decision grants no robot,
 RDK-X5, torque, motion, deployment, or Gate 5 authority.
+
+## D056 — Implement the automatic configuration-support decision layer
+
+Accepted offline only. `configuration_support.py` defines strict versioned
+contracts for a machine-collected supported-excitation profile and a
+policy-provided robust configuration envelope. It intentionally validates
+observable response quantities instead of claiming that stationary sensors can
+identify an exact torso COM. Profile fields cover per-joint delay, gain, time
+constant, tracking, current, and body IMU response. Static entered mass, COM,
+inertia, scale, caliper, and component measurements have no accepted field.
+
+The policy envelope must bind an exact ONNX and preregistration, require no
+per-unit physical measurement, record a passed robustness gate, cover at least
+`[-50 mm,+50 mm]` torso X-COM, span nominal mass/Y/Z/inertia, include coupled
+and held-out samples, and identify multiple supported optional-part
+configurations. The validator checks all 73 observable metrics and fails closed
+for missing contract hardware, incomplete/faulted telemetry, or any response
+outside the policy bounds.
+
+This implements only the offline decision layer. The physical excitation
+collector remains `NOT_RUN` and must be separately reviewed before any motion.
+A passing comparison still carries `robot_clearance=false`, `gate5=false`,
+`runtime_deployment=false`, and `motion=false`. Neither the frozen 101-D v1 nor
+the separate 115-D winner-v2 policy contract changes.

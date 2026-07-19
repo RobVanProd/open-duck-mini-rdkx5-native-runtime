@@ -29,6 +29,7 @@
 | Xbox/F710 controller parity | locked seven-command publication in `controller.py` | axis, A-edge pause, Y-edge head mode, and LB sprint-factor tests | physical controller mapping check pending |
 | Staged authority boundary | dual CLI assertions, movement/Gate-5-specific assertions, finite exact-command replay, frozen Gate 2 launcher, runbook, `NOT_RUN` files | pre-I/O guard, source/config freeze, stage-order, and summary-validator tests | Gates 1-4 `PASS_REVIEWED`; Gate 5 remains unauthorized/`NOT_RUN` and policy-side robot clearance is false |
 | Board evidence extraction | safe-default collector, schemas, policy handoff | archive/manifest, secret-skip, 115-D rejection, and guard tests | Gate 1 bundle and 199-entry manifest verified |
+| Variable assembly without manual COM measurement | strict `configuration_support.py` automatic-profile/policy-envelope validator; frozen hardware inventory; no policy-input mutation | synthetic complete/missing/out-of-envelope/manual-input/domain-width/CLI tests | physical automatic profile collector `NOT_RUN`; current policy held for configuration sensitivity |
 | Artifact hashing | `tools/hash_artifacts.py` | checked-in SHA-256 manifest | update per authorized gate |
 
 No row marked pending may be treated as passed based on the mock run.

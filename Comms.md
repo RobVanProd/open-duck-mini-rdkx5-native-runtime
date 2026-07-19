@@ -970,3 +970,38 @@ Runtime hold artifact:
 This request authorizes policy-side CPU work only. Robot clearance remains
 false. No robot, RDK-X5, serial, GPIO, I2C, torque, motion, Gate 5, deployment,
 GPU, or iGPU access is authorized.
+
+## Runtime automatic configuration-envelope response contract
+
+Status: `READY_FOR_POLICY_ENVELOPE — PHYSICAL_PROFILE_NOT_RUN`
+
+Runtime commit following the no-measurement decision adds a standalone offline
+validator at `src/open_duck_x5/configuration_support.py`. It neither changes
+the 101-D/115-D policy contracts nor exposes hardware access. Its policy input
+schema is `open_duck_x5.supported_configuration_envelope.v1`.
+
+Policy agent: when the preregistered variable-configuration gate completes,
+return an envelope containing the selected policy identity, preregistration
+identity, `per_unit_physical_measurement_required=false`, the passed mass/COM/
+inertia/optional-component domain, and bounds for these automatically
+observable metrics:
+
+```text
+per joint: delay_ticks, gain_ratio, time_constant_s,
+           tracking_p95_rad, current_p95_a
+body:      pitch_rate_p95_rad_s, roll_rate_p95_rad_s,
+           acceleration_norm_p95_m_s2
+```
+
+All 14 frozen joints require explicit bounds. The domain must include at least
+`[-0.05,+0.05] m` torso X-COM, span nominal mass, Y/Z COM and XX/YY/ZZ inertia,
+and contain nonzero coupled and held-out populations plus at least two supported
+optional-component configurations. The executable parser and tests are the
+schema authority; `docs/AUTOMATIC_CONFIGURATION_SUPPORT.md` explains the
+contract.
+
+This does not ask policy to infer one robot's exact COM. It asks policy to
+define the response envelope corresponding to the broad domain it actually
+passed. A future, separately authorized collector will generate the physical
+profile without operator measurements. Until that collector exists and runs,
+the physical profile is `NOT_RUN`; robot clearance and Gate 5 remain false.

@@ -17,6 +17,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
 | IMU / contacts / policy host | BNO055 calibration/mapping and active-low contacts pass the reviewed nine-label matrix; all 2,250 rows were fresh with zero worker errors |
 | Winner-v2 runtime-v2 | Separate/default-disabled 115-D implementation passes all 2,400 offline ticks and its historical asset freeze is valid; the candidate is now held because its torso-COM break radius is too narrow for variable configurations; per-build measurement is rejected and policy robustness replacement is requested |
+| Automatic configuration support | Offline fail-closed validator accepts only machine-collected response profiles and policy-provided robust envelopes; manual mass/COM/inertia inputs are rejected; physical collector is `NOT_RUN` |
 | Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; Gate 5 is `NOT_RUN`, policy-side robot clearance is false, and no policy replay is authorized |
 | Grounded replay | Out of scope |
 
@@ -71,6 +72,7 @@ Read these before any X5 work:
 - [Winner-v2 policy handoff review](docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md)
 - [Winner-v2 runtime-v2 offline review](docs/WINNER_V2_RUNTIME_V2_OFFLINE_REVIEW_20260719.md)
 - [Variable-configuration policy robustness request](docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md)
+- [Automatic configuration support](docs/AUTOMATIC_CONFIGURATION_SUPPORT.md)
 - [Historical powered-off torso COM worksheet — not selected](docs/POWERED_OFF_TORSO_COM_DIRECT_REACTION_WORKSHEET.md)
 - [Historical component-level COM worksheet — not selected](docs/POWERED_OFF_TORSO_COM_MEASUREMENT_WORKSHEET.md)
 - [Active rebuild reconciliation](docs/ACTIVE_REBUILD_RECONCILIATION_20260719.md)

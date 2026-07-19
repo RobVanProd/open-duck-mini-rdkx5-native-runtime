@@ -44,6 +44,7 @@ validate_gate4 = "open_duck_x5.gate4_validation:main"
 calibrate_imu = "open_duck_x5.imu_calibration_capture:main"
 validate_imu_calibration = "open_duck_x5.imu_calibration_review:main"
 verify_winner_v2_handoff = "open_duck_x5.winner_v2_verifier:main"
+validate_configuration_support = "open_duck_x5.configuration_support:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
