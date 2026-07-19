@@ -1167,9 +1167,10 @@ authority changes.
 
 Status: `OFFLINE_RUNTIME_COMPLETE — CAMPAIGN_HOLD`
 
-Runtime commit `6e0dd247de830c6abfa686acd6c7e16ca7464e4f` adds the
-machine-readable `audit_winner_v2_completion` command; implementation SHA-256
-is `85ff8cf39f3c4ceb765391ce1f7f992501b46f3813204098dff203a018113495`.
+Runtime commit `4962b28db91f6f141a0e4e53903f24ea319e79c3` freezes the
+machine-readable `audit_winner_v2_completion` command with cross-platform LF
+output; implementation SHA-256 is
+`73fdae8bb5036f222d4f4a5345512cf63965c69d80215ca6f9922898d43cc16d`.
 It pins the frozen 101-D contract and winner-v2 source/evidence, scans every
 runtime module to prove the 115-D path remains default-disabled, and rechecks
 all 12 offline requirements including 2,400-tick coverage and fault injection.

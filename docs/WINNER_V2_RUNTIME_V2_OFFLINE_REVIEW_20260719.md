@@ -188,8 +188,8 @@ measurement obligation. See
 
 The machine-readable current-state audit is
 `artifacts/gates/phase_5_policy/winner_v2_completion_audit_20260719.json`.
-Implementation commit `6e0dd247de830c6abfa686acd6c7e16ca7464e4f` and source
-SHA-256 `85ff8cf39f3c4ceb765391ce1f7f992501b46f3813204098dff203a018113495`
+Implementation commit `4962b28db91f6f141a0e4e53903f24ea319e79c3` and source
+SHA-256 `73fdae8bb5036f222d4f4a5345512cf63965c69d80215ca6f9922898d43cc16d`
 pin all 12 offline runtime requirements and explicitly distinguish the
 superseded measurement route from the still-pending policy and physical gates.
 
