@@ -11,5 +11,10 @@ passing or authorizing one gate does not authorize the next. Every invocation
 requires Rob's authorization for that exact gate and command, plus a physically
 suspended or benched robot.
 
+The automatic configuration check has a separately frozen structure under
+`automatic_configuration/`, but remains blocked on the preregistered policy
+envelope, a final launcher/hash closure, and exact calibration-motion
+authorization. It is not Gate 5 and has not run physically.
+
 Each gate directory keeps its own status so partial progress cannot be mistaken
 for complete robot clearance. Grounded replay is outside this repository.

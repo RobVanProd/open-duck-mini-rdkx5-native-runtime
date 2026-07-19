@@ -952,3 +952,16 @@ the 73 response metrics. A later, even structurally valid envelope therefore
 cannot be substituted after seeing the robot. This change accepts no manual
 measurement and grants no hardware, motion, policy, deployment, or Gate 5
 authority. Physical collection remains `NOT_RUN`.
+
+## D060 — Preregister automatic calibration before the policy envelope arrives
+
+Accepted as a non-runnable structural freeze. Runtime source/archive, physical
+config, reviewed IMU calibration, UART/RT setup, 10,000-tick torque-off
+preflight, exact 2,814-tick excitation, evidence fields, thresholds, and stop
+rules are fixed without seeing a physical response. The policy-envelope and
+final-launcher hashes remain explicit pending fields.
+
+This ordering allows the policy envelope to be independently selected and then
+bound in a closure artifact before serial access. It does not authorize the
+preflight, home entry, calibration excitation, policy inference, Gate 5, or any
+other robot action.

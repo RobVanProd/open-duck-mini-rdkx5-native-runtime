@@ -1079,3 +1079,21 @@ preregistered, passed configuration domain and all 73 response bounds with
 robot results from influencing those bounds. It authorizes no hardware,
 motion, policy execution, Gate 5, or deployment; physical collection remains
 `NOT_RUN`.
+
+## Runtime automatic-configuration physical structure freeze
+
+Status: `STRUCTURE_FROZEN — WAITING_POLICY_ENVELOPE`
+
+The outcome-independent physical sequence is preregistered at
+`artifacts/gates/phase_7_hardware/automatic_configuration/PRE_REGISTRATION.md`.
+It binds runtime source commit
+`d43ce270d9c24d075e7baf02efc741d65bb12f47`, deterministic source-archive
+SHA-256 `ff1c2271...73116c`, the reviewed config and BNO055 calibration, the
+10,000-tick torque-off preflight, the exact 2,814-tick excitation, timing gates,
+and stop rules.
+
+The policy-envelope SHA-256 is deliberately pending. No response may be
+collected until policy commits the passed envelope and runtime freezes that
+exact identity plus a final launcher hash in a closure artifact. This prevents
+physical outcome leakage into the bounds. No physical run or motion is
+authorized; robot clearance and Gate 5 remain false/`NOT_RUN`.
