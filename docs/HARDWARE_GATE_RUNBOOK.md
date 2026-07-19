@@ -1,10 +1,11 @@
 # Staged Hardware Gate Runbook
 
-Gate 1 is `PASS_REVIEWED`. Gate 2 remains `NOT_RUN`: the earlier torque-off
-preflight failed, but the later frozen CPU-governor A/B cleared every timing
-preflight gate under `performance`. Torque was never enabled and the home hold
-still requires a fresh, explicit authorization from Rob. Gates 3-5 remain
-`NOT_RUN`. Authorization for one gate does not authorize the next.
+Gates 1 and 2 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
+torque-off preflight, five-second home move, and 10,000-tick home hold under the
+verified temporary `performance` governor, then confirmed torque-off and
+restored `schedutil`. The separate BNO055 calibration prerequisite is also
+complete. Gates 3-5 remain `NOT_RUN`; authorization for one gate does not
+authorize the next.
 
 ## Common preflight
 
@@ -47,11 +48,13 @@ Gate 1 artifact directory. Gate 2 remains unauthorized.
 
 ## Gate 2 — Fourteen-servo home hold, no policy
 
-Current status: `NOT_RUN_AWAITING_REAUTHORIZATION`. The ID-13-last wire-order repair
-removed the reproduced CRC mechanism, but the repeated torque-off preflight had
-one device-status reply, `0.125%` failures, and `7.703526 ms` max bus time. The
-50 Hz tick p99.9 was green at `20.101307 ms`. Torque was never enabled. See the
-Gate 2 preflight artifact before proposing any transport change.
+Current status: `PASS_REVIEWED`. The chronology below retains the failed and
+superseded diagnostics that led to the passing configuration; statements that
+Gate 2 was blocked describe those historical stages, not the current gate
+decision. The ID-13-last wire-order repair removed the reproduced CRC
+mechanism, but the earlier repeated torque-off preflight had one device-status
+reply, `0.125%` failures, and `7.703526 ms` max bus time. The 50 Hz tick p99.9
+was green at `20.101307 ms`. Torque was never enabled in that preflight.
 
 The separately authorized official WCH CH343 driver experiment produced zero
 transaction failures but total bus mean/max remained
@@ -257,7 +260,19 @@ assertions, moving-gate assertion, complete record stream, and final torque-off
 status. A serial candidate remains `REVIEW_REQUIRED` even if every numeric gate
 is green.
 
+Reviewed result: the frozen performance-governed sequence passed both its
+10,000-tick torque-off preflight and 10,000-tick home hold. Home-hold tick
+p99/p99.9 was `20.002683/20.008892 ms`, complete-sweep maximum was
+`4.721847 ms`, all 160,000 expected transaction outcomes were successful, and
+there were zero bursts, alarms, stale samples, or dropped telemetry records.
+Final torque-off was `ok` and the governor returned to `schedutil`. See
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/RESULT.md`.
+
 ## Gate 3 — IMU and contacts
+
+Current status: `NOT_AUTHORIZED_NOT_RUN`. The separately authorized BNO055
+calibration prerequisite completed and passed independent integrity review; it
+does not authorize this nine-label matrix.
 
 - No policy.
 - Capture labeled upright, nose-forward, nose-back, left-tilt, right-tilt samples.
@@ -266,30 +281,34 @@ is green.
 - Confirm timestamp age stays within the pre-registered freshness limit.
 
 Collect each physical state as a separate labeled artifact so the operator can
-reposition the suspended/benched robot between runs. The probe never opens the
-servo bus, enables torque, writes a target, or runs a policy:
+reposition the suspended/benched robot between runs. Do not invoke the probe
+label by label. The frozen launcher verifies source, config, calibration,
+dependency, I2C ownership, and typed operator confirmation; it validates each
+label before allowing the next. It never opens the servo bus, enables torque,
+writes a target, or runs a policy:
 
 ```bash
-probe_sensors --backend x5 --label upright \
-  --operator-confirmed-label upright \
-  --config ~/duck_config.json --imu-calibration ~/imu_calibration.json \
-  --samples 250 --hardware-authorized --suspended-or-benched \
-  --output gate3/upright/sensor.jsonl --summary gate3/upright/summary.json
+bash setup/run_gate3_sensor_matrix.sh \
+  --source-archive /home/sunrise/open-duck-x5-gate3-1792d9c6975c328a7349efb5b4baec57852d39b3.tar.gz \
+  --config /home/sunrise/duck_config.json \
+  --calibration-dir /home/sunrise/gate3/calibration-20260718 \
+  --output-dir /home/sunrise/gate3/sensor-matrix-20260718 \
+  --hardware-authorized --suspended-or-benched
 ```
 
-Repeat only after deliberate repositioning for `nose_forward`, `nose_back`,
-`left_tilt`, and `right_tilt`. Capture switch states separately with
-`no_contacts`, `left_contact`, `right_contact`, and `both_contacts`. Every summary
-reports sample age, sensor-worker errors, timestamp repeats, axis distributions,
-contact fractions, config/source hashes, and `imu_upside_down`. It also proves
-the BNO055 chip ID is `0xa0` and that all three inherited offset triplets read
-back exactly before NDOF sampling begins.
+The launcher prompts in frozen order for `upright`, `nose_forward`,
+`nose_back`, `left_tilt`, `right_tilt`, `no_contacts`, `left_contact`,
+`right_contact`, and `both_contacts`. Every summary reports sample age,
+sensor-worker errors, timestamp repeats, axis distributions, contact fractions,
+config/source hashes, and `imu_upside_down`. It also proves the BNO055 chip ID
+is `0xa0` and that all three captured offset triplets read back exactly before
+NDOF sampling begins.
 
 The X5 backend requires a strict JSON calibration profile. The readiness audit
-found no saved legacy profile on this robot, so offsets must be captured from
-its own BNO055; they are never guessed or copied from another robot. This is a
-manual no-servo prerequisite, not a Gate 3 capture. Rob must be present to
-support and reorient the robot. The exact guarded command is:
+found no saved legacy profile, so this robot's own BNO055 was calibrated rather
+than guessing or copying offsets. Rob was physically present and supported the
+robot throughout the separately authorized no-servo capture. The exact
+historical command was:
 
 ```bash
 calibrate_imu --backend x5 --config ~/duck_config.json \
@@ -312,6 +331,13 @@ and a summary. Ctrl-C, timeout, or verification failure publishes no candidate
 directory. The legacy-compatible pickle exists only to preserve source-hash
 provenance; all new runtime consumers use the strict JSON file.
 
+Executed calibration result: 1,318 status rows over `330.934491 s`, ending in
+five consecutive `3/3/3/3` samples. Accelerometer, gyroscope, and magnetometer
+offsets were `[118, 0, 33]`, `[1, 0, -2]`, and `[-421, -125, 360]`; all nine
+values read back exactly in a fresh production-driver session. Profile SHA-256
+is `e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be`.
+No servo endpoint, torque, target write, or policy was used.
+
 If an authentic legacy `imu_calib_data.pkl` is later recovered, the restricted
 primitive-only converter remains available for comparison:
 
@@ -320,7 +346,8 @@ convert_imu_calibration --legacy-pickle /path/to/imu_calib_data.pkl \
   --output /path/to/imu_calibration.json
 ```
 
-After all nine labeled directories exist, validate them as one frozen matrix:
+The launcher validates all nine labeled directories as one frozen matrix before
+it can finish. The standalone command remains available for independent review:
 
 ```bash
 validate_gate3_sensors --run-root gate3 --output gate3-review.json

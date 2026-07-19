@@ -1,6 +1,11 @@
 # Gate 3 readiness inventory — 2026-07-18
 
-Status: `BLOCKED_CALIBRATION_REQUIRED`
+Status: `SUPERSEDED_CALIBRATION_COMPLETE_GATE3_NOT_RUN`
+
+This file preserves the original readiness inventory and its then-valid
+blocker. Rob subsequently completed the separately authorized calibration on
+this same unit. The reviewed result is recorded under
+`calibration_20260718/`; Gate 3 itself remains `NOT_AUTHORIZED_NOT_RUN`.
 
 This is an authorized non-moving readiness inventory, not a Gate 3 capture or
 result. The board was reached at `192.168.1.50` as `sunrise`. No servo device was
@@ -55,10 +60,20 @@ the runtime fallback input setup path is the applicable path on this board.
 Both input claims appeared as `sysfs` while open. Cleanup succeeded and a final
 inventory showed no remaining `sysfs` claims.
 
-## Decision
+## Original decision
 
 The GPIO and I2C endpoint prerequisites are ready. Gate 3 remains blocked—not
 failed—because a physical BNO055 calibration must be completed and saved before
 the offset profile/hash and exact source-bound capture launcher can be frozen.
 Offsets will not be guessed, copied from another robot, or inferred from the
 zero calibration status.
+
+## Superseding result
+
+The later guarded capture produced 1,318 status rows and ended with five
+consecutive full `3/3/3/3` samples. A fresh production-driver session read back
+the captured accelerometer `[118, 0, 33]`, gyroscope `[1, 0, -2]`, and
+magnetometer `[-421, -125, 360]` offsets exactly. Independent verification
+accepted all nine integrity checks and confirmed zero servo, torque, target,
+or policy access. This resolves only the calibration prerequisite; it does not
+replace or authorize the nine physical Gate 3 labels.
