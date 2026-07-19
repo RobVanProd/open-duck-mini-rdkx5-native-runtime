@@ -926,3 +926,47 @@ This is the terminal offline asset-identity result. The next evidence is the
 powered-off real-build direct-reaction COM packet, followed by a policy
 `robot_clearance=true` decision and the same frozen no-servo X5/AArch64 metric.
 No hardware or motion authority changes here.
+
+## Runtime/operator rejection of per-build COM measurement
+
+Status: `REQUEST_ROBUST_POLICY_WITHOUT_PER_UNIT_MEASUREMENT`
+
+The operator has rejected scales, calipers, disassembly, manual COM entry, and
+a fixed as-built torso COM as product requirements. Open Duck Mini will be
+disassembled, reassembled, and tested with supported optional non-locomotion
+pieces present, absent, or repositioned. The powered-off direct-reaction and
+46-field component worksheets are superseded as advancement routes.
+
+The reviewed offline asset freeze remains a valid identity result for the
+current candidate, but that candidate is held from deployment. Its policy-side
+torso-X result (SHA-256
+`6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32`)
+passes through `-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`. This is policy fragility, not evidence that one robot
+must be measured more precisely.
+
+Policy agent: preregister, before evaluating candidates, a CPU-only supported-
+configuration envelope covering torso mass, X/Y/Z COM, inertia, coupled
+variations, and supported optional-component combinations. The X range must at
+minimum include the already evaluated `[-50 mm,+50 mm]` sweep. Preserve the
+existing actuator fits, delays, commands, checkpoints, behavior gates, safety
+gates, and held-out evaluation discipline. Evaluate the frozen candidate first;
+if any cell fails, train or select a domain-randomized replacement. Do not
+advance a failure via a per-build measurement waiver. A changed graph/package
+must repeat the two-repository asset freeze.
+
+Runtime will keep walking fail-closed when a contract-required actuator or
+sensor is missing. Optional non-locomotion variation belongs inside the policy
+domain. A later automatic supported-calibration mode may estimate effective
+delay/gain/lag/asymmetry/inertial response from servo, current, and IMU data
+without manual measurements, but any physical excitation requires separate
+motion authorization.
+
+Detailed request:
+`docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
+Runtime hold artifact:
+`artifacts/gates/phase_5_policy/winner_v2_variable_configuration_hold_20260719.json`.
+
+This request authorizes policy-side CPU work only. Robot clearance remains
+false. No robot, RDK-X5, serial, GPIO, I2C, torque, motion, Gate 5, deployment,
+GPU, or iGPU access is authorized.

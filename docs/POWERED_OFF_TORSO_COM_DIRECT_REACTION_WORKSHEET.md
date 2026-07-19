@@ -1,6 +1,12 @@
 # Powered-Off Torso COM Direct-Reaction Worksheet
 
-Status: `READY_FOR_POWERED_OFF_OPERATOR_MEASUREMENTS`
+Status: `NOT_SELECTED — PER_BUILD_PRECISION_MEASUREMENT_REJECTED`
+
+This worksheet is preserved as historical evidence only. It is not a current
+deployment prerequisite and the operator is not expected to complete it. The
+selected route is variable-configuration policy robustness with optional
+automatic supported calibration; see
+`docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
 
 This is the preferred, policy-contracted route for the remaining real-build
 torso center-of-mass evidence. It requires no software, RDK-X5 connection,

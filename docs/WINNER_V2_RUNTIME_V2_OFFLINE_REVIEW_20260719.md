@@ -1,6 +1,6 @@
 # Winner-v2 Runtime-v2 Offline Review
 
-Status: `PASS_FINAL_OFFLINE_ASSET_FREEZE — BLOCKED_FOR_COM_AND_X5_PREFLIGHT`
+Status: `PASS_FINAL_OFFLINE_ASSET_FREEZE — HOLD_POLICY_CONFIGURATION_ROBUSTNESS`
 
 This review covers a separate, default-disabled 115-D winner-v2 implementation.
 It does not modify or route around the frozen 101-D v1 runtime. It has no
@@ -153,11 +153,21 @@ authority as false.
 
 ## Remaining gates
 
-1. Complete the powered-off direct-reaction torso-COM packet and receive the
-   policy repository's reviewed result.
-2. Receive policy-side `robot_clearance: true`.
-3. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
+1. Policy-side preregistration of a variable-configuration mass/COM/inertia
+   domain that requires no per-unit physical measurement.
+2. Evaluate the current candidate over that complete CPU-only domain. If it
+   fails, train or select a robust replacement and repeat the complete gate.
+3. Repeat the two-repository asset freeze for any changed graph or package and
+   receive policy-side `robot_clearance: true`.
+4. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
    after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
+
+The prior direct-reaction and component-level COM worksheets are not selected
+advancement routes. The frozen candidate's raw torso-X bracket passes through
+`-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`; that is treated as policy fragility, not an operator
+measurement obligation. See
+`docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
 
 Gate 5 remains `NOT_RUN`. Grounded work remains out of scope.

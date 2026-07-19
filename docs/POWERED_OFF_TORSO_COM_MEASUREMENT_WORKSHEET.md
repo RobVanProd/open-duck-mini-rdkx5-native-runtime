@@ -1,6 +1,12 @@
 # Powered-Off Real-Build Torso COM Measurement Worksheet
 
-Status: `READY_AS_46_FIELD_FALLBACK — DIRECT_REACTION_ROUTE_PREFERRED`
+Status: `NOT_SELECTED — PER_BUILD_PRECISION_MEASUREMENT_REJECTED`
+
+This worksheet is preserved as historical evidence only. It is not a current
+deployment prerequisite and the operator is not expected to complete it. The
+selected route is variable-configuration policy robustness with optional
+automatic supported calibration; see
+`docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
 
 This worksheet converts the policy repository's frozen
 `real_build_torso_com_measurement.v2` packet into a physical collection plan.

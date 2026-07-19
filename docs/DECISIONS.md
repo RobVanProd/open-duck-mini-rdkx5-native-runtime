@@ -825,3 +825,34 @@ This closes the offline asset-freeze gate. Powered-off real-build torso COM,
 policy `robot_clearance=true`, no-servo X5/AArch64 replay, a separately
 reviewed Gate 5 launcher, and separately authorized suspended replay remain.
 No hardware or motion authority is granted.
+
+## D055 — Replace per-build COM measurement with variable-configuration robustness
+
+Accepted. Open Duck Mini is expected to be disassembled, reassembled, and
+operated with supported optional non-locomotion pieces present, absent, or
+repositioned. A millimeter-specific torso COM measurement for one assembly is
+therefore not a valid deployment prerequisite. The direct-reaction and
+component-level worksheets are retained as historical records but are no
+longer selected advancement routes. No scale, caliper, disassembly, manual COM
+entry, or equipment purchase is required from the operator.
+
+The reviewed winner-v2 asset freeze remains valid evidence for the exact
+candidate. It does not erase the policy-side X-COM break-radius result: the raw
+bracket passes through `-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`. That sensitivity is now classified as a policy blocker,
+not a request to characterize one build more precisely. The candidate remains
+at `robot_clearance=false` and Gate 5 remains `NOT_RUN`.
+
+The selected route is a policy-side, preregistered CPU-only gate over a
+supported configuration envelope including torso mass, X/Y/Z COM, inertia,
+coupled variations, and optional-component combinations. The X envelope must
+at minimum include the already tested `[-50 mm,+50 mm]` range. A failing
+candidate must be retrained or replaced; it cannot advance through a per-build
+measurement waiver. Any new graph or package requires a new two-repository
+asset freeze.
+
+Runtime startup remains fail-closed for missing contract-required actuators or
+sensors. A future automatic supported-calibration mode may estimate effective
+dynamic response without manual physical measurements, but physical excitation
+still requires separate motion authorization. This decision grants no robot,
+RDK-X5, torque, motion, deployment, or Gate 5 authority.
