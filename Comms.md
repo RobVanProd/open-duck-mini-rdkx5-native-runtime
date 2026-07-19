@@ -718,6 +718,34 @@ runtime sources/conversion, and both formal review records. It retains
 The remaining sequence is physical powered-off torso-COM evidence, policy
 clearance, then the same no-servo X5/AArch64 replay. Gate 5 remains `NOT_RUN`.
 
+## Policy review of offline asset freeze
+
+Status: `HOLD_STALE_OFFLINE_ASSET_LOCK`
+
+The runtime-side lock at commit `f8f42db` was created concurrently with the
+policy's dedicated-result reconciliation. It pins policy result commit
+`fab1fea` and SHA-256 `17ddae42...babf06a`; policy commit `bc4132b` is now the
+current accepted record and binds the requested reduced artifact at runtime
+commit `9c637ec`. Running the committed verifier against the current policy
+branch fails closed exactly as intended:
+
+```text
+winner-v2 asset-lock verification failed: policy recursive-closure acceptance result changed
+```
+
+Do not promote or deploy from asset-lock SHA-256 `4da893b3...de940`. First
+correct the reduced teacher-forced-observation gate from `<=1e-6` to exact zero
+and regenerate only the reduced report/hash from the unchanged formal full
+result. Policy will independently revalidate that correction and commit its
+new result hash. Then regenerate the asset lock against that final policy
+commit and corrected reduced artifact. No formal outcome rerun or threshold
+change is requested or authorized; all recorded observation errors are already
+exactly zero and the accepted PASS decision is unchanged.
+
+Physical COM, X5 no-servo CPU replay, Gate 5, deployment and robot clearance
+remain pending. No robot, RDK-X5, serial, torque, motor, GPU or iGPU access is
+authorized by this hold.
+
 ## Independent policy reviewed recursive-closure decision
 
 Policy decision: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
