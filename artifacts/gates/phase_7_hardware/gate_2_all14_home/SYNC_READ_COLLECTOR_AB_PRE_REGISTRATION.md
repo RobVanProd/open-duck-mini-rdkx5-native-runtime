@@ -1,6 +1,6 @@
 # Exact-Length SyncRead Collector Torque-Off A/B Pre-Registration
 
-Status before execution: `NOT_AUTHORIZED_NOT_RUN`
+Status after review: `EXECUTED_REVIEWED_FAIL_BUS_BUDGET`
 
 This freezes the first hardware evaluation of the Python exact-length response
 collector. It tests the identified application receive mechanism against the
@@ -98,3 +98,17 @@ Execution requires Rob to explicitly authorize this named torque-off collector
 A/B and reconfirm that the robot is on its stand or otherwise suspended/benched.
 The invocation must contain `--hardware-authorized --suspended-or-benched` and
 must not contain `--enable-torque` or `--moving-gate-authorized`.
+
+## Reviewed execution outcome
+
+Rob authorized the named device test after reconfirming that the robot was on
+its stand. The torque-off run completed all 10,000 sweeps with final cutoff
+`ok`. The exact-length mechanism passed on all 10,000 traces: 140 bytes before
+the first parse and exactly one parse. Tick tails, failures, bursts, alarms, and
+telemetry gates passed, but complete-sweep mean/p99.9/max was
+`5.655528/8.067290/8.352496 ms`. The unchanged `<5 ms` maximum failed.
+
+See `sync_read_collector_ab/RESULT.md`. This result closes the exact-length
+collector as a sufficient timing remedy and keeps Gate 2 blocked. Its stage
+review selects a fixed-frame Python parser/decoder as the next offline
+candidate; it does not authorize another hardware run or a Rust escalation.

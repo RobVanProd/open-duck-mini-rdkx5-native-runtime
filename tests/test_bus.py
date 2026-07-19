@@ -65,9 +65,7 @@ class FakeTransport:
                     continue
                 index = SERVO_IDS.index(servo_id)
                 parameters = struct.pack("<HH", 2048 + index, 100)
-                packet = _status_packet(
-                    servo_id, parameters, error=self.device_error
-                )
+                packet = _status_packet(servo_id, parameters, error=self.device_error)
                 if servo_id == self.corrupt_id:
                     packet = packet[:-1] + bytes((packet[-1] ^ 1,))
                 if servo_id == self.partial_id:
@@ -78,9 +76,7 @@ class FakeTransport:
         elif instruction == 0x02 and frame[5] == ADDR_PRESENT_LOAD:
             servo_id = frame[2]
             parameters = bytes((0, 0, 74, 28, 0, 0, 0, 0, 0, 18, 0))
-            self.rx.extend(
-                _status_packet(servo_id, parameters, error=self.device_error)
-            )
+            self.rx.extend(_status_packet(servo_id, parameters, error=self.device_error))
         elif instruction == 0x03 and frame[2] != 0xFE:
             self.rx.extend(_status_packet(frame[2], b"", error=self.device_error))
 
@@ -187,7 +183,8 @@ def test_group_read_collects_one_byte_fragments_before_parsing() -> None:
     assert snapshot.trace_group_read_calls == 140
     assert snapshot.trace_group_parse_calls == 1
     assert snapshot.trace_group_first_parse_bytes == 140
-    assert bus.parse_rx_lengths == [140]
+    assert bus.parse_rx_lengths == []
+    assert snapshot.trace_group_parser_mode == 1
     response_times = snapshot.trace_group_response_complete_ns
     assert response_times is not None
     wire_times = [response_times[SERVO_IDS.index(servo_id)] for servo_id in SERVO_SYNC_READ_IDS]
@@ -206,6 +203,7 @@ def test_group_response_deadline_starts_after_request_write() -> None:
         transaction_timeout_s=0.001,
     )
     snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = True
     snapshot.begin_tick()
 
     bus.read_state_into(snapshot)
@@ -220,11 +218,13 @@ def test_group_read_routes_a_complete_out_of_order_train_by_servo_id() -> None:
     )
     bus = STS3215Bus(transport=transport)
     snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = True
     snapshot.begin_tick()
 
     bus.read_state_into(snapshot)
 
     assert snapshot.all_fresh
+    assert snapshot.trace_group_parser_mode == 2
     np.testing.assert_array_less(snapshot.positions_rad[:-1], snapshot.positions_rad[1:])
 
 
@@ -333,9 +333,7 @@ def test_diagnostic_register_read_preserves_payload_but_normal_read_rejects_it()
             super().write(data)
 
     bus = STS3215Bus(transport=VoltageErrorTransport())
-    status, device_error, parameters = bus.read_register_with_device_status(
-        SERVO_IDS[0], 62, 1
-    )
+    status, device_error, parameters = bus.read_register_with_device_status(SERVO_IDS[0], 62, 1)
     assert status is ErrorCode.OK
     assert device_error == 0x01
     assert parameters == bytes((74,))
@@ -349,9 +347,7 @@ def test_configuration_write_preserves_device_alarm_separately() -> None:
     transport = FakeTransport(device_error=0x01)
     bus = STS3215Bus(transport=transport)
 
-    status, device_error = bus.write_register_with_device_status(
-        SERVO_IDS[0], 14, b"\x54"
-    )
+    status, device_error = bus.write_register_with_device_status(SERVO_IDS[0], 14, b"\x54")
 
     assert status is ErrorCode.OK
     assert device_error == 0x01

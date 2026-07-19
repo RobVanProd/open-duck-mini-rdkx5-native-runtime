@@ -74,10 +74,11 @@ class STS3215Bus:
         self._id_to_index = np.full(254, -1, dtype=np.int16)
         for index, servo_id in enumerate(self.ids):
             self._id_to_index[servo_id] = index
-
-        self._sync_read_state = sync_read_packet(
-            SERVO_SYNC_READ_IDS, ADDR_PRESENT_POSITION, 4
+        self._sync_read_wire_indices = tuple(
+            self.ids.index(servo_id) for servo_id in SERVO_SYNC_READ_IDS
         )
+
+        self._sync_read_state = sync_read_packet(SERVO_SYNC_READ_IDS, ADDR_PRESENT_POSITION, 4)
         self._extended_read_packets = tuple(
             instruction_packet(servo_id, READ, bytes((ADDR_PRESENT_LOAD, 11)))
             for servo_id in self.ids
@@ -109,6 +110,7 @@ class STS3215Bus:
         self._rx_chunk_end = np.zeros(len(self._rx), dtype=np.int64)
         self._rx_chunk_time_ns = np.zeros(len(self._rx), dtype=np.int64)
         self._rx_chunk_count = 0
+        self._group_state_decoded = False
 
     def close(self) -> None:
         self.transport.close()
@@ -132,6 +134,7 @@ class STS3215Bus:
 
     def read_state_into(self, snapshot: ServoSnapshot) -> None:
         start_ns = clock_ns()
+        self._group_state_decoded = False
         if snapshot.instrumentation_enabled:
             snapshot.trace_group_start_ns = start_ns
             snapshot.trace_group_flush_start_ns = start_ns
@@ -172,6 +175,10 @@ class STS3215Bus:
         snapshot.stale[:] = self._read_codes != int(ErrorCode.OK)
         snapshot.partial_bytes += self._rx_length
         snapshot.unexpected_packets += self._unexpected_packets
+        if not self._group_state_decoded:
+            self._decode_group_state(snapshot)
+
+    def _decode_group_state(self, snapshot: ServoSnapshot) -> None:
         for index in range(ACTION_DIM):
             if snapshot.stale[index]:
                 continue
@@ -278,9 +285,7 @@ class STS3215Bus:
         while received_count < expected_count and clock_ns() < deadline_ns:
             if self._rx_length >= len(self._rx):
                 break
-            count = self.transport.read_some_into(
-                self._rx_view[self._rx_length :], deadline_ns
-            )
+            count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
             receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
@@ -362,16 +367,24 @@ class STS3215Bus:
             self._record_group_receive(snapshot, stream_received, receive_ns)
 
         self._record_group_parse(snapshot)
-        consumed, seen_count = self._parse_available(
-            expected_param_length=expected_param_length,
-            only_servo_id=None,
-            response_complete_ns=(
-                snapshot.trace_group_response_complete_ns
-                if snapshot.instrumentation_enabled
-                else None
-            ),
-            stream_base_offset=stream_base_offset,
-        )
+        exact_train = self._parse_exact_sync_read_train(snapshot)
+        if exact_train:
+            consumed, seen_count = expected_bytes, ACTION_DIM
+            if snapshot.instrumentation_enabled:
+                snapshot.trace_group_parser_mode = 1
+        else:
+            if snapshot.instrumentation_enabled:
+                snapshot.trace_group_parser_mode = 2
+            consumed, seen_count = self._parse_available(
+                expected_param_length=expected_param_length,
+                only_servo_id=None,
+                response_complete_ns=(
+                    snapshot.trace_group_response_complete_ns
+                    if snapshot.instrumentation_enabled
+                    else None
+                ),
+                stream_base_offset=stream_base_offset,
+            )
         if consumed:
             remaining = self._rx_length - consumed
             if remaining:
@@ -385,9 +398,7 @@ class STS3215Bus:
         while seen_count < ACTION_DIM and clock_ns() < deadline_ns:
             if self._rx_length >= len(self._rx):
                 break
-            count = self.transport.read_some_into(
-                self._rx_view[self._rx_length :], deadline_ns
-            )
+            count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
             receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
@@ -419,6 +430,65 @@ class STS3215Bus:
                 index = int(self._id_to_index[servo_id])
                 if index >= 0 and not self._read_seen[index]:
                     self._read_codes[index] = int(ErrorCode.PARTIAL)
+
+    def _parse_exact_sync_read_train(self, snapshot: ServoSnapshot) -> bool:
+        """Parse the normal ordered 14 x 10-byte state train without scanning.
+
+        Structure is validated before state is mutated. Any order, header, or
+        length anomaly falls back to the generic ID-routing parser. A
+        structurally valid train retains per-servo CRC classification while
+        decoding fresh position and speed directly into the snapshot.
+        """
+
+        if self._rx_length != ACTION_DIM * 10:
+            return False
+        for wire_index, servo_id in enumerate(SERVO_SYNC_READ_IDS):
+            offset = wire_index * 10
+            if (
+                self._rx[offset] != 0xFF
+                or self._rx[offset + 1] != 0xFF
+                or self._rx[offset + 2] != servo_id
+                or self._rx[offset + 3] != 6
+            ):
+                return False
+
+        completion_times = (
+            snapshot.trace_group_response_complete_ns if snapshot.instrumentation_enabled else None
+        )
+        for wire_index, logical_index in enumerate(self._sync_read_wire_indices):
+            offset = wire_index * 10
+            self._read_seen[logical_index] = True
+            if completion_times is not None:
+                completion_times[logical_index] = self._completion_time_for_stream_offset(
+                    offset + 10
+                )
+            expected_checksum = (
+                ~(
+                    self._rx[offset + 2]
+                    + self._rx[offset + 3]
+                    + self._rx[offset + 4]
+                    + self._rx[offset + 5]
+                    + self._rx[offset + 6]
+                    + self._rx[offset + 7]
+                    + self._rx[offset + 8]
+                )
+            ) & 0xFF
+            if expected_checksum != self._rx[offset + 9]:
+                self._read_codes[logical_index] = int(ErrorCode.CRC)
+                continue
+
+            self._read_lengths[logical_index] = 4
+            self._read_device_status[logical_index] = self._rx[offset + 4]
+            self._read_codes[logical_index] = int(ErrorCode.OK)
+            raw_position = self._rx[offset + 5] | (self._rx[offset + 6] << 8)
+            if raw_position >= 0x8000:
+                raw_position -= 0x10000
+            raw_speed = self._rx[offset + 7] | (self._rx[offset + 8] << 8)
+            snapshot.positions_rad[logical_index] = raw_position_to_rad(raw_position)
+            snapshot.velocities_rad_s[logical_index] = raw_speed_to_rad_s(raw_speed)
+
+        self._group_state_decoded = True
+        return True
 
     def _record_group_receive(
         self, snapshot: ServoSnapshot, stream_end_offset: int, receive_ns: int
@@ -503,9 +573,7 @@ class STS3215Bus:
         return cursor, newly_seen
 
     def ping(self, servo_id: int, *, timeout_s: float | None = None) -> ErrorCode:
-        code, device_status = self.ping_with_device_status(
-            servo_id, timeout_s=timeout_s
-        )
+        code, device_status = self.ping_with_device_status(servo_id, timeout_s=timeout_s)
         if code is ErrorCode.OK and device_status:
             return ErrorCode.DEVICE
         return code
@@ -527,9 +595,7 @@ class STS3215Bus:
         return code, device_status
 
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
-        status, device_status = self.write_register_with_device_status(
-            servo_id, address, data
-        )
+        status, device_status = self.write_register_with_device_status(servo_id, address, data)
         if status is ErrorCode.OK and device_status:
             return ErrorCode.DEVICE
         return status
@@ -565,9 +631,7 @@ class STS3215Bus:
             self.transport.write(instruction_packet(servo_id, READ, bytes((address, length))))
         except (OSError, TimeoutError):
             return ErrorCode.IO, b""
-        return self._read_one_generic(
-            servo_id, length, clock_ns() + self.transaction_timeout_ns
-        )
+        return self._read_one_generic(servo_id, length, clock_ns() + self.transaction_timeout_ns)
 
     def read_register_with_device_status(
         self, servo_id: int, address: int, length: int

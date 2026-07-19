@@ -1,0 +1,38 @@
+{
+  "environment": {
+    "clock": "time.perf_counter_ns",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11"
+  },
+  "equivalence": {
+    "positions": true,
+    "staleness": true,
+    "status": true,
+    "velocities": true
+  },
+  "fixed_frame": {
+    "batches": 10,
+    "max": 65.215,
+    "mean": 55.9396,
+    "min": 45.8365,
+    "p95": 64.96795
+  },
+  "generic": {
+    "batches": 10,
+    "max": 120.3325,
+    "mean": 99.6104,
+    "min": 76.797,
+    "p95": 115.58117499999999
+  },
+  "hardware_access": false,
+  "mean_speedup": 1.7806777309812727,
+  "population": {
+    "batches_per_parser": 10,
+    "iterations_per_batch": 200,
+    "response_bytes": 140,
+    "total_iterations_per_parser": 2000,
+    "warmup_pairs": 100
+  },
+  "schema_version": "open_duck_x5.fixed_frame_benchmark.v1",
+  "unit": "microseconds_per_parse_and_decode_iteration"
+}

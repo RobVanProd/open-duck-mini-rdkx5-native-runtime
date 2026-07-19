@@ -391,3 +391,42 @@ error classification or establish timing determinism.
 The voltage-alarm blocker is cleared. Gate 2 remains blocked by the independent
 authoritative complete-sweep maximum above 5 ms. Only the separately
 preregistered fixed-length collector A/B can replace that timing evidence.
+
+## D033 — Attribute the legacy collector failure before another hardware run
+
+Accepted as read-only analysis of the preserved USB and direct-UART 10,000-tick
+traces. The old incremental collector started its deadline before request setup
+and parsed/compacted after every short read. On UART, failed ticks averaged
+2.29 application reads versus 7.39 on clean ticks, while the late wire-order
+IDs 11-14 accounted for all 145 grouped failures. Fewer reads correlated with
+larger chunks, longer parse tails, and lost late logical responses; kernel byte
+counters had already shown that the physical driver received the expected
+volume.
+
+The analysis supports the preregistered exact-length collector as a causal
+test, not as a presumed pass. Direct UART was 77 us faster in mean complete
+sweep than USB but added 424 us to request-return-to-first-response latency and
+did not change the maximum materially. Adapter bandwidth and servo-count
+capacity are therefore not selected as the remaining cause.
+
+## D034 — Exact-length collection fixes late IDs but not the bus budget
+
+Accepted as a reviewed torque-off hardware result. All 10,000 response trains
+were collected to exactly 140 bytes and parsed once; the last observed response
+completed at least 791 us before the post-write deadline on every tick. Grouped
+failures fell from 145 to one CRC, with zero bursts, zero alarms, zero drops,
+and final torque-off `ok`. This proves the `…12,14,13` all-servo bus is capable
+of returning its complete ordered response train inside the receive deadline.
+
+The unchanged complete-sweep gate still failed: mean/p99.9/max was
+`5.655528/8.067290/8.352496 ms`. Exact collection reduced mean receive span by
+367 us but increased the post-receive generic parse tail by 717 us; the state
+decode then added another 577 us mean and 1.170 ms max. The repaired collector
+is accepted for correctness but closed as a sufficient timing remedy.
+
+The next offline candidate is a fixed-frame parser/decoder specialized to the
+known 14 × 10-byte ordered SyncRead train, retaining the generic parser only for
+explicit anomaly recovery. It must preserve every status, checksum, ID-routing,
+staleness, and instrumentation invariant and be benchmarked before a separately
+authorized torque-off A/B. Tick p99/p99.9 passed, so the preregistered Rust
+escalation criterion remains false.

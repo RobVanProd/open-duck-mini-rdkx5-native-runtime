@@ -55,6 +55,7 @@ class TransactionTraceSeries:
         self.group_read_calls = np.zeros(capacity, dtype=np.int16)
         self.group_parse_calls = np.zeros(capacity, dtype=np.int16)
         self.group_first_parse_bytes = np.zeros(capacity, dtype=np.int16)
+        self.group_parser_mode = np.zeros(capacity, dtype=np.uint8)
         self.extended_read_calls = np.zeros(capacity, dtype=np.int16)
         self.timestamps_ns = np.zeros((capacity, len(_SCALAR_FIELDS)), dtype=np.int64)
         self.group_response_complete_ns = np.zeros(
@@ -72,6 +73,7 @@ class TransactionTraceSeries:
         self.group_read_calls[index] = int(snapshot.trace_group_read_calls)
         self.group_parse_calls[index] = int(snapshot.trace_group_parse_calls)
         self.group_first_parse_bytes[index] = int(snapshot.trace_group_first_parse_bytes)
+        self.group_parser_mode[index] = int(snapshot.trace_group_parser_mode)
         self.extended_read_calls[index] = int(snapshot.trace_extended_read_calls)
         row = self.timestamps_ns[index]
         for field_index, field_name in enumerate(_SCALAR_FIELDS):
@@ -95,7 +97,7 @@ class TransactionTraceSeries:
                 }
                 response_times = self.group_response_complete_ns[index]
                 record = {
-                    "schema_version": "open_duck_x5.transaction_trace.v2",
+                    "schema_version": "open_duck_x5.transaction_trace.v3",
                     "tick": int(self.tick[index]),
                     "clock": "time.perf_counter_ns",
                     "sync_marker": {
@@ -115,6 +117,13 @@ class TransactionTraceSeries:
                         "parse_calls": int(self.group_parse_calls[index]),
                         "bytes_before_first_parse": int(
                             self.group_first_parse_bytes[index]
+                        ),
+                        "parser_mode": (
+                            "fixed_order_fast_path"
+                            if int(self.group_parser_mode[index]) == 1
+                            else "generic_recovery"
+                            if int(self.group_parser_mode[index]) == 2
+                            else "not_recorded"
                         ),
                     },
                     "durations_us": {

@@ -156,7 +156,8 @@ all 14 servos read raw maximum/minimum `84,40`, device status 0, and present
 voltage 8.2-8.4 V. All known locks and final torque-off verified; no motor was
 energized. See `voltage_limit_8v4_complete/RESULT.md`.
 
-This supersedes only the voltage-alarm portion of the blocker above. Gate 2
-remains blocked because the last authoritative complete-sweep maximum exceeds
-5 ms; only the separately preregistered fixed-length SyncRead collector A/B can
-replace that timing result.
+This supersedes only the voltage-alarm portion of the blocker above. The later
+fixed-length SyncRead collector A/B passed its exact 140-byte receive contract
+but measured complete-sweep mean/p99.9/max of
+`5.655528/8.067290/8.352496 ms`. Gate 2 remains blocked by the unchanged
+`<5 ms` maximum; see `sync_read_collector_ab/RESULT.md`.

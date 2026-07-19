@@ -98,10 +98,7 @@ def _dataset(tmp_path: Path, label: str, phase_add_us: float = 0.0):
     timing = tmp_path / f"{label}-timing.jsonl"
     _write_jsonl(
         trace,
-        [
-            _trace_record(tick, failure=tick == 2, phase_add_us=phase_add_us)
-            for tick in range(4)
-        ],
+        [_trace_record(tick, failure=tick == 2, phase_add_us=phase_add_us) for tick in range(4)],
     )
     _write_jsonl(
         timing,
@@ -133,11 +130,9 @@ def test_analysis_quantifies_failure_tail_and_comparison(tmp_path: Path) -> None
     )
     result = json.loads(output.read_text(encoding="utf-8"))
     schema = json.loads(
-        (
-            Path(__file__).parents[1]
-            / "schemas"
-            / "collector_trace_analysis.schema.json"
-        ).read_text(encoding="utf-8")
+        (Path(__file__).parents[1] / "schemas" / "collector_trace_analysis.schema.json").read_text(
+            encoding="utf-8"
+        )
     )
     Draft202012Validator.check_schema(schema)
     Draft202012Validator(schema).validate(result)
@@ -190,9 +185,7 @@ def test_analysis_verifies_exact_length_contract(tmp_path: Path) -> None:
     assert contract["pass"]
     assert contract["parse_call_histogram"] == {"1": 4}
     assert contract["bytes_before_first_parse_histogram"] == {"140": 4}
-    assert not dataset["response_deadline"][
-        "request_setup_charged_to_response_budget"
-    ]
+    assert not dataset["response_deadline"]["request_setup_charged_to_response_budget"]
 
 
 def test_analysis_rejects_mismatched_tick_sets(tmp_path: Path) -> None:

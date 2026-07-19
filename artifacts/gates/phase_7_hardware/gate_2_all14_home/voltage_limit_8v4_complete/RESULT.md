@@ -39,7 +39,7 @@ Copied artifact hashes:
   `84108006d3069e38934b02f29cd8ae01b9297af560ffc585097ab32965581b88`.
 
 This clears the previously measured all-servo voltage-alarm condition. It does
-not pass Gate 2: the last authoritative complete-sweep timing result still
-fails the independent `<5 ms` bus-time maximum. The fixed-length SyncRead
-collector A/B remains a separate torque-off hardware run and is not inferred
-from this configuration result.
+not pass Gate 2. The later, separately authorized fixed-length SyncRead
+collector A/B passed its receive contract but still failed the independent
+`<5 ms` complete-sweep maximum; that result is recorded separately in
+`../sync_read_collector_ab/RESULT.md`.
