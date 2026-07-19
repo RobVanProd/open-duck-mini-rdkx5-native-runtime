@@ -16,6 +16,24 @@ from open_duck_x5.runtime import Runtime, build_parser, main
 from open_duck_x5.safety import SafetyError, WatchdogTrip
 
 
+def _imu_calibration(tmp_path: Path) -> Path:
+    path = tmp_path / "imu_calibration.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": "open_duck_x5.bno055_calibration.v1",
+                "source_format": "apirrone.imu_calib_data.pkl",
+                "source_sha256": "a" * 64,
+                "offsets_accelerometer": [1, 2, 3],
+                "offsets_gyroscope": [4, 5, 6],
+                "offsets_magnetometer": [7, 8, 9],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
 def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     config = Path(__file__).parents[1] / "duck_config.example.json"
     telemetry = tmp_path / "control.jsonl"
@@ -56,6 +74,8 @@ def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     assert events[0]["event"] == "runtime_start"
     assert events[0]["details"]["contract_id"].endswith("101x14.v1")
     assert len(events[0]["details"]["config"]["sha256"]) == 64
+    assert events[0]["details"]["sensors"]["imu"]["backend"] == "mock"
+    assert events[0]["details"]["sensors"]["imu"]["calibration_applied"] is False
     assert events[1]["event"] == "runtime_halt"
     assert events[1]["reason"] == "normal_exit"
     assert events[1]["telemetry_records_dropped"] == 0
@@ -326,6 +346,8 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
             "serial",
             "--config",
             str(config),
+            "--imu-calibration",
+            str(_imu_calibration(tmp_path)),
             "--policy",
             str(tmp_path / "candidate.onnx"),
             "--telemetry",
@@ -350,6 +372,48 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
 
     assert events[:3] == ["bus_open", "disable_torque", "contacts_open"]
     assert events[-2:] == ["disable_torque", "bus_close"]
+
+
+def test_serial_gate5_requires_calibration_before_opening_bus(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    def fail_if_opened(*_args, **_kwargs):
+        pytest.fail("serial bus opened before IMU calibration validation")
+
+    monkeypatch.setattr(runtime_module, "STS3215Bus", fail_if_opened)
+    assert (
+        main(
+            [
+                "--bus",
+                "serial",
+                "--config",
+                str(Path(__file__).parents[1] / "duck_config.example.json"),
+                "--imu-calibration",
+                str(tmp_path / "missing-calibration.json"),
+                "--policy",
+                str(tmp_path / "candidate.onnx"),
+                "--telemetry",
+                str(tmp_path / "never.jsonl"),
+                "--max-ticks",
+                "900",
+                "--max-active-ticks",
+                "600",
+                "--fixed-command-x",
+                "0",
+                "--controller",
+                "xbox",
+                "--gate5-authorized",
+                "--hardware-authorized",
+                "--suspended-or-benched",
+                "--require-realtime",
+            ]
+        )
+        == 2
+    )
+    assert "cannot stat calibration profile" in capsys.readouterr().err
+    assert not (tmp_path / "never.jsonl").exists()
 
 
 def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
@@ -636,6 +700,19 @@ def test_active_policy_stale_sensor_halts_and_torques_off(
         @staticmethod
         def close() -> None:
             return None
+
+        @staticmethod
+        def diagnostics() -> dict[str, object]:
+            return {
+                "imu": {
+                    "identity_verified": False,
+                    "calibration_applied": False,
+                    "calibration_readback_verified": False,
+                    "calibration_profile_path": None,
+                    "calibration_profile_sha256": None,
+                    "calibration_source_sha256": None,
+                }
+            }
 
     monkeypatch.setattr(runtime_module, "MockSTS3215Bus", lambda: bus)
     monkeypatch.setattr(runtime_module, "MockSensorHub", StaleSensorHub)

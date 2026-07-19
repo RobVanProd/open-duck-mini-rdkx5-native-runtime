@@ -517,3 +517,19 @@ This is recorded but was not used as a post-hoc Gate 2 threshold. Extended
 telemetry observed 6.9-8.4 V and 29-42 C with zero alarm replies. Gate 2 is
 `PASS_REVIEWED`; Gate 3 and every policy or grounded operation remain outside
 this decision's authority.
+
+## D040 — Require inherited BNO055 calibration and identity proof
+
+Accepted offline before Gate 3. The preserved policy runtime loads
+`imu_calib_data.pkl` and applies accelerometer, gyroscope, and magnetometer
+offset triplets. The first sensor probe omitted that path, so it could have
+produced fresh, correctly shaped, but contract-different IMU evidence.
+
+Hardware sensor startup now requires a strict JSON profile converted through a
+primitive-only restricted unpickler. The profile binds the legacy pickle hash;
+the driver verifies chip ID `0xa0`, writes all three triplets in configuration
+mode, and requires exact register readback before entering NDOF. Gate 3 also
+records sensor-worker errors and installed source hashes. Its nine-label
+validator can establish data integrity only; physical orientation and switch
+labels remain `REVIEW_REQUIRED` under D017. No board access is authorized by
+this decision.

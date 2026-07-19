@@ -28,9 +28,12 @@ rejection, and dual-acknowledgement enforcement before output creation.
 Real-time tests verify pre-spawn housekeeping affinity, control-thread-only
 `SCHED_FIFO`, rejection of a service pinned only to the control CPU, and failure
 when any background native thread can execute on the isolated core.
-The labeled sensor-probe tests validate JSONL/summary schemas, shared-clock
-freshness evidence, explicit review-required orientation status, and refusal to
-open X5 GPIO/I2C before both hardware acknowledgements.
+The labeled sensor-probe tests validate JSONL/summary schemas, BNO055 identity,
+restricted legacy-calibration conversion, exact offset readback, shared-clock
+freshness evidence, explicit typed labels, and refusal to open X5 GPIO/I2C
+before both hardware acknowledgements. The nine-label Gate 3 validator tests
+raw hashes, fixed capture parameters, common provenance, tamper rejection, and
+the invariant that physical clearance remains human-reviewed.
 Telemetry tests prove output-open failures are reported synchronously and that
 exhausting any bounded record pool fails the run instead of silently dropping
 evidence. Runtime guard tests reject incomplete Gate 5 scope and

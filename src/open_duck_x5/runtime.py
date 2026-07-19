@@ -30,6 +30,7 @@ from .hardware_guard import (
     add_hardware_ack_arguments,
     require_hardware_authorization,
 )
+from .imu_calibration import BNO055Calibration
 from .policy import ONNX_SESSION_CONTRACT, OnnxPolicy, PolicyContractError
 from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import SafetyError, TorqueGuard, Watchdog, WatchdogTrip
@@ -78,6 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--watchdog-failures", type=int, default=3)
     parser.add_argument("--imu-bus", type=int, default=5)
     parser.add_argument("--imu-address", type=lambda value: int(value, 0), default=0x28)
+    parser.add_argument(
+        "--imu-calibration",
+        type=Path,
+        default=Path.home() / "imu_calibration.json",
+        help="strict BNO055 calibration JSON; required by the serial Gate 5 runtime",
+    )
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=7)
     parser.add_argument("--rt-priority", type=int, default=80)
@@ -115,12 +122,15 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         raise ValueError("--fixed-command-x must be finite")
     telemetry_path = args.telemetry.expanduser().resolve()
     protected_paths = {args.config.expanduser().resolve()}
+    protected_paths.add(args.imu_calibration.expanduser().resolve())
     if args.policy is not None:
         protected_paths.add(args.policy.expanduser().resolve())
     if args.bus == "serial":
         protected_paths.add(Path(args.device).expanduser().resolve())
     if telemetry_path in protected_paths:
-        raise ValueError("--telemetry must not overwrite config, policy, or serial device")
+        raise ValueError(
+            "--telemetry must not overwrite config, IMU calibration, policy, or serial device"
+        )
 
 
 class Runtime:
@@ -130,6 +140,7 @@ class Runtime:
         self.config_path = args.config.expanduser().resolve()
         self.config = DuckConfig.load(self.config_path)
         self.config_sha256 = _sha256(self.config_path)
+        self.imu_calibration: BNO055Calibration | None = None
         self.offsets = self.config.offsets_array
         self.logical_positions = np.zeros(ACTION_DIM, dtype=np.float64)
         self.logical_velocities = np.zeros(ACTION_DIM, dtype=np.float64)
@@ -203,6 +214,7 @@ class Runtime:
                     )
                 if not args.require_realtime:
                     raise RealtimeSetupError("serial runtime requires --require-realtime")
+                self.imu_calibration = BNO055Calibration.load(args.imu_calibration)
             if args.require_realtime:
                 # This must happen before ONNX, sensors, controller, or writer
                 # create threads. They then inherit housekeeping affinity.
@@ -224,6 +236,7 @@ class Runtime:
                         bus_number=args.imu_bus,
                         address=args.imu_address,
                         upside_down=self.config.imu_upside_down,
+                        calibration=self.imu_calibration,
                     )
                 except BaseException:
                     contacts.close()
@@ -354,6 +367,8 @@ class Runtime:
             raise SafetyError("physical controller state is disconnected or stale")
 
     def _runtime_start_details(self) -> dict[str, object]:
+        sensor_diagnostics = self.sensor_hub.diagnostics()
+        imu_diagnostics = dict(sensor_diagnostics["imu"])
         return {
             "contract_id": CONTRACT_ID,
             "control_frequency_hz": CONTROL_FREQUENCY_HZ,
@@ -372,6 +387,43 @@ class Runtime:
                 "phase_frequency_factor_offset": (
                     self.config.phase_frequency_factor_offset
                 ),
+            },
+            "sensors": {
+                "imu": {
+                    "backend": "bno055_smbus" if self.args.bus == "serial" else "mock",
+                    "i2c_device": (
+                        f"/dev/i2c-{self.args.imu_bus}"
+                        if self.args.bus == "serial"
+                        else "mock://bno055"
+                    ),
+                    "address": self.args.imu_address,
+                    "upside_down": self.config.imu_upside_down,
+                    "identity_verified": bool(
+                        imu_diagnostics.get("identity_verified", False)
+                    ),
+                    "calibration_applied": bool(
+                        imu_diagnostics.get("calibration_applied", False)
+                    ),
+                    "calibration_readback_verified": bool(
+                        imu_diagnostics.get("calibration_readback_verified", False)
+                    ),
+                    "calibration_profile_path": imu_diagnostics.get(
+                        "calibration_profile_path"
+                    ),
+                    "calibration_profile_sha256": imu_diagnostics.get(
+                        "calibration_profile_sha256"
+                    ),
+                    "calibration_source_sha256": imu_diagnostics.get(
+                        "calibration_source_sha256"
+                    ),
+                },
+                "contacts": {
+                    "backend": "Hobot.GPIO" if self.args.bus == "serial" else "mock",
+                    "numbering": "BCM",
+                    "left": {"bcm": 22, "physical_pin": 15},
+                    "right": {"bcm": 27, "physical_pin": 13},
+                    "polarity": "raw GPIO false -> contact true",
+                },
             },
             "policy": (
                 {

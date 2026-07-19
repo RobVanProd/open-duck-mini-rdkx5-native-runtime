@@ -75,6 +75,7 @@
         "control_period_ns",
         "bus",
         "config",
+        "sensors",
         "policy",
         "joint_names",
         "servo_ids",
@@ -119,6 +120,73 @@
             "start_paused": { "type": "boolean" },
             "imu_upside_down": { "type": "boolean" },
             "phase_frequency_factor_offset": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "sensors": {
+          "type": "object",
+          "required": ["imu", "contacts"],
+          "properties": {
+            "imu": {
+              "type": "object",
+              "required": [
+                "backend",
+                "i2c_device",
+                "address",
+                "upside_down",
+                "identity_verified",
+                "calibration_applied",
+                "calibration_readback_verified",
+                "calibration_profile_path",
+                "calibration_profile_sha256",
+                "calibration_source_sha256"
+              ],
+              "properties": {
+                "backend": { "enum": ["mock", "bno055_smbus"] },
+                "i2c_device": { "type": "string", "minLength": 1 },
+                "address": { "type": "integer", "minimum": 0, "maximum": 127 },
+                "upside_down": { "type": "boolean" },
+                "identity_verified": { "type": "boolean" },
+                "calibration_applied": { "type": "boolean" },
+                "calibration_readback_verified": { "type": "boolean" },
+                "calibration_profile_path": { "type": ["string", "null"] },
+                "calibration_profile_sha256": {
+                  "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+                },
+                "calibration_source_sha256": {
+                  "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+                }
+              },
+              "additionalProperties": false
+            },
+            "contacts": {
+              "type": "object",
+              "required": ["backend", "numbering", "left", "right", "polarity"],
+              "properties": {
+                "backend": { "enum": ["mock", "Hobot.GPIO"] },
+                "numbering": { "const": "BCM" },
+                "left": {
+                  "type": "object",
+                  "required": ["bcm", "physical_pin"],
+                  "properties": {
+                    "bcm": { "const": 22 },
+                    "physical_pin": { "const": 15 }
+                  },
+                  "additionalProperties": false
+                },
+                "right": {
+                  "type": "object",
+                  "required": ["bcm", "physical_pin"],
+                  "properties": {
+                    "bcm": { "const": 27 },
+                    "physical_pin": { "const": 13 }
+                  },
+                  "additionalProperties": false
+                },
+                "polarity": { "const": "raw GPIO false -> contact true" }
+              },
+              "additionalProperties": false
+            }
           },
           "additionalProperties": false
         },
@@ -171,6 +239,61 @@
         "hardware_authorized": { "type": "boolean" },
         "suspended_or_benched": { "type": "boolean" }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "bus": { "properties": { "backend": { "const": "mock" } } }
+            }
+          },
+          "then": {
+            "properties": {
+              "sensors": {
+                "properties": {
+                  "imu": {
+                    "properties": {
+                      "backend": { "const": "mock" },
+                      "identity_verified": { "const": false },
+                      "calibration_applied": { "const": false },
+                      "calibration_readback_verified": { "const": false }
+                    }
+                  },
+                  "contacts": { "properties": { "backend": { "const": "mock" } } }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "bus": { "properties": { "backend": { "const": "serial" } } }
+            }
+          },
+          "then": {
+            "properties": {
+              "sensors": {
+                "properties": {
+                  "imu": {
+                    "properties": {
+                      "backend": { "const": "bno055_smbus" },
+                      "identity_verified": { "const": true },
+                      "calibration_applied": { "const": true },
+                      "calibration_readback_verified": { "const": true },
+                      "calibration_profile_path": { "type": "string" },
+                      "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
+                      "calibration_source_sha256": { "$ref": "#/$defs/sha256" }
+                    }
+                  },
+                  "contacts": {
+                    "properties": { "backend": { "const": "Hobot.GPIO" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "realtime": {

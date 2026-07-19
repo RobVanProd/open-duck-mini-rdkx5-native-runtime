@@ -14,15 +14,18 @@
     "samples",
     "samples_requested",
     "config",
+    "software",
+    "imu_calibration",
     "environment",
     "timing",
     "imu",
     "contacts",
+    "sensor_health",
     "checks",
     "jsonl_sha256"
   ],
   "properties": {
-    "schema_version": { "const": "open_duck_x5.sensor_summary.v1" },
+    "schema_version": { "const": "open_duck_x5.sensor_summary.v2" },
     "backend": { "enum": ["mock", "x5"] },
     "informational_only": { "type": "boolean" },
     "hardware_gate_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
@@ -33,7 +36,60 @@
     "samples_requested": { "type": "integer", "minimum": 2 },
     "config": {
       "type": "object",
-      "required": ["path", "sha256", "imu_upside_down"]
+      "required": ["path", "sha256", "imu_upside_down"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "imu_upside_down": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "software": {
+      "type": "object",
+      "required": [
+        "sensor_probe_path",
+        "sensor_probe_sha256",
+        "sensors_path",
+        "sensors_sha256",
+        "imu_calibration_path",
+        "imu_calibration_sha256"
+      ],
+      "properties": {
+        "sensor_probe_path": { "type": "string" },
+        "sensor_probe_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "sensors_path": { "type": "string" },
+        "sensors_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "imu_calibration_path": { "type": "string" },
+        "imu_calibration_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "imu_calibration": {
+      "type": "object",
+      "required": [
+        "required",
+        "path",
+        "profile_sha256",
+        "source_format",
+        "source_sha256"
+      ],
+      "properties": {
+        "required": { "type": "boolean" },
+        "path": { "type": ["string", "null"] },
+        "profile_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_format": {
+          "type": ["string", "null"],
+          "enum": ["apirrone.imu_calib_data.pkl", null]
+        },
+        "source_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
     },
     "environment": {
       "type": "object",
@@ -41,6 +97,8 @@
         "servo_bus_accessed",
         "torque_enabled",
         "goal_position_writes",
+        "policy_loaded",
+        "policy_inference_count",
         "hardware_authorized",
         "suspended_or_benched"
       ],
@@ -48,6 +106,8 @@
         "servo_bus_accessed": { "const": false },
         "torque_enabled": { "const": false },
         "goal_position_writes": { "const": 0 },
+        "policy_loaded": { "const": false },
+        "policy_inference_count": { "const": 0 },
         "hardware_authorized": { "type": "boolean" },
         "suspended_or_benched": { "type": "boolean" }
       }
@@ -55,22 +115,59 @@
     "timing": { "type": "object" },
     "imu": { "type": "object" },
     "contacts": { "type": "object" },
+    "sensor_health": {
+      "type": "object",
+      "required": [
+        "sample_attempts",
+        "sample_successes",
+        "sample_errors",
+        "consecutive_errors_at_stop",
+        "max_consecutive_errors",
+        "last_error_type"
+      ],
+      "properties": {
+        "sample_attempts": { "type": "integer", "minimum": 0 },
+        "sample_successes": { "type": "integer", "minimum": 0 },
+        "sample_errors": { "type": "integer", "minimum": 0 },
+        "consecutive_errors_at_stop": { "type": "integer", "minimum": 0 },
+        "max_consecutive_errors": { "type": "integer", "minimum": 0 },
+        "last_error_type": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "checks": {
       "type": "object",
       "required": [
+        "exact_sample_count",
         "zero_imu_stale",
         "zero_contacts_stale",
         "strictly_increasing_imu_timestamps",
         "strictly_increasing_contact_timestamps",
+        "zero_sensor_worker_errors",
+        "bno055_identity_verified",
+        "calibration_profile_applied",
+        "calibration_readback_verified",
+        "operator_label_confirmed",
         "orientation_and_contact_label_match",
         "authorization_provenance",
         "gate3_data_candidate"
       ],
       "properties": {
+        "exact_sample_count": { "type": "boolean" },
+        "zero_imu_stale": { "type": "boolean" },
+        "zero_contacts_stale": { "type": "boolean" },
+        "strictly_increasing_imu_timestamps": { "type": "boolean" },
+        "strictly_increasing_contact_timestamps": { "type": "boolean" },
+        "zero_sensor_worker_errors": { "type": "boolean" },
+        "bno055_identity_verified": { "type": "boolean" },
+        "calibration_profile_applied": { "type": "boolean" },
+        "calibration_readback_verified": { "type": "boolean" },
+        "operator_label_confirmed": { "type": "boolean" },
         "orientation_and_contact_label_match": { "const": "REVIEW_REQUIRED" },
         "authorization_provenance": { "type": "boolean" },
         "gate3_data_candidate": { "type": "boolean" }
-      }
+      },
+      "additionalProperties": false
     },
     "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   },
@@ -81,6 +178,7 @@
         "properties": {
           "informational_only": { "const": true },
           "hardware_gate_status": { "const": "NOT_APPLICABLE_MOCK" },
+          "imu_calibration": { "properties": { "required": { "const": false } } },
           "checks": { "properties": { "gate3_data_candidate": { "const": false } } }
         }
       }
@@ -91,6 +189,15 @@
         "properties": {
           "informational_only": { "const": false },
           "hardware_gate_status": { "const": "REVIEW_REQUIRED" },
+          "imu_calibration": {
+            "properties": {
+              "required": { "const": true },
+              "path": { "type": "string" },
+              "profile_sha256": { "type": "string" },
+              "source_format": { "const": "apirrone.imu_calib_data.pkl" },
+              "source_sha256": { "type": "string" }
+            }
+          },
           "environment": {
             "properties": {
               "hardware_authorized": { "const": true },

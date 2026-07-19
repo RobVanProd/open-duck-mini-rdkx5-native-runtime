@@ -10,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 
+from . import imu_calibration as imu_calibration_module
+from . import sensors as sensors_module
 from .clock import clock_ns
 from .config import ConfigError, DuckConfig
 from .hardware_guard import (
@@ -17,6 +19,7 @@ from .hardware_guard import (
     add_hardware_ack_arguments,
     require_hardware_authorization,
 )
+from .imu_calibration import BNO055Calibration
 from .sensors import BNO055Smbus, MockSensorHub, SensorHub, SensorReadout, X5FootContacts
 from .timing import AbsoluteTicker
 
@@ -47,6 +50,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stale-after-ms", type=float, default=40.0)
     parser.add_argument("--imu-bus", type=int, default=5)
     parser.add_argument("--imu-address", type=lambda value: int(value, 0), default=0x28)
+    parser.add_argument(
+        "--imu-calibration",
+        type=Path,
+        help="strict JSON calibration profile; required for the X5 backend",
+    )
+    parser.add_argument(
+        "--operator-confirmed-label",
+        choices=SENSOR_LABELS,
+        help="typed physical-state confirmation; must exactly match --label on X5",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
     add_hardware_ack_arguments(parser)
@@ -95,9 +108,26 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--output must not overwrite --config")
     if args.summary.expanduser().resolve() == config_path:
         raise ValueError("--summary must not overwrite --config")
+    if args.backend == "x5":
+        if args.imu_calibration is None:
+            raise ValueError("--imu-calibration is required for the X5 backend")
+        if args.operator_confirmed_label != args.label:
+            raise ValueError(
+                "--operator-confirmed-label must exactly match --label for the X5 backend"
+            )
+    if args.imu_calibration is not None:
+        calibration_path = args.imu_calibration.expanduser().resolve()
+        if args.output.expanduser().resolve() == calibration_path:
+            raise ValueError("--output must not overwrite --imu-calibration")
+        if args.summary.expanduser().resolve() == calibration_path:
+            raise ValueError("--summary must not overwrite --imu-calibration")
 
 
-def _create_hub(args: argparse.Namespace, config: DuckConfig):
+def _create_hub(
+    args: argparse.Namespace,
+    config: DuckConfig,
+    calibration: BNO055Calibration | None,
+):
     if args.backend == "mock":
         return MockSensorHub()
     require_hardware_authorization(
@@ -111,6 +141,7 @@ def _create_hub(args: argparse.Namespace, config: DuckConfig):
             bus_number=args.imu_bus,
             address=args.imu_address,
             upside_down=config.imu_upside_down,
+            calibration=calibration,
         )
     except BaseException:
         contacts.close()
@@ -127,7 +158,12 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     _validate_args(args)
     config_path = args.config.expanduser().resolve()
     config = DuckConfig.load(config_path)
-    hub = _create_hub(args, config)
+    calibration = (
+        BNO055Calibration.load(args.imu_calibration)
+        if args.imu_calibration is not None
+        else None
+    )
+    hub = _create_hub(args, config, calibration)
     samples = args.samples
     tick_start_ns = np.zeros(samples, dtype=np.int64)
     tick_period_ns = np.zeros(samples, dtype=np.int64)
@@ -144,6 +180,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     readout = SensorReadout()
     previous_tick_ns = 0
     completed = 0
+    hub_diagnostics: dict[str, object] = {}
     try:
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
         for index in range(samples):
@@ -166,6 +203,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             completed = index + 1
     finally:
         hub.close()
+        hub_diagnostics = hub.diagnostics()
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="\n") as handle:
@@ -202,8 +240,22 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     contact_timestamp_repeats = int(
         np.count_nonzero(np.diff(contacts_timestamp_ns[:completed]) <= 0)
     )
+    imu_diagnostics = dict(hub_diagnostics.get("imu", {}))
+    sample_attempts = int(hub_diagnostics.get("sample_attempts", 0))
+    sample_successes = int(hub_diagnostics.get("sample_successes", 0))
+    sample_errors = int(hub_diagnostics.get("sample_errors", 0))
+    identity_verified = bool(imu_diagnostics.get("identity_verified", False))
+    calibration_applied = bool(imu_diagnostics.get("calibration_applied", False))
+    calibration_readback_verified = bool(
+        imu_diagnostics.get("calibration_readback_verified", False)
+    )
+    operator_label_confirmed = (
+        args.backend == "x5" and args.operator_confirmed_label == args.label
+    )
+    exact_sample_count = completed == samples
+    zero_sensor_worker_errors = sample_errors == 0
     summary: dict[str, object] = {
-        "schema_version": "open_duck_x5.sensor_summary.v1",
+        "schema_version": "open_duck_x5.sensor_summary.v2",
         "backend": args.backend,
         "informational_only": args.backend == "mock",
         "hardware_gate_status": (
@@ -219,6 +271,31 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "sha256": _sha256(config_path),
             "imu_upside_down": config.imu_upside_down,
         },
+        "software": {
+            "sensor_probe_path": str(Path(__file__).resolve()),
+            "sensor_probe_sha256": _sha256(Path(__file__).resolve()),
+            "sensors_path": str(Path(sensors_module.__file__).resolve()),
+            "sensors_sha256": _sha256(Path(sensors_module.__file__).resolve()),
+            "imu_calibration_path": str(
+                Path(imu_calibration_module.__file__).resolve()
+            ),
+            "imu_calibration_sha256": _sha256(
+                Path(imu_calibration_module.__file__).resolve()
+            ),
+        },
+        "imu_calibration": {
+            "required": args.backend == "x5",
+            "path": str(calibration.profile_path) if calibration is not None else None,
+            "profile_sha256": (
+                calibration.profile_sha256 if calibration is not None else None
+            ),
+            "source_format": (
+                "apirrone.imu_calib_data.pkl" if calibration is not None else None
+            ),
+            "source_sha256": (
+                calibration.source_sha256 if calibration is not None else None
+            ),
+        },
         "environment": {
             "python": sys.version.split()[0],
             "platform": platform.platform(),
@@ -227,9 +304,18 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "stale_after_ms": args.stale_after_ms,
             "imu_bus": args.imu_bus,
             "imu_address": args.imu_address,
+            "imu_i2c_device": f"/dev/i2c-{args.imu_bus}",
+            "contact_gpio_mapping": {
+                "numbering": "BCM",
+                "left": {"bcm": 22, "physical_pin": 15},
+                "right": {"bcm": 27, "physical_pin": 13},
+                "polarity": "raw GPIO false -> contact true",
+            },
             "servo_bus_accessed": False,
             "torque_enabled": False,
             "goal_position_writes": 0,
+            "policy_loaded": False,
+            "policy_inference_count": 0,
             "hardware_authorized": bool(args.hardware_authorized),
             "suspended_or_benched": bool(args.suspended_or_benched),
         },
@@ -240,6 +326,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             ),
         },
         "imu": {
+            "device": imu_diagnostics,
             "gyro_rad_s": _axis_stats(gyro[:completed]),
             "acceleration_m_s2": _axis_stats(acceleration[:completed]),
             "age_ms": _stats(imu_age_ns[:completed], scale=1e-6),
@@ -258,21 +345,46 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "nonincreasing_timestamp_count": contact_timestamp_repeats,
             "frozen_polarity": "raw GPIO false -> contact true",
         },
+        "sensor_health": {
+            "sample_attempts": sample_attempts,
+            "sample_successes": sample_successes,
+            "sample_errors": sample_errors,
+            "consecutive_errors_at_stop": int(
+                hub_diagnostics.get("consecutive_errors", 0)
+            ),
+            "max_consecutive_errors": int(
+                hub_diagnostics.get("max_consecutive_errors", 0)
+            ),
+            "last_error_type": hub_diagnostics.get("last_error_type"),
+        },
         "checks": {
+            "exact_sample_count": exact_sample_count,
             "zero_imu_stale": imu_stale_count == 0,
             "zero_contacts_stale": contacts_stale_count == 0,
             "strictly_increasing_imu_timestamps": imu_timestamp_repeats == 0,
             "strictly_increasing_contact_timestamps": contact_timestamp_repeats == 0,
+            "zero_sensor_worker_errors": zero_sensor_worker_errors,
+            "bno055_identity_verified": identity_verified,
+            "calibration_profile_applied": calibration_applied,
+            "calibration_readback_verified": calibration_readback_verified,
+            "operator_label_confirmed": operator_label_confirmed,
             "orientation_and_contact_label_match": "REVIEW_REQUIRED",
             "authorization_provenance": args.backend == "mock"
             or (args.hardware_authorized and args.suspended_or_benched),
             "gate3_data_candidate": args.backend == "x5"
             and args.hardware_authorized
             and args.suspended_or_benched
+            and exact_sample_count
             and imu_stale_count == 0
             and contacts_stale_count == 0
             and imu_timestamp_repeats == 0
-            and contact_timestamp_repeats == 0,
+            and contact_timestamp_repeats == 0
+            and zero_sensor_worker_errors
+            and sample_successes > 0
+            and identity_verified
+            and calibration_applied
+            and calibration_readback_verified
+            and operator_label_confirmed,
         },
         "jsonl_sha256": _sha256(args.output),
     }

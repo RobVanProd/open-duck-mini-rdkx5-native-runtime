@@ -270,21 +270,42 @@ reposition the suspended/benched robot between runs. The probe never opens the
 servo bus, enables torque, writes a target, or runs a policy:
 
 ```bash
-probe_sensors --backend x5 --label upright --config ~/duck_config.json \
+probe_sensors --backend x5 --label upright \
+  --operator-confirmed-label upright \
+  --config ~/duck_config.json --imu-calibration ~/imu_calibration.json \
   --samples 250 --hardware-authorized --suspended-or-benched \
-  --output gate3-upright.jsonl --summary gate3-upright-summary.json
+  --output gate3/upright/sensor.jsonl --summary gate3/upright/summary.json
 ```
 
 Repeat only after deliberate repositioning for `nose_forward`, `nose_back`,
 `left_tilt`, and `right_tilt`. Capture switch states separately with
 `no_contacts`, `left_contact`, `right_contact`, and `both_contacts`. Every summary
-reports sample age, stale counts, timestamp repeats, axis distributions, contact
-fractions, config hash, and `imu_upside_down`. Orientation/contact correctness
-stays `REVIEW_REQUIRED`; the script does not manufacture a pass from unlabeled
-numbers.
-The summary also preserves both hardware assertions. Its data-candidate field
-only covers completeness/freshness/timestamps; the operator must still review
-the physical label, so it is never automatic orientation/contact clearance.
+reports sample age, sensor-worker errors, timestamp repeats, axis distributions,
+contact fractions, config/source hashes, and `imu_upside_down`. It also proves
+the BNO055 chip ID is `0xa0` and that all three inherited offset triplets read
+back exactly before NDOF sampling begins.
+
+The X5 backend requires a strict JSON calibration profile converted from the
+preserved runtime's `imu_calib_data.pkl`. The converter uses a restricted
+primitive-only unpickler, records the source SHA-256, and refuses overwrite:
+
+```bash
+convert_imu_calibration \
+  --legacy-pickle /home/sunrise/project/imu_calib_data.pkl \
+  --output ~/imu_calibration.json
+```
+
+After all nine labeled directories exist, validate them as one frozen matrix:
+
+```bash
+validate_gate3_sensors --run-root gate3 --output gate3-review.json
+```
+
+The validator independently rehashes every JSONL file, checks exactly 250 fresh
+monotonic rows per label, binds one config/calibration/source population, and
+checks the four contact patterns. Orientation/contact correctness remains
+`REVIEW_REQUIRED`; neither the probe nor validator manufactures clearance from
+unreviewed labels.
 
 ## Gate 4 — Sine sweeps
 

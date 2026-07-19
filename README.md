@@ -15,7 +15,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
-| IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
+| IMU / contacts / policy host | BNO055 identity and inherited-offset readback are fail-closed; nine-label validator is review-only; hardware remains unverified |
 | Hardware gates 1-5 | Gates 1 and 2 `PASS_REVIEWED`; Gate 2 passed its frozen 10,000-tick preflight and home hold; Gates 3-5 `NOT_RUN` and separately unauthorized |
 | Grounded replay | Out of scope |
 
@@ -73,6 +73,11 @@ Read these before any X5 work:
 - [Offline verification](docs/TESTING.md)
 - [Control-run evidence](docs/CONTROL_RUN_EVIDENCE.md)
 - [Duck evidence collector](docs/DUCK_EVIDENCE_COLLECTION.md)
+
+Gate 3 and the serial Gate 5 runtime require a strict BNO055 calibration JSON
+converted from the preserved runtime's `imu_calib_data.pkl`. Missing,
+malformed, or non-matching calibration data blocks hardware startup before GPIO,
+I2C sampling, policy loading, or motion.
 
 ## Board evidence collector
 

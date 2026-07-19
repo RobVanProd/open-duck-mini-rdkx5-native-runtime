@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 import open_duck_x5.sensors as sensors_module
+from open_duck_x5.imu_calibration import BNO055Calibration
 from open_duck_x5.sensors import (
     BNO055Smbus,
     PublishedSensorReadout,
@@ -17,11 +18,31 @@ from open_duck_x5.sensors import (
 
 
 class FakeRegisterBus:
-    def __init__(self) -> None:
+    def __init__(self, *, chip_id: int = sensors_module.BNO055_CHIP_ID) -> None:
         self.writes: list[tuple[int, int, int]] = []
+        self.registers = bytearray(256)
+        self.registers[sensors_module.BNO055_CHIP_ID_REGISTER] = chip_id
+        self.registers[sensors_module.BNO055_CALIBRATION_STATUS] = 0xFF
 
     def write_byte_data(self, address: int, register: int, value: int) -> None:
         self.writes.append((address, register, value))
+        self.registers[register] = value
+
+    def read_byte_data(self, address: int, register: int) -> int:
+        assert address == 0x28
+        return self.registers[register]
+
+    def write_i2c_block_data(
+        self, address: int, register: int, values: list[int]
+    ) -> None:
+        assert address == 0x28
+        self.registers[register : register + len(values)] = bytes(values)
+
+    def read_i2c_block_data(
+        self, address: int, register: int, length: int
+    ) -> list[int]:
+        assert address == 0x28
+        return list(self.registers[register : register + length])
 
 
 @pytest.mark.parametrize(
@@ -39,11 +60,91 @@ def test_bno055_configuration_preserves_frozen_axis_mapping(
     imu.bus = bus
     imu.address = 0x28
 
-    imu._configure(upside_down)
+    imu._configure(upside_down, None)
 
     assert (0x28, sensors_module.BNO055_AXIS_MAP_CONFIG, 0x21) in bus.writes
     assert (0x28, sensors_module.BNO055_AXIS_MAP_SIGN, expected_sign) in bus.writes
     assert bus.writes[-1] == (0x28, sensors_module.BNO055_OPR_MODE, 0x0C)
+    assert imu.describe()["identity_verified"] is True
+    assert imu.describe()["calibration_applied"] is False
+
+
+def test_bno055_applies_and_reads_back_frozen_calibration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sensors_module.time, "sleep", lambda _seconds: None)
+    calibration = BNO055Calibration.from_mapping(
+        {
+            "schema_version": "open_duck_x5.bno055_calibration.v1",
+            "source_format": "apirrone.imu_calib_data.pkl",
+            "source_sha256": "a" * 64,
+            "offsets_accelerometer": [1, -2, 3],
+            "offsets_gyroscope": [-4, 5, -6],
+            "offsets_magnetometer": [7, -8, 9],
+        }
+    )
+    bus = FakeRegisterBus()
+    imu = object.__new__(BNO055Smbus)
+    imu.bus = bus
+    imu.address = 0x28
+
+    imu._configure(True, calibration)
+
+    diagnostics = imu.describe()
+    assert diagnostics["calibration_applied"] is True
+    assert diagnostics["calibration_readback_verified"] is True
+    assert diagnostics["calibration_source_sha256"] == "a" * 64
+    assert diagnostics["calibration_readback"] == {
+        "offsets_accelerometer": [1, -2, 3],
+        "offsets_gyroscope": [-4, 5, -6],
+        "offsets_magnetometer": [7, -8, 9],
+    }
+    assert diagnostics["calibration_status"] == {
+        "system": 3,
+        "gyroscope": 3,
+        "accelerometer": 3,
+        "magnetometer": 3,
+    }
+
+
+def test_bno055_rejects_wrong_chip_identity(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sensors_module.time, "sleep", lambda _seconds: None)
+    imu = object.__new__(BNO055Smbus)
+    imu.bus = FakeRegisterBus(chip_id=0x00)
+    imu.address = 0x28
+
+    with pytest.raises(RuntimeError, match="bad BNO055 chip id"):
+        imu._configure(False, None)
+
+
+def test_bno055_rejects_calibration_readback_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class BadReadbackBus(FakeRegisterBus):
+        def read_i2c_block_data(
+            self, address: int, register: int, length: int
+        ) -> list[int]:
+            if register == sensors_module.BNO055_OFFSET_ACCEL:
+                return [0] * length
+            return super().read_i2c_block_data(address, register, length)
+
+    monkeypatch.setattr(sensors_module.time, "sleep", lambda _seconds: None)
+    calibration = BNO055Calibration.from_mapping(
+        {
+            "schema_version": "open_duck_x5.bno055_calibration.v1",
+            "source_format": "apirrone.imu_calib_data.pkl",
+            "source_sha256": "a" * 64,
+            "offsets_accelerometer": [1, 2, 3],
+            "offsets_gyroscope": [4, 5, 6],
+            "offsets_magnetometer": [7, 8, 9],
+        }
+    )
+    imu = object.__new__(BNO055Smbus)
+    imu.bus = BadReadbackBus()
+    imu.address = 0x28
+
+    with pytest.raises(RuntimeError, match="offsets_accelerometer readback mismatch"):
+        imu._configure(False, calibration)
 
 
 def test_bno055_sample_decodes_frozen_units(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -160,3 +261,58 @@ def test_control_read_does_not_wait_for_blocked_i2c() -> None:
         imu.release.set()
         hub.close()
         reader.join(timeout=1.0)
+
+
+def test_sensor_worker_counts_transient_device_errors() -> None:
+    class FlakyImu:
+        def __init__(self) -> None:
+            self.gyro_rad_s = np.zeros(3, dtype=np.float64)
+            self.acceleration_m_s2 = np.array([0.0, 0.0, 9.81], dtype=np.float64)
+            self.timestamp_ns = 0
+            self.calls = 0
+            self.error_seen = threading.Event()
+            self.success_seen = threading.Event()
+
+        def sample(self) -> int:
+            self.calls += 1
+            if self.calls == 1:
+                self.error_seen.set()
+                raise RuntimeError("injected I2C error")
+            self.timestamp_ns += 1
+            self.success_seen.set()
+            return self.timestamp_ns
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+        @staticmethod
+        def describe() -> dict[str, object]:
+            return {}
+
+    class FakeContacts:
+        def __init__(self) -> None:
+            self.contacts = np.zeros(2, dtype=np.float32)
+            self.timestamp_ns = 0
+
+        def sample(self) -> int:
+            self.timestamp_ns += 1
+            return self.timestamp_ns
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+    imu = FlakyImu()
+    hub = SensorHub(imu, FakeContacts(), sample_frequency_hz=1000.0)
+    try:
+        assert imu.error_seen.wait(0.5)
+        assert imu.success_seen.wait(0.5)
+    finally:
+        hub.close()
+
+    diagnostics = hub.diagnostics()
+    assert diagnostics["sample_errors"] == 1
+    assert diagnostics["sample_successes"] >= 1
+    assert diagnostics["max_consecutive_errors"] == 1
+    assert diagnostics["last_error_type"] == "RuntimeError"

@@ -20,7 +20,7 @@
 | Complete evidence stream | bounded writers fail hard on pool/queue overflow or file errors | synchronous-open and forced-exhaustion tests | both Gate 2 stages have 10,000 contiguous records and zero drops |
 | Gate 5 provenance and summary | hashed runtime-start record, strict tick/event schemas, continuity-checking `summarize_control_run` | active/paused, command, envelope, schema, gap, path, and active-duration tests | serial summary `NOT_RUN` |
 | Probe-decided Rust escalation | D002 and runbook | mock explicitly non-authoritative | RT tick gate green; Rust not triggered by bus/USB latency failure |
-| BNO055 + contacts | nonblocking immutable publication plus guarded labeled `probe_sensors`; raw hash/auth provenance | raw-unit, axis-remap, polarity, freshness, blocked-I2C, schema, and guard tests | labeled tilt/contact review `NOT_RUN` |
+| BNO055 + contacts | nonblocking immutable publication; guarded labeled `probe_sensors`; chip-ID and exact inherited-calibration readback; nine-label review validator | restricted conversion, raw-unit, axis-remap, calibration, polarity, freshness, blocked-I2C, schema, provenance, tamper, and guard tests | labeled tilt/contact review `NOT_RUN`; calibration profile and pin mux inventory pending |
 | Common timestamp clock | `clock.py` imported by all producers | coarse-clock issue caught by probe | X5 monotonic clock reports 1 ns resolution |
 | ONNX warm-up | `OnnxPolicy` float32 I/O binding, warm-up, finite guards, and single-thread sequential session | fake-runtime session/binding/warm-up/failure tests plus snapshot tooling | BEST model interface loaded; inference latency pending |
 | 3.75 rad/s telemetry monitor | `ActionPipeline`, control JSONL | envelope test | suspended replay pending |
