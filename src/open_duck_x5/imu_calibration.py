@@ -90,9 +90,7 @@ class BNO055Calibration:
             offsets_accelerometer=_offset_triplet(
                 data["offsets_accelerometer"], "offsets_accelerometer"
             ),
-            offsets_gyroscope=_offset_triplet(
-                data["offsets_gyroscope"], "offsets_gyroscope"
-            ),
+            offsets_gyroscope=_offset_triplet(data["offsets_gyroscope"], "offsets_gyroscope"),
             offsets_magnetometer=_offset_triplet(
                 data["offsets_magnetometer"], "offsets_magnetometer"
             ),
@@ -165,15 +163,10 @@ def _load_restricted_legacy_pickle(path: Path) -> tuple[Mapping[str, Any], str]:
     return data, hashlib.sha256(payload).hexdigest()
 
 
-def convert_legacy_calibration(source: Path, output: Path) -> BNO055Calibration:
-    source = source.expanduser().resolve()
-    output = output.expanduser().resolve()
-    if source == output:
-        raise CalibrationError("legacy input and JSON output must be different files")
-    if output.exists():
-        raise CalibrationError(f"refusing to overwrite existing calibration profile: {output}")
+def load_legacy_calibration(path: str | Path) -> BNO055Calibration:
+    source = Path(path).expanduser().resolve()
     data, source_sha256 = _load_restricted_legacy_pickle(source)
-    calibration = BNO055Calibration.from_mapping(
+    return BNO055Calibration.from_mapping(
         {
             "schema_version": CALIBRATION_SCHEMA_VERSION,
             "source_format": LEGACY_SOURCE_FORMAT,
@@ -181,6 +174,16 @@ def convert_legacy_calibration(source: Path, output: Path) -> BNO055Calibration:
             **{key: data[key] for key in _OFFSET_KEYS},
         }
     )
+
+
+def convert_legacy_calibration(source: Path, output: Path) -> BNO055Calibration:
+    source = source.expanduser().resolve()
+    output = output.expanduser().resolve()
+    if source == output:
+        raise CalibrationError("legacy input and JSON output must be different files")
+    if output.exists():
+        raise CalibrationError(f"refusing to overwrite existing calibration profile: {output}")
+    calibration = load_legacy_calibration(source)
     output.parent.mkdir(parents=True, exist_ok=True)
     encoded = (json.dumps(calibration.to_mapping(), indent=2, sort_keys=True) + "\n").encode(
         "utf-8"

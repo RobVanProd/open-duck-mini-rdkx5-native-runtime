@@ -67,12 +67,21 @@
         "config_sha256",
         "calibration_profile_sha256",
         "calibration_source_sha256",
+        "calibration_capture_source_commit",
+        "calibration_capture_archive_sha256",
+        "calibration_review_sha256",
         "software"
       ],
       "properties": {
         "config_sha256": { "$ref": "#/$defs/sha256" },
         "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
         "calibration_source_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_capture_source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "calibration_capture_archive_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_review_sha256": { "$ref": "#/$defs/sha256" },
         "software": {
           "type": "object",
           "required": [
@@ -118,8 +127,8 @@
     },
     "raw_artifacts": {
       "type": "array",
-      "minItems": 19,
-      "maxItems": 19,
+      "minItems": 32,
+      "maxItems": 32,
       "items": {
         "type": "object",
         "required": ["path", "sha256"],

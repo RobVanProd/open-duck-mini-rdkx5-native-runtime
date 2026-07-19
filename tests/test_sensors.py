@@ -94,6 +94,7 @@ def test_bno055_applies_and_reads_back_frozen_calibration(
     assert diagnostics["calibration_applied"] is True
     assert diagnostics["calibration_readback_verified"] is True
     assert diagnostics["calibration_source_sha256"] == "a" * 64
+    assert diagnostics["calibration_profile_path"] is None
     assert diagnostics["calibration_readback"] == {
         "offsets_accelerometer": [1, -2, 3],
         "offsets_gyroscope": [-4, 5, -6],

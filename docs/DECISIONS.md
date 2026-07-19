@@ -571,3 +571,27 @@ the existing source-format/hash contract, a strict JSON runtime profile, a
 bounded status stream, and a source-bound review summary. Mock output remains
 informational. An X5 capture is only `REVIEW_REQUIRED`; it cannot clear Gate 3
 or authorize any policy operation.
+
+## D043 — Accept the physical calibration data, not Gate 3
+
+Accepted as a separately authorized, no-servo prerequisite result. Rob was
+physically present and manually reoriented the supported robot. The BNO055
+stream reached all-four level 3 and sustained `0xff` for the preregistered five
+samples. Across 1,318 rows and 330.934491 seconds, the captured accelerometer,
+gyroscope, and magnetometer offset triplets were `[118, 0, 33]`, `[1, 0, -2]`,
+and `[-421, -125, 360]`.
+
+A fresh production-driver session reapplied and read back all nine values
+exactly with the frozen identity, NDOF, axis, sign, and unit registers. An
+independent verifier reconstructed the status stream and rehashed the primitive
+source, strict profile, raw status, summary, frozen source archive, and source
+modules. Profile SHA-256 is
+`e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be`;
+source SHA-256 is
+`a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08`.
+
+The board lacked the declared `smbus2` dependency, so version 0.6.1 was
+installed reversibly in Sunrise's user site from a locally hashed wheel. No
+servo endpoint was opened; torque, goal writes, policy loads, and inference
+counts remained zero. This decision clears D041's missing-profile blocker only.
+The nine labeled Gate 3 matrix remains separately unauthorized and not run.

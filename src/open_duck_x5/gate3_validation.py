@@ -12,11 +12,15 @@ from . import imu_calibration as imu_calibration_module
 from . import sensor_probe as sensor_probe_module
 from . import sensors as sensors_module
 from .imu_calibration import BNO055Calibration, sha256_file
+from .imu_calibration_review import verify_calibration_capture
 from .sensor_probe import SENSOR_LABELS
 
 SAMPLES_FILENAME = "sensor.jsonl"
 SUMMARY_FILENAME = "summary.json"
+CALIBRATION_DIRNAME = "calibration"
 CALIBRATION_FILENAME = "imu_calibration.json"
+CALIBRATION_REVIEW_FILENAME = "calibration-review.json"
+LABEL_REVIEW_FILENAME = "integrity-review.json"
 EXPECTED_SAMPLES = 250
 EXPECTED_FREQUENCY_HZ = 50.0
 EXPECTED_SENSOR_FREQUENCY_HZ = 100.0
@@ -122,9 +126,7 @@ def _load_records(path: Path, label: str) -> tuple[list[dict[str, Any]], dict[st
             0 <= contact_age_ms <= EXPECTED_STALE_AFTER_MS,
             f"{label}: invalid contact age at {index}",
         )
-        gyro[index] = _finite_vector(
-            imu.get("gyro_rad_s"), length=3, field=f"{label} gyro"
-        )
+        gyro[index] = _finite_vector(imu.get("gyro_rad_s"), length=3, field=f"{label} gyro")
         acceleration[index] = _finite_vector(
             imu.get("acceleration_m_s2"),
             length=3,
@@ -150,9 +152,89 @@ def _expected_software_hashes() -> dict[str, str]:
     return {
         "sensor_probe_sha256": sha256_file(Path(sensor_probe_module.__file__).resolve()),
         "sensors_sha256": sha256_file(Path(sensors_module.__file__).resolve()),
-        "imu_calibration_sha256": sha256_file(
-            Path(imu_calibration_module.__file__).resolve()
-        ),
+        "imu_calibration_sha256": sha256_file(Path(imu_calibration_module.__file__).resolve()),
+    }
+
+
+def _load_calibration_context(
+    run_root: Path,
+) -> tuple[BNO055Calibration, dict[str, Any], list[dict[str, str]]]:
+    capture_dir = run_root / CALIBRATION_DIRNAME
+    calibration_review = verify_calibration_capture(capture_dir)
+    review_path = run_root / CALIBRATION_REVIEW_FILENAME
+    _require(review_path.is_file(), f"missing {CALIBRATION_REVIEW_FILENAME}")
+    captured_review = _load_json(review_path, maximum_bytes=MAX_SUMMARY_BYTES)
+    _require(
+        captured_review == calibration_review,
+        "calibration review packet does not match independent re-verification",
+    )
+    calibration_path = capture_dir / CALIBRATION_FILENAME
+    expected_calibration = BNO055Calibration.load(calibration_path)
+    raw_artifacts = [
+        {
+            "path": str(path.relative_to(run_root)),
+            "sha256": sha256_file(path),
+        }
+        for path in sorted(capture_dir.iterdir())
+    ]
+    raw_artifacts.append(
+        {
+            "path": CALIBRATION_REVIEW_FILENAME,
+            "sha256": sha256_file(review_path),
+        }
+    )
+    return expected_calibration, calibration_review, raw_artifacts
+
+
+def validate_gate3_label(run_root: Path, label: str) -> dict[str, object]:
+    run_root = run_root.expanduser().resolve()
+    _require(run_root.is_dir(), f"Gate 3 run root is not a directory: {run_root}")
+    _require(label in SENSOR_LABELS, f"unsupported Gate 3 label: {label}")
+    expected_calibration, calibration_review, _raw_artifacts = _load_calibration_context(run_root)
+    expected_software = _expected_software_hashes()
+    label_root = run_root / label
+    jsonl_path = label_root / SAMPLES_FILENAME
+    summary_path = label_root / SUMMARY_FILENAME
+    _require(jsonl_path.is_file(), f"{label}: missing {SAMPLES_FILENAME}")
+    _require(summary_path.is_file(), f"{label}: missing {SUMMARY_FILENAME}")
+    _records, metrics = _load_records(jsonl_path, label)
+    summary = _load_json(summary_path, maximum_bytes=MAX_SUMMARY_BYTES)
+    _validate_summary(
+        summary,
+        label=label,
+        jsonl_path=jsonl_path,
+        expected_software=expected_software,
+        expected_calibration=expected_calibration,
+    )
+    contact_expectations = {
+        "no_contacts": [0.0, 0.0],
+        "left_contact": [1.0, 0.0],
+        "right_contact": [0.0, 1.0],
+        "both_contacts": [1.0, 1.0],
+    }
+    if label in contact_expectations:
+        expected = contact_expectations[label]
+        observed = metrics["contact_mean"]
+        _require(
+            all(
+                abs(float(actual) - wanted) <= 0.05
+                for actual, wanted in zip(observed, expected, strict=True)
+            ),
+            f"{label}: contact pattern is inconsistent with the typed physical label",
+        )
+    return {
+        "schema_version": "open_duck_x5.gate3_label_review.v1",
+        "status": "DATA_INTEGRITY_ACCEPTED",
+        "physical_label_decision": "REVIEW_REQUIRED",
+        "label": label,
+        "metrics": metrics,
+        "config_sha256": EXPECTED_CONFIG_SHA256,
+        "calibration_profile_sha256": expected_calibration.profile_sha256,
+        "calibration_source_sha256": expected_calibration.source_sha256,
+        "calibration_capture_source_commit": calibration_review["capture_source_commit"],
+        "sensor_software": expected_software,
+        "jsonl_sha256": sha256_file(jsonl_path),
+        "summary_sha256": sha256_file(summary_path),
     }
 
 
@@ -258,8 +340,7 @@ def _validate_summary(
     _require(isinstance(health, dict), f"{label}: missing sensor health")
     _require(health.get("sample_errors") == 0, f"{label}: sensor worker errors")
     _require(
-        isinstance(health.get("sample_successes"), int)
-        and health["sample_successes"] > 0,
+        isinstance(health.get("sample_successes"), int) and health["sample_successes"] > 0,
         f"{label}: no successful sensor samples",
     )
     _require(
@@ -344,19 +425,11 @@ def validate_gate3(run_root: Path, output: Path) -> dict[str, object]:
         raise Gate3ValidationError(f"refusing to overwrite existing review packet: {output}")
 
     expected_software = _expected_software_hashes()
-    calibration_path = run_root / CALIBRATION_FILENAME
-    _require(calibration_path.is_file(), f"missing captured {CALIBRATION_FILENAME}")
-    expected_calibration = BNO055Calibration.load(calibration_path)
+    expected_calibration, calibration_review, raw_artifacts = _load_calibration_context(run_root)
     per_label: dict[str, object] = {}
     common_config_sha256: str | None = None
     common_calibration_profile_sha256: str | None = None
     common_calibration_source_sha256: str | None = None
-    raw_artifacts: list[dict[str, str]] = [
-        {
-            "path": CALIBRATION_FILENAME,
-            "sha256": sha256_file(calibration_path),
-        }
-    ]
 
     for label in SENSOR_LABELS:
         label_root = run_root / label
@@ -372,6 +445,17 @@ def validate_gate3(run_root: Path, output: Path) -> dict[str, object]:
             jsonl_path=jsonl_path,
             expected_software=expected_software,
             expected_calibration=expected_calibration,
+        )
+        expected_label_review = validate_gate3_label(run_root, label)
+        label_review_path = label_root / LABEL_REVIEW_FILENAME
+        _require(label_review_path.is_file(), f"{label}: missing {LABEL_REVIEW_FILENAME}")
+        captured_label_review = _load_json(
+            label_review_path,
+            maximum_bytes=MAX_SUMMARY_BYTES,
+        )
+        _require(
+            captured_label_review == expected_label_review,
+            f"{label}: integrity review does not match independent re-verification",
         )
 
         config_sha256 = str(summary["config"]["sha256"])
@@ -404,6 +488,10 @@ def validate_gate3(run_root: Path, output: Path) -> dict[str, object]:
                 {
                     "path": str(summary_path.relative_to(run_root)),
                     "sha256": sha256_file(summary_path),
+                },
+                {
+                    "path": str(label_review_path.relative_to(run_root)),
+                    "sha256": sha256_file(label_review_path),
                 },
             )
         )
@@ -448,6 +536,9 @@ def validate_gate3(run_root: Path, output: Path) -> dict[str, object]:
             "config_sha256": common_config_sha256,
             "calibration_profile_sha256": common_calibration_profile_sha256,
             "calibration_source_sha256": common_calibration_source_sha256,
+            "calibration_capture_source_commit": calibration_review["capture_source_commit"],
+            "calibration_capture_archive_sha256": calibration_review["capture_archive_sha256"],
+            "calibration_review_sha256": sha256_file(run_root / CALIBRATION_REVIEW_FILENAME),
             "software": expected_software,
         },
         "labels": per_label,
@@ -477,11 +568,31 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def build_label_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Validate one Gate 3 label before allowing the next capture"
+    )
+    parser.add_argument("--run-root", type=Path, required=True)
+    parser.add_argument("--label", choices=SENSOR_LABELS, required=True)
+    return parser
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
         packet = validate_gate3(args.run_root, args.output)
+    except (Gate3ValidationError, OSError, ValueError) as exc:
+        parser.error(str(exc))
+    print(json.dumps(packet, indent=2, sort_keys=True))
+    return 0
+
+
+def label_main(argv: list[str] | None = None) -> int:
+    parser = build_label_parser()
+    args = parser.parse_args(argv)
+    try:
+        packet = validate_gate3_label(args.run_root, args.label)
     except (Gate3ValidationError, OSError, ValueError) as exc:
         parser.error(str(exc))
     print(json.dumps(packet, indent=2, sort_keys=True))

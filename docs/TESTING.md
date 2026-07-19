@@ -40,6 +40,12 @@ calibration, closes on timeout, rejects existing destinations before device
 access, publishes no candidate after readback failure, emits bounded
 schema-valid evidence, and distinguishes mock output from an X5 review
 candidate.
+The independent calibration reviewer re-derives every status bit, checks the
+terminal sustained population, restricted legacy source, profile equivalence,
+artifact/source hashes, exact fresh-session device readback, and capture
+authorization. Gate 3 runner tests freeze all nine labels and prove that the
+operator must type each physical state and that its integrity validator must
+pass before the next capture is reachable.
 Telemetry tests prove output-open failures are reported synchronously and that
 exhausting any bounded record pool fails the run instead of silently dropping
 evidence. Runtime guard tests reject incomplete Gate 5 scope and

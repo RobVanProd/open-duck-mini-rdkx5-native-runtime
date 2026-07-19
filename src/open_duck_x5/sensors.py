@@ -86,9 +86,7 @@ class BNO055Smbus:
             "magnetometer": raw & 0x03,
         }
 
-    def _configure(
-        self, upside_down: bool, calibration: BNO055Calibration | None
-    ) -> None:
+    def _configure(self, upside_down: bool, calibration: BNO055Calibration | None) -> None:
         chip_id = self._read(BNO055_CHIP_ID_REGISTER)
         if chip_id != BNO055_CHIP_ID:
             raise RuntimeError(
@@ -155,7 +153,9 @@ class BNO055Smbus:
             "calibration_applied": calibration is not None,
             "calibration_readback_verified": calibration_readback is not None,
             "calibration_profile_path": (
-                str(calibration.profile_path) if calibration is not None else None
+                str(calibration.profile_path)
+                if calibration is not None and calibration.profile_path is not None
+                else None
             ),
             "calibration_profile_sha256": (
                 calibration.profile_sha256 if calibration is not None else None
@@ -211,8 +211,7 @@ class BNO055Smbus:
         operation_mode = self._read(BNO055_OPR_MODE) & 0x0F
         if operation_mode != BNO055_NDOF_MODE:
             raise RuntimeError(
-                "BNO055 did not return to NDOF after offset capture: "
-                f"read 0x{operation_mode:02x}"
+                f"BNO055 did not return to NDOF after offset capture: read 0x{operation_mode:02x}"
             )
         return offsets
 
@@ -327,9 +326,7 @@ class SensorHub:
                 # I2C or observe a half-updated IMU/contact pair.
                 self._published = PublishedSensorReadout(
                     gyro_rad_s=tuple(float(value) for value in self.imu.gyro_rad_s),
-                    acceleration_m_s2=tuple(
-                        float(value) for value in self.imu.acceleration_m_s2
-                    ),
+                    acceleration_m_s2=tuple(float(value) for value in self.imu.acceleration_m_s2),
                     contacts=tuple(float(value) for value in self.contacts.contacts),
                     imu_timestamp_ns=int(self.imu.timestamp_ns),
                     contacts_timestamp_ns=int(self.contacts.timestamp_ns),

@@ -81,6 +81,9 @@ physically present plus all three explicit acknowledgements, sustains full
 3/3/3/3 calibration, reapplies the captured profile to a fresh BNO055 session,
 and accepts it only after exact offset and frozen-mapping readback. Missing,
 malformed, or non-matching calibration data blocks later hardware startup.
+This robot's reviewed candidate profile is now recorded under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/calibration_20260718/`; its
+completion does not auto-pass the still-unrun nine-label Gate 3 matrix.
 
 ## Board evidence collector
 

@@ -1,6 +1,6 @@
 # Gate 3 BNO055 calibration prerequisite pre-registration
 
-Status: `NOT_RUN_AWAITING_OPERATOR_PRESENT`
+Status: `COMPLETE_REVIEW_CANDIDATE`
 
 This is a prerequisite to Gate 3, not a Gate 3 sensor capture. It authorizes no
 servo access, torque, goal-position write, policy load, or later gate. The
@@ -46,3 +46,15 @@ Timeout, Ctrl-C, readback mismatch, or artifact error produces no candidate
 directory. A completed X5 summary remains `REVIEW_REQUIRED`. Hash it with
 `python tools/hash_artifacts.py` and review every field before copying the
 strict JSON profile into the nine-label Gate 3 run root.
+
+## Executed result
+
+Rob was physically present and explicitly authorized this exact no-servo
+session on 2026-07-18. The capture completed in 330.934491 seconds with 1,318
+rows and five terminal `0xff` samples. Exact fresh-session readback passed.
+Profile SHA-256 is
+`e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be`;
+legacy source SHA-256 is
+`a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08`.
+See `calibration_20260718/RESULT.md`. The nine-label Gate 3 matrix remains
+separately unauthorized and not run.

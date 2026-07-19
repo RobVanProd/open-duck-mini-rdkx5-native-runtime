@@ -48,10 +48,13 @@ type the same label passed to the probe before each run.
 - The exact reviewed source/archive hashes are frozen in the eventual launcher.
 
 The GPIO mapping and chip identity are verified by the 2026-07-18 readiness
-inventory. `CALIBRATION_PRE_REGISTRATION.md` freezes the missing physical
-calibration procedure. The calibration file/hash and configured offset readback
-remain pending. Their absence blocks execution; it is not a failed Gate 3
-result.
+inventory. The separately guarded physical calibration is now complete: profile
+SHA-256 is
+`e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be`,
+source SHA-256 is
+`a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08`,
+and exact fresh-session register readback passed. Gate 3 itself remains
+unauthorized and not run.
 
 ## Data gates
 
@@ -66,6 +69,9 @@ Every labeled capture must have:
 - identical config, calibration, and source hashes across all nine runs.
 - an immutable `imu_calibration.json` copied into the run root whose hash,
   source hash, and offset triplets match every device readback.
+- the complete four-file calibration capture plus its independently rederived
+  review packet copied into the run root; every label's integrity packet must
+  pass before the next physical state is allowed.
 
 For the contact labels, mean `[left, right]` must be within 0.05 of `[0,0]`,
 `[1,0]`, `[0,1]`, and `[1,1]` respectively. This numeric consistency check

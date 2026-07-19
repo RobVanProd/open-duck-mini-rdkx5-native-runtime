@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import pickle
 from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
 
 from open_duck_x5 import gate3_validation
+from open_duck_x5 import imu_calibration_capture as capture_module
+from open_duck_x5 import imu_calibration_review as calibration_review_module
 from open_duck_x5.sensor_probe import SENSOR_LABELS
 
 
@@ -18,21 +21,146 @@ def _sha256(path: Path) -> str:
 def _write_gate3_run(root: Path) -> Path:
     software = gate3_validation._expected_software_hashes()
     root.mkdir(parents=True)
-    calibration_path = root / gate3_validation.CALIBRATION_FILENAME
+    calibration_root = root / gate3_validation.CALIBRATION_DIRNAME
+    calibration_root.mkdir()
+    legacy_path = calibration_root / capture_module.LEGACY_FILENAME
+    offsets = {
+        "offsets_accelerometer": (1, 2, 3),
+        "offsets_gyroscope": (4, 5, 6),
+        "offsets_magnetometer": (7, 8, 9),
+    }
+    legacy_path.write_bytes(pickle.dumps(offsets, protocol=4))
+    legacy_sha256 = _sha256(legacy_path)
+    calibration_path = calibration_root / gate3_validation.CALIBRATION_FILENAME
     calibration_path.write_text(
         json.dumps(
             {
                 "schema_version": "open_duck_x5.bno055_calibration.v1",
                 "source_format": "apirrone.imu_calib_data.pkl",
-                "source_sha256": "d" * 64,
+                "source_sha256": legacy_sha256,
                 "offsets_accelerometer": [1, 2, 3],
                 "offsets_gyroscope": [4, 5, 6],
                 "offsets_magnetometer": [7, 8, 9],
             }
-        ),
+        )
+        + "\n",
         encoding="utf-8",
     )
     calibration_sha256 = _sha256(calibration_path)
+    status_path = calibration_root / capture_module.STATUS_FILENAME
+    status_rows = [
+        {
+            "schema_version": capture_module.STATUS_SCHEMA_VERSION,
+            "poll": index,
+            "elapsed_seconds": index * 0.25,
+            "status_raw": 0xFF,
+            "system": 3,
+            "gyroscope": 3,
+            "accelerometer": 3,
+            "magnetometer": 3,
+        }
+        for index in range(5)
+    ]
+    status_path.write_text(
+        "".join(json.dumps(row, separators=(",", ":")) + "\n" for row in status_rows),
+        encoding="utf-8",
+    )
+    device_common = {
+        "chip_id": 0xA0,
+        "operation_mode": 0x0C,
+        "axis_map_config": 0x21,
+        "axis_map_sign": 0x07,
+        "unit_selection": 0,
+        "identity_verified": True,
+        "upside_down": True,
+    }
+    capture_summary = {
+        "schema_version": capture_module.CAPTURE_SCHEMA_VERSION,
+        "backend": "x5",
+        "informational_only": False,
+        "hardware_status": "REVIEW_REQUIRED",
+        "run_status": "COMPLETE",
+        "review_status": "REVIEW_REQUIRED",
+        "started_utc": "2026-07-19T00:00:00+00:00",
+        "completed_utc": "2026-07-19T00:00:01+00:00",
+        "config": {
+            "path": "/home/sunrise/duck_config.json",
+            "sha256": gate3_validation.EXPECTED_CONFIG_SHA256,
+            "imu_upside_down": True,
+        },
+        "environment": {
+            "imu_i2c_device": "/dev/i2c-5",
+            "imu_address": 0x28,
+            "timeout_seconds": 600.0,
+            "poll_seconds": 0.25,
+            "stable_full_samples_required": 5,
+            "hardware_authorized": True,
+            "suspended_or_benched": True,
+            "manual_calibration_authorized": True,
+            "servo_bus_accessed": False,
+            "torque_enabled": False,
+            "goal_position_writes": 0,
+            "policy_loaded": False,
+            "policy_inference_count": 0,
+        },
+        "calibration": {
+            "final_status_raw": 0xFF,
+            "stable_full_samples": 5,
+            "polls": 5,
+            "elapsed_seconds": 1.0,
+            "offsets": {name: list(values) for name, values in offsets.items()},
+            "initial_device": {
+                **device_common,
+                "calibration_applied": False,
+                "calibration_readback_verified": False,
+                "calibration_readback": None,
+                "calibration_status_raw": 0xFF,
+            },
+            "post_profile_readback": {
+                **device_common,
+                "calibration_applied": True,
+                "calibration_readback_verified": True,
+                "calibration_readback": {name: list(values) for name, values in offsets.items()},
+                "calibration_status_raw": 0,
+            },
+        },
+        "artifacts": {
+            "legacy_pickle": {
+                "path": capture_module.LEGACY_FILENAME,
+                "sha256": legacy_sha256,
+            },
+            "profile": {
+                "path": capture_module.PROFILE_FILENAME,
+                "sha256": calibration_sha256,
+                "source_sha256": legacy_sha256,
+            },
+            "status_jsonl": {
+                "path": capture_module.STATUS_FILENAME,
+                "sha256": _sha256(status_path),
+                "records": 5,
+            },
+        },
+        "software": {
+            name: {"path": f"/frozen/{name}.py", "sha256": sha256}
+            for name, sha256 in (calibration_review_module.EXPECTED_CAPTURE_SOFTWARE_SHA256.items())
+        },
+        "checks": {
+            "full_calibration_sustained": True,
+            "profile_source_matches_legacy": True,
+            "exact_offset_readback": True,
+            "identity_and_frozen_mapping_verified": True,
+            "authorization_provenance": True,
+            "profile_candidate": True,
+        },
+    }
+    (calibration_root / capture_module.SUMMARY_FILENAME).write_text(
+        json.dumps(capture_summary), encoding="utf-8"
+    )
+    calibration_review = calibration_review_module.verify_calibration_capture(calibration_root)
+    (root / gate3_validation.CALIBRATION_REVIEW_FILENAME).write_text(
+        json.dumps(calibration_review, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     contact_values = {
         "no_contacts": (0.0, 0.0),
         "left_contact": (1.0, 0.0),
@@ -94,7 +222,7 @@ def _write_gate3_run(root: Path) -> Path:
                 "required": True,
                 "source_format": "apirrone.imu_calib_data.pkl",
                 "profile_sha256": calibration_sha256,
-                "source_sha256": "d" * 64,
+                "source_sha256": legacy_sha256,
             },
             "environment": {
                 "frequency_hz": 50.0,
@@ -154,13 +282,18 @@ def _write_gate3_run(root: Path) -> Path:
                         "offsets_magnetometer": [7, 8, 9],
                     },
                     "calibration_profile_sha256": calibration_sha256,
-                    "calibration_source_sha256": "d" * 64,
+                    "calibration_source_sha256": legacy_sha256,
                 }
             },
             "jsonl_sha256": _sha256(sensor_path),
         }
         (label_root / gate3_validation.SUMMARY_FILENAME).write_text(
             json.dumps(summary), encoding="utf-8"
+        )
+        label_review = gate3_validation.validate_gate3_label(root, label)
+        (label_root / gate3_validation.LABEL_REVIEW_FILENAME).write_text(
+            json.dumps(label_review, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
         )
     return root
 
@@ -182,8 +315,24 @@ def test_gate3_validator_builds_review_only_packet(tmp_path: Path) -> None:
     assert packet["data_integrity_candidate"] is True
     assert packet["gate3_passed"] is False
     assert packet["physical_label_decision"] == "REVIEW_REQUIRED"
-    assert len(packet["raw_artifacts"]) == 19
+    assert len(packet["raw_artifacts"]) == 32
     assert packet["labels"]["left_contact"]["contact_pattern_consistent"] is True
+
+
+def test_single_label_validator_gates_sequential_capture(tmp_path: Path) -> None:
+    run_root = _write_gate3_run(tmp_path / "run")
+
+    packet = gate3_validation.validate_gate3_label(run_root, "left_contact")
+
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "gate3_label_review.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    Draft202012Validator(schema).validate(packet)
+    assert packet["status"] == "DATA_INTEGRITY_ACCEPTED"
+    assert packet["physical_label_decision"] == "REVIEW_REQUIRED"
+    assert packet["metrics"]["contact_mean"] == [1.0, 0.0]
 
 
 def test_gate3_validator_rejects_tampered_jsonl(tmp_path: Path) -> None:
@@ -203,4 +352,18 @@ def test_gate3_validator_rejects_source_hash_mismatch(tmp_path: Path) -> None:
     summary_path.write_text(json.dumps(summary), encoding="utf-8")
 
     with pytest.raises(gate3_validation.Gate3ValidationError, match="source hash mismatch"):
+        gate3_validation.validate_gate3(run_root, tmp_path / "review.json")
+
+
+def test_gate3_validator_rejects_calibration_bundle_tampering(tmp_path: Path) -> None:
+    run_root = _write_gate3_run(tmp_path / "run")
+    review_path = run_root / gate3_validation.CALIBRATION_REVIEW_FILENAME
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    review["data_integrity_candidate"] = False
+    review_path.write_text(json.dumps(review), encoding="utf-8")
+
+    with pytest.raises(
+        gate3_validation.Gate3ValidationError,
+        match="does not match independent re-verification",
+    ):
         gate3_validation.validate_gate3(run_root, tmp_path / "review.json")
