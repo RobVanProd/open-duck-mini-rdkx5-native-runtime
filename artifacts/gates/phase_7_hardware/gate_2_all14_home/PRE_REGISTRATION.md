@@ -1,6 +1,13 @@
 # Hardware Gate 2 Pre-Registration
 
-Status before execution: `AUTHORIZED_NOT_RUN`
+Status: `SUPERSEDED_NOT_EXECUTABLE`
+
+This historical pre-registration froze the original USB/source-`9cd4ca0`
+attempt. That attempt stopped at torque-off preflight and never enabled torque.
+Its authorization is not carried forward to the direct-UART,
+performance-governed protocol. The current unexecuted specification is
+`GATE2_HOME_HOLD_EXECUTION_PRE_REGISTRATION.md` and requires a new explicit
+authorization.
 
 Rob explicitly authorized the suspended/benched all-14 home-pose hold with no
 policy on 2026-07-15. This authorization does not extend to Gate 3, Gate 4,

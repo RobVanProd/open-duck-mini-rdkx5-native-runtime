@@ -478,3 +478,11 @@ Accepted from D036. Any subsequent Gate 2 timing run must verify policy0 is
 reviewed fail-closed launcher must restore the prior governor on normal exit,
 failure, or signal. The standalone A/B runner is not reused as a moving runner,
 and no moving gate is authorized by this decision.
+
+Implemented offline in `setup/run_gate2_home_hold.sh`. The launcher freezes the
+source/config hashes and first runs a complete source-matched 10,000-tick
+torque-off preflight under `performance`. A tested validator checks both direct
+statistics and summary gates; only a pass can reach the five-second home entry
+and 10,000-tick hold. The home-entry loop now feeds the same hard-overrun
+watchdog as the hold. Execution remains `NOT_AUTHORIZED_NOT_RUN` under the
+separate current pre-registration.

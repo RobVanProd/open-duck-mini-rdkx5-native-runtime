@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 9.9854,
-    "mean": 1.842882,
-    "min": 0.7766,
-    "p95": 2.6067199999999993,
-    "p99": 3.8726809999999983,
-    "p99_9": 8.515702400000196
+    "max": 2.6046,
+    "mean": 1.7743820000000001,
+    "min": 0.6893,
+    "p95": 2.160505,
+    "p99": 2.4536509999999994,
+    "p99_9": 2.599047300000001
   },
   "bus_total_population": {
     "components": [
@@ -27,6 +27,7 @@
     "device": "mock://sts3215",
     "frequency_hz": 50.0,
     "hardware_authorized": false,
+    "home_seconds": 2.0,
     "moving_gate_authorized": false,
     "platform": "Windows-10-10.0.26200-SP0",
     "python": "3.10.11",
@@ -41,16 +42,16 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.6501,
-    "mean": 0.007611999999999999,
+    "max": 0.0681,
+    "mean": 0.0039708,
     "min": 0.0016,
-    "p95": 0.007354999999999999,
-    "p99": 0.016330999999999925,
-    "p99_9": 0.5541105000000128
+    "p95": 0.006609999999999997,
+    "p99": 0.008901999999999998,
+    "p99_9": 0.05345880000000195
   },
   "gates": {
     "authorization_provenance": true,
-    "bus_max_under_5_ms": false,
+    "bus_max_under_5_ms": true,
     "complete_record_stream": true,
     "gate2_home_hold_candidate": false,
     "gate4_sine_candidate": false,
@@ -65,12 +66,12 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 9.9444,
-    "mean": 1.810038,
-    "min": 0.739,
-    "p95": 2.5791999999999993,
-    "p99": 3.838495999999998,
-    "p99_9": 8.474627700000196
+    "max": 2.5749,
+    "mean": 1.7518156,
+    "min": 0.671,
+    "p95": 2.1379699999999997,
+    "p99": 2.427017999999999,
+    "p99_9": 2.5713642000000005
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
@@ -80,28 +81,28 @@
   "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "bf6b539a6c55828c0052dc273faa0855431ed45133b9a651bdea4e206dbf56a8",
+  "jsonl_sha256": "af9b4001e1e1f5af9a59f4801080b1f75705719cb8aa41d9008c8b8315178df3",
   "max_read_burst_ticks": 0,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 7.8555,
-    "mean": 1.1985524,
-    "min": 0.0008,
-    "p95": 2.5809349999999998,
-    "p99": 4.8637369999999756,
-    "p99_9": 7.767578100000012
+    "max": 2.652,
+    "mean": 1.2764524,
+    "min": 0.0007,
+    "p95": 2.406675,
+    "p99": 2.505238,
+    "p99_9": 2.6188332000000045
   },
   "review_status": "INFORMATIONAL_ONLY",
   "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 27.1046,
-    "mean": 20.00276787148594,
-    "min": 15.6268,
-    "p95": 22.05,
-    "p99": 22.338952000000006,
-    "p99_9": 26.339644000000117
+    "max": 22.4677,
+    "mean": 20.008900803212853,
+    "min": 17.4936,
+    "p95": 22.01964,
+    "p99": 22.130476,
+    "p99_9": 22.38831520000001
   },
   "ticks": 250,
   "ticks_requested": 250,

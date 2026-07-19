@@ -5,7 +5,8 @@ preflight initially failed the bus gates, so torque was never enabled and home
 entry never began. A later frozen 10,000-tick governor A/B passed every timing
 preflight gate under `performance`, but it also kept torque off and did not
 authorize motion. See `PREFLIGHT_BLOCKED.md`, `cpu_governor_ab/RESULT.md`, and
-the machine-readable summaries.
+`GATE2_HOME_HOLD_EXECUTION_PRE_REGISTRATION.md`, plus the machine-readable
+summaries.
 
 A future re-authorized run must verify all 14 IDs, verify policy0 is
 `performance` with fail-closed restoration of its prior value, move slowly to

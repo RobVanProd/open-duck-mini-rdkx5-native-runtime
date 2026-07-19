@@ -8,7 +8,7 @@
 | `duck_config.json` semantics | `config.py` | config, strict boolean, finite phase, and offset-order tests | live file validated and hashed; no writes performed |
 | Frozen servo map | `constants.py` | logical map plus distinct wire-order test | logical map unchanged; ID 13 last removes reproduced grouped-read CRC |
 | Script parity | `open_duck_x5.tools` and root wrappers | all four tools run on mock | no motor commands run |
-| Crash/exit torque-off | `TorqueGuard`; cutoff-first cleanup; terminal cutoff status | injected-crash, signal-during-home, cleanup-order, failed-cutoff, schema, and summary tests | physical cutoff latency pending |
+| Crash/exit torque-off | `TorqueGuard`; cutoff-first cleanup; terminal cutoff status; Gate 2 launcher signals child before governor restoration | injected-crash, signal/hard-overrun during home, cleanup-order, failed-cutoff, runner and summary-validator tests | physical cutoff latency pending |
 | Direct STS3215 bus | `bus/sts3215.py`; transport validity and raw device status are separate | fixed frames, alarm-bearing payload, and fake-transport tests | all-14 torque-off path measured; moving run blocked |
 | SyncWrite + grouped read | preallocated bus frames; ID-routed wire order ending 14,13; exact 140-byte receive-before-parse collector | one-byte fragmentation, exact request order, parse-once, missing/CRC/partial/unexpected and ID-routing tests | exact collector passes 10,000/10,000; with `performance`, failures are zero and sweep max is 4.821428 ms |
 | Timeout/CRC/partial taxonomy plus device alarms | `ErrorCode`, `ServoSnapshot.device_status`, JSONL and summaries | alarm-bearing payload remains fresh while alarm gate fails; per-class count tests | all-servo status `0x01` captured separately from valid framing; moving run blocked |
@@ -27,7 +27,7 @@
 | Watchdog >40 ms / consecutive bus faults | `Watchdog` | work/period/failure tests | torque-off latency pending |
 | Finite active replay duration | separate hard total-tick and valid-policy-tick caps | target-met and target-not-reached tests | 600 active-tick replay `NOT_RUN` |
 | Xbox/F710 controller parity | locked seven-command publication in `controller.py` | axis, A-edge pause, Y-edge head mode, and LB sprint-factor tests | physical controller mapping check pending |
-| Staged authority boundary | dual CLI assertions, movement/Gate-5-specific assertions, finite exact-command replay, runbook, `NOT_RUN` files | pre-I/O guard tests | Gate 2 timing preflight passes torque-off; moving Gate 2 and Gates 3-5 await authorization |
+| Staged authority boundary | dual CLI assertions, movement/Gate-5-specific assertions, finite exact-command replay, frozen Gate 2 launcher, runbook, `NOT_RUN` files | pre-I/O guard, source/config freeze, stage-order, and summary-validator tests | Gate 2 timing preflight passes torque-off; moving Gate 2 and Gates 3-5 await authorization |
 | Board evidence extraction | safe-default collector, schemas, policy handoff | archive/manifest, secret-skip, 115-D rejection, and guard tests | Gate 1 bundle and 199-entry manifest verified |
 | Artifact hashing | `tools/hash_artifacts.py` | checked-in SHA-256 manifest | update per authorized gate |
 

@@ -229,17 +229,21 @@ home hold. See `cpu_governor_ab/RESULT.md`.
 - Hard tick >40 ms or configured consecutive failures immediately torque off.
 
 The moving probe requires a third, gate-specific assertion in addition to the
-two common hardware assertions:
+two common hardware assertions. Do not invoke `runtime_timing_probe` directly
+for Gate 2. The frozen launcher first runs the complete source-matched
+torque-off preflight and cannot reach torque enable unless the tested validator
+accepts every timing and safety gate:
 
 ```bash
-runtime_timing_probe --bus serial --config ~/duck_config.json \
-  --require-realtime --rt-cpu 7 --rt-priority 80 \
-  --enable-torque --moving-gate-authorized \
-  --watchdog-failures 2 \
-  --hardware-authorized --suspended-or-benched \
-  --amplitude-rad 0 --ticks 10000 \
-  --output gate2.jsonl --summary gate2-summary.json
+sudo setup/run_gate2_home_hold.sh \
+  --source-archive /home/sunrise/open-duck-x5-a5b5344.tar.gz \
+  --config /home/sunrise/duck_config.json \
+  --output-dir /home/sunrise/duck-evidence/gate2-home-hold-a5b5344 \
+  --hardware-authorized --suspended-or-benched --moving-gate-authorized
 ```
+
+This command is documentation, not authorization. Its complete frozen scope is
+`GATE2_HOME_HOLD_EXECUTION_PRE_REGISTRATION.md`.
 
 Without `--enable-torque`, the serial probe establishes torque-off before it
 writes any target packet. It cannot accidentally become a moving test merely

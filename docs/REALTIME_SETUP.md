@@ -45,6 +45,12 @@ not make this a silent machine-wide assumption, and do not reuse the torque-off
 A/B runner for a moving gate. See D036-D037 and
 `artifacts/gates/phase_7_hardware/gate_2_all14_home/cpu_governor_ab/RESULT.md`.
 
+The Gate 2 implementation is `setup/run_gate2_home_hold.sh`. It records and
+restores the governor around both the source-matched torque-off preflight and
+the conditionally reached home hold. It is intentionally not a general command
+wrapper: endpoint, timing population, home duration, RT settings, source/config
+hashes, and movement amplitude are frozen and have no command-line override.
+
 The CPU ONNX session is explicitly sequential and single-threaded, with intra-
 and inter-op spinning disabled. Inference therefore executes on the RT control
 thread instead of making it wait for default SCHED_OTHER worker pools on the
