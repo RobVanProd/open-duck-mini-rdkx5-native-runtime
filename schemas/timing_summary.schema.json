@@ -154,6 +154,7 @@
         "baudrate": { "type": "integer", "minimum": 1 },
         "frequency_hz": { "type": "number", "exclusiveMinimum": 0 },
         "timeout_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "home_seconds": { "type": "number", "exclusiveMinimum": 0 },
         "sine_hz": { "type": "number", "minimum": 0 },
         "amplitude_rad": { "type": "number", "minimum": 0 },
         "sine_joint": { "type": "string", "minLength": 1 },

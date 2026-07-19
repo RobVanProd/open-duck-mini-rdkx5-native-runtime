@@ -72,6 +72,7 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
     assert summary["environment"]["telemetry_records_dropped"] == 0
     assert summary["environment"]["realtime"] is None
     assert summary["environment"]["torque_off_status"] == "ok"
+    assert summary["environment"]["home_seconds"] == 2.0
     assert summary["gates"]["complete_record_stream"] is True
     assert summary["gates"]["zero_device_alarms"] is True
     assert summary["gates"]["torque_off_confirmed"] is True
@@ -187,6 +188,7 @@ def test_mock_moving_probe_runs_slow_home_path(tmp_path: Path) -> None:
     )
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     assert summary["environment"]["torque_enabled"] is True
+    assert summary["environment"]["home_seconds"] == 0.001
     assert len(summary["environment"]["config_sha256"]) == 64
 
 

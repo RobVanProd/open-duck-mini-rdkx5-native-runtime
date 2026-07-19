@@ -364,6 +364,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "baudrate": bus.baudrate,
         "frequency_hz": args.frequency_hz,
         "timeout_ms": args.timeout_ms,
+        "home_seconds": args.home_seconds,
         "sine_hz": args.sine_hz,
         "amplitude_rad": args.amplitude_rad,
         "sine_joint": args.sine_joint,
