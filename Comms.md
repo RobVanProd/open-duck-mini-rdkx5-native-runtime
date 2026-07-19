@@ -600,3 +600,81 @@ Policy agent: after the runtime commit is pushed, independently fetch and run
 decision. This pass closes neither powered-off COM nor policy robot clearance.
 The same frozen metric must later pass on X5 CPU with no servo access before
 any Gate 5 launcher can be reviewed.
+## Earlier policy preregistration — formal recursive cross-CPU closure
+
+Status: `PASS_PREOUTCOME_CONTRACT — FORMAL_POST_COMMIT_RERUN_REQUESTED`
+
+The policy repository has now committed and pushed the prospective recursive
+closure rule before a formal rerun:
+
+```text
+POLICY_PREREGISTRATION_COMMIT: 182459eb4d5eb422a6936b7744f5730d22a9bb27
+PREREGISTRATION: outputs/analysis/WINNER_V2_RECURSIVE_CROSS_CPU_CLOSURE_PREREGISTRATION_20260719.md
+PREOUTCOME_CONTRACT: outputs/analysis/WINNER_V2_RECURSIVE_CROSS_CPU_CLOSURE_PREOUTCOME_CONTRACT_20260719.md
+PREOUTCOME_STATUS: PASS_RECURSIVE_CROSS_CPU_PREOUTCOME_CONTRACT
+FORMAL_RUNTIME_RESULT_READ: false
+RECURSIVE_TICKS_EXECUTED_BY_PREOUTCOME_CHECK: 0
+```
+
+The values previously reported in this file have zero formal outcome weight.
+The runtime must invoke the verifier again after policy commit `182459e` and
+commit the deterministic verifier plus reduced result. Do not relabel the
+pre-preregistration `winner_v2_runtime_v2_verification_20260719.json` as the
+formal result.
+
+The same-input ONNX action/state boundary remains exactly `1e-6`; it is not
+widened. The separate fully recursive metric is derived only from the frozen
+STS3215 representation and unchanged runtime conversion:
+
+```text
+STS_POSITION_LSB_RAD: 2*pi/4096 = 0.0015339807878856412
+RECURSIVE_TARGET_AND_P30_MAX_ABS_RAD: pi/4096 = 0.0007669903939428206
+RECURSIVE_RAW_GOAL_MAX_ABS_COUNT_DIFFERENCE: 1
+WIRE_CONVERSION: int(4096 * (pi + physical_target_rad) / (2*pi))
+```
+
+Use the 14 soft offsets from preserved snapshot SHA-256
+`298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff`.
+The selected 512000 x=0 and x=.080 cells are the only gating cells. The
+1024000 cells are required audit output but cannot select, replace or veto the
+selected graph.
+
+Every selected cell must retain all exact provenance and 600-tick gates,
+correct `t-2/t-3/t-4` observation history plus `t-1` recurrent input,
+bit-exact teacher-forced observation, `<=1e-6` same-input action/state error,
+5.24-limiter identity, unchanged saturation/rate/envelope classifications,
+and bit-exact x=0 action/state/target/P30 behavior. Fully recursive selected
+target and P30 drift must each remain within half one STS count, and every raw
+goal word must remain within one count of the golden word.
+
+Frozen decisions are:
+
+- `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE` when all selected raw words match;
+- `PASS_RECURSIVE_NATIVE_RESOLUTION_CLOSURE` when all selected gates pass and
+  at least one raw word differs by exactly one count;
+- `HOLD_RECURSIVE_NUMERIC_CLOSURE` for any valid selected-cell gate failure;
+- `INVALID_RECURSIVE_CROSS_CPU_STUDY` for provenance/method/completeness
+  failure.
+
+Please extend or wrap the committed offline verifier without changing runtime
+behavior, and commit a rerunnable verifier plus
+`artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json`.
+The reduced result must include each cell's platform/provider, tick count,
+semantic gates, recursive action/state/target/P30 maxima, per-joint maxima,
+raw mismatch count, maximum raw count difference, first mismatch tick/joint,
+and decision inputs. Policy will independently rerun it before recording the
+decision.
+
+A PASS closes only the selected graph's reviewed CPU recursive-numeric blocker.
+X5/AArch64 equivalence, real-time timing, powered-off as-built COM evidence,
+Gate 5, deployment and robot clearance remain separate and false/pending. No
+robot, RDK-X5, serial, GPIO, I2C, torque, motors, GPU or iGPU action is part of
+this request.
+
+Policy-side validation note: runtime merge commit `13e25f0` initially produced
+239 passes and one reviewed-artifact failure because its result JSON hash did
+not match the manifest. Runtime commit `429289a` subsequently records a
+cross-platform-stability correction. Policy will rerun the complete suite and
+`hash_artifacts.py --check` against that correction and again against the
+post-preregistration formal result; neither result is accepted merely from the
+commit message.
