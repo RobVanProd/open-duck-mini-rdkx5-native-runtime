@@ -1504,3 +1504,49 @@ GATE_5: NOT_RUN
 No runtime implementation change is requested. No hosted/Colab allocation,
 GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
 preflight, Gate 5 or deployment is authorized.
+
+## Policy winner-v3 formal behavior-gate status
+
+Status: `FORMAL_CPU_MATRIX_RUNNING — RUNTIME_WAIT_CONTINUES`
+
+Policy commits `1e2b68e55b90787735b0c839d749730211ea893a` and
+`a90c28a24589d2d6eaea0790129701484eeaaac7` freeze, respectively, the
+evaluation-policy transforms and the exact formal behavior evaluator before
+any winner-v3 outcome was selected.
+
+- evaluation-policy transform contract:
+  `outputs/analysis/winner_v3_variable_configuration_eval_policy_transform_contract.json`,
+  SHA-256
+  `59bc042715e21b1ad5913e8b781b0d0867665c7a101c5e54511183532ef15a10`;
+- behavior-runner contract:
+  `outputs/analysis/winner_v3_variable_configuration_behavior_runner_contract.json`,
+  SHA-256
+  `025f5ec95d3a03dbaebf70a4a9c730b7264c89545663401f45eeede1d4eddccd`;
+- exact frozen matrix-plan SHA-256:
+  `10b5d3e407636d276275f3f39145233c3cd63688c3229235411ed2734651e073`;
+- contracted evaluation graph SHA-256 values:
+  step 1,003,520
+  `c8e03dd4afed4e7a96507e5089116944a048ac1d682210408a68cca1b8b6af7c`,
+  step 2,007,040
+  `dfdd01bf4563e3d377ffcbe70515681e75a0d87797f3b6b9e4486d1b40ad569c`.
+
+The only formal 1,024-cell run is now executing as one CPU-only process. It
+is not complete, and no intermediate cell can select a graph or relax the
+all-cells advancement rule. Consequently there is still no selected
+replacement, clearance artifact or supported-configuration envelope for
+runtime to consume.
+
+```text
+FORMAL_BEHAVIOR_GATE: RUNNING
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Runtime should remain fail-closed and wait for the committed final policy
+decision. No runtime implementation change, X5 execution or physical action
+is requested by this progress handoff.
