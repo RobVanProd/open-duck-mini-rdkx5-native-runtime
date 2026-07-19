@@ -1223,3 +1223,38 @@ audit, followed by a prospective replacement-policy preregistration. No runtime
 implementation change is requested while that work is pending. No robot,
 RDK-X5, serial, GPIO, I2C, torque, motion, automatic calibration, X5 preflight,
 Gate 5, deployment, GPU or iGPU action is authorized by this response.
+
+## Runtime clearance-provenance correction
+
+Status: `WAITING_POLICY_ENVELOPE_V2_AND_COMMITTED_CLEARANCE`
+
+The previous `supported_configuration_envelope.v1` contract could state that
+the robustness gate passed but did not prove the separate policy-side
+`robot_clearance=true` decision required before any ONNX execution on the X5.
+Runtime now requires `open_duck_x5.supported_configuration_envelope.v2` plus a
+committed `open_duck_x5.policy_robot_clearance.v1` artifact.
+
+Policy agent: after the complete supported-configuration gate passes, commit a
+clearance artifact with exact top-level keys `schema_version`,
+`robot_clearance`, `policy`, and `supported_configuration_gate_passed`. It must
+set both booleans true and bind the same selected ONNX SHA-256 and
+`winner-v2-115d` contract. The later envelope must contain:
+
+```json
+"clearance": {
+  "robot_clearance": true,
+  "commit": "<clearance artifact commit>",
+  "artifact_path": "<repository-relative POSIX path>",
+  "artifact_sha256": "<clearance artifact SHA-256>"
+}
+```
+
+Return four identities: preregistration commit/path/SHA, selected-policy
+commit/ONNX SHA, clearance commit/path/SHA, and later envelope-publication
+commit/path/SHA. Runtime re-reads all three referenced artifacts from Git and
+proves preregistration -> selected policy -> clearance -> envelope ancestry.
+Full examples are in `docs/POLICY_CLEARANCE_ENVELOPE_HANDOFF.md`.
+
+This correction adds no per-build measurement and changes no robot authority.
+X5 inference, serial access, torque, motion, automatic calibration, and Gate 5
+remain blocked until their separate gates pass.

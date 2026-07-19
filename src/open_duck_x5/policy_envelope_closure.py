@@ -19,7 +19,7 @@ from .policy_envelope_provenance import (
     validate_policy_envelope_repository_provenance,
 )
 
-CLOSURE_SCHEMA_VERSION = "open_duck_x5.policy_envelope_closure.v1"
+CLOSURE_SCHEMA_VERSION = "open_duck_x5.policy_envelope_closure.v2"
 PENDING_SENTINEL = "PENDING_POLICY_ENVELOPE_SHA256"
 EXPECTED_CONFIGURATION_SHA256 = (
     "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
@@ -203,12 +203,13 @@ def build_policy_envelope_closure(
 
     return {
         "schema_version": CLOSURE_SCHEMA_VERSION,
-        "status": "POLICY_ENVELOPE_STRUCTURE_ACCEPTED_PROVENANCE_REVIEW_REQUIRED",
+        "status": "POLICY_ENVELOPE_CLEARANCE_ACCEPTED_PROVENANCE_REVIEW_REQUIRED",
         "envelope": {
             "path": str(envelope_file),
             "sha256": actual_envelope_sha256,
             "policy": policy,
             "preregistration": envelope["preregistration"],
+            "clearance": envelope["clearance"],
             "per_unit_physical_measurement_required": False,
             "policy_robustness_gate_passed": True,
         },

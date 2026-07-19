@@ -24,7 +24,7 @@ pitch/roll rate, and acceleration norm.
 - an `open_duck_x5.automatic_configuration_profile.v4` generated profile;
 - its immutable excitation JSONL and metadata inputs;
 - the exact `duck_config.json` whose soft offsets define physical home; and
-- an `open_duck_x5.supported_configuration_envelope.v1` artifact produced by
+- an `open_duck_x5.supported_configuration_envelope.v2` artifact produced by
   the policy repository after its robustness gate passes and frozen before the
   physical response is collected.
 
@@ -46,6 +46,14 @@ The validator is strict and fail-closed. It requires:
 - coupled and held-out policy samples plus at least two supported optional-part
   configurations; and
 - every automatically observed metric inside the policy-provided bounds.
+
+The v2 envelope must also reference a committed
+`open_duck_x5.policy_robot_clearance.v1` decision. That artifact must state
+`robot_clearance=true`, bind the same ONNX SHA-256 and `winner-v2-115d`
+contract, and state that the supported-configuration gate passed. Runtime reads
+the exact clearance bytes from Git, verifies their SHA-256, and proves
+preregistration -> selected policy -> clearance decision -> envelope
+publication ancestry. A boolean copied into the envelope is insufficient.
 
 Before comparison, the validator verifies that the envelope file SHA-256 is the
 same identity precommitted in the physical metadata/profile. It then
@@ -178,12 +186,12 @@ independently reviewed envelope SHA-256 followed by a new hash closure.
 
 `prepare_policy_envelope_closure` makes that future edit reviewable before it
 happens. It accepts the envelope only with an independently supplied matching
-SHA-256, re-reads its preregistration and envelope artifacts from distinct Git
-commits, proves preregistration -> selected-policy -> envelope-artifact
-ancestry, validates its complete schema, requires the exact currently frozen
-selected ONNX, pins both pending launcher templates, and computes the exact two
-candidate hashes without writing the scripts. A changed ONNX fails with an
-asset-refreeze requirement.
+SHA-256, re-reads its preregistration, policy-clearance, and envelope artifacts
+from Git commits, proves preregistration -> selected-policy -> clearance ->
+envelope-artifact ancestry, validates its complete schema, requires the exact
+currently frozen selected ONNX, pins both pending launcher templates, and
+computes the exact two candidate hashes without writing the scripts. A changed
+ONNX fails with an asset-refreeze requirement.
 
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
 be represented in the policy domain rather than entered manually. Missing a

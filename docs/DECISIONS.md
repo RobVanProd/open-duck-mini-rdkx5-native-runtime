@@ -1058,3 +1058,25 @@ complete: the manual COM packet is explicitly superseded by the no-measurement
 product requirement, while the policy envelope and clearance are pending and
 automatic calibration, X5 CPU execution, and both Gate 5 cells remain
 `NOT_RUN`. The audit therefore emits a hold with all hardware authority false.
+
+## D067 — Require committed policy clearance before X5 inference
+
+Accepted offline only. The prior supported-configuration envelope could assert
+that its robustness gate passed but did not cryptographically prove the policy
+repository's separate `robot_clearance=true` decision. That was insufficient
+for the frozen rule that no candidate policy may touch the X5 before policy
+clearance.
+
+Envelope schema v2 therefore adds a clearance reference containing a commit,
+repository-relative artifact path, SHA-256, and `robot_clearance=true`. The
+referenced artifact has the strict
+`open_duck_x5.policy_robot_clearance.v1` schema and must bind the same selected
+ONNX and `winner-v2-115d` contract while recording that the complete supported-
+configuration gate passed. The provenance checker reads those exact bytes from
+Git and proves preregistration -> selected policy -> clearance decision ->
+envelope publication ancestry.
+
+Missing, false, uncommitted, mismatched, or unrelated clearance evidence now
+blocks before serial open and before ONNX loading in the X5 CPU preflight. This
+proof does not itself authorize runtime deployment, serial access, torque,
+motion, automatic calibration, or Gate 5; those remain separately gated.

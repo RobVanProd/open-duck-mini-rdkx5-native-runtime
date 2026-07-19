@@ -166,6 +166,12 @@ def _support_envelope() -> dict[str, object]:
             "artifact_path": "outputs/analysis/configuration_domain.json",
             "artifact_sha256": "a" * 64,
         },
+        "clearance": {
+            "robot_clearance": True,
+            "commit": "1" * 40,
+            "artifact_path": "outputs/analysis/policy_robot_clearance.json",
+            "artifact_sha256": "2" * 64,
+        },
         "per_unit_physical_measurement_required": False,
         "policy_robustness_gate_passed": True,
         "configuration_domain": {

@@ -91,6 +91,12 @@ def _envelope() -> dict[str, object]:
             "artifact_path": "outputs/analysis/configuration_domain.json",
             "artifact_sha256": "c" * 64,
         },
+        "clearance": {
+            "robot_clearance": True,
+            "commit": "f" * 40,
+            "artifact_path": "outputs/analysis/policy_robot_clearance.json",
+            "artifact_sha256": "d" * 64,
+        },
         "per_unit_physical_measurement_required": False,
         "policy_robustness_gate_passed": True,
         "configuration_domain": {
@@ -180,6 +186,13 @@ def test_policy_domain_must_cover_prior_fifty_mm_x_sweep() -> None:
     envelope_value = _envelope()
     envelope_value["configuration_domain"]["torso_com_x_m"] = [-0.04, 0.05]
     with pytest.raises(ConfigurationSupportError, match=r"cover \[-0.05, 0.05\]"):
+        evaluate_configuration_support_data(profile=_profile(), envelope=envelope_value)
+
+
+def test_policy_envelope_requires_explicit_robot_clearance() -> None:
+    envelope_value = _envelope()
+    envelope_value["clearance"]["robot_clearance"] = False
+    with pytest.raises(ConfigurationSupportError, match="robot clearance"):
         evaluate_configuration_support_data(profile=_profile(), envelope=envelope_value)
 
 

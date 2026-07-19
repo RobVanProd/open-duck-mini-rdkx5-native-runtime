@@ -11,7 +11,7 @@ from typing import Any
 from .constants import CONTROL_FREQUENCY_HZ, JOINT_NAMES, SERVO_IDS
 
 PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v4"
-ENVELOPE_SCHEMA_VERSION = "open_duck_x5.supported_configuration_envelope.v1"
+ENVELOPE_SCHEMA_VERSION = "open_duck_x5.supported_configuration_envelope.v2"
 RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v3"
 AUTOMATIC_METHOD = "automatic_supported_excitation"
 MINIMUM_TORSO_X_COM_M = (-0.05, 0.05)
@@ -360,6 +360,7 @@ def _validate_envelope(envelope: dict[str, Any]) -> dict[str, tuple[float, float
             "schema_version",
             "policy",
             "preregistration",
+            "clearance",
             "per_unit_physical_measurement_required",
             "policy_robustness_gate_passed",
             "configuration_domain",
@@ -392,6 +393,18 @@ def _validate_envelope(envelope: dict[str, Any]) -> dict[str, tuple[float, float
     _commit_string(prereg["commit"], "preregistration.commit")
     _relative_artifact_path(prereg["artifact_path"], "preregistration.artifact_path")
     _sha256_string(prereg["artifact_sha256"], "preregistration.artifact_sha256")
+
+    clearance = _object(envelope["clearance"], "envelope.clearance")
+    _exact_keys(
+        clearance,
+        {"robot_clearance", "commit", "artifact_path", "artifact_sha256"},
+        "clearance",
+    )
+    if not _boolean(clearance["robot_clearance"], "clearance.robot_clearance"):
+        raise ConfigurationSupportError("policy robot clearance is not true")
+    _commit_string(clearance["commit"], "clearance.commit")
+    _relative_artifact_path(clearance["artifact_path"], "clearance.artifact_path")
+    _sha256_string(clearance["artifact_sha256"], "clearance.artifact_sha256")
 
     domain = _object(envelope["configuration_domain"], "configuration_domain")
     _exact_keys(

@@ -20,6 +20,7 @@ from open_duck_x5.policy_envelope_closure import (
     main,
 )
 from open_duck_x5.policy_envelope_provenance import (
+    CLEARANCE_SCHEMA_VERSION,
     PolicyEnvelopeProvenanceError,
     validate_policy_envelope_repository_provenance,
 )
@@ -46,7 +47,12 @@ def _commit_all(repo: Path, message: str) -> str:
 
 
 def _envelope(
-    *, policy_commit: str, preregistration_commit: str, preregistration_sha256: str
+    *,
+    policy_commit: str,
+    preregistration_commit: str,
+    preregistration_sha256: str,
+    clearance_commit: str,
+    clearance_sha256: str,
 ) -> dict[str, object]:
     joint_bounds = {
         "delay_ticks": [0.0, 4.0],
@@ -67,6 +73,12 @@ def _envelope(
             "commit": preregistration_commit,
             "artifact_path": "outputs/analysis/configuration_domain.json",
             "artifact_sha256": preregistration_sha256,
+        },
+        "clearance": {
+            "robot_clearance": True,
+            "commit": clearance_commit,
+            "artifact_path": "outputs/analysis/policy_robot_clearance.json",
+            "artifact_sha256": clearance_sha256,
         },
         "per_unit_physical_measurement_required": False,
         "policy_robustness_gate_passed": True,
@@ -120,10 +132,31 @@ def _policy_repo(
     preregistration_commit = _commit_all(repo, "preregister")
     (repo / "policy-source.txt").write_text("selected\n", encoding="utf-8")
     policy_commit = _commit_all(repo, "select policy")
+    clearance = repo / "outputs/analysis/policy_robot_clearance.json"
+    clearance.write_bytes(
+        (
+            json.dumps(
+                {
+                    "schema_version": CLEARANCE_SCHEMA_VERSION,
+                    "robot_clearance": True,
+                    "policy": {
+                        "onnx_sha256": EXPECTED_SELECTED_ONNX_SHA256,
+                        "contract_id": "winner-v2-115d",
+                    },
+                    "supported_configuration_gate_passed": True,
+                },
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode()
+    )
+    clearance_commit = _commit_all(repo, "clear policy for robot")
     envelope_value = _envelope(
         policy_commit=policy_commit,
         preregistration_commit=preregistration_commit,
         preregistration_sha256=_sha256(preregistration),
+        clearance_commit=clearance_commit,
+        clearance_sha256=_sha256(clearance),
     )
     if mutate_envelope is not None:
         mutate_envelope(envelope_value)
@@ -167,7 +200,7 @@ def test_closure_computes_exact_future_hashes_without_writing(tmp_path: Path) ->
     result = _build(root, policy)
 
     assert result["status"] == (
-        "POLICY_ENVELOPE_STRUCTURE_ACCEPTED_PROVENANCE_REVIEW_REQUIRED"
+        "POLICY_ENVELOPE_CLEARANCE_ACCEPTED_PROVENANCE_REVIEW_REQUIRED"
     )
     assert result["repository_provenance"]["status"] == (
         "PASS_POLICY_ENVELOPE_REPOSITORY_PROVENANCE"
@@ -196,9 +229,11 @@ def test_provenance_distinguishes_policy_and_envelope_commits(tmp_path: Path) ->
     )
 
     assert result["commits"]["selected_policy"] != envelope_commit
+    assert result["commits"]["clearance_decision"] != envelope_commit
     assert result["commits"]["envelope_artifact"] == envelope_commit
     assert result["commits"]["preregistration_is_ancestor_of_policy"] is True
-    assert result["commits"]["policy_is_ancestor_of_envelope"] is True
+    assert result["commits"]["policy_is_ancestor_of_clearance"] is True
+    assert result["commits"]["clearance_is_ancestor_of_envelope"] is True
 
 
 def test_provenance_rejects_uncommitted_envelope_bytes(tmp_path: Path) -> None:
@@ -236,6 +271,22 @@ def test_provenance_rejects_wrong_preregistration_bytes(tmp_path: Path) -> None:
     repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path, mutate)
 
     with pytest.raises(PolicyEnvelopeProvenanceError, match="preregistration artifact"):
+        validate_policy_envelope_repository_provenance(
+            policy_repo_root=repo,
+            envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
+            expected_envelope_sha256=_sha256(envelope),
+        )
+
+
+def test_provenance_rejects_wrong_clearance_bytes(tmp_path: Path) -> None:
+    def mutate(value: dict[str, object]) -> None:
+        value["clearance"]["artifact_sha256"] = "a" * 64
+
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path, mutate)
+
+    with pytest.raises(PolicyEnvelopeProvenanceError, match="clearance decision artifact"):
         validate_policy_envelope_repository_provenance(
             policy_repo_root=repo,
             envelope_path=envelope,
@@ -288,6 +339,12 @@ def test_closure_rejects_independent_envelope_hash_mismatch(tmp_path: Path) -> N
 def test_closure_requires_asset_refreeze_for_changed_policy(tmp_path: Path) -> None:
     def mutate(value: dict[str, object]) -> None:
         value["policy"]["onnx_sha256"] = "a" * 64
+        clearance_path = tmp_path / "policy/outputs/analysis/policy_robot_clearance.json"
+        clearance = json.loads(clearance_path.read_text(encoding="utf-8"))
+        clearance["policy"]["onnx_sha256"] = "a" * 64
+        clearance_path.write_bytes((json.dumps(clearance, sort_keys=True) + "\n").encode())
+        value["clearance"]["artifact_sha256"] = _sha256(clearance_path)
+        value["clearance"]["commit"] = _commit_all(tmp_path / "policy", "change policy")
 
     root = _runtime_repo_copy(tmp_path)
     policy = _policy_repo(tmp_path, mutate)
@@ -314,6 +371,17 @@ def test_closure_rejects_invalid_envelope_before_computing_hashes(tmp_path: Path
     policy = _policy_repo(tmp_path, mutate)
 
     with pytest.raises(PolicyEnvelopeClosureError, match="per-unit measurement"):
+        _build(root, policy)
+
+
+def test_closure_rejects_policy_without_robot_clearance(tmp_path: Path) -> None:
+    def mutate(value: dict[str, object]) -> None:
+        value["clearance"]["robot_clearance"] = False
+
+    root = _runtime_repo_copy(tmp_path)
+    policy = _policy_repo(tmp_path, mutate)
+
+    with pytest.raises(PolicyEnvelopeClosureError, match="robot clearance"):
         _build(root, policy)
 
 

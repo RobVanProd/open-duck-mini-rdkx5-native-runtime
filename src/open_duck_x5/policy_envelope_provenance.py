@@ -14,9 +14,10 @@ from .configuration_support import (
     validate_supported_configuration_envelope_data,
 )
 
-PROVENANCE_SCHEMA_VERSION = "open_duck_x5.policy_envelope_provenance.v1"
+PROVENANCE_SCHEMA_VERSION = "open_duck_x5.policy_envelope_provenance.v2"
 EXPECTED_POLICY_REPOSITORY = "RobVanProd/open-duck-mini-rdkx5"
 EXPECTED_CONTRACT_ID = "winner-v2-115d"
+CLEARANCE_SCHEMA_VERSION = "open_duck_x5.policy_robot_clearance.v1"
 EXPECTED_ORIGIN_URLS = {
     "https://github.com/RobVanProd/open-duck-mini-rdkx5.git",
     "git@github.com:RobVanProd/open-duck-mini-rdkx5.git",
@@ -93,6 +94,41 @@ def _load_envelope(path: Path) -> dict[str, Any]:
     return value
 
 
+def _validate_clearance_artifact(
+    value: bytes, *, expected_onnx_sha256: str, expected_contract_id: str
+) -> None:
+    try:
+        clearance = json.loads(value.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PolicyEnvelopeProvenanceError(
+            f"could not decode committed policy clearance artifact: {exc}"
+        ) from exc
+    if not isinstance(clearance, dict):
+        raise PolicyEnvelopeProvenanceError("policy clearance artifact must be a JSON object")
+    if set(clearance) != {
+        "schema_version",
+        "robot_clearance",
+        "policy",
+        "supported_configuration_gate_passed",
+    }:
+        raise PolicyEnvelopeProvenanceError("policy clearance artifact keys differ")
+    if clearance["schema_version"] != CLEARANCE_SCHEMA_VERSION:
+        raise PolicyEnvelopeProvenanceError("policy clearance artifact schema is unsupported")
+    if clearance["robot_clearance"] is not True:
+        raise PolicyEnvelopeProvenanceError("policy clearance artifact is not robot-cleared")
+    if clearance["supported_configuration_gate_passed"] is not True:
+        raise PolicyEnvelopeProvenanceError(
+            "policy clearance artifact lacks the supported-configuration pass"
+        )
+    policy = clearance["policy"]
+    if not isinstance(policy, dict) or set(policy) != {"onnx_sha256", "contract_id"}:
+        raise PolicyEnvelopeProvenanceError("policy clearance identity keys differ")
+    if policy["onnx_sha256"] != expected_onnx_sha256:
+        raise PolicyEnvelopeProvenanceError("policy clearance ONNX identity differs")
+    if policy["contract_id"] != expected_contract_id:
+        raise PolicyEnvelopeProvenanceError("policy clearance contract identity differs")
+
+
 def _require_commit(repo: Path, commit: str, label: str) -> None:
     object_type = _git(repo, "cat-file", "-t", commit).decode().strip()
     if object_type != "commit":
@@ -127,7 +163,7 @@ def validate_policy_envelope_repository_provenance(
     envelope_commit: str,
     expected_envelope_sha256: str,
 ) -> dict[str, Any]:
-    """Re-read the exact envelope and preregistration bytes from Git commits."""
+    """Re-read envelope, preregistration, and clearance bytes from Git commits."""
     repo = policy_repo_root.resolve()
     envelope_file = envelope_path.resolve()
     repository_envelope_path = _repository_path(
@@ -154,6 +190,7 @@ def validate_policy_envelope_repository_provenance(
     envelope = _load_envelope(envelope_file)
     policy = envelope["policy"]
     preregistration = envelope["preregistration"]
+    clearance = envelope["clearance"]
     if policy["repository"] != EXPECTED_POLICY_REPOSITORY:
         raise PolicyEnvelopeProvenanceError("policy repository differs from the handoff contract")
     if policy["contract_id"] != EXPECTED_CONTRACT_ID:
@@ -166,9 +203,14 @@ def validate_policy_envelope_repository_provenance(
     preregistration_path = _repository_path(
         preregistration["artifact_path"], "preregistration artifact path"
     )
+    clearance_commit = _commit(clearance["commit"], "clearance decision commit")
+    clearance_path = _repository_path(
+        clearance["artifact_path"], "clearance decision artifact path"
+    )
     for commit, label in (
         (preregistration_commit, "preregistration commit"),
         (policy_commit, "selected policy commit"),
+        (clearance_commit, "clearance decision commit"),
         (artifact_commit, "envelope artifact commit"),
     ):
         _require_commit(repo, commit, label)
@@ -181,8 +223,14 @@ def validate_policy_envelope_repository_provenance(
     _require_ancestor(
         repo,
         policy_commit,
+        clearance_commit,
+        "selected policy -> clearance decision",
+    )
+    _require_ancestor(
+        repo,
+        clearance_commit,
         artifact_commit,
-        "selected policy -> envelope artifact",
+        "clearance decision -> envelope artifact",
     )
 
     committed_envelope = _git(
@@ -199,6 +247,16 @@ def validate_policy_envelope_repository_provenance(
         raise PolicyEnvelopeProvenanceError(
             "preregistration artifact bytes differ from the envelope identity"
         )
+    committed_clearance = _git(repo, "show", f"{clearance_commit}:{clearance_path}")
+    if _sha256_bytes(committed_clearance) != clearance["artifact_sha256"]:
+        raise PolicyEnvelopeProvenanceError(
+            "clearance decision artifact bytes differ from the envelope identity"
+        )
+    _validate_clearance_artifact(
+        committed_clearance,
+        expected_onnx_sha256=policy["onnx_sha256"],
+        expected_contract_id=policy["contract_id"],
+    )
 
     return {
         "schema_version": PROVENANCE_SCHEMA_VERSION,
@@ -211,9 +269,11 @@ def validate_policy_envelope_repository_provenance(
         "commits": {
             "preregistration": preregistration_commit,
             "selected_policy": policy_commit,
+            "clearance_decision": clearance_commit,
             "envelope_artifact": artifact_commit,
             "preregistration_is_ancestor_of_policy": True,
-            "policy_is_ancestor_of_envelope": True,
+            "policy_is_ancestor_of_clearance": True,
+            "clearance_is_ancestor_of_envelope": True,
         },
         "envelope": {
             "local_path": str(envelope_file),
@@ -223,6 +283,12 @@ def validate_policy_envelope_repository_provenance(
         "preregistration": {
             "repository_path": preregistration_path,
             "sha256": preregistration["artifact_sha256"],
+        },
+        "clearance": {
+            "repository_path": clearance_path,
+            "sha256": clearance["artifact_sha256"],
+            "robot_clearance": True,
+            "supported_configuration_gate_passed": True,
         },
         "policy": {
             "onnx_sha256": policy["onnx_sha256"],
