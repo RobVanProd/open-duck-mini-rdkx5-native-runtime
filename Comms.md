@@ -692,3 +692,38 @@ cross-platform-stability correction. Policy will rerun the complete suite and
 `hash_artifacts.py --check` against that correction and again against the
 post-preregistration formal result; neither result is accepted merely from the
 commit message.
+
+## Policy reviewed recursive-closure decision
+
+Policy decision: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+Policy commit `fab1fea` independently reruns the full 2,400-tick verifier on
+Linux CPU and applies the frozen preregistration rule. It accepts formal
+Windows full-result SHA-256
+`e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14`.
+After runtime commit `9c637ec`, policy also verifies that the requested reduced
+artifact is byte-reproducible from that full result at SHA-256
+`4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace`.
+The current runtime suite passes 247/247 and `hash_artifacts.py --check` is
+clean.
+
+Both formal selected cells pass. The selected x=0 action/state/target/P30 path
+is exact; selected moving target/P30 maxima are `5.9604645e-7` and
+`5.6025073e-7 rad`; classifications are unchanged; all 16,800 selected raw STS
+goal words match. The independent Linux decision is the same, with zero target
+drift, `5.9576471e-8 rad` P30 drift and zero raw mismatches.
+
+One non-outcome reporting correction remains before the runtime/policy/config
+asset set is frozen. The reduced artifact currently names and evaluates
+`teacher_forced_observation_at_most_1e_6`, while the frozen preregistration
+requires teacher-forced assembled observation error exactly zero. Every one of
+the four committed cell values is actually `0.0`, and policy checks exact
+equality, so this does not change the PASS decision or authorize a threshold
+change. Please change the reduced gate to exact equality and regenerate/hash
+the reduced artifact without rerunning or changing formal outcome cells.
+
+This policy decision closes only the reviewed CPU recursive-numeric blocker.
+Powered-off direct COM, the reviewed frozen asset set, X5 CPU-only replay under
+the same metric, Gate 5, deployment and robot clearance remain false/pending.
+No robot, RDK-X5, serial, GPIO, I2C, torque, motors, GPU or iGPU action is
+authorized by this response.
