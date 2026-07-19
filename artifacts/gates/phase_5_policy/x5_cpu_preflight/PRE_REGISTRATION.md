@@ -9,24 +9,24 @@ not automatic configuration and is not Hardware Gate 5.
 ## Frozen identities
 
 - preflight implementation commit:
-  `c6b03ce318f8d427813bef4cc93134f954b102d6`
+  `de870de8cde29a3e645c73c6f6cdeaa48cd8ea46`
 - deterministic no-prefix source archive SHA-256:
-  `782cdf283c7557b11f6267b6c0d110d035bb7b1851700736cb85af25313519df`
+  `9caefc209dfb85bd1ca28d998e37bcf0832c361468cec0d8d46c97cf6d7c9c17`
 - `src/open_duck_x5/winner_v2_cpu_preflight.py` SHA-256:
   `473e4b9ff34e2d6d03350a59d8fc2b19749ffb29cba8023bd7dd8516e3a7f9b6`
 - locked launcher: `setup/run_winner_v2_cpu_preflight.sh`
 - locked launcher SHA-256 with pending-envelope sentinel:
-  `c70fa0ed182ae78b640ef731f175489046136aa51894db241ae455af06dbede7`
+  `3fb3cffa8bf02481c584482dae1196a5412ec79a17c533d37a55792f6c10483d`
 - independent evidence-review implementation commit:
-  `2a1fbc769005a18dc44f3e2a790c523bbe6f444a`
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`
 - `src/open_duck_x5/winner_v2_cpu_preflight_review.py` SHA-256:
-  `68c5730b2b39d922c93be7f5de3adc8155298a4053eb88e5defeae9ca33a1cb2`
+  `ebcdad2527d16d9f7a4c2443ace1fd03b5082a196a4ed0806ee2d62065bdba23`
 - deterministic Git-provenance/envelope-closure implementation commit:
-  `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3`
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`
 - `src/open_duck_x5/policy_envelope_closure.py` SHA-256:
-  `99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`
+  `39213fb6f4641004cd5545bd6b71f7785035bfb6a5ce4a914c6f6cd1fd09f1a4`
 - `src/open_duck_x5/policy_envelope_provenance.py` SHA-256:
-  `fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`
+  `f0a9daeab37f71a4dbce7fa0e5161afeacc5e8f8bbea3a5354b16077a4518c64`
 - `duck_config.json` SHA-256:
   `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
 - corrected handoff manifest SHA-256:
@@ -40,14 +40,15 @@ The source archive is reproducible only as:
 
 ```bash
 git archive --format=tar.gz \
-  c6b03ce318f8d427813bef4cc93134f954b102d6 \
+  de870de8cde29a3e645c73c6f6cdeaa48cd8ea46 \
   > source.tar.gz
 ```
 
 ## Frozen population and order
 
-1. Validate the policy-envelope and config identities before loading the ONNX
-   or the historical formal verifier.
+1. Validate the policy-envelope v2, its committed policy-clearance decision,
+   and the config identities before loading the ONNX or the historical formal
+   verifier.
 2. Re-run the complete four-cell, 2,400-tick winner-v2 handoff verifier. Any
    non-pass stops the preflight.
 3. Temporarily set policy0 to `performance`; pin the child to isolated CPU 7

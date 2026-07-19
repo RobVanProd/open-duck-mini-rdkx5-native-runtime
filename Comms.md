@@ -1258,3 +1258,26 @@ Full examples are in `docs/POLICY_CLEARANCE_ENVELOPE_HANDOFF.md`.
 This correction adds no per-build measurement and changes no robot authority.
 X5 inference, serial access, torque, motion, automatic calibration, and Gate 5
 remain blocked until their separate gates pass.
+
+Clearance-aware refreeze identities supersede the earlier pending-template
+identities above:
+
+- parser/provenance source commit:
+  `de870de8cde29a3e645c73c6f6cdeaa48cd8ea46`;
+- deterministic source archive SHA-256:
+  `9caefc209dfb85bd1ca28d998e37bcf0832c361468cec0d8d46c97cf6d7c9c17`;
+- launcher/reviewer refreeze commit:
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`;
+- automatic-configuration pending launcher SHA-256:
+  `34a7ad10d42953e01fa28f786242d2dada74653659125e78b4fe6a493b3f366f`;
+- no-servo X5 pending launcher SHA-256:
+  `3fb3cffa8bf02481c584482dae1196a5412ec79a17c533d37a55792f6c10483d`;
+- clearance-aware closure/provenance SHA-256:
+  `39213fb6f4641004cd5545bd6b71f7785035bfb6a5ce4a914c6f6cd1fd09f1a4` /
+  `f0a9daeab37f71a4dbce7fa0e5161afeacc5e8f8bbea3a5354b16077a4518c64`.
+
+The policy response at runtime commit
+`f75151d8a59d839c2895f08a975f9a7061368523` is accepted as a fail-closed
+hold: the frozen ONNX fails the required broad X-COM domain, no supported-
+configuration envelope exists, and `robot_clearance=false`. The pending
+sentinels therefore remain unchanged and no X5 or physical stage advances.

@@ -8,16 +8,20 @@ The policy repository must first publish and pass the strict supported-
 configuration envelope, and a closure artifact must freeze that exact envelope
 SHA-256 before any robot response is observed.
 
+The accepted envelope schema is
+`open_duck_x5.supported_configuration_envelope.v2`; it must reference a
+committed `open_duck_x5.policy_robot_clearance.v1` decision for the same ONNX.
+
 No scale, caliper, static center-of-mass value, component position, manual
 measurement, or policy inference is used.
 
 ## Frozen identities
 
 - runtime source commit:
-  `d43ce270d9c24d075e7baf02efc741d65bb12f47`
+  `de870de8cde29a3e645c73c6f6cdeaa48cd8ea46`
 - deterministic no-prefix `git archive --format=tar.gz` SHA-256:
-  `ff1c22716430cc15b4c60d340375976959c2a2a5524c68b0e7c1bf6aa473116c`
-- source archive size: `460105` bytes
+  `9caefc209dfb85bd1ca28d998e37bcf0832c361468cec0d8d46c97cf6d7c9c17`
+- source archive size: `503532` bytes
 - physical `duck_config.json` SHA-256:
   `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
 - reviewed BNO055 calibration JSON SHA-256:
@@ -30,25 +34,25 @@ measurement, or policy inference is used.
   every exit path
 - policy envelope SHA-256: `PENDING — NO PHYSICAL RUN PERMITTED`
 - locked launcher implementation commit:
-  `4389bab6d4388a0ef0d971a737b1462ef3250cdb`
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`
 - locked launcher path: `setup/run_automatic_configuration.sh`
 - locked launcher SHA-256 with the pending-envelope sentinel:
-  `7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`
+  `34a7ad10d42953e01fa28f786242d2dada74653659125e78b4fe6a493b3f366f`
 - final launcher SHA-256 after inserting the reviewed envelope identity:
   `PENDING — NO PHYSICAL RUN PERMITTED`
 - deterministic Git-provenance/no-write closure implementation commit:
-  `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3`
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`
 - `src/open_duck_x5/policy_envelope_closure.py` SHA-256:
-  `99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`
+  `39213fb6f4641004cd5545bd6b71f7785035bfb6a5ce4a914c6f6cd1fd09f1a4`
 - `src/open_duck_x5/policy_envelope_provenance.py` SHA-256:
-  `fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`
+  `f0a9daeab37f71a4dbce7fa0e5161afeacc5e8f8bbea3a5354b16077a4518c64`
 
 The source archive can be reproduced only as:
 
 ```bash
 git archive --format=tar.gz \
-  -o open-duck-x5-automatic-configuration-d43ce27.tar.gz \
-  d43ce270d9c24d075e7baf02efc741d65bb12f47
+  -o open-duck-x5-automatic-configuration-de870de.tar.gz \
+  de870de8cde29a3e645c73c6f6cdeaa48cd8ea46
 ```
 
 ## Frozen sequence
@@ -58,8 +62,9 @@ launcher accepts paths and acknowledgements only; device, baud, CPU,
 priority, population, order, amplitude, and thresholds will have no override.
 Its pending-envelope sentinel exits before the serial-device check.
 
-1. Validate the already-passed policy envelope and record its SHA-256 before
-   opening `/dev/ttyS1`.
+1. Validate the already-passed policy envelope, committed clearance decision,
+   and their Git provenance, then record the envelope SHA-256 before opening
+   `/dev/ttyS1`.
 2. Run a fresh 10,000-tick, 50 Hz, torque-off all-14 preflight. No target write,
    torque enable, home entry, or calibration motion is permitted unless its raw
    trace independently passes every preflight threshold below.
