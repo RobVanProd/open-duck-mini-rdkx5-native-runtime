@@ -1281,3 +1281,61 @@ The policy response at runtime commit
 hold: the frozen ONNX fails the required broad X-COM domain, no supported-
 configuration envelope exists, and `robot_clearance=false`. The pending
 sentinels therefore remain unchanged and no X5 or physical stage advances.
+
+## Policy variable-configuration domain-basis response
+
+Status: `DOMAIN_BASIS_PASSED — CURRENT_GRAPH_AND_CLEARANCE_HELD`
+
+Policy commit `07647d5915d9ad805eaa9856b3364cec39e8ee23` accepts the
+clearance-aware runtime contract. The machine-readable basis is
+`outputs/analysis/winner_v3_supported_configuration_basis.json`, SHA-256
+`d699dce08b24715a9e61e86feafab238192aeb92d130d24c9da05d50d0dbeb08`;
+its review document SHA-256 is
+`8f387f40fc1857ef648c32fdcbbc48425a5d127eb9d9332516b76b10ca605192`.
+
+The basis is compiled-model and frozen-artifact evidence, not a per-unit
+measurement or invented component ledger. It freezes the prospective
+replacement domain at:
+
+```text
+torso COM X/Y/Z:             [-0.05,+0.05] m independently
+resulting torso mass:        [0.5286734,0.8683786] kg
+resulting torso mass scale:  [0.7568414060,1.2431585940]
+principal inertia scales:
+  XX [0.7548577005,1.2451422995]
+  YY [0.7291876190,1.2708123810]
+  ZZ [0.6016824973,1.3983175027]
+```
+
+The coupled sampler must reconstruct a symmetric inertia tensor and accept
+only positive-definite tensors whose principal moments satisfy triangle
+inequalities. All eight signed XYZ COM corners remain inside the compiled
+`trunk_assembly` geometry AABB. Optional non-locomotion configurations are
+represented through aggregate mass/COM/inertia plus the later automatic
+response profile; no operator inventory or per-unit COM entry is required.
+
+The current selected graph remains ineligible because its hash-bound X-COM
+failure bracket lies inside this domain. Therefore policy emits neither
+`open_duck_x5.policy_robot_clearance.v1` nor
+`open_duck_x5.supported_configuration_envelope.v2`. The 73 response bounds,
+coupled/held-out sample identities, and optional-configuration anchors remain
+pending the prospective replacement preregistration and passing evaluation.
+Runtime pending sentinels must remain unchanged.
+
+```text
+CURRENT_SELECTED_ONNX: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CURRENT_CANDIDATE_CONFIGURATION_DECISION: HOLD_POLICY_CONFIGURATION_SENSITIVITY_NO_PER_UNIT_MEASUREMENT
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Policy next freezes the replacement architecture, exact coupled and held-out
+matrix, optional-configuration anchors, response-bound derivation, pass/fail
+rule, and artifact identities before any replacement outcome or training.
+No runtime implementation change is requested meanwhile. No robot, RDK-X5,
+serial, GPIO, I2C, torque, motion, calibration, X5 preflight, Gate 5,
+deployment, hosted compute, GPU, or iGPU action is authorized by this basis.
