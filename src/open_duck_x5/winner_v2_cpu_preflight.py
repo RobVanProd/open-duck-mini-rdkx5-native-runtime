@@ -9,6 +9,7 @@ No sleep or file I/O occurs inside a measured transaction.
 from __future__ import annotations
 
 import argparse
+import gc
 import hashlib
 import json
 import os
@@ -213,37 +214,44 @@ def benchmark_cell(
     transaction_ns = np.empty(ticks, dtype=np.int64)
     servo_stale = np.zeros(ACTION_DIM, dtype=np.bool_)
 
-    completed = 0
-    while completed < ticks:
-        transaction = make_transaction()
-        population = min(GOLDEN_TICKS, ticks - completed)
-        for local_tick in range(population):
-            started = clock_ns()
-            transaction.stage_tick(
-                tick_index=local_tick,
-                logical_period_ns=CONTROL_PERIOD_NS,
-                servo_sample_tick_index=local_tick,
-                imu_sample_tick_index=local_tick,
-                contacts_sample_tick_index=local_tick,
-                gyro_rad_s=inputs.gyro_rad_s[local_tick],
-                acceleration_m_s2=inputs.acceleration_m_s2[local_tick],
-                commands=inputs.commands[local_tick],
-                positions_rad=inputs.positions_rad[local_tick],
-                velocities_rad_s=inputs.velocities_rad_s[local_tick],
-                foot_contacts=inputs.foot_contacts[local_tick],
-                servo_stale=servo_stale,
-                imu_stale=False,
-                contacts_stale=False,
-                soft_offsets_rad=soft_offsets_rad,
-            )
-            staged = clock_ns()
-            transaction.complete_send(write_succeeded=True)
-            finished = clock_ns()
-            index = completed + local_tick
-            stage_ns[index] = staged - started
-            commit_ns[index] = finished - staged
-            transaction_ns[index] = finished - started
-        completed += population
+    gc_was_enabled = gc.isenabled()
+    gc.collect()
+    gc.disable()
+    try:
+        completed = 0
+        while completed < ticks:
+            transaction = make_transaction()
+            population = min(GOLDEN_TICKS, ticks - completed)
+            for local_tick in range(population):
+                started = clock_ns()
+                transaction.stage_tick(
+                    tick_index=local_tick,
+                    logical_period_ns=CONTROL_PERIOD_NS,
+                    servo_sample_tick_index=local_tick,
+                    imu_sample_tick_index=local_tick,
+                    contacts_sample_tick_index=local_tick,
+                    gyro_rad_s=inputs.gyro_rad_s[local_tick],
+                    acceleration_m_s2=inputs.acceleration_m_s2[local_tick],
+                    commands=inputs.commands[local_tick],
+                    positions_rad=inputs.positions_rad[local_tick],
+                    velocities_rad_s=inputs.velocities_rad_s[local_tick],
+                    foot_contacts=inputs.foot_contacts[local_tick],
+                    servo_stale=servo_stale,
+                    imu_stale=False,
+                    contacts_stale=False,
+                    soft_offsets_rad=soft_offsets_rad,
+                )
+                staged = clock_ns()
+                transaction.complete_send(write_succeeded=True)
+                finished = clock_ns()
+                index = completed + local_tick
+                stage_ns[index] = staged - started
+                commit_ns[index] = finished - staged
+                transaction_ns[index] = finished - started
+            completed += population
+    finally:
+        if gc_was_enabled:
+            gc.enable()
     return TimingCell(command_x, stage_ns, commit_ns, transaction_ns)
 
 

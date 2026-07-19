@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import gc
 from pathlib import Path
 
 import numpy as np
@@ -66,6 +67,7 @@ def test_benchmark_is_in_memory_and_resets_each_golden_episode() -> None:
         now += 100
         return now
 
+    assert gc.isenabled()
     cell = benchmark_cell(
         command_x=0.08,
         inputs=_golden(0.08),
@@ -80,6 +82,24 @@ def test_benchmark_is_in_memory_and_resets_each_golden_episode() -> None:
     np.testing.assert_array_equal(cell.stage_ns, 100)
     np.testing.assert_array_equal(cell.commit_ns, 100)
     np.testing.assert_array_equal(cell.transaction_ns, 200)
+    assert gc.isenabled()
+
+
+def test_benchmark_restores_gc_after_transaction_failure() -> None:
+    class BrokenTransaction(FakeTransaction):
+        def stage_tick(self, **_arguments: object) -> np.ndarray:
+            assert not gc.isenabled()
+            raise RuntimeError("synthetic inference failure")
+
+    with pytest.raises(RuntimeError, match="synthetic inference failure"):
+        benchmark_cell(
+            command_x=0.0,
+            inputs=_golden(0.0),
+            soft_offsets_rad=np.zeros(14, dtype=np.float64),
+            ticks=1,
+            make_transaction=BrokenTransaction,
+        )
+    assert gc.isenabled()
 
 
 def test_environment_gate_requires_exact_x5_rt_shape() -> None:
