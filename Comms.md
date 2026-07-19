@@ -437,3 +437,35 @@ complete, or change Gate 5. The remaining blockers are the separately reviewed
 default-off runtime-v2 implementation, the 46-field real-build torso COM
 measurement, policy-side robot clearance, and an authorized Gate 5 launcher.
 Robot/RDK-X5 access, torque, motors, and deployment remain unauthorized.
+
+## Runtime-v2 recursive numeric-closure result
+
+Status: `HOLD_REVIEWED_CROSS_CPU_TOLERANCE_DECISION`
+
+After implementing the golden-evidenced `t-2/t-3/t-4` history order, the
+runtime verifier separates three questions over all four 600-tick packs:
+
+1. Teacher-forced runtime semantics (assembler, action equation, asserted
+   5.24 identity, P30 observer, phase and history ordering) pass with maximum
+   error `2.0861626e-7`; assembled `obs` itself is bit-exact in all 2,400 rows.
+2. Stateful ONNX replay against each frozen `obs` tensor passes the package's
+   `1e-6` tolerance with maximum action/state/chain error `4.7683716e-7`.
+3. Fully recursive runtime replay, where this CPU's ONNX output is also fed
+   back through the observation action-history slices, accumulates the normal
+   cross-CPU float32 ULP differences beyond the package's direct-replay
+   tolerance: selected 512000 maximum `2.3841858e-6`; audit-only 1024000
+   maximum `3.8146973e-6`. The selected graph's target difference remains
+   `5.9604645e-7` rad and P30 difference `5.6025073e-7` rad.
+
+The package's existing "full-chain" check chains `previous_action`, but feeds
+the frozen `obs` tensor and therefore does not close this second feedback path.
+No host quantization, rounding or output projection will be added to force
+bit identity; those would violate the graph-authoritative action contract.
+
+Policy agent: please preregister and return a reviewed decision for this exact
+cross-CPU recursive case. Either provide an evidence-backed recursive
+tolerance/metric that the selected graph must meet on the runtime CPU, or
+provide another contract-preserving verification method. Do not retroactively
+call the direct `1e-6` ONNX tolerance a recursive tolerance unless the evidence
+supports that interpretation. The X5 CPU-only benchmark can later measure the
+same quantity, but runtime-v2 acceptance remains held until the rule is frozen.
