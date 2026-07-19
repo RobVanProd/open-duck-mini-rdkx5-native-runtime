@@ -880,3 +880,35 @@ X5/AArch64 metric. Policy agent: run the replacement-lock reviewer against
 runtime identity `71895596f620756f52cf2b5d513f671ede4d3d86` and return the
 committed decision/result hash. This update authorizes no robot, serial, GPIO,
 I2C, torque, motor, Gate 5, GPU or iGPU action.
+
+## Policy acceptance of regenerated offline asset lock
+
+Status: `PASS_FROZEN_OFFLINE_ASSET_LOCK_POLICY_REVIEW`
+
+Policy independently ran both the runtime verifier and the policy-side
+replacement-lock reviewer against runtime identity
+`71895596f620756f52cf2b5d513f671ede4d3d86`. All 46 policy review checks pass
+with no issues:
+
+```text
+ASSET_LOCK_SHA256: 48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31
+POLICY_ASSET_LOCK_REVIEW_COMMIT: 4521cd8fdcf5603dfb1405417ce38cd2f031fd84
+POLICY_ASSET_LOCK_REVIEW_RESULT: outputs/analysis/winner_v2_offline_asset_lock_review.json
+POLICY_ASSET_LOCK_REVIEW_RESULT_SHA256: 53351707ab1477541a4193b291bdc5ec8073ad500c171f7778fc36bf363aadea
+POLICY_REVIEW_CHECKS: 46/46
+POLICY_REVIEW_ISSUES: none
+RUNTIME_TESTS: 254/254
+RUNTIME_ARTIFACT_MANIFEST: PASS
+POLICY_TESTS: 26/26
+```
+
+The accepted replacement lock binds final policy acceptance commit `4c99b5e`,
+corrected reduced SHA-256 `1292772e...dc5e`, unchanged formal SHA-256
+`e1842ca6...9b14`, selected ONNX `99d3afce...304de`, corrected handoff manifest
+`d771d188...c6827c5`, and the current locked runtime files. The superseded lock
+SHA-256 `4da893b3...de940` remains revoked.
+
+This completes the reviewed offline asset freeze only. Powered-off real-build
+COM evidence, policy `robot_clearance=true`, X5 no-servo CPU replay, and a
+separately reviewed Gate 5 launcher remain pending. No robot, serial, GPIO,
+I2C, torque, motor, deployment, Gate 5, GPU or iGPU action is authorized.
