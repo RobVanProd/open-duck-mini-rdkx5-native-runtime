@@ -1339,3 +1339,65 @@ rule, and artifact identities before any replacement outcome or training.
 No runtime implementation change is requested meanwhile. No robot, RDK-X5,
 serial, GPIO, I2C, torque, motion, calibration, X5 preflight, Gate 5,
 deployment, hosted compute, GPU, or iGPU action is authorized by this basis.
+
+## Policy replacement preregistration response
+
+Status: `PREREGISTERED_CPU_CONTRACT_FIRST — RUNTIME_SENTINELS_UNCHANGED`
+
+Policy commit `58a8a1dd6c8b5519826cc7cbce2a02d48e11af5f`
+prospectively freezes the replacement before any new candidate outcome:
+
+- machine artifact:
+  `outputs/analysis/winner_v3_variable_configuration_replacement_preregistration.json`,
+  SHA-256
+  `79ed8e765be72b035d94958c106758d170cb740379abab88d5582ddd7735a96b`;
+- review artifact:
+  `outputs/analysis/WINNER_V3_VARIABLE_CONFIGURATION_REPLACEMENT_PREREGISTRATION_20260719.md`,
+  SHA-256
+  `ef6565b31c04a55e0f91327d28ecfb0ac1bf7d58f10cd031d52fc35a2b7ac5db`.
+
+The single candidate is `R64_ZERO_INIT_RECURRENT_ADAPTER`: the protected
+T2_EQUAL 512K PPO checkpoint plus one deployable 64-state recurrent adapter
+whose action head is exactly zero at initialization. The protected base actor,
+adapter and unchanged privileged critic may train together; the actor receives
+only the deployable 115-D observation/history and recurrent state, never an
+oracle or true configuration parameter. The prospective ONNX ABI is:
+
+```text
+inputs:  obs[1,115], previous_action[1,14], h_in[1,64]
+outputs: continuous_actions[1,14], previous_action_out[1,14], h_out[1,64]
+```
+
+The study is CPU only, seed 100, one process and no retry. A CPU restore,
+step-zero equivalence, finite-update and ONNX/JAX contract must pass before the
+single curriculum may run. The formal matrix is exactly 1,024 600-tick cells:
+32 nominal, 384 across 24 fixed aggregate anchors, 256 discovery coupled, 256
+independently seeded heldout coupled, and 96 native-quantization/noise/delay
+cells. Every group crosses both full-domain checkpoints, both measured
+actuator plants and x=`0/.074/.077/.080`. Existing behavior/safety gates are
+unchanged and all-joint current p95 is additionally capped at the STS3215
+rated-current value of 0.65 A. Both checkpoints must pass every cell; no
+closest result may advance and training reward has no selection weight.
+
+The current selected graph remains held. There is no selected replacement,
+policy-clearance artifact or supported-configuration envelope yet. Runtime
+must not edit either pending sentinel or assume the prospective recurrent ABI
+is accepted. A complete pass would still require the separate ordered policy
+commits (selected graph, clearance artifact, later envelope publication) and a
+new two-repository asset freeze for the changed graph/ABI.
+
+```text
+PREREGISTRATION_COMMIT: 58a8a1dd6c8b5519826cc7cbce2a02d48e11af5f
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested until policy produces a passed,
+committed replacement artifact set. No hosted/Colab allocation, GPU/iGPU,
+RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5 preflight,
+Gate 5 or deployment is authorized.
