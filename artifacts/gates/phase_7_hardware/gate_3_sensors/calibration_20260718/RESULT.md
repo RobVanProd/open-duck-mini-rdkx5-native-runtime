@@ -22,7 +22,10 @@ chip ID `0xa0`, NDOF `0x0c`, axis map `0x21`, axis sign `0x07`, and unit
 selection `0x00`. An independent local verifier then reloaded the primitive
 pickle through the restricted unpickler, reconstructed all 1,318 status rows,
 checked the final sustained population, rehashed all four files, and matched
-the frozen capture-source hashes. All nine integrity checks passed.
+the frozen capture-source hashes. All nine integrity checks passed. That review
+was executed from source commit
+`1792d9c6975c328a7349efb5b4baec57852d39b3`; its packet SHA-256 is
+`cc8c89e988e0401d33ae7bc0a47dd0be163546f82213013b62d6fc2a2497fc2c`.
 
 The source archive reproduced SHA-256
 `7e8189501dbb24ecf0301b86e5c7d787e095aad24a634a3a599b7e5d8cd864cb`

@@ -45,7 +45,10 @@ type the same label passed to the probe before each run.
 - Live pin-mux inventory confirms physical pin 15 / BCM22 claims GPIO 388
   (`LSIO_UART2_TX`) and physical pin 13 / BCM27 claims GPIO 379
   (`LSIO_UART7_RX`) as inputs, then releases both cleanly.
-- The exact reviewed source/archive hashes are frozen in the eventual launcher.
+- The exact reviewed source/archive hashes are frozen in the launcher:
+  source commit `1792d9c6975c328a7349efb5b4baec57852d39b3` and
+  source archive SHA-256
+  `3ab9e7161e04f4faf39acaf03bca3ad4868eab7b16ec94f2861cb10b64866ed0`.
 
 The GPIO mapping and chip identity are verified by the 2026-07-18 readiness
 inventory. The separately guarded physical calibration is now complete: profile
@@ -55,6 +58,20 @@ source SHA-256 is
 `a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08`,
 and exact fresh-session register readback passed. Gate 3 itself remains
 unauthorized and not run.
+
+The only authorized launcher form is:
+
+```bash
+bash setup/run_gate3_sensor_matrix.sh \
+  --source-archive /home/sunrise/open-duck-x5-gate3-1792d9c6975c328a7349efb5b4baec57852d39b3.tar.gz \
+  --config /home/sunrise/duck_config.json \
+  --calibration-dir /home/sunrise/gate3/calibration-20260718 \
+  --output-dir /home/sunrise/gate3/sensor-matrix-20260718 \
+  --hardware-authorized --suspended-or-benched
+```
+
+This command remains blocked until Rob separately authorizes the complete
+nine-label Gate 3 matrix while physically present at the supported robot.
 
 ## Data gates
 
