@@ -15,21 +15,21 @@
       },
       "fixed_frame": {
         "batches": 10,
-        "max": 76.718,
-        "mean": 52.29765,
-        "min": 40.1185,
-        "p95": 75.433475
+        "max": 117.098,
+        "mean": 81.87469999999999,
+        "min": 56.0375,
+        "p95": 106.13892499999997
       },
       "generic": {
         "batches": 10,
-        "max": 86.5865,
-        "mean": 73.27955,
-        "min": 53.1195,
-        "p95": 85.6946
+        "max": 159.344,
+        "mean": 139.6045,
+        "min": 104.287,
+        "p95": 157.53635
       },
       "instrumentation_enabled": true,
-      "mean_saving_us": 20.981900000000003,
-      "mean_speedup": 1.4012015836275626,
+      "mean_saving_us": 57.72980000000001,
+      "mean_speedup": 1.705099377463368,
       "synthetic_receive_chunks": 10
     },
     "uninstrumented": {
@@ -41,21 +41,21 @@
       },
       "fixed_frame": {
         "batches": 10,
-        "max": 61.184,
-        "mean": 41.76719999999999,
-        "min": 26.2685,
-        "p95": 56.668024999999986
+        "max": 90.5535,
+        "mean": 74.66235,
+        "min": 58.5535,
+        "p95": 88.7418
       },
       "generic": {
         "batches": 10,
-        "max": 96.913,
-        "mean": 88.307,
-        "min": 74.4025,
-        "p95": 96.1165
+        "max": 194.425,
+        "mean": 135.89915000000002,
+        "min": 107.8295,
+        "p95": 183.58697499999997
       },
       "instrumentation_enabled": false,
-      "mean_saving_us": 46.539800000000014,
-      "mean_speedup": 2.1142666973127247,
+      "mean_saving_us": 61.23680000000002,
+      "mean_speedup": 1.8201831311229826,
       "synthetic_receive_chunks": 0
     }
   },

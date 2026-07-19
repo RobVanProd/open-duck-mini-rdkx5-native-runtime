@@ -71,6 +71,11 @@ def _generic(bus: STS3215Bus, snapshot: ServoSnapshot) -> None:
     consumed, seen = bus._parse_available(
         expected_param_length=4,
         only_servo_id=None,
+        response_complete_ns=(
+            snapshot.trace_group_response_complete_ns
+            if snapshot.instrumentation_enabled
+            else None
+        ),
     )
     if consumed != ACTION_DIM * 10 or seen != ACTION_DIM:
         raise RuntimeError(f"generic parser consumed={consumed}, seen={seen}")
