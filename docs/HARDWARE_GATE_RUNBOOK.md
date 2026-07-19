@@ -1,11 +1,11 @@
 # Staged Hardware Gate Runbook
 
-Gates 1 and 2 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
+Gates 1 through 3 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
 torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
-restored `schedutil`. The separate BNO055 calibration prerequisite is also
-complete. Gates 3-5 remain `NOT_RUN`; authorization for one gate does not
-authorize the next.
+restored `schedutil`. Gate 3 completed the corrected nine-label BNO055/contact
+matrix with no servo path. Gates 4-5 remain `NOT_RUN`; authorization for one
+gate does not authorize the next.
 
 ## Common preflight
 
@@ -270,11 +270,12 @@ Final torque-off was `ok` and the governor returned to `schedutil`. See
 
 ## Gate 3 — IMU and contacts
 
-Current status: `HALTED_REVIEWED_STARTUP_STALE_RERUN_NOT_AUTHORIZED`. The
+Current status: `PASS_REVIEWED`. The
 separately authorized BNO055 calibration prerequisite completed and passed
 independent integrity review. The first matrix attempt then halted at the
 `upright` validator because row 0 was read before the sensor worker's first
-publication. No later label, servo access, torque, target write, or policy ran.
+publication. No later label, servo access, torque, target write, or policy ran
+in that attempt. The corrected matrix subsequently completed all nine labels.
 
 - No policy.
 - Capture labeled upright, nose-forward, nose-back, left-tilt, right-tilt samples.
@@ -300,8 +301,8 @@ bash setup/run_gate3_sensor_matrix.sh \
 
 The halted attempt's older source and `sensor-matrix-20260718` output must not
 be reused. Its output remains preserved and is reduced under
-`startup_stale_halt_20260718/`. The corrected command above is blocked until
-the launcher commit is green and Rob gives fresh explicit rerun authorization.
+`startup_stale_halt_20260718/`. The corrected command above was the exact
+authorized 2026-07-19 execution and must not be rerun into its existing output.
 
 The launcher prompts in frozen order for `upright`, `nose_forward`,
 `nose_back`, `left_tilt`, `right_tilt`, `no_contacts`, `left_contact`,
@@ -367,6 +368,15 @@ monotonic rows per label, binds one config/calibration/source population, and
 checks the four contact patterns. Orientation/contact correctness remains
 `REVIEW_REQUIRED`; neither the probe nor validator manufactures clearance from
 unreviewed labels.
+
+Reviewed result: all 2,250 rows were fresh with zero worker errors. Upright
+gravity was positive Z; nose-forward/back were opposed on X by `11.85624 m/s²`;
+left/right tilt were opposed on Y by `15.09248 m/s²`; and the four
+dedicated contact means were exactly `[0,0]`, `[1,0]`, `[0,1]`, and `[1,1]`.
+Rob confirmed every physical label. The 67-entry board checksum set and an
+independent current-validator pass are recorded under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/matrix_20260719/`. Gate 3 is
+`PASS_REVIEWED`; this does not authorize Gate 4.
 
 ## Gate 4 — Sine sweeps
 

@@ -1,0 +1,406 @@
+{
+  "capture_contract": {
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "frequency_hz": 50.0,
+    "imu_address": 40,
+    "imu_i2c_device": "/dev/i2c-5",
+    "samples_per_label": 250,
+    "sensor_frequency_hz": 100.0,
+    "servo_bus_accessed": false,
+    "stale_after_ms": 40.0,
+    "torque_enabled": false
+  },
+  "data_integrity_candidate": true,
+  "gate3_passed": false,
+  "labels": {
+    "both_contacts": {
+      "acceleration_mean_m_s2": [
+        0.3697200000000004,
+        0.8512400000000003,
+        9.789479999999987
+      ],
+      "contact_mean": [
+        1.0,
+        1.0
+      ],
+      "contact_pattern_consistent": true,
+      "expected_contact_pattern": [
+        1.0,
+        1.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.013089969389957472,
+        0.009817477042468103,
+        0.015271630954950384
+      ],
+      "gyro_mean_rad_s": [
+        -0.00024870941840919196,
+        -0.00013962634015954637,
+        5.23598775598299e-05
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "left_contact": {
+      "acceleration_mean_m_s2": [
+        0.36584000000000005,
+        0.8692399999999999,
+        9.789799999999982
+      ],
+      "contact_mean": [
+        1.0,
+        0.0
+      ],
+      "contact_pattern_consistent": true,
+      "expected_contact_pattern": [
+        1.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.015271630954950384,
+        0.013089969389957472,
+        0.022907446432425576
+      ],
+      "gyro_mean_rad_s": [
+        0.00018762289458939036,
+        0.0005585053606381853,
+        -7.853981633974475e-05
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "left_tilt": {
+      "acceleration_mean_m_s2": [
+        0.09447999999999998,
+        -7.883880000000014,
+        5.844839999999993
+      ],
+      "contact_mean": [
+        0.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.18544123302439752,
+        0.13962634015954636,
+        0.11999138607461016
+      ],
+      "gyro_mean_rad_s": [
+        -0.0041364303272265575,
+        0.002975786374650331,
+        -0.0018762289458939048
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "no_contacts": {
+      "acceleration_mean_m_s2": [
+        0.37384000000000017,
+        0.8821999999999988,
+        9.785879999999981
+      ],
+      "contact_mean": [
+        0.0,
+        0.0
+      ],
+      "contact_pattern_consistent": true,
+      "expected_contact_pattern": [
+        0.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.009817477042468103,
+        0.004363323129985824,
+        0.020725784867432664
+      ],
+      "gyro_mean_rad_s": [
+        0.00018325957145940471,
+        5.235987755982989e-05,
+        -0.00014398966328953223
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "nose_back": {
+      "acceleration_mean_m_s2": [
+        6.855599999999994,
+        0.6408800000000006,
+        6.674919999999988
+      ],
+      "contact_mean": [
+        0.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.032724923474893676,
+        0.0818123086872342,
+        0.07308566242726255
+      ],
+      "gyro_mean_rad_s": [
+        5.672320068981573e-05,
+        -0.004175700235396433,
+        0.0003185225884889645
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "nose_forward": {
+      "acceleration_mean_m_s2": [
+        -5.000639999999998,
+        0.7092399999999993,
+        8.423440000000006
+      ],
+      "contact_mean": [
+        0.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.05126904677733343,
+        0.08508480103472356,
+        0.08290313946973066
+      ],
+      "gyro_mean_rad_s": [
+        -0.0007024950239277172,
+        0.00027925268031909215,
+        0.0006108652381980163
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "right_contact": {
+      "acceleration_mean_m_s2": [
+        0.3661600000000003,
+        0.8699999999999999,
+        9.788519999999982
+      ],
+      "contact_mean": [
+        0.0,
+        1.0
+      ],
+      "contact_pattern_consistent": true,
+      "expected_contact_pattern": [
+        0.0,
+        1.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.006544984694978736,
+        0.006544984694978736,
+        0.018544123302439753
+      ],
+      "gyro_mean_rad_s": [
+        0.00030106929596902186,
+        -3.054326190990072e-05,
+        4.7996554429844035e-05
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "right_tilt": {
+      "acceleration_mean_m_s2": [
+        0.4684399999999998,
+        7.208600000000009,
+        6.387440000000014
+      ],
+      "contact_mean": [
+        0.0,
+        0.0
+      ],
+      "gyro_abs_max_rad_s": [
+        0.06544984694978735,
+        0.028361600344907856,
+        0.02945243112740431
+      ],
+      "gyro_mean_rad_s": [
+        1.3089969389957115e-05,
+        0.0005803219762881147,
+        -0.000191986217719376
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    },
+    "upright": {
+      "acceleration_mean_m_s2": [
+        0.3847599999999998,
+        0.9170399999999999,
+        9.793600000000003
+      ],
+      "contact_mean": [
+        0.016,
+        0.016
+      ],
+      "gyro_abs_max_rad_s": [
+        0.17562375598192942,
+        0.13853550937704992,
+        0.19416787928436915
+      ],
+      "gyro_mean_rad_s": [
+        0.000296705972839035,
+        -0.0015140731261050813,
+        0.0009381144729469535
+      ],
+      "operator_label_confirmed": true,
+      "physical_label_decision": "REVIEW_REQUIRED"
+    }
+  },
+  "physical_label_decision": "REVIEW_REQUIRED",
+  "provenance": {
+    "calibration_capture_archive_sha256": "7e8189501dbb24ecf0301b86e5c7d787e095aad24a634a3a599b7e5d8cd864cb",
+    "calibration_capture_source_commit": "4e9b748139a65449a71e6c58ec2401f0a90d42bd",
+    "calibration_profile_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+    "calibration_review_sha256": "6b63cb12781c2d256b4bb002ed365252e9e0b1830c4c5305fba724037722c2eb",
+    "calibration_source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08",
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "software": {
+      "imu_calibration_sha256": "40fb3ea05f16f312f83416d5da8ed84b81e3ae45d1bcd03ce26f842e47d7c3ae",
+      "sensor_probe_sha256": "1f3c05838f47aac85cfceef814107051286dc99cb7988d3fb881a76c3c6b313c",
+      "sensors_sha256": "ebdbafb1be185541604f7dde206aacbd325bbb0e8feaf66ef4a03d534f39d303"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "path": "calibration/calibration-status.jsonl",
+      "sha256": "d6e843a52a5cb7bf54d92c1f8af7de728364889c5d1f74539c5ddb0ada599966"
+    },
+    {
+      "path": "calibration/calibration-summary.json",
+      "sha256": "375fafe5e096651059d0a90e101656f857ebc65a9d28daeda642fbbccdef1651"
+    },
+    {
+      "path": "calibration/imu_calib_data.pkl",
+      "sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+    },
+    {
+      "path": "calibration/imu_calibration.json",
+      "sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be"
+    },
+    {
+      "path": "calibration-review.json",
+      "sha256": "6b63cb12781c2d256b4bb002ed365252e9e0b1830c4c5305fba724037722c2eb"
+    },
+    {
+      "path": "upright/sensor.jsonl",
+      "sha256": "77861e4321f240364aea5c6f5eef83be8d31f6de2b5a8d837fb2dc222c56cd81"
+    },
+    {
+      "path": "upright/summary.json",
+      "sha256": "de9e4df38504e422146db6dfc276dafa51cf213fd04f50d0d37e639adc6174b3"
+    },
+    {
+      "path": "upright/integrity-review.json",
+      "sha256": "bd265f8f879cd125656f674eb34f07e33072464c976bf11b9fe21c85eac2614f"
+    },
+    {
+      "path": "nose_forward/sensor.jsonl",
+      "sha256": "0a4b20e63668413c3c0387d4abef1993e089e60bcbc0668b20b4ba1083010ac3"
+    },
+    {
+      "path": "nose_forward/summary.json",
+      "sha256": "f25061de044dee1f63bd53aeba55a275a99119923128643f2c421f4ebe6dfd49"
+    },
+    {
+      "path": "nose_forward/integrity-review.json",
+      "sha256": "2dda9c9390a92d69d268eaa22b85e986e5f27657c3ce6bd3b02d0ba2c49c8a33"
+    },
+    {
+      "path": "nose_back/sensor.jsonl",
+      "sha256": "adf2ce54c17c80c51bd444b34919a376d243a63a998b59ea5658733c5549b498"
+    },
+    {
+      "path": "nose_back/summary.json",
+      "sha256": "3921b9777a2aa53e1a49ccb79599b9b056d50d9ccc9c7c756168d942fdbc3f3d"
+    },
+    {
+      "path": "nose_back/integrity-review.json",
+      "sha256": "87157ec3571f4281b57a1fcb8250e1b52d8bb9311fccc8aa7147b91477c74916"
+    },
+    {
+      "path": "left_tilt/sensor.jsonl",
+      "sha256": "f10051fddcc1d2fdeed9ad7a1dffc07f1a83d0787d2613ac79508f0f8549b1e1"
+    },
+    {
+      "path": "left_tilt/summary.json",
+      "sha256": "e5b28d712b53812c29af9a69c2ae097e5a13c01dd53d342d3ddec12de72733a6"
+    },
+    {
+      "path": "left_tilt/integrity-review.json",
+      "sha256": "4a3b821c6d868bb8714eb53d18220af40977b159c21a7209b7d6af1ff36ddc77"
+    },
+    {
+      "path": "right_tilt/sensor.jsonl",
+      "sha256": "e437b0d7d3bbce26fcd4de929435f2d5bfd528ad09a3d84a01a0e15aba663d95"
+    },
+    {
+      "path": "right_tilt/summary.json",
+      "sha256": "3f696f9ee411e7767ccae734de38b5651f20958d829cd36fbfdb31dcbb5856a0"
+    },
+    {
+      "path": "right_tilt/integrity-review.json",
+      "sha256": "7b69634359426fc821d0bd1645389d890cd019ea08ff2904d4d15c50d4624e43"
+    },
+    {
+      "path": "no_contacts/sensor.jsonl",
+      "sha256": "3e184171d1aca748af1051864e7ece88f911c2e06fe595db6cbe87d0ba4543f2"
+    },
+    {
+      "path": "no_contacts/summary.json",
+      "sha256": "45d7a919ab9d6ca1c8b8bf25fb707b1ac68c6163fe7fcadf622b371b311937f1"
+    },
+    {
+      "path": "no_contacts/integrity-review.json",
+      "sha256": "9f536a2fe1dd066b2c51e2b17d71b892aeef57009e24ef4411da0954a78ac2b6"
+    },
+    {
+      "path": "left_contact/sensor.jsonl",
+      "sha256": "3215514fc67034d70e4508881aebbe3eb92e5aef08206dbc8e24b4fe4d49e15a"
+    },
+    {
+      "path": "left_contact/summary.json",
+      "sha256": "da0cc5f12471df71925daf7a89f718c342d78859fd96a61e89d2d58cdce4018a"
+    },
+    {
+      "path": "left_contact/integrity-review.json",
+      "sha256": "dd5cd357f5772f67435d99d905dfbe291ccfe4f6a4a90fddadb07dfffc529fe9"
+    },
+    {
+      "path": "right_contact/sensor.jsonl",
+      "sha256": "3f8b1c6e97434ba1d3c6354946968bee46625bf81efabaa0808390b40cab5968"
+    },
+    {
+      "path": "right_contact/summary.json",
+      "sha256": "f717f05ade277a70fe9695099bc5b49e6de7439b617296b6783929b4981ba335"
+    },
+    {
+      "path": "right_contact/integrity-review.json",
+      "sha256": "dcbbddebbed6c2033b908ea8a57170bcc3558430d50aaa127782e5b3d0e411fa"
+    },
+    {
+      "path": "both_contacts/sensor.jsonl",
+      "sha256": "121b0cdea9903e3d5268bdba537e8119a1418af34c72794fa94cf1ebfbee6ff8"
+    },
+    {
+      "path": "both_contacts/summary.json",
+      "sha256": "73d86db18c5b4688490ec0e81b6319460ef7ace1bd06007f11e1cdca12b487c5"
+    },
+    {
+      "path": "both_contacts/integrity-review.json",
+      "sha256": "99b80f94a684988d7afc65dd2c3c0a5a2450f1b1b17c6126dde47f5ef49e50b4"
+    }
+  ],
+  "required_labels": [
+    "upright",
+    "nose_forward",
+    "nose_back",
+    "left_tilt",
+    "right_tilt",
+    "no_contacts",
+    "left_contact",
+    "right_contact",
+    "both_contacts"
+  ],
+  "review_instructions": [
+    "Verify upright gravity and all four labeled tilt directions from acceleration means.",
+    "Verify each physical foot-switch actuation matches the labeled contact pattern.",
+    "Keep Gate 3 blocked if any physical label is ambiguous or reversed."
+  ],
+  "schema_version": "open_duck_x5.gate3_review.v1",
+  "status": "REVIEW_REQUIRED"
+}

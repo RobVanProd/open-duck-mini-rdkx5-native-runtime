@@ -619,3 +619,30 @@ servo verification and torque enable. Timeout is fail-closed and creates no
 probe evidence. The failed output remains immutable; corrected execution uses
 a new frozen source archive, a new output directory, green CI, and new explicit
 authorization. Gates 4 and 5 remain blocked.
+
+## D045 — Accept the corrected nine-label sensor matrix as Gate 3
+
+Accepted from the separately authorized, supported-robot run on 2026-07-19.
+The corrected source commit `aac7410f241a5419af2257ba9635e6755d7b5ae8`
+waited for a complete fresh publication before defining each 250-row capture.
+All nine labels completed, all 2,250 IMU/contact rows were fresh, every sensor
+worker reported zero errors, and all 67 board-side checksum entries reproduced.
+
+Rob physically confirmed each label immediately before capture. Independent
+raw reduction found upright mean acceleration `[0.38476, 0.91704, 9.79360]
+m/s²`; nose-forward/back X means `-5.00064/+6.85560 m/s²`; and left/right
+tilt Y means `-7.88388/+7.20860 m/s²`. The corresponding opposing separations
+were `11.85624` and `15.09248 m/s²`. The four dedicated contact populations
+were exactly `[0,0]`, `[1,0]`, `[0,1]`, and `[1,1]` across 1,000 samples.
+
+The upright orientation capture recorded four simultaneous true samples per
+contact, a mean of `0.016`. This is retained in the review rather than erased;
+it does not override the preregistered contact decision, which is based on the
+four dedicated, physically confirmed populations and passed exactly.
+
+The runner proves no servo bus, torque, goal write, policy load, or inference.
+After completion I2C was unowned, both GPIO claims were released, and the
+screen session had exited. The automated packet remains deliberately
+`REVIEW_REQUIRED` with `gate3_passed=false` under D017. The separate human
+review resolves the unambiguous physical labels and promotes Gate 3 to
+`PASS_REVIEWED`. This does not authorize Gate 4, a policy, or grounded work.

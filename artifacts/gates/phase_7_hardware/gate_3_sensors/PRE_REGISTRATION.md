@@ -1,6 +1,6 @@
 # Gate 3 IMU/contact capture pre-registration
 
-Status: `HALTED_REVIEWED_STARTUP_STALE_RERUN_NOT_AUTHORIZED`
+Status: `EXECUTED_PASS_REVIEWED`
 
 ## Scope
 
@@ -114,3 +114,12 @@ and each physically pressed switch. Gate 3 remains blocked for any ambiguous or
 reversed label, identity/calibration mismatch, stale row, worker error, pin-mux
 conflict, hash change, or unexpected device access. A failed label is not
 silently repeated under a new name; the cause is reviewed first.
+
+## Execution result
+
+The corrected rerun completed all nine labels on 2026-07-19. All 2,250 rows
+were fresh, all worker-error counts were zero, every board checksum reproduced,
+opposing orientation labels were unambiguous, and the four dedicated contact
+patterns were exact. The human review required above is recorded in
+`matrix_20260719/human-review.json`; Gate 3 is `PASS_REVIEWED`. Gate 4 remains
+separately unauthorized.

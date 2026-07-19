@@ -1,0 +1,42 @@
+{
+  "calibration_profile_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+  "calibration_source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08",
+  "completed_labels": [
+    "upright",
+    "nose_forward",
+    "nose_back",
+    "left_tilt",
+    "right_tilt",
+    "no_contacts",
+    "left_contact",
+    "right_contact",
+    "both_contacts"
+  ],
+  "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+  "frequency_hz": 50.0,
+  "goal_position_writes": 0,
+  "initial_sample_ready_timeout_s": 2.0,
+  "policy_inference_count": 0,
+  "policy_loaded": false,
+  "required_labels": [
+    "upright",
+    "nose_forward",
+    "nose_back",
+    "left_tilt",
+    "right_tilt",
+    "no_contacts",
+    "left_contact",
+    "right_contact",
+    "both_contacts"
+  ],
+  "samples_per_label": 250,
+  "schema_version": "open_duck_x5.gate3_sensor_matrix_runner.v1",
+  "sensor_frequency_hz": 100.0,
+  "servo_bus_accessed": false,
+  "smbus2_version": "0.6.1",
+  "source_archive_sha256": "d41e516ec52558ec169c0f8f017d8959aed657a999786ed5e8e7716895ced9a0",
+  "source_commit": "aac7410f241a5419af2257ba9635e6755d7b5ae8",
+  "stale_after_ms": 40.0,
+  "status": "REVIEW_REQUIRED",
+  "torque_enabled": false
+}
