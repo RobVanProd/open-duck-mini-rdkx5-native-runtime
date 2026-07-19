@@ -12,5 +12,7 @@ Offline implementation now additionally requires BNO055 chip-ID verification,
 strict conversion of the preserved calibration pickle, exact offset-register
 readback, zero sensor-worker errors, typed operator confirmation for every
 label, and a single nine-label validation packet. No board sensor access has
-been performed under this change. The calibration profile/hash and live X5 GPIO
-pin-mux inventory remain pending before an exact launcher can be frozen.
+been performed as a Gate 3 capture. The authorized readiness inventory verified
+the BNO055 identity and both GPIO mappings, but found no saved legacy calibration
+and a live calibration status of zero. A physical calibration profile/hash
+remains pending before an exact launcher can be frozen.

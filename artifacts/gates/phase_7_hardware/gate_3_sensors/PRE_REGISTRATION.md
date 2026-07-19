@@ -39,13 +39,14 @@ type the same label passed to the probe before each run.
 - BNO055 chip ID reads exactly `0xa0`.
 - All accelerometer, gyroscope, and magnetometer offset triplets read back
   exactly after configuration.
-- Live pin-mux inventory confirms physical pins 13 and 15 are GPIO inputs, not
-  the UART7 alternate function.
+- Live pin-mux inventory confirms physical pin 15 / BCM22 claims GPIO 388
+  (`LSIO_UART2_TX`) and physical pin 13 / BCM27 claims GPIO 379
+  (`LSIO_UART7_RX`) as inputs, then releases both cleanly.
 - The exact reviewed source/archive hashes are frozen in the eventual launcher.
 
-The calibration/hash freeze and live identity, readback, and pin-mux
-prerequisites are currently pending. Their absence blocks execution; it is not
-a failed Gate 3 result.
+The GPIO mapping and chip identity are verified by the 2026-07-18 readiness
+inventory. The calibration file/hash and configured offset readback remain
+pending. Their absence blocks execution; it is not a failed Gate 3 result.
 
 ## Data gates
 

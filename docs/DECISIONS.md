@@ -533,3 +533,18 @@ records sensor-worker errors and installed source hashes. Its nine-label
 validator can establish data integrity only; physical orientation and switch
 labels remain `REVIEW_REQUIRED` under D017. No board access is authorized by
 this decision.
+
+## D041 — Block Gate 3 on the missing physical calibration
+
+Accepted from the authorized non-moving readiness inventory. The preserved
+runtime contains a calibration script and CWD-relative load path, but no
+`imu_calib_data.pkl` or other IMU calibration artifact exists anywhere under
+`/home/sunrise`. The powered BNO055 identifies correctly as `0xa0` but reports
+calibration `0x00` and remains in its default axis/unit configuration. There are
+no valid offsets to convert.
+
+Offsets will not be guessed or copied from a different robot. Gate 3 stays
+blocked—not failed—until this physical BNO055 is calibrated and the resulting
+profile is hashed and read back exactly. The same inventory verified BCM22 as
+X5 GPIO 388 and BCM27 as GPIO 379 through temporary input-only claims, then
+confirmed clean release. No servo device, torque, target, or policy was touched.
