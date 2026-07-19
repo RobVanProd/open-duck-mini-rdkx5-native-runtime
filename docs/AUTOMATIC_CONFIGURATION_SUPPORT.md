@@ -149,6 +149,11 @@ The collector preserves this sequence:
    SHA-256 identities; and
 6. redundant torque-off before emitting a complete profile.
 
+Physical serial evidence is rejected immediately when a timing gate fails.
+Mock evidence instead preserves the observed slow timing in its profile and
+remains a permanent informational hold. This keeps CI/desktop scheduler speed
+from masquerading as hardware evidence without fabricating faster mock timing.
+
 Example mock-only contract run:
 
 ```bash

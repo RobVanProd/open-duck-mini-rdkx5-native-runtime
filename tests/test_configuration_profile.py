@@ -21,6 +21,7 @@ from open_duck_x5.configuration_support import (
     ENVELOPE_SCHEMA_VERSION,
     ConfigurationSupportError,
     evaluate_configuration_support_data,
+    validate_automatic_profile_data,
     validate_configuration_support,
 )
 from open_duck_x5.configuration_support import (
@@ -428,6 +429,21 @@ def test_bus_maximum_at_five_ms_is_rejected(tmp_path: Path) -> None:
             metadata_path=metadata_path,
             configuration_path=CONFIGURATION_PATH,
         )
+
+
+def test_slow_mock_timing_is_preserved_as_informational_hold(tmp_path: Path) -> None:
+    metadata, rows = _evidence(backend="mock")
+    rows[17]["bus_total_ms"] = 10.0
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+
+    profile = build_automatic_configuration_profile(
+        trace_path=trace,
+        metadata_path=metadata_path,
+        configuration_path=CONFIGURATION_PATH,
+    )
+    issues = validate_automatic_profile_data(profile)
+    assert "source.informational_only_mock" in issues
+    assert "sample_contract.bus_total_max_ms=10.0" in issues
 
 
 def test_sensor_sample_timestamps_cannot_move_backward(tmp_path: Path) -> None:

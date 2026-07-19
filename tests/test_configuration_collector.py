@@ -64,7 +64,7 @@ def test_mock_collector_emits_complete_informational_evidence_chain(tmp_path: Pa
     assert profile["source"]["backend"] == "mock"
     assert profile["source"]["informational_only"] is True
     assert profile["source"]["policy_envelope_sha256"] is None
-    assert validate_automatic_profile_data(profile) == ["source.informational_only_mock"]
+    assert "source.informational_only_mock" in validate_automatic_profile_data(profile)
 
     reproduced = build_automatic_configuration_profile(
         trace_path=trace_path,

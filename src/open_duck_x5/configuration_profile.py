@@ -515,11 +515,12 @@ def build_automatic_configuration_profile(
     tick_period_p99_ms = float(np.percentile(tick_period_ms, 99))
     tick_period_p99_9_ms = float(np.percentile(tick_period_ms, 99.9))
     bus_total_max_ms = float(np.max(bus_total_ms))
-    if tick_period_p99_ms > 21.0:
+    physical_evidence = metadata["backend"] == "serial"
+    if physical_evidence and tick_period_p99_ms > 21.0:
         raise ConfigurationProfileError(f"trace tick p99 {tick_period_p99_ms} ms exceeds 21 ms")
-    if tick_period_p99_9_ms > 22.0:
+    if physical_evidence and tick_period_p99_9_ms > 22.0:
         raise ConfigurationProfileError(f"trace tick p99.9 {tick_period_p99_9_ms} ms exceeds 22 ms")
-    if bus_total_max_ms >= 5.0:
+    if physical_evidence and bus_total_max_ms >= 5.0:
         raise ConfigurationProfileError(
             f"trace bus maximum {bus_total_max_ms} ms is not below 5 ms"
         )
@@ -651,7 +652,20 @@ def build_automatic_configuration_profile(
     except ConfigurationSupportError as exc:
         raise ConfigurationProfileError(f"generated profile is invalid: {exc}") from exc
     allowed_issues = {"source.informational_only_mock"}
-    unexpected_issues = [issue for issue in issues if issue not in allowed_issues]
+    allowed_mock_issue_prefixes = (
+        "sample_contract.tick_period_p99_ms=",
+        "sample_contract.tick_period_p99_9_ms=",
+        "sample_contract.bus_total_max_ms=",
+    )
+    unexpected_issues = [
+        issue
+        for issue in issues
+        if issue not in allowed_issues
+        and not (
+            metadata["backend"] == "mock"
+            and issue.startswith(allowed_mock_issue_prefixes)
+        )
+    ]
     if unexpected_issues:
         raise ConfigurationProfileError(
             "generated profile has hold issues: " + ", ".join(unexpected_issues)
