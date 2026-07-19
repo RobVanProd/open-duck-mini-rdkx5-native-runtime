@@ -66,6 +66,7 @@ def test_runner_restores_governor_and_preserves_false_authority() -> None:
     assert "trap cleanup EXIT INT TERM" in source
     assert "governor_before" in source
     assert "governor-after.txt" in source
+    assert '!= "$governor_before"' in source
     assert '"robot_clearance": False' in source
     assert '"gate5": False' in source
     assert '"motion": False' in source

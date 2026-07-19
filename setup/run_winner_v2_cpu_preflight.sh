@@ -103,6 +103,7 @@ fi
 sha256_file() {
   sha256sum "$1" | awk '{print $1}'
 }
+runner_sha256="$(sha256_file "$repo_root/setup/run_winner_v2_cpu_preflight.sh")"
 
 if ! git -C "$repo_root" cat-file -e "${expected_source_commit}^{commit}"; then
   echo "blocked: frozen preflight source commit is unavailable" >&2
@@ -143,6 +144,8 @@ cleanup() {
   if [[ -n "$governor_before" && -w "$governor_path" ]]; then
     if ! printf '%s\n' "$governor_before" >"$governor_path"; then
       restore_status=1
+    elif [[ "$(tr -d '\n' <"$governor_path")" != "$governor_before" ]]; then
+      restore_status=1
     fi
   fi
   if [[ -n "$output_dir" && -d "$output_dir" ]]; then
@@ -153,7 +156,8 @@ cleanup() {
       "$expected_source_commit" "$expected_source_archive_sha256" \
       "$expected_preflight_module_sha256" "$expected_policy_envelope_sha256" \
       "$expected_config_sha256" "$expected_handoff_manifest_sha256" \
-      "$expected_selected_onnx_sha256" "$python_status" "$restore_status" <<'PY'
+      "$expected_selected_onnx_sha256" "$runner_sha256" \
+      "$python_status" "$restore_status" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -167,6 +171,7 @@ from pathlib import Path
     config_sha,
     manifest_sha,
     onnx_sha,
+    runner_sha,
     preflight_status,
     restore_status,
 ) = sys.argv[1:]
@@ -179,6 +184,7 @@ payload = {
     "config_sha256": config_sha,
     "handoff_manifest_sha256": manifest_sha,
     "selected_onnx_sha256": onnx_sha,
+    "runner_sha256": runner_sha,
     "ticks_per_command": 10000,
     "commands": [0.0, 0.08],
     "rt_cpu": 7,
