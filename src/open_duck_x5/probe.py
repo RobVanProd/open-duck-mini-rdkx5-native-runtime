@@ -122,6 +122,7 @@ def _move_home_slowly(
     *,
     home_seconds: float,
     stop_check,
+    watchdog: Watchdog,
 ) -> None:
     if home_seconds <= 0:
         raise ValueError("--home-seconds must be positive for a moving gate")
@@ -134,9 +135,10 @@ def _move_home_slowly(
         raise RuntimeError("failed to enable torque")
     steps = max(1, int(home_seconds * CONTROL_FREQUENCY_HZ))
     ticker = AbsoluteTicker()
+    previous_tick_start_ns = 0
     for step in range(1, steps + 1):
         stop_check()
-        ticker.wait()
+        tick_start_ns, _ = ticker.wait()
         stop_check()
         fraction = step / steps
         np.multiply(start, 1.0 - fraction, out=target)
@@ -151,6 +153,15 @@ def _move_home_slowly(
             raise RuntimeError(
                 "home move device alarm: " + _device_alarm_details(bus, snapshot)
             )
+        tick_period_ns = (
+            tick_start_ns - previous_tick_start_ns if previous_tick_start_ns else 0
+        )
+        previous_tick_start_ns = tick_start_ns
+        watchdog.observe(
+            tick_period_ns=tick_period_ns,
+            tick_work_ns=clock_ns() - tick_start_ns,
+            bus_ok=True,
+        )
     gains = [30] * len(bus.ids)
     gains[5:9] = [8, 8, 8, 8]
     if bus.set_gain_vectors(gains) is not ErrorCode.OK:
@@ -290,6 +301,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 physical_home,
                 home_seconds=args.home_seconds,
                 stop_check=lambda: _raise_if_stop_requested(args),
+                watchdog=watchdog,
             )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
         for tick in range(args.ticks):

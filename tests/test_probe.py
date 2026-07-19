@@ -260,6 +260,47 @@ def test_probe_stop_during_home_move_reaches_torque_off(
     assert bus.torque_enabled is False
 
 
+def test_probe_home_move_hard_overrun_reaches_torque_off(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    bus = probe.MockSTS3215Bus(latency_s=0.0)
+
+    class HomeTripWatchdog:
+        def __init__(self, **_kwargs: object) -> None:
+            pass
+
+        @staticmethod
+        def observe(**_kwargs: object) -> None:
+            raise probe.WatchdogTrip("hard tick overrun during home")
+
+    monkeypatch.setattr(probe, "MockSTS3215Bus", lambda **_kwargs: bus)
+    monkeypatch.setattr(probe, "Watchdog", HomeTripWatchdog)
+    args = probe.build_parser().parse_args(
+        [
+            "--bus",
+            "mock",
+            "--enable-torque",
+            "--home-seconds",
+            "0.001",
+            "--ticks",
+            "2",
+            "--mock-latency-ms",
+            "0",
+            "--output",
+            str(tmp_path / "overrun.jsonl"),
+            "--summary",
+            str(tmp_path / "overrun-summary.json"),
+        ]
+    )
+    args.stop_signal = None
+
+    summary = probe.run_probe(args)
+
+    assert summary["run_status"] == "HALTED"
+    assert summary["halt_reason"] == "hard tick overrun during home"
+    assert bus.torque_enabled is False
+
+
 def test_serial_movement_needs_gate_assertion_before_opening_bus(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         main(
