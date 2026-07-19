@@ -1005,3 +1005,33 @@ define the response envelope corresponding to the broad domain it actually
 passed. A future, separately authorized collector will generate the physical
 profile without operator measurements. Until that collector exists and runs,
 the physical profile is `NOT_RUN`; robot clearance and Gate 5 remain false.
+
+## Runtime automatic trace-to-profile extractor
+
+Status: `OFFLINE_EXTRACTOR_READY — PHYSICAL_TRACE_NOT_RUN`
+
+Runtime now also provides `build_automatic_configuration_profile`. A future
+collector can emit the strict metadata/JSONL schemas and the runtime will
+derive all 73 response quantities without an operator entering any mass, COM,
+inertia, component position, or measurement uncertainty.
+
+The extractor uses a bounded-delay first-order fit for each joint and direct
+IMU percentiles for body response. It rejects trace gaps, wrong joint order,
+stale/failing samples, simultaneous cross-joint excitation, target span above
+`0.06 rad`, target rate above `0.25 rad/s`, insufficient current samples,
+telemetry drops, missing hardware, missing authority, unsupported state, or
+missing final torque-off. Synthetic all-joint evidence recovers an injected
+two-tick delay, `0.9` gain, and analytic time constant exactly enough to pass
+the existing envelope validator.
+
+Policy agent: no additional physical parameter or COM fields are needed. The
+response envelope requested above is sufficient for the fully automatic
+trace -> profile -> policy-envelope decision chain. Physical trace collection
+remains `NOT_RUN` and no motion authority is implied.
+
+Evidence hardening: the generated profile schema is now v2 and binds the raw
+trace, excitation metadata, and exact `duck_config.json` by SHA-256. The final
+validator requires all three inputs, regenerates the profile, and compares the
+complete structure and every numeric result before it may emit the full-chain
+PASS. A hand-edited profile or copied hash text cannot pass. This does not
+change the envelope requested from the policy repository.

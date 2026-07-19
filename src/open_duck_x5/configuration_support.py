@@ -10,9 +10,9 @@ from typing import Any
 
 from .constants import CONTROL_FREQUENCY_HZ, JOINT_NAMES, SERVO_IDS
 
-PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v1"
+PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v2"
 ENVELOPE_SCHEMA_VERSION = "open_duck_x5.supported_configuration_envelope.v1"
-RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v1"
+RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v2"
 AUTOMATIC_METHOD = "automatic_supported_excitation"
 MINIMUM_TORSO_X_COM_M = (-0.05, 0.05)
 
@@ -59,9 +59,7 @@ def _exact_keys(value: dict[str, Any], expected: set[str], label: str) -> None:
     missing = sorted(expected - set(value))
     extra = sorted(set(value) - expected)
     if missing or extra:
-        raise ConfigurationSupportError(
-            f"{label} keys differ: missing={missing}, extra={extra}"
-        )
+        raise ConfigurationSupportError(f"{label} keys differ: missing={missing}, extra={extra}")
 
 
 def _object(value: Any, label: str) -> dict[str, Any]:
@@ -153,6 +151,8 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         {
             "method",
             "trace_sha256",
+            "metadata_sha256",
+            "configuration_sha256",
             "manual_measurements_used",
             "motion_authorized",
             "suspended_or_benched",
@@ -161,10 +161,10 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         "profile.source",
     )
     if source["method"] != AUTOMATIC_METHOD:
-        raise ConfigurationSupportError(
-            f"profile.source.method must be {AUTOMATIC_METHOD!r}"
-        )
+        raise ConfigurationSupportError(f"profile.source.method must be {AUTOMATIC_METHOD!r}")
     _sha256_string(source["trace_sha256"], "profile.source.trace_sha256")
+    _sha256_string(source["metadata_sha256"], "profile.source.metadata_sha256")
+    _sha256_string(source["configuration_sha256"], "profile.source.configuration_sha256")
     if _boolean(
         source["manual_measurements_used"],
         "profile.source.manual_measurements_used",
@@ -172,13 +172,9 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         raise ConfigurationSupportError("manual physical measurements are not accepted")
     if not _boolean(source["motion_authorized"], "profile.source.motion_authorized"):
         raise ConfigurationSupportError("profile lacks explicit calibration-motion authority")
-    if not _boolean(
-        source["suspended_or_benched"], "profile.source.suspended_or_benched"
-    ):
+    if not _boolean(source["suspended_or_benched"], "profile.source.suspended_or_benched"):
         raise ConfigurationSupportError("profile was not collected with the robot supported")
-    if not _boolean(
-        source["torque_off_confirmed"], "profile.source.torque_off_confirmed"
-    ):
+    if not _boolean(source["torque_off_confirmed"], "profile.source.torque_off_confirmed"):
         raise ConfigurationSupportError("profile lacks final torque-off confirmation")
 
     issues: list[str] = []
@@ -270,6 +266,12 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
     return issues, flattened
 
 
+def validate_automatic_profile_data(profile: dict[str, Any]) -> list[str]:
+    """Validate an automatic profile and return its fail-closed hold issues."""
+    issues, _metrics = _validate_profile(profile)
+    return issues
+
+
 def _validate_bounds(
     raw: dict[str, Any], metrics: tuple[str, ...], label: str
 ) -> dict[str, tuple[float, float]]:
@@ -351,9 +353,7 @@ def _validate_envelope(envelope: dict[str, Any]) -> dict[str, tuple[float, float
     for axis in ("xx", "yy", "zz"):
         low, high = _range(inertia[axis], f"torso_inertia_scale.{axis}")
         if not low < 1.0 < high:
-            raise ConfigurationSupportError(
-                f"torso_inertia_scale.{axis} must span nominal 1.0"
-            )
+            raise ConfigurationSupportError(f"torso_inertia_scale.{axis} must span nominal 1.0")
     _integer(domain["coupled_sample_count"], "coupled_sample_count", minimum=1)
     _integer(domain["held_out_sample_count"], "held_out_sample_count", minimum=1)
     configurations = domain["supported_optional_component_configurations"]
@@ -384,13 +384,13 @@ def _validate_envelope(envelope: dict[str, Any]) -> dict[str, tuple[float, float
     return flattened
 
 
-def validate_configuration_support(
-    *, profile_path: Path, envelope_path: Path
-) -> dict[str, Any]:
-    profile_path = profile_path.expanduser().resolve()
-    envelope_path = envelope_path.expanduser().resolve()
-    profile = _load_object(profile_path, "automatic configuration profile")
-    envelope = _load_object(envelope_path, "supported configuration envelope")
+def _evaluate_profile_against_envelope(
+    profile: dict[str, Any],
+    envelope: dict[str, Any],
+    *,
+    pass_status: str,
+    hold_status: str,
+) -> tuple[str, list[dict[str, Any]], list[str]]:
     issues, profile_metrics = _validate_profile(profile)
     bounds = _validate_envelope(envelope)
 
@@ -417,10 +417,141 @@ def validate_configuration_support(
     if len(checks) != len(bounds):
         issues.append(f"metric_population={len(checks)}/{len(bounds)}")
         passed = False
-    status = (
-        "PASS_AUTOMATIC_CONFIGURATION_INSIDE_POLICY_ENVELOPE"
-        if passed
-        else "HOLD_AUTOMATIC_CONFIGURATION_OUTSIDE_POLICY_ENVELOPE"
+    status = pass_status if passed else hold_status
+    return status, checks, list(dict.fromkeys(issues))
+
+
+def evaluate_configuration_support_data(
+    *, profile: dict[str, Any], envelope: dict[str, Any]
+) -> dict[str, Any]:
+    """Evaluate already-loaded values without claiming raw-evidence verification.
+
+    This is useful for unit tests and envelope diagnostics.  Only
+    :func:`validate_configuration_support`, which reproduces the profile from the
+    immutable inputs, may emit the full automatic-configuration PASS status.
+    """
+    status, checks, issues = _evaluate_profile_against_envelope(
+        profile,
+        envelope,
+        pass_status="PASS_PROFILE_VALUES_INSIDE_POLICY_ENVELOPE",
+        hold_status="HOLD_PROFILE_VALUES_OUTSIDE_POLICY_ENVELOPE",
+    )
+    return {
+        "schema_version": RESULT_SCHEMA_VERSION,
+        "status": status,
+        "decision": status,
+        "profile": {
+            "method": AUTOMATIC_METHOD,
+            "manual_measurements_used": False,
+            "raw_evidence_verified": False,
+        },
+        "envelope": {
+            "policy": envelope["policy"],
+            "preregistration": envelope["preregistration"],
+        },
+        "metric_checks": checks,
+        "issues": issues,
+        "authority": {
+            "robot_clearance": False,
+            "gate5": False,
+            "runtime_deployment": False,
+            "motion": False,
+        },
+    }
+
+
+def _profile_reproduction_max_abs_error(
+    supplied: Any,
+    reproduced: Any,
+    *,
+    label: str = "profile",
+) -> float:
+    if isinstance(supplied, bool) or isinstance(reproduced, bool):
+        if supplied is not reproduced:
+            raise ConfigurationSupportError(f"{label} differs from reproduced profile")
+        return 0.0
+    if isinstance(supplied, (int, float)) and isinstance(reproduced, (int, float)):
+        supplied_number = float(supplied)
+        reproduced_number = float(reproduced)
+        if not math.isfinite(supplied_number) or not math.isfinite(reproduced_number):
+            raise ConfigurationSupportError(f"{label} contains a nonfinite value")
+        error = abs(supplied_number - reproduced_number)
+        if error > 1e-9:
+            raise ConfigurationSupportError(
+                f"{label} differs from reproduced profile: absolute_error={error}"
+            )
+        return error
+    if isinstance(supplied, dict) and isinstance(reproduced, dict):
+        if set(supplied) != set(reproduced):
+            raise ConfigurationSupportError(f"{label} keys differ from reproduced profile")
+        maximum = 0.0
+        for key in sorted(supplied):
+            maximum = max(
+                maximum,
+                _profile_reproduction_max_abs_error(
+                    supplied[key], reproduced[key], label=f"{label}.{key}"
+                ),
+            )
+        return maximum
+    if isinstance(supplied, list) and isinstance(reproduced, list):
+        if len(supplied) != len(reproduced):
+            raise ConfigurationSupportError(f"{label} length differs from reproduced profile")
+        maximum = 0.0
+        for index, (supplied_item, reproduced_item) in enumerate(
+            zip(supplied, reproduced, strict=True)
+        ):
+            maximum = max(
+                maximum,
+                _profile_reproduction_max_abs_error(
+                    supplied_item, reproduced_item, label=f"{label}[{index}]"
+                ),
+            )
+        return maximum
+    if type(supplied) is not type(reproduced) or supplied != reproduced:
+        raise ConfigurationSupportError(f"{label} differs from reproduced profile")
+    return 0.0
+
+
+def validate_configuration_support(
+    *,
+    profile_path: Path,
+    envelope_path: Path,
+    trace_path: Path,
+    metadata_path: Path,
+    configuration_path: Path,
+) -> dict[str, Any]:
+    profile_path = profile_path.expanduser().resolve()
+    envelope_path = envelope_path.expanduser().resolve()
+    trace_path = trace_path.expanduser().resolve()
+    metadata_path = metadata_path.expanduser().resolve()
+    configuration_path = configuration_path.expanduser().resolve()
+    profile = _load_object(profile_path, "automatic configuration profile")
+    envelope = _load_object(envelope_path, "supported configuration envelope")
+    _validate_profile(profile)
+
+    # Local import avoids a module cycle: the profile builder uses the strict
+    # profile schema validator above before returning a generated artifact.
+    from .configuration_profile import (  # noqa: PLC0415
+        ConfigurationProfileError,
+        build_automatic_configuration_profile,
+    )
+
+    try:
+        reproduced = build_automatic_configuration_profile(
+            trace_path=trace_path,
+            metadata_path=metadata_path,
+            configuration_path=configuration_path,
+        )
+    except ConfigurationProfileError as exc:
+        raise ConfigurationSupportError(
+            f"could not reproduce profile from raw evidence: {exc}"
+        ) from exc
+    reproduction_error = _profile_reproduction_max_abs_error(profile, reproduced)
+    status, checks, issues = _evaluate_profile_against_envelope(
+        profile,
+        envelope,
+        pass_status="PASS_AUTOMATIC_CONFIGURATION_INSIDE_POLICY_ENVELOPE",
+        hold_status="HOLD_AUTOMATIC_CONFIGURATION_OUTSIDE_POLICY_ENVELOPE",
     )
     return {
         "schema_version": RESULT_SCHEMA_VERSION,
@@ -431,6 +562,19 @@ def validate_configuration_support(
             "sha256": _sha256(profile_path),
             "method": AUTOMATIC_METHOD,
             "manual_measurements_used": False,
+            "raw_evidence_verified": True,
+            "reproduction_max_abs_error": reproduction_error,
+        },
+        "raw_evidence": {
+            "trace": {"path": str(trace_path), "sha256": _sha256(trace_path)},
+            "metadata": {
+                "path": str(metadata_path),
+                "sha256": _sha256(metadata_path),
+            },
+            "configuration": {
+                "path": str(configuration_path),
+                "sha256": _sha256(configuration_path),
+            },
         },
         "envelope": {
             "path": str(envelope_path),
@@ -439,7 +583,7 @@ def validate_configuration_support(
             "preregistration": envelope["preregistration"],
         },
         "metric_checks": checks,
-        "issues": list(dict.fromkeys(issues)),
+        "issues": issues,
         "authority": {
             "robot_clearance": False,
             "gate5": False,
@@ -455,6 +599,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--envelope", type=Path, required=True)
+    parser.add_argument("--trace", type=Path, required=True)
+    parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument("--configuration", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser
 
@@ -462,7 +609,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     output = args.output.expanduser().resolve()
-    protected = {args.profile.expanduser().resolve(), args.envelope.expanduser().resolve()}
+    protected = {
+        args.profile.expanduser().resolve(),
+        args.envelope.expanduser().resolve(),
+        args.trace.expanduser().resolve(),
+        args.metadata.expanduser().resolve(),
+        args.configuration.expanduser().resolve(),
+    }
     if output in protected:
         print("result=FAIL reason=--output must not overwrite an input")
         return 2
@@ -475,6 +628,9 @@ def main(argv: list[str] | None = None) -> int:
         result = validate_configuration_support(
             profile_path=args.profile,
             envelope_path=args.envelope,
+            trace_path=args.trace,
+            metadata_path=args.metadata,
+            configuration_path=args.configuration,
         )
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

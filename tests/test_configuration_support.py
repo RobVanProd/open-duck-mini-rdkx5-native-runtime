@@ -10,8 +10,8 @@ from open_duck_x5.configuration_support import (
     ENVELOPE_SCHEMA_VERSION,
     PROFILE_SCHEMA_VERSION,
     ConfigurationSupportError,
+    evaluate_configuration_support_data,
     main,
-    validate_configuration_support,
 )
 from open_duck_x5.constants import CONTROL_FREQUENCY_HZ, JOINT_NAMES, SERVO_IDS
 
@@ -22,6 +22,8 @@ def _profile() -> dict[str, object]:
         "source": {
             "method": AUTOMATIC_METHOD,
             "trace_sha256": "a" * 64,
+            "metadata_sha256": "b" * 64,
+            "configuration_sha256": "c" * 64,
             "manual_measurements_used": False,
             "motion_authorized": True,
             "suspended_or_benched": True,
@@ -115,13 +117,10 @@ def _write(path: Path, value: dict[str, object]) -> Path:
     return path
 
 
-def test_automatic_profile_passes_complete_policy_envelope(tmp_path: Path) -> None:
-    profile = _write(tmp_path / "profile.json", _profile())
-    envelope = _write(tmp_path / "envelope.json", _envelope())
+def test_automatic_profile_values_pass_complete_policy_envelope() -> None:
+    result = evaluate_configuration_support_data(profile=_profile(), envelope=_envelope())
 
-    result = validate_configuration_support(profile_path=profile, envelope_path=envelope)
-
-    assert result["status"] == "PASS_AUTOMATIC_CONFIGURATION_INSIDE_POLICY_ENVELOPE"
+    assert result["status"] == "PASS_PROFILE_VALUES_INSIDE_POLICY_ENVELOPE"
     assert result["issues"] == []
     assert len(result["metric_checks"]) == 73
     assert all(check["pass"] for check in result["metric_checks"])
@@ -129,87 +128,50 @@ def test_automatic_profile_passes_complete_policy_envelope(tmp_path: Path) -> No
     assert result["authority"]["robot_clearance"] is False
 
 
-def test_out_of_envelope_response_holds_without_measurement_waiver(tmp_path: Path) -> None:
+def test_out_of_envelope_response_holds_without_measurement_waiver() -> None:
     profile_value = _profile()
     profile_value["joint_response"][JOINT_NAMES[0]]["current_p95_a"] = 2.1
-    profile = _write(tmp_path / "profile.json", profile_value)
-    envelope = _write(tmp_path / "envelope.json", _envelope())
+    result = evaluate_configuration_support_data(profile=profile_value, envelope=_envelope())
 
-    result = validate_configuration_support(profile_path=profile, envelope_path=envelope)
-
-    assert result["status"] == "HOLD_AUTOMATIC_CONFIGURATION_OUTSIDE_POLICY_ENVELOPE"
+    assert result["status"] == "HOLD_PROFILE_VALUES_OUTSIDE_POLICY_ENVELOPE"
     assert result["issues"] == [
         f"joint_response.{JOINT_NAMES[0]}.current_p95_a.outside_supported_envelope"
     ]
 
 
-def test_missing_contract_hardware_holds_fail_closed(tmp_path: Path) -> None:
+def test_missing_contract_hardware_holds_fail_closed() -> None:
     profile_value = _profile()
     missing_id = SERVO_IDS[-1]
     missing_joint = JOINT_NAMES[-1]
     profile_value["inventory"]["responding_servo_ids"].remove(missing_id)
     del profile_value["joint_response"][missing_joint]
-    profile = _write(tmp_path / "profile.json", profile_value)
-    envelope = _write(tmp_path / "envelope.json", _envelope())
+    result = evaluate_configuration_support_data(profile=profile_value, envelope=_envelope())
 
-    result = validate_configuration_support(profile_path=profile, envelope_path=envelope)
-
-    assert result["status"] == "HOLD_AUTOMATIC_CONFIGURATION_OUTSIDE_POLICY_ENVELOPE"
+    assert result["status"] == "HOLD_PROFILE_VALUES_OUTSIDE_POLICY_ENVELOPE"
     assert f"inventory.missing_servo_ids={missing_id}" in result["issues"]
     assert f"joint_response.{missing_joint}.missing" in result["issues"]
     assert "metric_population=68/73" in result["issues"]
 
 
-def test_manual_measurement_profile_is_rejected(tmp_path: Path) -> None:
+def test_manual_measurement_profile_is_rejected() -> None:
     profile_value = _profile()
     profile_value["source"]["manual_measurements_used"] = True
-    profile = _write(tmp_path / "profile.json", profile_value)
-    envelope = _write(tmp_path / "envelope.json", _envelope())
-
     with pytest.raises(ConfigurationSupportError, match="manual physical measurements"):
-        validate_configuration_support(profile_path=profile, envelope_path=envelope)
+        evaluate_configuration_support_data(profile=profile_value, envelope=_envelope())
 
 
-def test_static_physical_parameter_field_is_rejected(tmp_path: Path) -> None:
+def test_static_physical_parameter_field_is_rejected() -> None:
     profile_value = _profile()
     profile_value["torso_com_x_m"] = 0.001
-    profile = _write(tmp_path / "profile.json", profile_value)
-    envelope = _write(tmp_path / "envelope.json", _envelope())
-
     with pytest.raises(ConfigurationSupportError, match="profile keys differ"):
-        validate_configuration_support(profile_path=profile, envelope_path=envelope)
+        evaluate_configuration_support_data(profile=profile_value, envelope=_envelope())
 
 
-def test_policy_domain_must_cover_prior_fifty_mm_x_sweep(tmp_path: Path) -> None:
+def test_policy_domain_must_cover_prior_fifty_mm_x_sweep() -> None:
     envelope_value = _envelope()
     envelope_value["configuration_domain"]["torso_com_x_m"] = [-0.04, 0.05]
-    profile = _write(tmp_path / "profile.json", _profile())
-    envelope = _write(tmp_path / "envelope.json", envelope_value)
-
     with pytest.raises(ConfigurationSupportError, match=r"cover \[-0.05, 0.05\]"):
-        validate_configuration_support(profile_path=profile, envelope_path=envelope)
-
-
-def test_cli_writes_machine_readable_result(tmp_path: Path) -> None:
-    profile = _write(tmp_path / "profile.json", _profile())
-    envelope = _write(tmp_path / "envelope.json", _envelope())
-    output = tmp_path / "result.json"
-
-    assert (
-        main(
-            [
-                "--profile",
-                str(profile),
-                "--envelope",
-                str(envelope),
-                "--output",
-                str(output),
-            ]
-        )
-        == 0
-    )
-    result = json.loads(output.read_text(encoding="utf-8"))
-    assert result["status"] == "PASS_AUTOMATIC_CONFIGURATION_INSIDE_POLICY_ENVELOPE"
+        evaluate_configuration_support_data(profile=_profile(), envelope=envelope_value)
 
 
 def test_cli_cannot_overwrite_profile(tmp_path: Path) -> None:
@@ -224,6 +186,12 @@ def test_cli_cannot_overwrite_profile(tmp_path: Path) -> None:
                 str(profile),
                 "--envelope",
                 str(envelope),
+                "--trace",
+                str(tmp_path / "trace.jsonl"),
+                "--metadata",
+                str(tmp_path / "metadata.json"),
+                "--configuration",
+                str(tmp_path / "duck_config.json"),
                 "--output",
                 str(profile),
             ]
@@ -248,6 +216,12 @@ def test_cli_removes_stale_pass_output_when_input_is_invalid(tmp_path: Path) -> 
                 str(profile),
                 "--envelope",
                 str(envelope),
+                "--trace",
+                str(tmp_path / "trace.jsonl"),
+                "--metadata",
+                str(tmp_path / "metadata.json"),
+                "--configuration",
+                str(tmp_path / "duck_config.json"),
                 "--output",
                 str(output),
             ]

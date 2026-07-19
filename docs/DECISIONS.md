@@ -880,3 +880,32 @@ collector remains `NOT_RUN` and must be separately reviewed before any motion.
 A passing comparison still carries `robot_clearance=false`, `gate5=false`,
 `runtime_deployment=false`, and `motion=false`. Neither the frozen 101-D v1 nor
 the separate 115-D winner-v2 policy contract changes.
+
+## D057 — Generate the automatic profile from raw response evidence
+
+Accepted offline only. `configuration_profile.py` defines strict metadata and
+tick-stream schemas for future supported excitation. It requires a complete
+50 Hz population, the frozen hardware inventory, one contiguous stage per
+joint in frozen order, fresh/ok servo and sensor data, automatic round-robin
+current coverage, explicit motion authority, supported state, zero telemetry
+drops, and confirmed final torque-off. It rejects every extra metadata or tick
+field, including attempted static COM/mass/inertia input.
+
+The extractor enforces isolated single-joint excitation, no more than
+`0.06 rad` target span and `0.25 rad/s` target velocity, then fits bounded-delay
+first-order response directly from targets and measured positions. It derives
+all 70 joint metrics and three body metrics required by D056 and validates the
+generated profile before writing it. Synthetic evidence recovers the injected
+two-tick delay, `0.9` gain, and analytic time constant for every joint. Fault
+tests reject discontinuity, staleness, cross-joint excitation, excessive rate,
+and insufficient current coverage.
+
+The emitted v2 profile binds the raw trace, metadata, and exact
+`duck_config.json` by SHA-256. Metadata physical home must equal frozen home
+plus the config's ordered soft offsets. The final support validator regenerates
+the entire profile from those three inputs and rejects any structural mismatch
+or numeric difference above `1e-9`; hash strings alone are not evidence.
+
+This is not a physical collector or motion launcher. No serial, GPIO, I2C,
+torque, policy, robot, or RDK-X5 path was added. Physical collection remains
+`NOT_RUN` and separately authorized. The frozen policy contracts are unchanged.
