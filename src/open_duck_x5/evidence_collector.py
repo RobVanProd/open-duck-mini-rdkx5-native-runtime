@@ -100,7 +100,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-telemetry", type=Path, action="append", default=[])
     parser.add_argument("--telemetry-scan-lines", type=int, default=100_000)
     parser.add_argument("--max-telemetry-files", type=int, default=200)
-    parser.add_argument("--serial-device", default="/dev/ttyACM0")
+    parser.add_argument("--serial-device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--servo-id", type=int, choices=SERVO_IDS, default=SERVO_IDS[0])

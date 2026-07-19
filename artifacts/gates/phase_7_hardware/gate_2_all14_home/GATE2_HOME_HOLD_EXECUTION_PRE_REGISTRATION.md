@@ -1,6 +1,6 @@
 # Gate 2 Performance-Governed Home-Hold Pre-Registration
 
-Status: `NOT_AUTHORIZED_NOT_RUN`
+Status: `EXECUTED_REVIEWED_PASS`
 
 This freezes the next Gate 2 execution protocol after the reviewed CPU-governor
 A/B cleared the torque-off timing blocker. It does not authorize opening
@@ -91,6 +91,12 @@ contain all three acknowledgements:
 --hardware-authorized --suspended-or-benched --moving-gate-authorized
 ```
 
-Until that authorization is given, this artifact remains
-`NOT_AUTHORIZED_NOT_RUN` and the launcher must not be deployed or executed on
-the robot.
+Authorization was supplied on 2026-07-18 with the robot on its stand and hands
+clear. The exact frozen sequence completed once. Stage A passed before Stage B
+was invoked; Stage B then completed the five-second home entry and 10,000-tick
+hold. Both tested validators returned `PASS`, final torque-off was `ok`, and the
+runner restored `schedutil`.
+
+The reviewed result is preserved in `RESULT.md`, with its machine-readable
+reduction under `performance_governed_home_hold/`. This execution passes Gate 2 only;
+it does not authorize Gate 3, a policy, or grounded operation.

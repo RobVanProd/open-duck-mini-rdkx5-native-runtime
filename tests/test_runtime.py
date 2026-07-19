@@ -13,7 +13,7 @@ from open_duck_x5 import runtime as runtime_module
 from open_duck_x5.bus.mock import MockSTS3215Bus
 from open_duck_x5.controller import ControllerReadout
 from open_duck_x5.runtime import Runtime, build_parser, main
-from open_duck_x5.safety import SafetyError
+from open_duck_x5.safety import SafetyError, WatchdogTrip
 
 
 def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
@@ -555,6 +555,52 @@ def test_stop_during_home_move_torques_off_with_signal_reason(
     halt = [record for record in records if record.get("event") == "runtime_halt"]
     assert len(halt) == 1
     assert halt[0]["reason"] == f"signal:{signal.SIGTERM}"
+
+
+def test_runtime_home_move_hard_overrun_torques_off(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    config = Path(__file__).parents[1] / "duck_config.example.json"
+    telemetry = tmp_path / "home-overrun-control.jsonl"
+    args = build_parser().parse_args(
+        [
+            "--bus",
+            "mock",
+            "--config",
+            str(config),
+            "--telemetry",
+            str(telemetry),
+            "--home-seconds",
+            "0.001",
+            "--max-ticks",
+            "1",
+        ]
+    )
+    runtime = Runtime(args)
+    bus = runtime.bus
+
+    class HomeTripWatchdog:
+        @staticmethod
+        def observe(**_kwargs: object) -> None:
+            raise WatchdogTrip("hard tick overrun during runtime home")
+
+    runtime.watchdog = HomeTripWatchdog()
+    monkeypatch.setattr(
+        runtime_module,
+        "AbsoluteTicker",
+        type(
+            "ImmediateTicker",
+            (),
+            {"wait": staticmethod(lambda: (runtime_module.clock_ns(), 0))},
+        ),
+    )
+    try:
+        with pytest.raises(WatchdogTrip, match="hard tick overrun during runtime home"):
+            runtime.run()
+        assert bus.torque_enabled is False
+    finally:
+        runtime.close()
 
 
 def test_active_policy_stale_sensor_halts_and_torques_off(

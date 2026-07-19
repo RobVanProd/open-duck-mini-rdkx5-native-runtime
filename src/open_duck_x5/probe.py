@@ -41,7 +41,7 @@ def _raise_if_stop_requested(args: argparse.Namespace) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Measure per-tick servo transaction timing")
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
-    parser.add_argument("--device", default="/dev/ttyACM0")
+    parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--ticks", type=int, default=1000)

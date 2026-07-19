@@ -59,7 +59,7 @@ def _device_alarm_details(snapshot: ServoSnapshot) -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Open Duck Mini deterministic X5 runtime")
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
-    parser.add_argument("--device", default="/dev/ttyACM0")
+    parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--config", type=Path, default=Path.home() / "duck_config.json")
@@ -286,10 +286,11 @@ class Runtime:
         guard.enable()
         steps = max(1, int(self.args.home_seconds * 50.0))
         ticker = AbsoluteTicker()
+        previous_tick_start_ns = 0
         for step in range(1, steps + 1):
             if self.stop_requested:
                 raise SafetyError("stop requested during home move")
-            ticker.wait()
+            tick_start_ns, _ = ticker.wait()
             if self.stop_requested:
                 raise SafetyError("stop requested during home move")
             fraction = step / steps
@@ -307,6 +308,15 @@ class Runtime:
                     "home move device alarm: "
                     + _device_alarm_details(self.snapshot)
                 )
+            tick_period_ns = (
+                tick_start_ns - previous_tick_start_ns if previous_tick_start_ns else 0
+            )
+            previous_tick_start_ns = tick_start_ns
+            self.watchdog.observe(
+                tick_period_ns=tick_period_ns,
+                tick_work_ns=clock_ns() - tick_start_ns,
+                bus_ok=True,
+            )
         high_gains = [30] * ACTION_DIM
         high_gains[5:9] = [8, 8, 8, 8]
         if self.bus.set_gain_vectors(high_gains) is not ErrorCode.OK:

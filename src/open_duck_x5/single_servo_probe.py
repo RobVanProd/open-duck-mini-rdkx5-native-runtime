@@ -204,7 +204,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Torque-off single-servo echo/read timing probe for hardware Gate 1"
     )
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
-    parser.add_argument("--device", default="/dev/ttyACM0")
+    parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--servo-id", type=int, choices=SERVO_IDS, default=SERVO_IDS[0])

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-device="${1:-/dev/ttyACM0}"
+device="${1:-/dev/ttyS1}"
 tty="$(basename "${device}")"
 sys="/sys/class/tty/${tty}/device"
 

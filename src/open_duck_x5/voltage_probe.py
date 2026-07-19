@@ -25,7 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Torque-off all-servo present-voltage diagnostic"
     )
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
-    parser.add_argument("--device", default="/dev/ttyACM0")
+    parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--watchdog-failures", type=int, default=2)

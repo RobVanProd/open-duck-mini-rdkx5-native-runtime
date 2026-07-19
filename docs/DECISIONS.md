@@ -486,3 +486,34 @@ statistics and summary gates; only a pass can reach the five-second home entry
 and 10,000-tick hold. The home-entry loop now feeds the same hard-overrun
 watchdog as the hold. Execution remains `NOT_AUTHORIZED_NOT_RUN` under the
 separate current pre-registration.
+
+## D038 — Apply the hard-overrun watchdog during full-runtime home entry
+
+Accepted from the completion audit. The Gate 2 probe already enforced the
+`>40 ms` hard-overrun rule while moving home, but the policy runtime only began
+observing that rule after home entry. The full runtime now measures each
+home-entry period and work duration with the same watchdog instance used by the
+control loop. A trip propagates through `TorqueGuard`, disables torque, and is
+covered by an injected-overrun cutoff test. This changes no home trajectory,
+gain, policy, observation, action, or timing threshold.
+
+## D039 — Accept the performance-governed all-14 home hold as Gate 2
+
+Accepted as a reviewed hardware result. The exact frozen launcher first ran a
+10,000-tick torque-off preflight and permitted the moving stage only after the
+independent validator passed. The five-second measured-position-to-home entry
+then completed under the same hard-overrun watchdog, followed by a 10,000-tick
+home hold with no policy and zero target amplitude.
+
+Preflight and home-hold tick p99/p99.9 were respectively
+`20.002520/20.006060 ms` and `20.002683/20.008892 ms`. Complete-sweep maxima
+were `4.532473 ms` and `4.721847 ms`. All 320,000 expected responses across the
+two stages succeeded, with zero bursts, stale samples, alarms, unexpected or
+partial responses, and telemetry drops. Final torque-off was `ok`, the serial
+endpoint was released, and the launcher restored `schedutil`.
+
+The extra all-joint review found a worst hold p95 error of `0.005516521 rad`.
+This is recorded but was not used as a post-hoc Gate 2 threshold. Extended
+telemetry observed 6.9-8.4 V and 29-42 C with zero alarm replies. Gate 2 is
+`PASS_REVIEWED`; Gate 3 and every policy or grounded operation remain outside
+this decision's authority.

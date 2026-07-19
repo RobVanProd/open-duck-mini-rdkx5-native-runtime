@@ -58,7 +58,7 @@ class STS3215Bus:
 
     def __init__(
         self,
-        device: str = "/dev/ttyACM0",
+        device: str = "/dev/ttyS1",
         *,
         baudrate: int = 1_000_000,
         transaction_timeout_s: float = 0.004,
