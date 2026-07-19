@@ -11,8 +11,9 @@ from typing import Any
 import numpy as np
 
 TRACE_SCHEMA_V1 = "open_duck_x5.transaction_trace.v1"
+TRACE_SCHEMA_V2 = "open_duck_x5.transaction_trace.v2"
 TIMING_SCHEMA_V2 = "open_duck_x5.timing_tick.v2"
-ANALYSIS_SCHEMA = "open_duck_x5.collector_trace_analysis.v1"
+ANALYSIS_SCHEMA = "open_duck_x5.collector_trace_analysis.v2"
 OLD_RESPONSE_TIMEOUT_US = 4_000.0
 
 PHASE_FIELDS = (
@@ -28,6 +29,8 @@ PHASE_FIELDS = (
     "extended_tx_return_to_first_rx",
     "extended_rx_span",
     "extended_parse_tail",
+    "group_state_decode_gap",
+    "exchange_unattributed_gap",
 )
 
 
@@ -43,7 +46,12 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _load_jsonl(path: Path, expected_schema: str) -> dict[int, dict[str, Any]]:
+def _load_jsonl(
+    path: Path, expected_schema: str | tuple[str, ...]
+) -> dict[int, dict[str, Any]]:
+    expected_schemas = (
+        (expected_schema,) if isinstance(expected_schema, str) else expected_schema
+    )
     records: dict[int, dict[str, Any]] = {}
     with path.open("r", encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, 1):
@@ -55,9 +63,9 @@ def _load_jsonl(path: Path, expected_schema: str) -> dict[int, dict[str, Any]]:
                 raise TraceAnalysisError(
                     f"{path}:{line_number}: invalid JSON: {exc}"
                 ) from exc
-            if record.get("schema_version") != expected_schema:
+            if record.get("schema_version") not in expected_schemas:
                 raise TraceAnalysisError(
-                    f"{path}:{line_number}: expected schema {expected_schema}, "
+                    f"{path}:{line_number}: expected schema in {expected_schemas}, "
                     f"got {record.get('schema_version')!r}"
                 )
             tick = record.get("tick")
@@ -143,7 +151,7 @@ def _status_counts(timing_records: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[str, Any]:
-    trace_by_tick = _load_jsonl(trace_path, TRACE_SCHEMA_V1)
+    trace_by_tick = _load_jsonl(trace_path, (TRACE_SCHEMA_V1, TRACE_SCHEMA_V2))
     timing_by_tick = _load_jsonl(timing_path, TIMING_SCHEMA_V2)
     trace_ticks = set(trace_by_tick)
     timing_ticks = set(timing_by_tick)
@@ -157,6 +165,10 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
     ticks = sorted(trace_ticks)
     trace_records = [trace_by_tick[tick] for tick in ticks]
     timing_records = [timing_by_tick[tick] for tick in ticks]
+    trace_schemas = {str(record["schema_version"]) for record in trace_records}
+    if len(trace_schemas) != 1:
+        raise TraceAnalysisError(f"{label}: transaction trace schema changed")
+    trace_schema = trace_schemas.pop()
 
     first_trace = trace_records[0]
     logical_ids = [int(value) for value in first_trace["logical_servo_ids"]]
@@ -188,12 +200,36 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
     group_end_after_old_deadline = 0
     response_offsets_by_id: dict[int, list[float]] = {servo_id: [] for servo_id in logical_ids}
     response_missing_by_id: Counter[int] = Counter()
+    collector_mode_counts: Counter[str] = Counter()
+    collector_expected_byte_counts: Counter[int] = Counter()
+    collector_parse_call_counts: Counter[int] = Counter()
+    collector_first_parse_byte_counts: Counter[int] = Counter()
+    collector_contract_violation_ticks: list[int] = []
 
     for tick, trace in zip(ticks, trace_records, strict=True):
         durations = trace["durations_us"]
         is_failure = tick in failure_tick_set
+        timestamps = trace["timestamps_ns"]
+        group_total_us = (
+            int(timestamps["group_end_ns"]) - int(timestamps["group_start_ns"])
+        ) / 1_000.0
+        extended_total_us = (
+            int(timestamps["extended_end_ns"])
+            - int(timestamps["extended_start_ns"])
+        ) / 1_000.0
+        derived = {
+            "group_state_decode_gap": (
+                int(timestamps["extended_start_ns"])
+                - int(timestamps["group_end_ns"])
+            )
+            / 1_000.0,
+            "exchange_unattributed_gap": float(durations["bus_total"])
+            - float(durations["sync_write_call"])
+            - group_total_us
+            - extended_total_us,
+        }
         for field in PHASE_FIELDS:
-            value = float(durations[field])
+            value = float(derived[field] if field in derived else durations[field])
             phase_values[field].append(value)
             (failed_phase if is_failure else clean_phase)[field].append(value)
 
@@ -201,13 +237,17 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
         group_read_calls.append(calls)
         (failed_read_calls if is_failure else clean_read_calls).append(calls)
 
-        timestamps = trace["timestamps_ns"]
         group_start_ns = int(timestamps["group_start_ns"])
         group_write_end_ns = int(timestamps["group_write_end_ns"])
         group_end_ns = int(timestamps["group_end_ns"])
-        old_deadline_ns = group_start_ns + int(OLD_RESPONSE_TIMEOUT_US * 1_000)
+        response_deadline_origin_ns = (
+            group_write_end_ns if trace_schema == TRACE_SCHEMA_V2 else group_start_ns
+        )
+        response_deadline_ns = response_deadline_origin_ns + int(
+            OLD_RESPONSE_TIMEOUT_US * 1_000
+        )
         request_setup_us.append((group_write_end_ns - group_start_ns) / 1_000.0)
-        if group_end_ns > old_deadline_ns:
+        if group_end_ns > response_deadline_ns:
             group_end_after_old_deadline += 1
 
         completions = [
@@ -217,7 +257,7 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
         completion_buckets.append(float(len(set(nonzero))))
         if nonzero:
             old_deadline_margin_last_observed_us.append(
-                (old_deadline_ns - max(nonzero)) / 1_000.0
+                (response_deadline_ns - max(nonzero)) / 1_000.0
             )
         for servo_id, completion_ns in zip(logical_ids, completions, strict=True):
             if completion_ns <= 0:
@@ -226,6 +266,24 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
             response_offsets_by_id[servo_id].append(
                 (completion_ns - group_write_end_ns) / 1_000.0
             )
+
+        if trace_schema == TRACE_SCHEMA_V2:
+            collector = trace["group_collector"]
+            mode = str(collector["mode"])
+            expected_bytes = int(collector["expected_bytes"])
+            parse_calls = int(collector["parse_calls"])
+            first_parse_bytes = int(collector["bytes_before_first_parse"])
+            collector_mode_counts[mode] += 1
+            collector_expected_byte_counts[expected_bytes] += 1
+            collector_parse_call_counts[parse_calls] += 1
+            collector_first_parse_byte_counts[first_parse_bytes] += 1
+            if not is_failure and not (
+                mode == "exact_length_then_parse"
+                and expected_bytes == 140
+                and parse_calls == 1
+                and first_parse_bytes == 140
+            ):
+                collector_contract_violation_ticks.append(tick)
 
     group_failure_outcomes = sum(
         count for name, count in status["group"].items() if name != "ok"
@@ -264,7 +322,7 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
             "last_tick": ticks[-1],
             "logical_servo_ids": logical_ids,
             "sync_read_wire_order": wire_order,
-            "trace_schema": TRACE_SCHEMA_V1,
+            "trace_schema": trace_schema,
             "timing_schema": TIMING_SCHEMA_V2,
         },
         "group_failures": {
@@ -278,7 +336,11 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
             "write_status_counts": status["write"],
         },
         "collector_observation": {
-            "instrumentation": "incremental collector transaction trace v1",
+            "instrumentation": (
+                "exact-length collector transaction trace v2"
+                if trace_schema == TRACE_SCHEMA_V2
+                else "incremental collector transaction trace v1"
+            ),
             "group_read_calls": _stats(group_read_calls),
             "group_read_call_histogram": {
                 str(key): value
@@ -287,6 +349,30 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
             "application_completion_buckets": _stats(completion_buckets),
             "clean_group_read_calls": _stats(clean_read_calls),
             "failed_group_read_calls": _stats(failed_read_calls),
+            "exact_length_contract": {
+                "applicable": trace_schema == TRACE_SCHEMA_V2,
+                "pass": (
+                    len(collector_contract_violation_ticks) == 0
+                    if trace_schema == TRACE_SCHEMA_V2
+                    else None
+                ),
+                "clean_contract_violation_ticks": collector_contract_violation_ticks,
+                "mode_counts": dict(sorted(collector_mode_counts.items())),
+                "expected_byte_histogram": {
+                    str(key): value
+                    for key, value in sorted(collector_expected_byte_counts.items())
+                },
+                "parse_call_histogram": {
+                    str(key): value
+                    for key, value in sorted(collector_parse_call_counts.items())
+                },
+                "bytes_before_first_parse_histogram": {
+                    str(key): value
+                    for key, value in sorted(
+                        collector_first_parse_byte_counts.items()
+                    )
+                },
+            },
         },
         "phase_us": {
             field: {
@@ -296,10 +382,15 @@ def _analyze_dataset(label: str, trace_path: Path, timing_path: Path) -> dict[st
             }
             for field in PHASE_FIELDS
         },
-        "old_deadline": {
-            "origin": "group_start_ns_before_flush_and_request_write",
+        "response_deadline": {
+            "origin": (
+                "group_write_end_ns_after_request_write"
+                if trace_schema == TRACE_SCHEMA_V2
+                else "group_start_ns_before_flush_and_request_write"
+            ),
             "timeout_us": OLD_RESPONSE_TIMEOUT_US,
-            "request_setup_budget_consumed_us": _stats(request_setup_us),
+            "request_setup_before_response_deadline_us": _stats(request_setup_us),
+            "request_setup_charged_to_response_budget": trace_schema == TRACE_SCHEMA_V1,
             "last_observed_completion_margin_us": _stats(
                 old_deadline_margin_last_observed_us
             ),
@@ -361,7 +452,7 @@ def _comparison(datasets: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Analyze preserved transaction-trace v1 collector timing"
+        description="Analyze preserved incremental and exact-length collector timing"
     )
     parser.add_argument(
         "--dataset",

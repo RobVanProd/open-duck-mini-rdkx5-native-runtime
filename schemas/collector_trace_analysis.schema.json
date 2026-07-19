@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["schema_version", "quantile_method", "datasets", "comparison"],
   "properties": {
-    "schema_version": { "const": "open_duck_x5.collector_trace_analysis.v1" },
+    "schema_version": { "const": "open_duck_x5.collector_trace_analysis.v2" },
     "quantile_method": { "const": "numpy.percentile default linear interpolation" },
     "datasets": {
       "type": "array",
@@ -31,7 +31,7 @@
         "group_failures",
         "collector_observation",
         "phase_us",
-        "old_deadline",
+        "response_deadline",
         "correlations",
         "per_servo"
       ],
@@ -57,7 +57,7 @@
         "group_failures": { "type": "object" },
         "collector_observation": { "type": "object" },
         "phase_us": { "type": "object" },
-        "old_deadline": { "type": "object" },
+        "response_deadline": { "type": "object" },
         "correlations": { "type": "object" },
         "per_servo": {
           "type": "array",

@@ -10,7 +10,13 @@ from open_duck_x5.collector_trace_analysis import TraceAnalysisError, main
 from open_duck_x5.constants import SERVO_IDS, SERVO_SYNC_READ_IDS
 
 
-def _trace_record(tick: int, *, failure: bool, phase_add_us: float = 0.0) -> dict:
+def _trace_record(
+    tick: int,
+    *,
+    failure: bool,
+    phase_add_us: float = 0.0,
+    exact_length: bool = False,
+) -> dict:
     group_start = 1_000_000_000 + tick * 20_000_000
     group_write_end = group_start + 100_000
     completions = [group_write_end + (index // 2 + 1) * 250_000 for index in range(14)]
@@ -31,8 +37,12 @@ def _trace_record(tick: int, *, failure: bool, phase_add_us: float = 0.0) -> dic
         "extended_rx_span": 0.0,
         "extended_parse_tail": 90.0 + phase_add_us,
     }
-    return {
-        "schema_version": "open_duck_x5.transaction_trace.v1",
+    record = {
+        "schema_version": (
+            "open_duck_x5.transaction_trace.v2"
+            if exact_length
+            else "open_duck_x5.transaction_trace.v1"
+        ),
         "tick": tick,
         "clock": "time.perf_counter_ns",
         "sync_marker": {
@@ -43,12 +53,22 @@ def _trace_record(tick: int, *, failure: bool, phase_add_us: float = 0.0) -> dic
             "group_start_ns": group_start,
             "group_write_end_ns": group_write_end,
             "group_end_ns": group_end,
+            "extended_start_ns": group_end + 300_000,
+            "extended_end_ns": group_end + 900_000,
         },
         "group_response_complete_ns_logical_order": completions,
         "logical_servo_ids": list(SERVO_IDS),
         "read_calls": {"group": 10 if failure else 7, "extended": 1},
         "durations_us": durations,
     }
+    if exact_length:
+        record["group_collector"] = {
+            "mode": "exact_length_then_parse",
+            "expected_bytes": 140,
+            "parse_calls": 1,
+            "bytes_before_first_parse": 140,
+        }
+    return record
 
 
 def _timing_record(tick: int, *, failure: bool) -> dict:
@@ -128,14 +148,51 @@ def test_analysis_quantifies_failure_tail_and_comparison(tmp_path: Path) -> None
     assert usb["group_failures"]["failed_ticks"] == 1
     assert usb["collector_observation"]["clean_group_read_calls"]["mean"] == 7.0
     assert usb["collector_observation"]["failed_group_read_calls"]["mean"] == 10.0
-    assert usb["old_deadline"]["request_setup_budget_consumed_us"]["mean"] == 100.0
-    assert usb["old_deadline"]["group_end_after_deadline_ticks"] == 1
+    assert usb["response_deadline"]["request_setup_before_response_deadline_us"]["mean"] == 100.0
+    assert usb["response_deadline"]["request_setup_charged_to_response_budget"]
+    assert usb["response_deadline"]["group_end_after_deadline_ticks"] == 1
     servo_13 = next(row for row in usb["per_servo"] if row["servo_id"] == 13)
     assert servo_13["status_counts"] == {"ok": 3, "timeout": 1}
     assert servo_13["missing_completion_count"] == 1
     assert len(usb["raw_inputs"]["transaction_trace_sha256"]) == 64
     assert result["comparison"]["operation"] == "uart minus usb"
     assert result["comparison"]["phase_delta_us"]["group_parse_tail"]["mean"] == 10.0
+
+
+def test_analysis_verifies_exact_length_contract(tmp_path: Path) -> None:
+    trace = tmp_path / "exact-trace.jsonl"
+    timing = tmp_path / "exact-timing.jsonl"
+    _write_jsonl(
+        trace,
+        [_trace_record(tick, failure=False, exact_length=True) for tick in range(4)],
+    )
+    _write_jsonl(
+        timing,
+        [_timing_record(tick, failure=False) for tick in range(4)],
+    )
+    output = tmp_path / "analysis.json"
+    assert (
+        main(
+            [
+                "--dataset",
+                "exact",
+                str(trace),
+                str(timing),
+                "--output",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    result = json.loads(output.read_text(encoding="utf-8"))
+    dataset = result["datasets"][0]
+    contract = dataset["collector_observation"]["exact_length_contract"]
+    assert contract["pass"]
+    assert contract["parse_call_histogram"] == {"1": 4}
+    assert contract["bytes_before_first_parse_histogram"] == {"140": 4}
+    assert not dataset["response_deadline"][
+        "request_setup_charged_to_response_budget"
+    ]
 
 
 def test_analysis_rejects_mismatched_tick_sets(tmp_path: Path) -> None:
