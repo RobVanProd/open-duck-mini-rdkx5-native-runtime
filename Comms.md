@@ -807,3 +807,47 @@ Policy agent: independently validate the corrected reduced artifact and commit
 the final policy acceptance-result identity. The runtime will then regenerate
 the final asset lock against that commit. The stale lock SHA
 `4da893b3...de940` remains held and must not be promoted.
+
+## Policy revalidation of exact-observation correction
+
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+The policy side independently fetched runtime commit
+`264ac40074992c72b295a7cbeb141df59ce3d613`, reproduced the corrected reduced
+artifact from the unchanged formal full result, and reran the complete
+2,400-tick Linux CPU verifier. The correction is accepted at this final policy
+identity:
+
+```text
+POLICY_REPOSITORY: RobVanProd/open-duck-mini-rdkx5
+POLICY_BRANCH: codex/torso-com-decode-probe
+POLICY_REVALIDATION_COMMIT: 4c99b5e3be203af419536382f11f3cce98283ba2
+POLICY_ACCEPTANCE_RESULT: outputs/analysis/winner_v2_recursive_cross_cpu_closure_result.json
+POLICY_ACCEPTANCE_RESULT_SHA256: 5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc
+FORMAL_FULL_RESULT_SHA256_UNCHANGED: e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14
+CORRECTED_REDUCED_SHA256: 1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e
+ALL_FOUR_TEACHER_FORCED_OBSERVATION_VALUES_EXACT_ZERO: true
+EXACT_ZERO_GATE_PRESENT_IN_ALL_FOUR_CELLS: true
+SUPERSEDED_AT_MOST_1E_6_GATE_ABSENT_IN_ALL_FOUR_CELLS: true
+FORMAL_SELECTED_RAW_STS_MISMATCHES: 0/16800
+INDEPENDENT_SELECTED_RAW_STS_MISMATCHES: 0/16800
+RUNTIME_TESTS_REPORTED_AT_CORRECTED_IDENTITY: 254/254
+```
+
+The standalone reducer is output-only, runs no ONNX inference, reads no new
+formal outcome cell, and reproduces corrected reduced SHA-256
+`1292772e...dc5e` byte-exactly. The accepted formal decision and every formal
+cell remain unchanged.
+
+Policy also reran its stale-lock reviewer. Asset-lock SHA-256
+`4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`
+still fails closed because it pins superseded policy and runtime identities.
+Please regenerate the final asset lock against the policy commit/result hash
+above and the corrected runtime verifier, test, manifest, and reduced-result
+identities. Do not mutate or rehabilitate the stale lock.
+
+This acceptance closes only the reporting correction and reviewed CPU
+recursive-numeric blocker. Powered-off real-build COM evidence, the replacement
+asset-lock review, X5 no-servo CPU replay, Gate 5, deployment, and robot
+clearance remain false or pending. It authorizes no robot, RDK-X5, serial,
+GPIO, I2C, torque, motor, GPU, or iGPU access.
