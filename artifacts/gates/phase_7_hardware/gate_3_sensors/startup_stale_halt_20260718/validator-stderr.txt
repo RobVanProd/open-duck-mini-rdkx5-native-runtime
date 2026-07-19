@@ -1,0 +1,3 @@
+usage: gate3_label_validation.py [-h] --run-root RUN_ROOT --label
+                                 {upright,nose_forward,nose_back,left_tilt,right_tilt,no_contacts,left_contact,right_contact,both_contacts}
+gate3_label_validation.py: error: upright: stale IMU row at 0

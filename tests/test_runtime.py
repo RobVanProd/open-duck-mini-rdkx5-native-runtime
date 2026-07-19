@@ -125,6 +125,86 @@ def test_runtime_device_alarm_blocks_before_torque_enable(
     assert "device alarm" in halt[0]["reason"]
 
 
+def test_runtime_sensor_ready_timeout_blocks_before_servo_verification_and_torque(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    config = Path(__file__).parents[1] / "duck_config.example.json"
+    telemetry = tmp_path / "sensor-timeout-control.jsonl"
+
+    class RecordingBus(MockSTS3215Bus):
+        def __init__(self) -> None:
+            super().__init__(latency_s=0.0)
+            self.state_reads = 0
+            self.torque_enable_calls = 0
+
+        def read_state_into(self, snapshot) -> None:
+            self.state_reads += 1
+            super().read_state_into(snapshot)
+
+        def enable_torque(self):
+            self.torque_enable_calls += 1
+            return super().enable_torque()
+
+    class NeverReadyHub:
+        @staticmethod
+        def wait_until_ready(timeout_s: float) -> None:
+            assert timeout_s == 2.0
+            raise RuntimeError("injected initial sensor timeout")
+
+        @staticmethod
+        def read_into(_output, _now_ns: int) -> None:
+            raise AssertionError("runtime must not read after ready timeout")
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+        @staticmethod
+        def diagnostics() -> dict[str, object]:
+            return {
+                "imu": {
+                    "identity_verified": False,
+                    "calibration_applied": False,
+                    "calibration_readback_verified": False,
+                    "calibration_profile_path": None,
+                    "calibration_profile_sha256": None,
+                    "calibration_source_sha256": None,
+                }
+            }
+
+    bus = RecordingBus()
+    monkeypatch.setattr(runtime_module, "MockSTS3215Bus", lambda: bus)
+    monkeypatch.setattr(runtime_module, "MockSensorHub", NeverReadyHub)
+
+    assert (
+        main(
+            [
+                "--bus",
+                "mock",
+                "--config",
+                str(config),
+                "--telemetry",
+                str(telemetry),
+                "--home-seconds",
+                "0.001",
+                "--max-ticks",
+                "1",
+            ]
+        )
+        == 2
+    )
+    assert bus.state_reads == 0
+    assert bus.torque_enable_calls == 0
+    assert bus.torque_enabled is False
+    records = [
+        json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()
+    ]
+    halt = [record for record in records if record.get("event") == "runtime_halt"]
+    assert len(halt) == 1
+    assert "injected initial sensor timeout" in halt[0]["reason"]
+
+
 def test_runtime_rejects_unsafe_startup_arguments_before_opening_bus(
     tmp_path: Path,
 ) -> None:
@@ -688,13 +768,20 @@ def test_active_policy_stale_sensor_halts_and_torques_off(
             return np.zeros(14, dtype=np.float32)
 
     class StaleSensorHub:
+        def __init__(self) -> None:
+            self.read_count = 0
+
         @staticmethod
-        def read_into(output, now_ns: int) -> None:
+        def wait_until_ready(timeout_s: float) -> None:
+            assert timeout_s == 2.0
+
+        def read_into(self, output, now_ns: int) -> None:
+            self.read_count += 1
             output.imu_timestamp_ns = now_ns
             output.contacts_timestamp_ns = now_ns
             output.imu_age_ns = 0
             output.contacts_age_ns = 0
-            output.imu_stale = True
+            output.imu_stale = self.read_count > 1
             output.contacts_stale = False
 
         @staticmethod

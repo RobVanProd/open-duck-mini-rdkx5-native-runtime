@@ -1,6 +1,6 @@
 # Gate 3 IMU/contact capture pre-registration
 
-Status: `NOT_AUTHORIZED_NOT_RUN`
+Status: `HALTED_REVIEWED_STARTUP_STALE_RERUN_NOT_AUTHORIZED`
 
 ## Scope
 
@@ -56,10 +56,19 @@ SHA-256 is
 `e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be`,
 source SHA-256 is
 `a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08`,
-and exact fresh-session register readback passed. Gate 3 itself remains
-unauthorized and not run.
+and exact fresh-session register readback passed.
 
-The only authorized launcher form is:
+The first authorized matrix attempt halted at the `upright` validator because
+row 0 was captured before the worker's initial immutable publication. Row 1
+and all 248 later rows were fresh, and the worker recorded zero errors. The
+failed output and complete checksum list are preserved under
+`startup_stale_halt_20260718/`; no later label or servo path ran. A corrected
+probe must wait at most 2.0 seconds for an initial complete publication, verify
+that publication is fresh, and only then instantiate the ticker that defines
+the 250-row population. A timeout or stale initial publication publishes no
+label evidence.
+
+The historical launcher form used for the halted attempt was:
 
 ```bash
 bash setup/run_gate3_sensor_matrix.sh \
@@ -70,14 +79,18 @@ bash setup/run_gate3_sensor_matrix.sh \
   --hardware-authorized --suspended-or-benched
 ```
 
-This command remains blocked until Rob separately authorizes the complete
-nine-label Gate 3 matrix while physically present at the supported robot.
+That source/output pair must not be reused. A corrected source archive and a
+new output directory will be frozen after offline verification. The corrected
+launcher remains blocked until Rob separately authorizes the complete
+nine-label Gate 3 rerun while physically present at the supported robot.
 
 ## Data gates
 
 Every labeled capture must have:
 
 - exactly 250 JSONL rows and a matching raw SHA-256;
+- a source-bound 2.0-second initial-publication barrier completed before the
+  frozen population begins;
 - zero stale IMU/contact rows;
 - strictly increasing control, IMU, and contact timestamps;
 - zero sensor-worker errors and at least one successful device sample;

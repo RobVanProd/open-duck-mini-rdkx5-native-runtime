@@ -10,6 +10,7 @@ import open_duck_x5.sensors as sensors_module
 from open_duck_x5.imu_calibration import BNO055Calibration
 from open_duck_x5.sensors import (
     BNO055Smbus,
+    MockSensorHub,
     PublishedSensorReadout,
     SensorHub,
     SensorReadout,
@@ -290,14 +291,23 @@ def test_control_read_does_not_wait_for_blocked_i2c() -> None:
     reader = threading.Thread(target=read_once, daemon=True)
     try:
         assert imu.entered.wait(0.5)
+        with pytest.raises(RuntimeError, match="did not publish an initial complete sample"):
+            hub.wait_until_ready(0.01)
         reader.start()
         assert read_done.wait(0.2), "control read blocked behind the I2C sampler"
         assert output.imu_stale is True
         assert output.contacts_stale is True
     finally:
         imu.release.set()
+        hub.wait_until_ready(0.5)
         hub.close()
         reader.join(timeout=1.0)
+
+
+@pytest.mark.parametrize("timeout_s", [0.0, -1.0, float("inf"), float("nan")])
+def test_mock_sensor_ready_barrier_rejects_invalid_timeout(timeout_s: float) -> None:
+    with pytest.raises(ValueError, match="finite and positive"):
+        MockSensorHub().wait_until_ready(timeout_s)
 
 
 def test_sensor_worker_counts_transient_device_errors() -> None:

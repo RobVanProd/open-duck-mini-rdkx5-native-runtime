@@ -20,7 +20,14 @@ from .hardware_guard import (
     require_hardware_authorization,
 )
 from .imu_calibration import BNO055Calibration
-from .sensors import BNO055Smbus, MockSensorHub, SensorHub, SensorReadout, X5FootContacts
+from .sensors import (
+    INITIAL_SENSOR_READY_TIMEOUT_S,
+    BNO055Smbus,
+    MockSensorHub,
+    SensorHub,
+    SensorReadout,
+    X5FootContacts,
+)
 from .timing import AbsoluteTicker
 
 SENSOR_LABELS = (
@@ -182,6 +189,18 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     completed = 0
     hub_diagnostics: dict[str, object] = {}
     try:
+        hub.wait_until_ready(INITIAL_SENSOR_READY_TIMEOUT_S)
+        hub.read_into(readout, clock_ns())
+        if readout.imu_stale or readout.contacts_stale:
+            stale_sources = []
+            if readout.imu_stale:
+                stale_sources.append("imu")
+            if readout.contacts_stale:
+                stale_sources.append("contacts")
+            raise RuntimeError(
+                "initial sensor publication was already stale: "
+                + ", ".join(stale_sources)
+            )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
         for index in range(samples):
             started_ns, lateness_ns = ticker.wait()
@@ -302,6 +321,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "frequency_hz": args.frequency_hz,
             "sensor_frequency_hz": args.sensor_frequency_hz,
             "stale_after_ms": args.stale_after_ms,
+            "initial_sample_ready_timeout_s": INITIAL_SENSOR_READY_TIMEOUT_S,
             "imu_bus": args.imu_bus,
             "imu_address": args.imu_address,
             "imu_i2c_device": f"/dev/i2c-{args.imu_bus}",

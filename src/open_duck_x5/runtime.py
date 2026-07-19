@@ -34,7 +34,14 @@ from .imu_calibration import BNO055Calibration
 from .policy import ONNX_SESSION_CONTRACT, OnnxPolicy, PolicyContractError
 from .realtime import RealtimeSetupError, configure_realtime, prepare_realtime
 from .safety import SafetyError, TorqueGuard, Watchdog, WatchdogTrip
-from .sensors import BNO055Smbus, MockSensorHub, SensorHub, SensorReadout, X5FootContacts
+from .sensors import (
+    INITIAL_SENSOR_READY_TIMEOUT_S,
+    BNO055Smbus,
+    MockSensorHub,
+    SensorHub,
+    SensorReadout,
+    X5FootContacts,
+)
 from .telemetry import AsyncControlWriter, TelemetryError
 from .timing import AbsoluteTicker
 
@@ -389,6 +396,7 @@ class Runtime:
                 ),
             },
             "sensors": {
+                "initial_sample_ready_timeout_s": INITIAL_SENSOR_READY_TIMEOUT_S,
                 "imu": {
                     "backend": "bno055_smbus" if self.args.bus == "serial" else "mock",
                     "i2c_device": (
@@ -469,6 +477,18 @@ class Runtime:
             self.writer.publish_event(
                 "realtime_verified",
                 details=asdict(self.realtime_state),
+            )
+        self.sensor_hub.wait_until_ready(INITIAL_SENSOR_READY_TIMEOUT_S)
+        self.sensor_hub.read_into(self.sensors, clock_ns())
+        if self.sensors.imu_stale or self.sensors.contacts_stale:
+            stale_sources = []
+            if self.sensors.imu_stale:
+                stale_sources.append("imu")
+            if self.sensors.contacts_stale:
+                stale_sources.append("contacts")
+            raise SafetyError(
+                "initial sensor publication was already stale: "
+                + ", ".join(stale_sources)
             )
         self._verify_all_servos()
         if self.stop_requested:

@@ -595,3 +595,27 @@ installed reversibly in Sunrise's user site from a locally hashed wheel. No
 servo endpoint was opened; torque, goal writes, policy loads, and inference
 counts remained zero. This decision clears D041's missing-profile blocker only.
 The nine labeled Gate 3 matrix remains separately unauthorized and not run.
+
+## D044 — Reject the first Gate 3 label and require sensor publication readiness
+
+Accepted from the first separately authorized nine-label attempt. The frozen
+launcher captured the requested 250 `upright` rows, then stopped before the
+second label because the per-label validator found stale IMU and contact data
+at row 0. The runner recorded `HALTED_LABEL_VALIDATION`, no completed labels,
+no servo-bus access, no torque, no goal writes, and no policy activity.
+
+The raw stream hash is
+`0236adf1481dcdd7e921451ffa00fe0b90ef7c5f2d1fc1a048e63d8e30214454`.
+Only row 0 is stale and carries zero device timestamps. Row 1 is already fresh
+at 6.413058 ms IMU age and 6.065933 ms contact age; every later row is fresh,
+and the worker reports zero device errors. This identifies a startup race
+between background-worker creation and the ticker's immediate first release,
+not a calibration, label, I2C, or GPIO failure.
+
+The accepted correction is a bounded 2.0-second initial-publication barrier.
+The probe and runtime wait for a complete immutable sample, read it once, and
+reject it if already stale before starting the capture ticker or reaching
+servo verification and torque enable. Timeout is fail-closed and creates no
+probe evidence. The failed output remains immutable; corrected execution uses
+a new frozen source archive, a new output directory, green CI, and new explicit
+authorization. Gates 4 and 5 remain blocked.

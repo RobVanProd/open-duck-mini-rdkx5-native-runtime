@@ -15,7 +15,10 @@ actions, history order, phase order, stale-source rejection, config validation,
 field-labeled legacy snapshot extraction/comparison, mock JSONL schema,
 per-error taxonomy, tracking statistics, authorization guards, watchdog
 triggers, torque-off on an injected exception, BNO055 units/remapping,
-active-low contacts, and nonblocking publication when I2C is delayed.
+active-low contacts, and nonblocking publication when I2C is delayed. Sensor
+startup tests also prove that the bounded ready barrier times out closed, that
+no Gate 3 output is published on timeout, and that runtime startup cannot reach
+servo verification or torque enable before a fresh initial publication.
 The ONNX host is exercised with a fake runtime that verifies pre-loop warm-up,
 single-thread sequential/no-spin session options, bound float32 buffers,
 zero-copy output reuse, and rejection of non-finite data.
@@ -45,7 +48,9 @@ terminal sustained population, restricted legacy source, profile equivalence,
 artifact/source hashes, exact fresh-session device readback, and capture
 authorization. Gate 3 runner tests freeze all nine labels and prove that the
 operator must type each physical state and that its integrity validator must
-pass before the next capture is reachable.
+pass before the next capture is reachable. They also prove missing hardware
+acknowledgements, a noninteractive session, help, and rejected torque arguments
+exit before source or device access.
 Telemetry tests prove output-open failures are reported synchronously and that
 exhausting any bounded record pool fails the run instead of silently dropping
 evidence. Runtime guard tests reject incomplete Gate 5 scope and

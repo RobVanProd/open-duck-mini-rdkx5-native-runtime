@@ -1,6 +1,6 @@
-# NOT RUN — Hardware Gate 3: IMU and Contacts
+# NOT PASSED — Hardware Gate 3: IMU and Contacts
 
-No labeled X5 sensor samples have been collected. Separate artifacts are
+No labeled X5 sensor sample has passed the frozen label validator. Separate artifacts are
 required for upright, nose-forward, nose-back, left-tilt, right-tilt,
 no-contact, left-contact, right-contact, and both-contact states.
 
@@ -19,6 +19,13 @@ calibration. Its 1,318-row stream, five terminal `0xff` samples, exact offset
 readback, profile/source hashes, and no-servo proof are recorded under
 `calibration_20260718/`.
 
-Gate 3 itself is still `NOT_AUTHORIZED_NOT_RUN`. Calibration satisfies a
-prerequisite; it does not substitute for the nine labeled orientation/contact
-captures or authorize a later gate.
+The first separately authorized matrix attempt captured 250 `upright` rows but
+halted because row 0 preceded the sensor worker's first publication. The
+launcher reported `HALTED_LABEL_VALIDATION`; no later label ran and no servo,
+torque, goal write, or policy path was used. The hash-bound reduction is under
+`startup_stale_halt_20260718/`.
+
+Gate 3 is `HALTED_REVIEWED_STARTUP_STALE_RERUN_NOT_AUTHORIZED`. The startup
+barrier correction must be frozen and receive new explicit authorization before
+the matrix is repeated into a new output directory. Calibration satisfies a
+prerequisite; neither it nor the halted label authorizes a later gate.

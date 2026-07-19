@@ -270,9 +270,11 @@ Final torque-off was `ok` and the governor returned to `schedutil`. See
 
 ## Gate 3 — IMU and contacts
 
-Current status: `NOT_AUTHORIZED_NOT_RUN`. The separately authorized BNO055
-calibration prerequisite completed and passed independent integrity review; it
-does not authorize this nine-label matrix.
+Current status: `HALTED_REVIEWED_STARTUP_STALE_RERUN_NOT_AUTHORIZED`. The
+separately authorized BNO055 calibration prerequisite completed and passed
+independent integrity review. The first matrix attempt then halted at the
+`upright` validator because row 0 was read before the sensor worker's first
+publication. No later label, servo access, torque, target write, or policy ran.
 
 - No policy.
 - Capture labeled upright, nose-forward, nose-back, left-tilt, right-tilt samples.
@@ -296,13 +298,20 @@ bash setup/run_gate3_sensor_matrix.sh \
   --hardware-authorized --suspended-or-benched
 ```
 
+The command above is the historical halted-attempt command and must not be
+reused. Its output is preserved at the named board path and reduced under
+`startup_stale_halt_20260718/`. A corrected archive/output command will replace
+it only after the startup-ready barrier is frozen and CI is green.
+
 The launcher prompts in frozen order for `upright`, `nose_forward`,
 `nose_back`, `left_tilt`, `right_tilt`, `no_contacts`, `left_contact`,
 `right_contact`, and `both_contacts`. Every summary reports sample age,
 sensor-worker errors, timestamp repeats, axis distributions, contact fractions,
 config/source hashes, and `imu_upside_down`. It also proves the BNO055 chip ID
 is `0xa0` and that all three captured offset triplets read back exactly before
-NDOF sampling begins.
+NDOF sampling begins. Corrected capture additionally waits at most 2.0 seconds
+for an initial complete IMU/contact publication and verifies it is fresh before
+starting the exact 250-row population. A timeout stops before label evidence.
 
 The X5 backend requires a strict JSON calibration profile. The readiness audit
 found no saved legacy profile, so this robot's own BNO055 was calibrated rather

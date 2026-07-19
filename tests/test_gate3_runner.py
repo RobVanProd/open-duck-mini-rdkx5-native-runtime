@@ -1,11 +1,24 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
+
+ROOT = Path(__file__).parents[1]
+RUNNER = Path("setup/run_gate3_sensor_matrix.sh")
 
 
 def _script() -> str:
-    return (Path(__file__).parents[1] / "setup" / "run_gate3_sensor_matrix.sh").read_text(
-        encoding="utf-8"
+    return (ROOT / RUNNER).read_text(encoding="utf-8")
+
+
+def _run(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(RUNNER), *args],
+        cwd=ROOT,
+        input="",
+        capture_output=True,
+        text=True,
+        check=False,
     )
 
 
@@ -97,3 +110,33 @@ def test_gate3_runner_terminates_active_probe_and_cleans_bounded_temp() -> None:
     assert 'kill -TERM "${active_probe_pid}"' in script
     assert "/tmp/open-duck-gate3.*" in script
     assert 'rm -rf -- "${work_dir}"' in script
+
+
+def test_gate3_runner_exits_before_preflight_without_hardware_acknowledgements() -> None:
+    result = _run()
+
+    assert result.returncode == 2
+    assert "missing_gate3_hardware_acknowledgements" in result.stderr
+    assert "frozen_source_archive_missing" not in result.stderr
+    assert "i2c_device_missing" not in result.stderr
+
+
+def test_gate3_runner_exits_before_source_or_device_access_without_tty() -> None:
+    result = _run("--hardware-authorized", "--suspended-or-benched")
+
+    assert result.returncode == 2
+    assert "interactive_operator_terminal_required" in result.stderr
+    assert "frozen_source_archive_missing" not in result.stderr
+    assert "i2c_device_missing" not in result.stderr
+
+
+def test_gate3_runner_help_is_safe_and_unknown_arguments_fail_closed() -> None:
+    help_result = _run("--help")
+    bad_result = _run("--enable-torque")
+
+    assert help_result.returncode == 0
+    assert "Runs exactly nine interactive, no-servo Gate 3 sensor captures" in (
+        help_result.stdout
+    )
+    assert bad_result.returncode == 2
+    assert "unknown_argument argument=--enable-torque" in bad_result.stderr

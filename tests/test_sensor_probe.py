@@ -174,7 +174,15 @@ def test_x5_candidate_requires_device_and_worker_proofs(
     tmp_path: Path,
 ) -> None:
     class FakeHub:
+        def __init__(self) -> None:
+            self.ready = False
+
+        def wait_until_ready(self, timeout_s: float) -> None:
+            assert timeout_s == 2.0
+            self.ready = True
+
         def read_into(self, output: SensorReadout, now_ns: int) -> None:
+            assert self.ready, "probe read before initial sensor publication"
             output.gyro_rad_s[:] = (0.1, 0.2, 0.3)
             output.acceleration_m_s2[:] = (0.0, 0.0, 9.81)
             output.contacts[:] = (0.0, 0.0)
@@ -203,10 +211,11 @@ def test_x5_candidate_requires_device_and_worker_proofs(
                 },
             }
 
+    fake_hub = FakeHub()
     monkeypatch.setattr(
         sensor_probe,
         "_create_hub",
-        lambda _args, _config, _calibration: FakeHub(),
+        lambda _args, _config, _calibration: fake_hub,
     )
     output = tmp_path / "upright.jsonl"
     summary_path = tmp_path / "upright-summary.json"
@@ -244,6 +253,63 @@ def test_x5_candidate_requires_device_and_worker_proofs(
     assert summary["checks"]["gate3_data_candidate"] is True
     assert summary["checks"]["operator_label_confirmed"] is True
     assert summary["checks"]["calibration_readback_verified"] is True
+    assert summary["environment"]["initial_sample_ready_timeout_s"] == 2.0
+
+
+def test_sensor_probe_ready_timeout_closes_without_publishing_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class NeverReadyHub:
+        def __init__(self) -> None:
+            self.closed = False
+
+        @staticmethod
+        def wait_until_ready(timeout_s: float) -> None:
+            assert timeout_s == 2.0
+            raise RuntimeError("injected initial sensor timeout")
+
+        @staticmethod
+        def read_into(_output: SensorReadout, _now_ns: int) -> None:
+            raise AssertionError("probe must not read after ready timeout")
+
+        def close(self) -> None:
+            self.closed = True
+
+        @staticmethod
+        def diagnostics() -> dict[str, object]:
+            return {}
+
+    hub = NeverReadyHub()
+    monkeypatch.setattr(
+        sensor_probe,
+        "_create_hub",
+        lambda _args, _config, _calibration: hub,
+    )
+    output = tmp_path / "never.jsonl"
+    summary = tmp_path / "never-summary.json"
+
+    with pytest.raises(SystemExit):
+        sensor_probe.main(
+            [
+                "--backend",
+                "mock",
+                "--label",
+                "upright",
+                "--config",
+                str(_config()),
+                "--samples",
+                "2",
+                "--output",
+                str(output),
+                "--summary",
+                str(summary),
+            ]
+        )
+
+    assert hub.closed is True
+    assert not output.exists()
+    assert not summary.exists()
 
 
 def test_sensor_probe_refuses_to_overwrite_summary_with_jsonl(tmp_path: Path) -> None:

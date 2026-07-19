@@ -282,6 +282,7 @@ def _validate_summary(
         "frequency_hz": EXPECTED_FREQUENCY_HZ,
         "sensor_frequency_hz": EXPECTED_SENSOR_FREQUENCY_HZ,
         "stale_after_ms": EXPECTED_STALE_AFTER_MS,
+        "initial_sample_ready_timeout_s": 2.0,
         "imu_bus": 5,
         "imu_address": 0x28,
         "imu_i2c_device": "/dev/i2c-5",

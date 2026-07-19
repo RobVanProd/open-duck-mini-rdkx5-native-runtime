@@ -125,8 +125,9 @@
         },
         "sensors": {
           "type": "object",
-          "required": ["imu", "contacts"],
+          "required": ["initial_sample_ready_timeout_s", "imu", "contacts"],
           "properties": {
+            "initial_sample_ready_timeout_s": { "const": 2.0 },
             "imu": {
               "type": "object",
               "required": [

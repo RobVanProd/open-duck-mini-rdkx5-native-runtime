@@ -28,6 +28,7 @@ BNO055_OFFSET_MAGNET = 0x5B
 BNO055_OFFSET_GYRO = 0x61
 BNO055_CONFIG_MODE = 0x00
 BNO055_NDOF_MODE = 0x0C
+INITIAL_SENSOR_READY_TIMEOUT_S = 2.0
 
 
 class BNO055Smbus:
@@ -298,6 +299,7 @@ class SensorHub:
         self.period_ns = int(1e9 / sample_frequency_hz)
         self.stale_after_ns = int(stale_after_s * 1e9)
         self._published: PublishedSensorReadout | None = None
+        self._first_sample_ready = threading.Event()
         self._stop = threading.Event()
         self._sample_attempts = 0
         self._sample_successes = 0
@@ -331,6 +333,7 @@ class SensorHub:
                     imu_timestamp_ns=int(self.imu.timestamp_ns),
                     contacts_timestamp_ns=int(self.contacts.timestamp_ns),
                 )
+                self._first_sample_ready.set()
                 self._sample_successes += 1
                 self._consecutive_errors = 0
             except Exception as exc:
@@ -346,6 +349,15 @@ class SensorHub:
             remaining = deadline - clock_ns()
             if remaining > 0:
                 self._stop.wait(remaining / 1e9)
+
+    def wait_until_ready(self, timeout_s: float) -> None:
+        if not math.isfinite(timeout_s) or timeout_s <= 0:
+            raise ValueError("sensor ready timeout must be finite and positive")
+        if not self._first_sample_ready.wait(timeout_s):
+            raise RuntimeError(
+                "sensor worker did not publish an initial complete sample "
+                f"within {timeout_s:.3f} s"
+            )
 
     def read_into(self, output: SensorReadout, now_ns: int) -> None:
         published = self._published
@@ -410,6 +422,11 @@ class MockSensorHub:
         output.contacts_age_ns = 0
         output.imu_stale = False
         output.contacts_stale = False
+
+    @staticmethod
+    def wait_until_ready(timeout_s: float) -> None:
+        if not math.isfinite(timeout_s) or timeout_s <= 0:
+            raise ValueError("sensor ready timeout must be finite and positive")
 
     def close(self) -> None:
         return None

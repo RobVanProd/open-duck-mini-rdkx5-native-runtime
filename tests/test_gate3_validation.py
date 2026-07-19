@@ -228,6 +228,7 @@ def _write_gate3_run(root: Path) -> Path:
                 "frequency_hz": 50.0,
                 "sensor_frequency_hz": 100.0,
                 "stale_after_ms": 40.0,
+                "initial_sample_ready_timeout_s": 2.0,
                 "imu_bus": 5,
                 "imu_address": 0x28,
                 "imu_i2c_device": "/dev/i2c-5",

@@ -15,8 +15,8 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
-| IMU / contacts / policy host | BNO055 identity and inherited-offset readback are fail-closed; nine-label validator is review-only; hardware remains unverified |
-| Hardware gates 1-5 | Gates 1 and 2 `PASS_REVIEWED`; Gate 2 passed its frozen 10,000-tick preflight and home hold; Gates 3-5 `NOT_RUN` and separately unauthorized |
+| IMU / contacts / policy host | BNO055 identity and inherited-offset readback are fail-closed; a bounded initial-publication barrier prevents startup-stale rows; nine-label validator is review-only |
+| Hardware gates 1-5 | Gates 1 and 2 `PASS_REVIEWED`; Gate 3 halted safely on a startup-stale row before completing its first label and awaits a newly authorized corrected run; Gates 4-5 `NOT_RUN` |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract
@@ -83,7 +83,10 @@ and accepts it only after exact offset and frozen-mapping readback. Missing,
 malformed, or non-matching calibration data blocks later hardware startup.
 This robot's reviewed candidate profile is now recorded under
 `artifacts/gates/phase_7_hardware/gate_3_sensors/calibration_20260718/`; its
-completion does not auto-pass the still-unrun nine-label Gate 3 matrix.
+completion does not auto-pass the nine-label Gate 3 matrix. Its first authorized
+attempt halted on a startup-publication race with no servo access or torque;
+the failed artifact is preserved under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/startup_stale_halt_20260718/`.
 
 ## Board evidence collector
 
