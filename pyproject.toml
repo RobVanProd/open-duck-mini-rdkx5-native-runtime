@@ -39,6 +39,7 @@ analyze_collector_trace = "open_duck_x5.collector_trace_analysis:main"
 benchmark_fixed_frame = "open_duck_x5.fixed_frame_benchmark:main"
 convert_imu_calibration = "open_duck_x5.imu_calibration:main"
 validate_gate3_sensors = "open_duck_x5.gate3_validation:main"
+calibrate_imu = "open_duck_x5.imu_calibration_capture:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

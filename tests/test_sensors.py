@@ -170,6 +170,42 @@ def test_bno055_sample_decodes_frozen_units(monkeypatch: pytest.MonkeyPatch) -> 
     np.testing.assert_allclose(imu.gyro_rad_s, np.deg2rad([1.0, -2.0, 11.25]))
 
 
+def test_bno055_captures_only_fully_calibrated_offsets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sensors_module.time, "sleep", lambda _seconds: None)
+    bus = FakeRegisterBus()
+    bus.registers[sensors_module.BNO055_CALIBRATION_STATUS] = 0xFF
+    expected = {
+        sensors_module.BNO055_OFFSET_ACCEL: (11, -22, 33),
+        sensors_module.BNO055_OFFSET_GYRO: (-44, 55, -66),
+        sensors_module.BNO055_OFFSET_MAGNET: (77, -88, 99),
+    }
+    for register, values in expected.items():
+        payload = bytearray(6)
+        struct.pack_into("<hhh", payload, 0, *values)
+        bus.registers[register : register + 6] = payload
+    bus.registers[sensors_module.BNO055_OPR_MODE] = sensors_module.BNO055_NDOF_MODE
+    imu = object.__new__(BNO055Smbus)
+    imu.bus = bus
+    imu.address = 0x28
+    imu._diagnostics = {}
+
+    offsets = imu.capture_calibration_offsets()
+
+    assert offsets == {
+        "offsets_accelerometer": (11, -22, 33),
+        "offsets_gyroscope": (-44, 55, -66),
+        "offsets_magnetometer": (77, -88, 99),
+    }
+    assert imu.describe()["calibration_status_raw"] == 0xFF
+    assert bus.registers[sensors_module.BNO055_OPR_MODE] == sensors_module.BNO055_NDOF_MODE
+
+    bus.registers[sensors_module.BNO055_CALIBRATION_STATUS] = 0x3F
+    with pytest.raises(RuntimeError, match="calibration is not complete"):
+        imu.capture_calibration_offsets()
+
+
 def test_contact_sample_preserves_active_low_polarity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/imu-calibration-capture.schema.json",
+  "title": "Open Duck X5 BNO055 calibration capture summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "backend",
+    "informational_only",
+    "hardware_status",
+    "run_status",
+    "review_status",
+    "started_utc",
+    "completed_utc",
+    "config",
+    "environment",
+    "calibration",
+    "artifacts",
+    "software",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.bno055_calibration_capture.v1" },
+    "backend": { "enum": ["mock", "x5"] },
+    "informational_only": { "type": "boolean" },
+    "hardware_status": { "enum": ["NOT_APPLICABLE_MOCK", "REVIEW_REQUIRED"] },
+    "run_status": { "const": "COMPLETE" },
+    "review_status": { "const": "REVIEW_REQUIRED" },
+    "started_utc": { "type": "string", "minLength": 1 },
+    "completed_utc": { "type": "string", "minLength": 1 },
+    "config": {
+      "type": "object",
+      "required": ["path", "sha256", "imu_upside_down"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "imu_upside_down": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "environment": {
+      "type": "object",
+      "required": [
+        "imu_i2c_device",
+        "imu_address",
+        "timeout_seconds",
+        "poll_seconds",
+        "stable_full_samples_required",
+        "hardware_authorized",
+        "suspended_or_benched",
+        "manual_calibration_authorized",
+        "servo_bus_accessed",
+        "torque_enabled",
+        "goal_position_writes",
+        "policy_loaded",
+        "policy_inference_count"
+      ],
+      "properties": {
+        "imu_i2c_device": { "type": "string", "minLength": 1 },
+        "imu_address": { "type": "integer", "minimum": 0, "maximum": 127 },
+        "timeout_seconds": { "type": "number", "minimum": 1 },
+        "poll_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "stable_full_samples_required": { "type": "integer", "minimum": 2 },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" },
+        "manual_calibration_authorized": { "type": "boolean" },
+        "servo_bus_accessed": { "const": false },
+        "torque_enabled": { "const": false },
+        "goal_position_writes": { "const": 0 },
+        "policy_loaded": { "const": false },
+        "policy_inference_count": { "const": 0 }
+      },
+      "additionalProperties": false
+    },
+    "calibration": {
+      "type": "object",
+      "required": [
+        "final_status_raw",
+        "stable_full_samples",
+        "polls",
+        "elapsed_seconds",
+        "offsets",
+        "initial_device",
+        "post_profile_readback"
+      ],
+      "properties": {
+        "final_status_raw": { "const": 255 },
+        "stable_full_samples": { "type": "integer", "minimum": 2 },
+        "polls": { "type": "integer", "minimum": 2 },
+        "elapsed_seconds": { "type": "number", "minimum": 0 },
+        "offsets": { "$ref": "#/$defs/offsets" },
+        "initial_device": { "type": "object" },
+        "post_profile_readback": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["legacy_pickle", "profile", "status_jsonl"],
+      "properties": {
+        "legacy_pickle": { "$ref": "#/$defs/file" },
+        "profile": {
+          "type": "object",
+          "required": ["path", "sha256", "source_sha256"],
+          "properties": {
+            "path": { "const": "imu_calibration.json" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "source_sha256": { "$ref": "#/$defs/sha256" }
+          },
+          "additionalProperties": false
+        },
+        "status_jsonl": {
+          "type": "object",
+          "required": ["path", "sha256", "records"],
+          "properties": {
+            "path": { "const": "calibration-status.jsonl" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "records": { "type": "integer", "minimum": 2 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "software": {
+      "type": "object",
+      "required": ["capture", "sensors", "imu_calibration"],
+      "additionalProperties": { "$ref": "#/$defs/file" }
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "full_calibration_sustained",
+        "profile_source_matches_legacy",
+        "exact_offset_readback",
+        "identity_and_frozen_mapping_verified",
+        "authorization_provenance",
+        "profile_candidate"
+      ],
+      "properties": {
+        "full_calibration_sustained": { "const": true },
+        "profile_source_matches_legacy": { "const": true },
+        "exact_offset_readback": { "const": true },
+        "identity_and_frozen_mapping_verified": { "const": true },
+        "authorization_provenance": { "const": true },
+        "profile_candidate": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "backend": { "const": "mock" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": true },
+          "hardware_status": { "const": "NOT_APPLICABLE_MOCK" },
+          "checks": { "properties": { "profile_candidate": { "const": false } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "backend": { "const": "x5" } } },
+      "then": {
+        "properties": {
+          "informational_only": { "const": false },
+          "hardware_status": { "const": "REVIEW_REQUIRED" },
+          "environment": {
+            "properties": {
+              "hardware_authorized": { "const": true },
+              "suspended_or_benched": { "const": true },
+              "manual_calibration_authorized": { "const": true }
+            }
+          },
+          "checks": { "properties": { "profile_candidate": { "const": true } } }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "triplet": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "integer", "minimum": -32768, "maximum": 32767 }
+    },
+    "offsets": {
+      "type": "object",
+      "required": [
+        "offsets_accelerometer",
+        "offsets_gyroscope",
+        "offsets_magnetometer"
+      ],
+      "properties": {
+        "offsets_accelerometer": { "$ref": "#/$defs/triplet" },
+        "offsets_gyroscope": { "$ref": "#/$defs/triplet" },
+        "offsets_magnetometer": { "$ref": "#/$defs/triplet" }
+      },
+      "additionalProperties": false
+    },
+    "file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

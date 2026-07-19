@@ -183,6 +183,39 @@ class BNO055Smbus:
         self.timestamp_ns = clock_ns()
         return self.timestamp_ns
 
+    def calibration_status(self) -> tuple[int, dict[str, int]]:
+        raw = self._read(BNO055_CALIBRATION_STATUS)
+        decoded = self._decode_calibration_status(raw)
+        self._diagnostics["calibration_status_raw"] = raw
+        self._diagnostics["calibration_status"] = decoded
+        return raw, decoded
+
+    def capture_calibration_offsets(self) -> dict[str, tuple[int, int, int]]:
+        raw_status, decoded_status = self.calibration_status()
+        if raw_status != 0xFF:
+            raise RuntimeError(
+                "BNO055 calibration is not complete: "
+                + ", ".join(f"{name}={value}" for name, value in decoded_status.items())
+            )
+        self._write(BNO055_OPR_MODE, BNO055_CONFIG_MODE)
+        time.sleep(0.025)
+        try:
+            offsets = {
+                "offsets_accelerometer": self._read_block(BNO055_OFFSET_ACCEL),
+                "offsets_gyroscope": self._read_block(BNO055_OFFSET_GYRO),
+                "offsets_magnetometer": self._read_block(BNO055_OFFSET_MAGNET),
+            }
+        finally:
+            self._write(BNO055_OPR_MODE, BNO055_NDOF_MODE)
+            time.sleep(0.02)
+        operation_mode = self._read(BNO055_OPR_MODE) & 0x0F
+        if operation_mode != BNO055_NDOF_MODE:
+            raise RuntimeError(
+                "BNO055 did not return to NDOF after offset capture: "
+                f"read 0x{operation_mode:02x}"
+            )
+        return offsets
+
     def close(self) -> None:
         self.bus.close()
 

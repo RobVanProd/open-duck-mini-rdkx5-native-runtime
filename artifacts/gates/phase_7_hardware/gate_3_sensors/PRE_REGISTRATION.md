@@ -34,8 +34,11 @@ type the same label passed to the probe before each run.
 - The live config SHA-256 remains
   `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
   with `imu_upside_down=true`.
-- The preserved `imu_calib_data.pkl` is converted once to the strict JSON
-  schema; both source and JSON hashes are frozen before capture.
+- This robot's BNO055 completes the separately preregistered guarded physical
+  calibration. Five consecutive `0xff` status reads are required before its
+  three offset triplets are captured; a fresh session must apply and read them
+  back exactly. Both legacy-compatible source and strict JSON hashes are frozen
+  before the nine labeled captures.
 - BNO055 chip ID reads exactly `0xa0`.
 - All accelerometer, gyroscope, and magnetometer offset triplets read back
   exactly after configuration.
@@ -45,8 +48,10 @@ type the same label passed to the probe before each run.
 - The exact reviewed source/archive hashes are frozen in the eventual launcher.
 
 The GPIO mapping and chip identity are verified by the 2026-07-18 readiness
-inventory. The calibration file/hash and configured offset readback remain
-pending. Their absence blocks execution; it is not a failed Gate 3 result.
+inventory. `CALIBRATION_PRE_REGISTRATION.md` freezes the missing physical
+calibration procedure. The calibration file/hash and configured offset readback
+remain pending. Their absence blocks execution; it is not a failed Gate 3
+result.
 
 ## Data gates
 

@@ -548,3 +548,26 @@ blocked—not failed—until this physical BNO055 is calibrated and the resultin
 profile is hashed and read back exactly. The same inventory verified BCM22 as
 X5 GPIO 388 and BCM27 as GPIO 379 through temporary input-only claims, then
 confirmed clean release. No servo device, torque, target, or policy was touched.
+
+## D042 — Capture this robot's calibration transactionally before Gate 3
+
+Accepted offline to resolve D041 without guessing offsets or weakening the
+frozen sensor contract. The new `calibrate_imu` path is isolated from every
+servo, torque, target, and policy module. Its X5 backend requires the two normal
+hardware acknowledgements plus an exact manual-calibration acknowledgement
+because Rob must physically support and reorient the robot.
+
+The candidate is not based on a single momentary status value. The BNO055 must
+report system, gyroscope, accelerometer, and magnetometer level 3 for five
+consecutive samples. The tool then captures the three inherited offset
+triplets, closes the device, and applies them through the production BNO driver
+in a fresh session. Exact chip identity, frozen axis mapping, units, NDOF mode,
+and offset-register readback are mandatory. Output is staged and published as
+one directory only after verification succeeds; interruption, timeout, failed
+readback, or a pre-existing destination produces no accepted candidate.
+
+The output includes a primitive legacy-compatible pickle solely to preserve
+the existing source-format/hash contract, a strict JSON runtime profile, a
+bounded status stream, and a source-bound review summary. Mock output remains
+informational. An X5 capture is only `REVIEW_REQUIRED`; it cannot clear Gate 3
+or authorize any policy operation.

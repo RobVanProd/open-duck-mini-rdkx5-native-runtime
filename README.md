@@ -74,10 +74,13 @@ Read these before any X5 work:
 - [Control-run evidence](docs/CONTROL_RUN_EVIDENCE.md)
 - [Duck evidence collector](docs/DUCK_EVIDENCE_COLLECTION.md)
 
-Gate 3 and the serial Gate 5 runtime require a strict BNO055 calibration JSON
-converted from the preserved runtime's `imu_calib_data.pkl`. Missing,
-malformed, or non-matching calibration data blocks hardware startup before GPIO,
-I2C sampling, policy loading, or motion.
+Gate 3 and the serial Gate 5 runtime require a strict BNO055 calibration JSON.
+`calibrate_imu` can capture this robot's offsets without opening the servo bus,
+enabling torque, writing a target, or loading a policy. It requires Rob to be
+physically present plus all three explicit acknowledgements, sustains full
+3/3/3/3 calibration, reapplies the captured profile to a fresh BNO055 session,
+and accepts it only after exact offset and frozen-mapping readback. Missing,
+malformed, or non-matching calibration data blocks later hardware startup.
 
 ## Board evidence collector
 

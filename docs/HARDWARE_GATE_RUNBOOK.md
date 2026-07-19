@@ -285,14 +285,39 @@ contact fractions, config/source hashes, and `imu_upside_down`. It also proves
 the BNO055 chip ID is `0xa0` and that all three inherited offset triplets read
 back exactly before NDOF sampling begins.
 
-The X5 backend requires a strict JSON calibration profile converted from the
-preserved runtime's `imu_calib_data.pkl`. The converter uses a restricted
-primitive-only unpickler, records the source SHA-256, and refuses overwrite:
+The X5 backend requires a strict JSON calibration profile. The readiness audit
+found no saved legacy profile on this robot, so offsets must be captured from
+its own BNO055; they are never guessed or copied from another robot. This is a
+manual no-servo prerequisite, not a Gate 3 capture. Rob must be present to
+support and reorient the robot. The exact guarded command is:
 
 ```bash
-convert_imu_calibration \
-  --legacy-pickle /home/sunrise/project/imu_calib_data.pkl \
-  --output ~/imu_calibration.json
+calibrate_imu --backend x5 --config ~/duck_config.json \
+  --output-dir ~/gate3/calibration-20260718 \
+  --imu-bus 5 --imu-address 0x28 \
+  --timeout-seconds 600 --poll-seconds 0.25 --stable-full-samples 5 \
+  --hardware-authorized --suspended-or-benched \
+  --manual-calibration-authorized
+```
+
+Keep the supported robot still until gyro reaches 3. Then slowly hold multiple
+stable orientations for accelerometer calibration and rotate it through all
+three axes for magnetometer calibration. The tool prints all four component
+levels. It waits for five consecutive `system/gyro/accelerometer/magnetometer =
+3/3/3/3` samples, captures the three contract offset triplets, closes I2C,
+reopens the sensor with the candidate profile, and requires exact identity,
+axis-map, unit, operation-mode, and offset readback. Only then does it atomically
+publish `imu_calib_data.pkl`, `imu_calibration.json`, the bounded status JSONL,
+and a summary. Ctrl-C, timeout, or verification failure publishes no candidate
+directory. The legacy-compatible pickle exists only to preserve source-hash
+provenance; all new runtime consumers use the strict JSON file.
+
+If an authentic legacy `imu_calib_data.pkl` is later recovered, the restricted
+primitive-only converter remains available for comparison:
+
+```bash
+convert_imu_calibration --legacy-pickle /path/to/imu_calib_data.pkl \
+  --output /path/to/imu_calibration.json
 ```
 
 After all nine labeled directories exist, validate them as one frozen matrix:

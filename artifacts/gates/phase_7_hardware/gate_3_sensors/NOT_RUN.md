@@ -15,4 +15,7 @@ label, and a single nine-label validation packet. No board sensor access has
 been performed as a Gate 3 capture. The authorized readiness inventory verified
 the BNO055 identity and both GPIO mappings, but found no saved legacy calibration
 and a live calibration status of zero. A physical calibration profile/hash
-remains pending before an exact launcher can be frozen.
+remains pending before an exact launcher can be frozen. The guarded,
+transactional `calibrate_imu` path and its evidence schemas are now prepared;
+this does not manufacture a calibration result or authorize the physical
+handling session.

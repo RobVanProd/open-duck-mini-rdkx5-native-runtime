@@ -34,6 +34,12 @@ freshness evidence, explicit typed labels, and refusal to open X5 GPIO/I2C
 before both hardware acknowledgements. The nine-label Gate 3 validator tests
 raw hashes, fixed capture parameters, common provenance, tamper rejection, and
 the invariant that physical clearance remains human-reviewed.
+The guided calibration tests additionally prove that the X5 backend cannot open
+I2C without the manual-positioning acknowledgement, requires sustained full
+calibration, closes on timeout, rejects existing destinations before device
+access, publishes no candidate after readback failure, emits bounded
+schema-valid evidence, and distinguishes mock output from an X5 review
+candidate.
 Telemetry tests prove output-open failures are reported synchronously and that
 exhausting any bounded record pool fails the run instead of silently dropping
 evidence. Runtime guard tests reject incomplete Gate 5 scope and
