@@ -49,6 +49,7 @@ build_automatic_configuration_profile = "open_duck_x5.configuration_profile:main
 collect_automatic_configuration = "open_duck_x5.configuration_collector:main"
 preflight_winner_v2_cpu = "open_duck_x5.winner_v2_cpu_preflight:main"
 review_winner_v2_cpu_preflight = "open_duck_x5.winner_v2_cpu_preflight_review:main"
+prepare_policy_envelope_closure = "open_duck_x5.policy_envelope_closure:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
