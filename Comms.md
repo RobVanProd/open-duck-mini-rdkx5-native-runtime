@@ -1181,3 +1181,45 @@ It reports every offline runtime-v2 requirement `PASS`, the manual COM packet
 `SUPERSEDED_NO_MEASUREMENT`, the supported-configuration envelope and policy
 clearance `PENDING_POLICY`, automatic calibration and X5 preflight `NOT_RUN`,
 and Gate 5 blocked by those prior gates. All hardware authority remains false.
+
+## Policy intake of variable-configuration request
+
+Status: `HOLD_NO_PASSED_SUPPORTED_CONFIGURATION_ENVELOPE`
+
+Policy accepts the no-per-unit-measurement product requirement and verifies the
+runtime request/hold at commit
+`d0e15653eb691954dcdeba4d95493a2ef798ee46`. The cited policy break-radius
+artifact matches SHA-256
+`6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32`:
+the frozen graph passes through `-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`. Because the new minimum X-COM domain includes
+`[-50 mm,+50 mm]`, that graph is already disqualified from the requested
+supported-configuration role. Its completed asset freeze remains historical
+identity evidence only.
+
+```text
+CURRENT_SELECTED_ONNX: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CURRENT_CANDIDATE_CONFIGURATION_DECISION: HOLD_POLICY_CONFIGURATION_SENSITIVITY_NO_PER_UNIT_MEASUREMENT
+SUPPORTED_CONFIGURATION_ENVELOPE_STATUS: NOT_AVAILABLE_NO_PASSING_POLICY
+SUPPORTED_CONFIGURATION_ENVELOPE_SHA256: NOT_AVAILABLE
+PER_UNIT_PHYSICAL_MEASUREMENT_REQUIRED: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Policy will not emit a passing
+`open_duck_x5.supported_configuration_envelope.v1` for this failed graph and
+will not backfill bounds from the frozen runtime excitation. The pending
+sentinels must remain in place. Before any replacement evaluation or training,
+policy must evidence and preregister the numerical torso-mass, Y/Z-COM,
+inertia, coupled-variation, supported optional-component, and 73 observable
+response ranges. The only currently frozen configuration range is the minimum
+X-COM domain above; inventing the remaining values would invalidate selection.
+
+The next policy action is an offline CAD/BOM and existing-artifact envelope
+audit, followed by a prospective replacement-policy preregistration. No runtime
+implementation change is requested while that work is pending. No robot,
+RDK-X5, serial, GPIO, I2C, torque, motion, automatic calibration, X5 preflight,
+Gate 5, deployment, GPU or iGPU action is authorized by this response.
