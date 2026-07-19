@@ -1027,3 +1027,19 @@ still requires external verification of the policy commit and preregistration
 artifact, then an exact two-line sentinel replacement and reviewer re-freeze.
 All robot, serial, torque, motion, deployment, and Gate 5 authority remains
 false.
+
+## D065 — Separate policy selection from envelope publication provenance
+
+Accepted offline only. An envelope cannot safely claim that its embedded
+policy commit is also the commit introducing the envelope: a file cannot
+contain the hash of its own not-yet-created Git commit. Runtime therefore
+requires three distinct identities: the preregistration commit embedded in the
+envelope, the selected-policy commit embedded in the envelope, and a later
+envelope-artifact commit supplied with its repository path.
+
+The closure checker reads the preregistration and envelope bytes directly from
+those Git objects, verifies their SHA-256 values, requires the official policy
+repository origin, and proves preregistration -> selected-policy ->
+envelope-artifact ancestry. Wrong origin, uncommitted bytes, wrong artifact
+bytes, or unrelated history fails closed. This remains an offline provenance
+check with all hardware authority false.

@@ -36,10 +36,12 @@ measurement, or policy inference is used.
   `7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`
 - final launcher SHA-256 after inserting the reviewed envelope identity:
   `PENDING — NO PHYSICAL RUN PERMITTED`
-- deterministic no-write closure implementation commit:
-  `d98a7588a07c94a9648a31b4b4d071b92a307ff6`
+- deterministic Git-provenance/no-write closure implementation commit:
+  `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3`
 - `src/open_duck_x5/policy_envelope_closure.py` SHA-256:
-  `999056af944e19706383c9f0b1457028d50e08456079411c81fc3f1b07e486e5`
+  `99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`
+- `src/open_duck_x5/policy_envelope_provenance.py` SHA-256:
+  `fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`
 
 The source archive can be reproduced only as:
 
@@ -116,8 +118,10 @@ commit a closure artifact containing its repository commit, artifact path,
 artifact SHA-256, selected ONNX SHA-256, and the final launcher SHA-256 after
 the one-value sentinel replacement. The frozen no-write closure tool must first
 confirm both pending launcher template hashes, independently supplied envelope
-SHA-256, complete envelope schema, and exact selected ONNX identity. A changed
-ONNX blocks closure and requires a new two-repository asset freeze. Only
+SHA-256, complete envelope schema, exact selected ONNX identity, committed
+preregistration and envelope bytes, and preregistration -> selected-policy ->
+envelope-artifact ancestry. A changed ONNX blocks closure and requires a new
+two-repository asset freeze. Only
 then may Rob explicitly authorize this exact supported moving sequence.
 
 Current authority remains: physical collection `NOT_RUN`, robot clearance

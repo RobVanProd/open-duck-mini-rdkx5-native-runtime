@@ -1136,9 +1136,12 @@ Its output remains `REVIEW_REQUIRED` with all hardware authority false.
 
 Status: `READY_PENDING_POLICY_ENVELOPE — NO_LAUNCHER_EDIT`
 
-Runtime commit `d98a7588a07c94a9648a31b4b4d071b92a307ff6` adds
-`prepare_policy_envelope_closure`; its implementation SHA-256 is
-`999056af944e19706383c9f0b1457028d50e08456079411c81fc3f1b07e486e5`.
+Runtime commit `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3` freezes
+`prepare_policy_envelope_closure` with Git-object provenance. The closure
+implementation SHA-256 is
+`99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`;
+`policy_envelope_provenance.py` is
+`fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`.
 The tool requires the independently supplied envelope SHA-256, validates the
 complete supported-configuration schema, and requires policy repository
 `RobVanProd/open-duck-mini-rdkx5`, contract `winner-v2-115d`, and the exact
@@ -1146,9 +1149,16 @@ currently frozen ONNX SHA-256. It verifies the existing automatic-calibration
 and X5 CPU-preflight launcher hashes, then computes both exact post-sentinel
 hashes without modifying either file.
 
+The handoff must distinguish the preregistration commit, selected-policy
+commit, and later commit that actually publishes the envelope; using the
+selected-policy commit as a self-referential envelope commit is invalid. The
+checker reads both committed artifacts from Git, verifies their SHA-256 values,
+requires the official origin, and proves preregistration -> selected-policy ->
+envelope-artifact ancestry.
+
 If the policy response selects a different ONNX, the tool deliberately rejects
 closure and requires a new two-repository asset freeze. If the ONNX is
 unchanged, structural acceptance still requires runtime to verify the policy
-commit and preregistration artifact before applying exactly the two sentinel
+and envelope artifact identities before applying exactly the two sentinel
 replacements and re-freezing the preflight reviewer. No hardware or motion
 authority changes.

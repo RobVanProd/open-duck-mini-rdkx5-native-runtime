@@ -178,11 +178,12 @@ independently reviewed envelope SHA-256 followed by a new hash closure.
 
 `prepare_policy_envelope_closure` makes that future edit reviewable before it
 happens. It accepts the envelope only with an independently supplied matching
-SHA-256, validates its complete schema, requires the exact currently frozen
+SHA-256, re-reads its preregistration and envelope artifacts from distinct Git
+commits, proves preregistration -> selected-policy -> envelope-artifact
+ancestry, validates its complete schema, requires the exact currently frozen
 selected ONNX, pins both pending launcher templates, and computes the exact two
 candidate hashes without writing the scripts. A changed ONNX fails with an
-asset-refreeze requirement; structural acceptance still leaves policy commit
-and preregistration provenance review outstanding.
+asset-refreeze requirement.
 
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
 be represented in the policy domain rather than entered manually. Missing a

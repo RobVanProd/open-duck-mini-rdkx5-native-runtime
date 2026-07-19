@@ -21,10 +21,12 @@ not automatic configuration and is not Hardware Gate 5.
   `2a1fbc769005a18dc44f3e2a790c523bbe6f444a`
 - `src/open_duck_x5/winner_v2_cpu_preflight_review.py` SHA-256:
   `68c5730b2b39d922c93be7f5de3adc8155298a4053eb88e5defeae9ca33a1cb2`
-- deterministic no-write envelope-closure implementation commit:
-  `d98a7588a07c94a9648a31b4b4d071b92a307ff6`
+- deterministic Git-provenance/envelope-closure implementation commit:
+  `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3`
 - `src/open_duck_x5/policy_envelope_closure.py` SHA-256:
-  `999056af944e19706383c9f0b1457028d50e08456079411c81fc3f1b07e486e5`
+  `99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`
+- `src/open_duck_x5/policy_envelope_provenance.py` SHA-256:
+  `fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`
 - `duck_config.json` SHA-256:
   `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
 - corrected handoff manifest SHA-256:
@@ -91,8 +93,10 @@ or executing the formal verifier. After policy publishes a reviewed envelope,
 runtime may replace only that value and must freeze the resulting launcher hash
 before the X5 CPU-only invocation. The no-write closure tool must first accept
 the independently supplied envelope SHA-256, unchanged launcher templates, and
-the exact frozen selected ONNX. Any replacement ONNX requires a new asset
-freeze rather than a sentinel edit.
+the exact frozen selected ONNX. It also re-reads the preregistration and
+envelope bytes from their distinct Git commits and verifies preregistration ->
+selected-policy -> envelope-artifact ancestry. Any replacement ONNX requires a
+new asset freeze rather than a sentinel edit.
 
 A preflight pass candidate is not accepted unless the frozen reviewer emits
 `PASS_X5_CPU_PREFLIGHT_EVIDENCE_VALIDATED`. The reviewed result remains marked
