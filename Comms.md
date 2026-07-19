@@ -1117,8 +1117,17 @@ surface. Commit `c6b03ce318f8d427813bef4cc93134f954b102d6` freezes
 `preflight_winner_v2_cpu`: it validates the envelope/config first, reruns the
 formal 2,400-tick verifier, and measures 10,000 in-memory transactions each at
 x=0 and x=.08. The locked wrapper SHA-256 is
-`698b747bcd1217c51f0059f8a68a2ee34cc2bca6ea674da9f04af8ecfa96493c`.
+`c70fa0ed182ae78b640ef731f175489046136aa51894db241ae455af06dbede7`.
 It has no serial-device argument or torque/motion path and its pending-envelope
 sentinel exits before path resolution, output creation, governor changes, ONNX
 load, or formal verification. The X5 invocation remains `NOT_RUN`; no policy,
 robot, Gate 5, deployment, or motion authority is implied.
+
+Runtime also froze an independent evidence reviewer at commit
+`2a1fbc769005a18dc44f3e2a790c523bbe6f444a`. The SHA-256 of
+`src/open_duck_x5/winner_v2_cpu_preflight_review.py` is
+`68c5730b2b39d922c93be7f5de3adc8155298a4053eb88e5defeae9ca33a1cb2`.
+It rehashes the complete evidence population, recomputes all 20,000 timing
+samples and gates from JSONL, verifies the exact frozen identities and governor
+restoration, and rejects coherently rehashed summary/governor/runner tampering.
+Its output remains `REVIEW_REQUIRED` with all hardware authority false.

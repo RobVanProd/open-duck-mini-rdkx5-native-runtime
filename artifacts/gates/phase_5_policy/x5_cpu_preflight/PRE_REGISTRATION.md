@@ -16,7 +16,11 @@ not automatic configuration and is not Hardware Gate 5.
   `473e4b9ff34e2d6d03350a59d8fc2b19749ffb29cba8023bd7dd8516e3a7f9b6`
 - locked launcher: `setup/run_winner_v2_cpu_preflight.sh`
 - locked launcher SHA-256 with pending-envelope sentinel:
-  `698b747bcd1217c51f0059f8a68a2ee34cc2bca6ea674da9f04af8ecfa96493c`
+  `c70fa0ed182ae78b640ef731f175489046136aa51894db241ae455af06dbede7`
+- independent evidence-review implementation commit:
+  `2a1fbc769005a18dc44f3e2a790c523bbe6f444a`
+- `src/open_duck_x5/winner_v2_cpu_preflight_review.py` SHA-256:
+  `68c5730b2b39d922c93be7f5de3adc8155298a4053eb88e5defeae9ca33a1cb2`
 - `duck_config.json` SHA-256:
   `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
 - corrected handoff manifest SHA-256:
@@ -50,6 +54,10 @@ git archive --format=tar.gz \
 6. Serialize the preallocated timing samples only after measured transactions,
    emit a review-required summary and hashes, and restore the prior governor on
    every exit path.
+7. Run the frozen independent reviewer outside the immutable evidence
+   directory. It must rehash the complete evidence population, rederive all
+   20,000 timing samples and gates from JSONL, verify the exact runner/source/
+   policy/config identities, and verify governor restoration.
 
 The selected policy session performs 100 warm-up inferences before each fresh
 episode; session construction and warm-up are outside the measured population.
@@ -79,6 +87,8 @@ or executing the formal verifier. After policy publishes a reviewed envelope,
 runtime may replace only that value and must freeze the resulting launcher hash
 before the X5 CPU-only invocation.
 
-A pass is only `PASS_X5_CPU_ONLY_PREFLIGHT_CANDIDATE` plus independent review.
+A preflight pass candidate is not accepted unless the frozen reviewer emits
+`PASS_X5_CPU_PREFLIGHT_EVIDENCE_VALIDATED`. The reviewed result remains marked
+`REVIEW_REQUIRED`; neither status is robot clearance.
 It grants no robot clearance, Gate 5, runtime deployment, serial access, torque,
 or motion. Physical status is `NOT_RUN`.

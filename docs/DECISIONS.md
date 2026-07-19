@@ -996,3 +996,18 @@ temporary performance governor restored on every exit. The launcher exposes no
 device, command, population, CPU, priority, or threshold override and is locked
 before setup by the pending policy-envelope sentinel. A result is review-only
 and grants no serial, torque, motion, Gate 5, or robot clearance.
+
+## D063 — Independently rederive the no-servo X5 preflight result
+
+Accepted offline only. The launcher now records its own SHA-256 and verifies
+the restored CPU governor by readback. A separate frozen reviewer rejects an
+incomplete or extra evidence population, rehashes every artifact, parses all
+20,000 contiguous JSONL records, recomputes stage/commit/transaction
+statistics and timing gates, checks transaction equals stage plus commit, and
+pins the source archive, runner, preflight module, policy envelope, config,
+handoff manifest, and selected ONNX identities.
+
+The reviewer writes outside the immutable run directory and preserves
+`REVIEW_REQUIRED` plus all-false hardware authority. A self-reported preflight
+summary or coherently rehashed tamper is therefore insufficient. This adds no
+robot, serial, torque, motion, deployment, or Gate 5 authority.

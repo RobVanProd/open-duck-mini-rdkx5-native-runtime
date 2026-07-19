@@ -171,6 +171,14 @@ are preregistered under
 wrapper's non-SHA envelope sentinel blocks before setup or ONNX load, so the X5
 preflight remains `NOT_RUN`.
 
+The separate `winner_v2_cpu_preflight_review` command is also frozen. It
+rehashes the complete run directory and independently recomputes the two
+10,000-sample timing populations and all gates rather than trusting the
+launcher summary. It also verifies exact source/runner/policy/config identities
+and CPU-governor restoration. Review output must be written outside the
+immutable evidence directory and does not change the `NOT_RUN` or authority
+state.
+
 The prior direct-reaction and component-level COM worksheets are not selected
 advancement routes. The frozen candidate's raw torso-X bracket passes through
 `-22.65625 mm/+5.46875 mm` and fails at
