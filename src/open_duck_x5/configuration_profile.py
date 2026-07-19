@@ -25,8 +25,8 @@ from .constants import (
     SERVO_IDS,
 )
 
-METADATA_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_metadata.v1"
-TICK_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_tick.v1"
+METADATA_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_metadata.v2"
+TICK_SCHEMA_VERSION = "open_duck_x5.configuration_excitation_tick.v2"
 MAXIMUM_CALIBRATION_TARGET_VELOCITY_RAD_S = 0.25
 MAXIMUM_CALIBRATION_TARGET_SPAN_RAD = 0.06
 MAXIMUM_CALIBRATION_HOME_DEVIATION_RAD = 0.03
@@ -108,11 +108,18 @@ def _load_metadata(path: Path) -> dict[str, Any]:
             "maximum_nonexcited_target_span_rad",
             "maximum_target_velocity_rad_s",
             "minimum_current_samples_per_joint",
+            "backend",
+            "device",
+            "informational_only",
+            "hardware_authorized",
             "motion_authorized",
+            "configuration_calibration_authorized",
             "suspended_or_benched",
             "torque_off_confirmed",
             "telemetry_drop_count",
             "configuration_sha256",
+            "imu_calibration_sha256",
+            "imu_calibration_source_sha256",
             "physical_home_rad",
             "maximum_home_deviation_rad",
             "inventory",
@@ -159,10 +166,53 @@ def _load_metadata(path: Path) -> dict[str, Any]:
         "metadata.minimum_current_samples_per_joint",
         minimum=1,
     )
-    if not _boolean(metadata["motion_authorized"], "metadata.motion_authorized"):
-        raise ConfigurationProfileError("metadata lacks explicit calibration-motion authority")
-    if not _boolean(metadata["suspended_or_benched"], "metadata.suspended_or_benched"):
-        raise ConfigurationProfileError("metadata does not confirm a supported robot")
+    backend = metadata["backend"]
+    if not isinstance(backend, str) or backend not in {"mock", "serial"}:
+        raise ConfigurationProfileError("metadata.backend must be 'mock' or 'serial'")
+    if not isinstance(metadata["device"], str) or not metadata["device"].strip():
+        raise ConfigurationProfileError("metadata.device must be a nonempty string")
+    informational_only = _boolean(metadata["informational_only"], "metadata.informational_only")
+    hardware_authorized = _boolean(metadata["hardware_authorized"], "metadata.hardware_authorized")
+    motion_authorized = _boolean(metadata["motion_authorized"], "metadata.motion_authorized")
+    calibration_authorized = _boolean(
+        metadata["configuration_calibration_authorized"],
+        "metadata.configuration_calibration_authorized",
+    )
+    suspended_or_benched = _boolean(
+        metadata["suspended_or_benched"], "metadata.suspended_or_benched"
+    )
+    if backend == "mock":
+        if (
+            not informational_only
+            or hardware_authorized
+            or motion_authorized
+            or calibration_authorized
+            or suspended_or_benched
+        ):
+            raise ConfigurationProfileError(
+                "mock metadata must be informational_only without physical authority"
+            )
+        if (
+            metadata["imu_calibration_sha256"] is not None
+            or metadata["imu_calibration_source_sha256"] is not None
+        ):
+            raise ConfigurationProfileError("mock metadata cannot claim IMU calibration hashes")
+    elif informational_only:
+        raise ConfigurationProfileError("serial metadata cannot be informational_only")
+    elif (
+        not hardware_authorized
+        or not motion_authorized
+        or not calibration_authorized
+        or not suspended_or_benched
+    ):
+        raise ConfigurationProfileError(
+            "serial metadata lacks exact hardware, motion, or supported-state authority"
+        )
+    else:
+        for key in ("imu_calibration_sha256", "imu_calibration_source_sha256"):
+            value = metadata[key]
+            if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
+                raise ConfigurationProfileError(f"metadata.{key} is invalid")
     if not _boolean(metadata["torque_off_confirmed"], "metadata.torque_off_confirmed"):
         raise ConfigurationProfileError("metadata lacks final torque-off confirmation")
     if _integer(metadata["telemetry_drop_count"], "metadata.telemetry_drop_count"):
@@ -242,6 +292,8 @@ def _read_trace(
     list[list[tuple[int, float]]],
     np.ndarray,
     np.ndarray,
+    np.ndarray,
+    np.ndarray,
 ]:
     tick_count = int(metadata["tick_count"])
     targets = np.zeros((tick_count, ACTION_DIM), dtype=np.float64)
@@ -249,22 +301,30 @@ def _read_trace(
     currents: list[list[tuple[int, float]]] = [[] for _ in range(ACTION_DIM)]
     gyro = np.zeros((tick_count, 3), dtype=np.float64)
     acceleration = np.zeros((tick_count, 3), dtype=np.float64)
+    bus_total_ms = np.zeros(tick_count, dtype=np.float64)
+    timestamps_ns = np.zeros(tick_count, dtype=np.int64)
     expected_keys = {
         "schema_version",
         "tick",
         "timestamp_monotonic_ns",
+        "bus_total_ms",
         "stage_joint",
         "target_positions_rad",
         "actual_positions_rad",
         "present_current_a",
         "gyro_rad_s",
         "acceleration_m_s2",
+        "foot_contacts",
+        "imu_timestamp_monotonic_ns",
+        "contacts_timestamp_monotonic_ns",
         "per_servo_status",
         "stale",
         "imu_stale",
         "contacts_stale",
     }
     previous_timestamp = -1
+    previous_imu_timestamp = -1
+    previous_contacts_timestamp = -1
     stage_index = 0
     row_count = 0
     try:
@@ -289,6 +349,10 @@ def _read_trace(
                 if timestamp <= previous_timestamp:
                     raise ConfigurationProfileError("trace timestamps are not strictly monotonic")
                 previous_timestamp = timestamp
+                timestamps_ns[tick] = timestamp
+                bus_total_ms[tick] = _finite(
+                    row["bus_total_ms"], f"trace row {tick} bus_total_ms", nonnegative=True
+                )
                 expected_stage, stage_index = _expected_stage(metadata, tick, stage_index)
                 if row["stage_joint"] != expected_stage:
                     raise ConfigurationProfileError(f"trace row {tick} stage label is wrong")
@@ -319,6 +383,23 @@ def _read_trace(
                 acceleration[tick] = _vector(
                     row["acceleration_m_s2"], 3, f"trace row {tick} acceleration"
                 )
+                _vector(row["foot_contacts"], 2, f"trace row {tick} contacts")
+                imu_timestamp = _integer(
+                    row["imu_timestamp_monotonic_ns"],
+                    f"trace row {tick} IMU timestamp",
+                    minimum=1,
+                )
+                contacts_timestamp = _integer(
+                    row["contacts_timestamp_monotonic_ns"],
+                    f"trace row {tick} contacts timestamp",
+                    minimum=1,
+                )
+                if imu_timestamp < previous_imu_timestamp:
+                    raise ConfigurationProfileError("IMU timestamps move backward")
+                if contacts_timestamp < previous_contacts_timestamp:
+                    raise ConfigurationProfileError("contact timestamps move backward")
+                previous_imu_timestamp = imu_timestamp
+                previous_contacts_timestamp = contacts_timestamp
                 if row["per_servo_status"] != ["ok"] * ACTION_DIM:
                     raise ConfigurationProfileError(f"trace row {tick} has a transaction failure")
                 if row["stale"] != [False] * ACTION_DIM:
@@ -333,7 +414,7 @@ def _read_trace(
         raise ConfigurationProfileError(
             f"trace row population is {row_count}, expected {tick_count}"
         )
-    return targets, actual, currents, gyro, acceleration
+    return targets, actual, currents, gyro, acceleration, bus_total_ms, timestamps_ns
 
 
 def _fit_joint_response(
@@ -403,7 +484,15 @@ def build_automatic_configuration_profile(
         raise ConfigurationProfileError(
             "metadata physical_home_rad differs from frozen home plus configuration offsets"
         )
-    targets, actual, currents, gyro, acceleration = _read_trace(trace_path, metadata)
+    (
+        targets,
+        actual,
+        currents,
+        gyro,
+        acceleration,
+        bus_total_ms,
+        timestamps_ns,
+    ) = _read_trace(trace_path, metadata)
     period_s = 1.0 / float(metadata["frequency_hz"])
     minimum_target_span = float(metadata["minimum_target_span_rad"])
     max_other_span = float(metadata["maximum_nonexcited_target_span_rad"])
@@ -412,6 +501,19 @@ def build_automatic_configuration_profile(
     maximum_target_velocity = float(metadata["maximum_target_velocity_rad_s"])
     physical_home = np.asarray(metadata["physical_home_rad"], dtype=np.float64)
     maximum_home_deviation = float(metadata["maximum_home_deviation_rad"])
+
+    tick_period_ms = np.diff(timestamps_ns.astype(np.float64)) / 1e6
+    tick_period_p99_ms = float(np.percentile(tick_period_ms, 99))
+    tick_period_p99_9_ms = float(np.percentile(tick_period_ms, 99.9))
+    bus_total_max_ms = float(np.max(bus_total_ms))
+    if tick_period_p99_ms > 21.0:
+        raise ConfigurationProfileError(f"trace tick p99 {tick_period_p99_ms} ms exceeds 21 ms")
+    if tick_period_p99_9_ms > 22.0:
+        raise ConfigurationProfileError(f"trace tick p99.9 {tick_period_p99_9_ms} ms exceeds 22 ms")
+    if bus_total_max_ms >= 5.0:
+        raise ConfigurationProfileError(
+            f"trace bus maximum {bus_total_max_ms} ms is not below 5 ms"
+        )
 
     target_deltas = np.diff(np.vstack((physical_home, targets)), axis=0)
     maximum_observed_velocity = float(
@@ -495,11 +597,18 @@ def build_automatic_configuration_profile(
         "schema_version": PROFILE_SCHEMA_VERSION,
         "source": {
             "method": AUTOMATIC_METHOD,
+            "backend": str(metadata["backend"]),
+            "device": str(metadata["device"]),
+            "informational_only": bool(metadata["informational_only"]),
             "trace_sha256": _sha256(trace_path),
             "metadata_sha256": _sha256(metadata_path),
             "configuration_sha256": str(metadata["configuration_sha256"]),
             "manual_measurements_used": False,
+            "hardware_authorized": bool(metadata["hardware_authorized"]),
             "motion_authorized": bool(metadata["motion_authorized"]),
+            "configuration_calibration_authorized": bool(
+                metadata["configuration_calibration_authorized"]
+            ),
             "suspended_or_benched": bool(metadata["suspended_or_benched"]),
             "torque_off_confirmed": bool(metadata["torque_off_confirmed"]),
         },
@@ -516,6 +625,9 @@ def build_automatic_configuration_profile(
             "stale_sample_count": 0,
             "transaction_failure_count": 0,
             "telemetry_drop_count": int(metadata["telemetry_drop_count"]),
+            "tick_period_p99_ms": tick_period_p99_ms,
+            "tick_period_p99_9_ms": tick_period_p99_9_ms,
+            "bus_total_max_ms": bus_total_max_ms,
         },
         "joint_response": joint_response,
         "body_response": {
@@ -528,8 +640,12 @@ def build_automatic_configuration_profile(
         issues = validate_automatic_profile_data(profile)
     except ConfigurationSupportError as exc:
         raise ConfigurationProfileError(f"generated profile is invalid: {exc}") from exc
-    if issues:
-        raise ConfigurationProfileError("generated profile has hold issues: " + ", ".join(issues))
+    allowed_issues = {"source.informational_only_mock"}
+    unexpected_issues = [issue for issue in issues if issue not in allowed_issues]
+    if unexpected_issues:
+        raise ConfigurationProfileError(
+            "generated profile has hold issues: " + ", ".join(unexpected_issues)
+        )
     return profile
 
 

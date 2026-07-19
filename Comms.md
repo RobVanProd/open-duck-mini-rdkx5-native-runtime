@@ -1002,9 +1002,8 @@ contract.
 
 This does not ask policy to infer one robot's exact COM. It asks policy to
 define the response envelope corresponding to the broad domain it actually
-passed. A future, separately authorized collector will generate the physical
-profile without operator measurements. Until that collector exists and runs,
-the physical profile is `NOT_RUN`; robot clearance and Gate 5 remain false.
+passed. The runtime collector now exists, but its separately authorized
+physical run remains `NOT_RUN`; robot clearance and Gate 5 remain false.
 
 ## Runtime automatic trace-to-profile extractor
 
@@ -1029,9 +1028,34 @@ response envelope requested above is sufficient for the fully automatic
 trace -> profile -> policy-envelope decision chain. Physical trace collection
 remains `NOT_RUN` and no motion authority is implied.
 
-Evidence hardening: the generated profile schema is now v2 and binds the raw
+Evidence hardening: the generated profile schema is now v3 and binds the raw
 trace, excitation metadata, and exact `duck_config.json` by SHA-256. The final
 validator requires all three inputs, regenerates the profile, and compares the
 complete structure and every numeric result before it may emit the full-chain
 PASS. A hand-edited profile or copied hash text cannot pass. This does not
 change the envelope requested from the policy repository.
+
+## Runtime automatic configuration collector
+
+Status: `OFFLINE_MOCK_CHAIN_PASS — PHYSICAL_COLLECTION_NOT_RUN`
+
+Runtime now provides `collect_automatic_configuration`. It runs a fixed
+2,814-tick sequence (201 ticks for each frozen joint), collects measured joint
+response, round-robin current, bus time, IMU, contacts, and independent sensor
+timestamps, then automatically produces metadata v2 and profile v3. The target
+signal starts/ends at home, stays inside `0.03 rad`, and stays below
+`0.21 rad/s`. JSON serialization is off the control thread.
+
+Mock provenance is permanently informational and cannot pass the physical
+configuration decision. The serial path is fail-closed behind exact hardware,
+supported-state, moving-gate, configuration-calibration, BNO055, real-time,
+and frozen-config requirements. It also rejects tick p99 above `21 ms`, p99.9
+above `22 ms`, bus maximum at/above `5 ms`, stale/failing samples, device
+alarms, evidence gaps, insufficient current coverage, or any cleanup cutoff
+failure. Fault tests confirm that an interrupted trace leaves no final evidence
+and torque is disabled.
+
+Policy agent: the required envelope schema and 73 response bounds are unchanged.
+Do not add exact-COM or per-build measurement fields. Physical collection is
+still `NOT_RUN` and requires a separately preregistered motion authorization;
+no robot, Gate 5, deployment, or grounded authority is implied.

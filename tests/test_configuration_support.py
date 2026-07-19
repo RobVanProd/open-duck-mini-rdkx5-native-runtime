@@ -21,11 +21,16 @@ def _profile() -> dict[str, object]:
         "schema_version": PROFILE_SCHEMA_VERSION,
         "source": {
             "method": AUTOMATIC_METHOD,
+            "backend": "serial",
+            "device": "/dev/ttyS1",
+            "informational_only": False,
             "trace_sha256": "a" * 64,
             "metadata_sha256": "b" * 64,
             "configuration_sha256": "c" * 64,
             "manual_measurements_used": False,
+            "hardware_authorized": True,
             "motion_authorized": True,
+            "configuration_calibration_authorized": True,
             "suspended_or_benched": True,
             "torque_off_confirmed": True,
         },
@@ -42,6 +47,9 @@ def _profile() -> dict[str, object]:
             "stale_sample_count": 0,
             "transaction_failure_count": 0,
             "telemetry_drop_count": 0,
+            "tick_period_p99_ms": 20.0,
+            "tick_period_p99_9_ms": 20.0,
+            "bus_total_max_ms": 4.0,
         },
         "joint_response": {
             name: {

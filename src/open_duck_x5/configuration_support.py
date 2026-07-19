@@ -10,7 +10,7 @@ from typing import Any
 
 from .constants import CONTROL_FREQUENCY_HZ, JOINT_NAMES, SERVO_IDS
 
-PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v2"
+PROFILE_SCHEMA_VERSION = "open_duck_x5.automatic_configuration_profile.v3"
 ENVELOPE_SCHEMA_VERSION = "open_duck_x5.supported_configuration_envelope.v1"
 RESULT_SCHEMA_VERSION = "open_duck_x5.configuration_support_result.v2"
 AUTOMATIC_METHOD = "automatic_supported_excitation"
@@ -150,11 +150,16 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         source,
         {
             "method",
+            "backend",
+            "device",
+            "informational_only",
             "trace_sha256",
             "metadata_sha256",
             "configuration_sha256",
             "manual_measurements_used",
+            "hardware_authorized",
             "motion_authorized",
+            "configuration_calibration_authorized",
             "suspended_or_benched",
             "torque_off_confirmed",
         },
@@ -162,6 +167,11 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
     )
     if source["method"] != AUTOMATIC_METHOD:
         raise ConfigurationSupportError(f"profile.source.method must be {AUTOMATIC_METHOD!r}")
+    backend = _string(source["backend"], "profile.source.backend")
+    if backend not in {"mock", "serial"}:
+        raise ConfigurationSupportError("profile.source.backend must be 'mock' or 'serial'")
+    _string(source["device"], "profile.source.device")
+    informational_only = _boolean(source["informational_only"], "profile.source.informational_only")
     _sha256_string(source["trace_sha256"], "profile.source.trace_sha256")
     _sha256_string(source["metadata_sha256"], "profile.source.metadata_sha256")
     _sha256_string(source["configuration_sha256"], "profile.source.configuration_sha256")
@@ -170,14 +180,40 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         "profile.source.manual_measurements_used",
     ):
         raise ConfigurationSupportError("manual physical measurements are not accepted")
-    if not _boolean(source["motion_authorized"], "profile.source.motion_authorized"):
-        raise ConfigurationSupportError("profile lacks explicit calibration-motion authority")
-    if not _boolean(source["suspended_or_benched"], "profile.source.suspended_or_benched"):
-        raise ConfigurationSupportError("profile was not collected with the robot supported")
+    hardware_authorized = _boolean(
+        source["hardware_authorized"], "profile.source.hardware_authorized"
+    )
+    motion_authorized = _boolean(source["motion_authorized"], "profile.source.motion_authorized")
+    calibration_authorized = _boolean(
+        source["configuration_calibration_authorized"],
+        "profile.source.configuration_calibration_authorized",
+    )
+    supported = _boolean(source["suspended_or_benched"], "profile.source.suspended_or_benched")
     if not _boolean(source["torque_off_confirmed"], "profile.source.torque_off_confirmed"):
         raise ConfigurationSupportError("profile lacks final torque-off confirmation")
 
     issues: list[str] = []
+    if backend == "mock":
+        if (
+            not informational_only
+            or hardware_authorized
+            or motion_authorized
+            or calibration_authorized
+            or supported
+        ):
+            raise ConfigurationSupportError(
+                "mock profile must be informational_only without physical authority"
+            )
+        issues.append("source.informational_only_mock")
+    else:
+        if informational_only:
+            raise ConfigurationSupportError("serial profile cannot be informational_only")
+        if not hardware_authorized:
+            raise ConfigurationSupportError("profile lacks explicit hardware authority")
+        if not motion_authorized or not calibration_authorized:
+            raise ConfigurationSupportError("profile lacks exact calibration-motion authority")
+        if not supported:
+            raise ConfigurationSupportError("profile was not collected with the robot supported")
     inventory = _object(profile["inventory"], "profile.inventory")
     _exact_keys(
         inventory,
@@ -220,6 +256,9 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
             "stale_sample_count",
             "transaction_failure_count",
             "telemetry_drop_count",
+            "tick_period_p99_ms",
+            "tick_period_p99_9_ms",
+            "bus_total_max_ms",
         },
         "profile.sample_contract",
     )
@@ -238,6 +277,27 @@ def _validate_profile(profile: dict[str, Any]) -> tuple[list[str], dict[str, flo
         value = _integer(samples[key], f"profile.sample_contract.{key}")
         if value:
             issues.append(f"sample_contract.{key}={value}")
+    tick_p99 = _finite(
+        samples["tick_period_p99_ms"],
+        "profile.sample_contract.tick_period_p99_ms",
+        nonnegative=True,
+    )
+    tick_p99_9 = _finite(
+        samples["tick_period_p99_9_ms"],
+        "profile.sample_contract.tick_period_p99_9_ms",
+        nonnegative=True,
+    )
+    bus_max = _finite(
+        samples["bus_total_max_ms"],
+        "profile.sample_contract.bus_total_max_ms",
+        nonnegative=True,
+    )
+    if tick_p99 > 21.0:
+        issues.append(f"sample_contract.tick_period_p99_ms={tick_p99}")
+    if tick_p99_9 > 22.0:
+        issues.append(f"sample_contract.tick_period_p99_9_ms={tick_p99_9}")
+    if bus_max >= 5.0:
+        issues.append(f"sample_contract.bus_total_max_ms={bus_max}")
 
     flattened: dict[str, float] = {}
     joint_response = _object(profile["joint_response"], "profile.joint_response")

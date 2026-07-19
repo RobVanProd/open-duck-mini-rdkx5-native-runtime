@@ -20,6 +20,7 @@ from open_duck_x5.configuration_profile import (
 from open_duck_x5.configuration_support import (
     ENVELOPE_SCHEMA_VERSION,
     ConfigurationSupportError,
+    evaluate_configuration_support_data,
     validate_configuration_support,
 )
 from open_duck_x5.configuration_support import (
@@ -41,7 +42,7 @@ def _excitation(local_tick: int) -> float:
     )
 
 
-def _evidence() -> tuple[dict[str, object], list[dict[str, object]]]:
+def _evidence(*, backend: str = "serial") -> tuple[dict[str, object], list[dict[str, object]]]:
     stages = [
         {
             "joint_name": name,
@@ -61,11 +62,18 @@ def _evidence() -> tuple[dict[str, object], list[dict[str, object]]]:
         "maximum_target_velocity_rad_s": 0.21,
         "maximum_home_deviation_rad": 0.03,
         "minimum_current_samples_per_joint": 10,
-        "motion_authorized": True,
-        "suspended_or_benched": True,
+        "backend": backend,
+        "device": "/dev/ttyS1" if backend == "serial" else "mock://sts3215",
+        "informational_only": backend == "mock",
+        "hardware_authorized": backend == "serial",
+        "motion_authorized": backend == "serial",
+        "configuration_calibration_authorized": backend == "serial",
+        "suspended_or_benched": backend == "serial",
         "torque_off_confirmed": True,
         "telemetry_drop_count": 0,
         "configuration_sha256": CONFIGURATION_SHA256,
+        "imu_calibration_sha256": "7" * 64 if backend == "serial" else None,
+        "imu_calibration_source_sha256": "8" * 64 if backend == "serial" else None,
         "physical_home_rad": HOME_RAD.tolist(),
         "inventory": {
             "required_servo_ids": list(SERVO_IDS),
@@ -96,6 +104,7 @@ def _evidence() -> tuple[dict[str, object], list[dict[str, object]]]:
                     "schema_version": TICK_SCHEMA_VERSION,
                     "tick": global_tick,
                     "timestamp_monotonic_ns": timestamp_ns,
+                    "bus_total_ms": 2.0,
                     "stage_joint": joint_name,
                     "target_positions_rad": target.tolist(),
                     "actual_positions_rad": actual.tolist(),
@@ -106,6 +115,9 @@ def _evidence() -> tuple[dict[str, object], list[dict[str, object]]]:
                         0.0,
                     ],
                     "acceleration_m_s2": [0.0, 0.0, 9.81],
+                    "foot_contacts": [0.0, 0.0],
+                    "imu_timestamp_monotonic_ns": timestamp_ns,
+                    "contacts_timestamp_monotonic_ns": timestamp_ns,
                     "per_servo_status": ["ok"] * len(JOINT_NAMES),
                     "stale": [False] * len(JOINT_NAMES),
                     "imu_stale": False,
@@ -223,6 +235,20 @@ def test_trace_is_fitted_into_profile_and_passes_support_validator(tmp_path: Pat
     assert decision["profile"]["reproduction_max_abs_error"] == 0.0
 
 
+def test_mock_profile_is_permanently_informational(tmp_path: Path) -> None:
+    metadata, rows = _evidence(backend="mock")
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+    profile = build_automatic_configuration_profile(
+        trace_path=trace,
+        metadata_path=metadata_path,
+        configuration_path=CONFIGURATION_PATH,
+    )
+
+    decision = evaluate_configuration_support_data(profile=profile, envelope=_support_envelope())
+    assert decision["status"] == "HOLD_PROFILE_VALUES_OUTSIDE_POLICY_ENVELOPE"
+    assert decision["issues"] == ["source.informational_only_mock"]
+
+
 def test_support_cli_verifies_complete_raw_evidence_chain(tmp_path: Path) -> None:
     metadata, rows = _evidence()
     trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
@@ -330,6 +356,51 @@ def test_stale_sensor_trace_is_rejected(tmp_path: Path) -> None:
     trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
 
     with pytest.raises(ConfigurationProfileError, match="stale IMU"):
+        build_automatic_configuration_profile(
+            trace_path=trace,
+            metadata_path=metadata_path,
+            configuration_path=CONFIGURATION_PATH,
+        )
+
+
+def test_nondeterministic_tick_population_is_rejected(tmp_path: Path) -> None:
+    metadata, rows = _evidence()
+    timestamp_ns = 1_000_000_000
+    for tick, row in enumerate(rows):
+        if tick:
+            timestamp_ns += 23_000_000 if tick % 50 == 0 else 20_000_000
+        row["timestamp_monotonic_ns"] = timestamp_ns
+        row["imu_timestamp_monotonic_ns"] = timestamp_ns
+        row["contacts_timestamp_monotonic_ns"] = timestamp_ns
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+
+    with pytest.raises(ConfigurationProfileError, match="tick p99"):
+        build_automatic_configuration_profile(
+            trace_path=trace,
+            metadata_path=metadata_path,
+            configuration_path=CONFIGURATION_PATH,
+        )
+
+
+def test_bus_maximum_at_five_ms_is_rejected(tmp_path: Path) -> None:
+    metadata, rows = _evidence()
+    rows[17]["bus_total_ms"] = 5.0
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+
+    with pytest.raises(ConfigurationProfileError, match="not below 5 ms"):
+        build_automatic_configuration_profile(
+            trace_path=trace,
+            metadata_path=metadata_path,
+            configuration_path=CONFIGURATION_PATH,
+        )
+
+
+def test_sensor_sample_timestamps_cannot_move_backward(tmp_path: Path) -> None:
+    metadata, rows = _evidence()
+    rows[11]["imu_timestamp_monotonic_ns"] = rows[9]["imu_timestamp_monotonic_ns"]
+    trace, metadata_path = _write_evidence(tmp_path, metadata, rows)
+
+    with pytest.raises(ConfigurationProfileError, match="IMU timestamps move backward"):
         build_automatic_configuration_profile(
             trace_path=trace,
             metadata_path=metadata_path,

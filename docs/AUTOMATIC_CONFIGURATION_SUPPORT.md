@@ -21,7 +21,7 @@ pitch/roll rate, and acceleration norm.
 
 `validate_configuration_support` verifies one complete evidence chain:
 
-- an `open_duck_x5.automatic_configuration_profile.v2` generated profile;
+- an `open_duck_x5.automatic_configuration_profile.v3` generated profile;
 - its immutable excitation JSONL and metadata inputs;
 - the exact `duck_config.json` whose soft offsets define physical home; and
 - an `open_duck_x5.supported_configuration_envelope.v1` artifact produced by
@@ -36,6 +36,8 @@ The validator is strict and fail-closed. It requires:
 - the frozen 14 required servo IDs, BNO055, and both contacts;
 - 50 Hz, a complete sample population, and zero stale samples, transaction
   failures, or telemetry drops;
+- tick p99 at most `21 ms`, tick p99.9 at most `22 ms`, and complete-sweep bus
+  maximum strictly below `5 ms` from the raw tick population;
 - all five observable response metrics for every frozen joint;
 - all three body-response metrics;
 - a policy domain spanning at least `[-50 mm,+50 mm]` torso X-COM plus
@@ -78,8 +80,8 @@ or manually measured evidence is rejected.
 `build_automatic_configuration_profile` converts immutable raw excitation
 evidence into the profile above. It accepts:
 
-- `open_duck_x5.configuration_excitation_metadata.v1` JSON; and
-- contiguous `open_duck_x5.configuration_excitation_tick.v1` JSONL.
+- `open_duck_x5.configuration_excitation_metadata.v2` JSON; and
+- contiguous `open_duck_x5.configuration_excitation_tick.v2` JSONL.
 
 The metadata freezes 50 Hz, the complete tick count, one contiguous stage per
 joint in frozen joint order, fit horizon, minimum excitation, current-sample
@@ -88,12 +90,14 @@ drops, final torque-off, the exact configuration SHA-256, and the physical home
 vector derived from frozen home plus that configuration's soft offsets. It has
 no accepted physical-parameter field.
 
-Every raw row contains the stage label, 14 sent targets, 14 measured positions,
-per-joint current samples or nulls, timestamp-aligned gyro and acceleration,
-all servo statuses/staleness, and IMU/contact staleness. The extractor rejects
+Every raw row contains the stage label, tick and bus timing, 14 sent targets,
+14 measured positions, per-joint current samples or nulls, gyro, acceleration,
+contact values, separate monotonic IMU/contact sample timestamps, all servo
+statuses/staleness, and IMU/contact staleness. The extractor rejects
 gaps, mixed stage labels, nonfinite data, stale or failed samples, simultaneous
 cross-joint excitation, insufficient current coverage, target span above
-`0.06 rad`, or target velocity above the frozen `0.25 rad/s` ceiling.
+`0.06 rad`, target velocity above the frozen `0.25 rad/s` ceiling, backward
+sensor timestamps, or a timing population outside the runtime gates.
 
 For each joint it fits the discrete first-order response
 `actual[t] = a*actual[t-1] + b*target[t-delay] + c` across a bounded delay
@@ -114,19 +118,45 @@ Synthetic tests recover an injected two-tick delay, `0.9` gain, and known time
 constant for all 14 joints, then pass the resulting profile through the full
 73-metric policy-envelope validator.
 
-## Physical collector still required
+## Implemented guarded collector
 
-No physical excitation collector has been run or authorized by this work. The
-offline extractor consumes its future output but cannot access hardware. The
-collector's future implementation must preserve this sequence:
+`collect_automatic_configuration` now implements the complete collection path.
+Its default is mock, its mock result is permanently marked informational, and
+the final validator cannot turn a mock profile into a physical PASS. The fixed
+collection is 2,814 ticks: 201 ticks for each frozen joint in frozen order,
+using a smooth two-frequency signal that begins and ends at home, stays within
+`0.03 rad`, and stays below `0.21 rad/s`. JSON serialization runs on a bounded,
+preallocated background writer. The serial path requires isolated-core
+`SCHED_FIFO`, the exact BNO055 calibration, and all four explicit assertions:
+`--hardware-authorized`, `--suspended-or-benched`,
+`--moving-gate-authorized`, and `--configuration-calibration-authorized`.
+
+The collector preserves this sequence:
 
 1. torque-off inventory of required servos and sensors;
 2. halt without torque if any contract-required component is missing;
 3. separately authorized, supported/benched, no-policy excitation with frozen
    amplitude, duration, order, watchdog, and stop thresholds;
 4. direct capture of servo state/current and timestamp-aligned IMU response;
-5. automatic metric extraction with immutable raw-trace SHA-256; and
+5. automatic metric extraction with immutable trace, metadata, and config
+   SHA-256 identities; and
 6. redundant torque-off before emitting a complete profile.
+
+Example mock-only contract run:
+
+```bash
+collect_automatic_configuration \
+  --bus mock --mock-no-wait \
+  --config duck_config.example.json \
+  --trace excitation.jsonl \
+  --metadata excitation-metadata.json \
+  --profile automatic-profile.json
+```
+
+The serial command is intentionally not presented as an executable gate: its
+source/config/calibration hashes and exact motion authorization must be frozen
+in a reviewed run artifact first. No physical collection has been run or
+authorized by this work, so physical status remains `NOT_RUN`.
 
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
 be represented in the policy domain rather than entered manually. Missing a

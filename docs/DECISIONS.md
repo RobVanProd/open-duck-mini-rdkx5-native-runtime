@@ -909,3 +909,30 @@ or numeric difference above `1e-9`; hash strings alone are not evidence.
 This is not a physical collector or motion launcher. No serial, GPIO, I2C,
 torque, policy, robot, or RDK-X5 path was added. Physical collection remains
 `NOT_RUN` and separately authorized. The frozen policy contracts are unchanged.
+
+## D058 — Add a guarded collector and bind timing/source provenance
+
+Accepted offline; physical execution remains `NOT_RUN`. The new
+`configuration_collector.py` emits the strict raw evidence, metadata, and
+generated profile in one fail-closed operation. Mock is the default and is
+permanently labeled informational. Serial collection requires the standard
+hardware/support assertions plus distinct moving-gate and
+configuration-calibration assertions, isolated-core `SCHED_FIFO`, the exact
+config, and a reviewed BNO055 calibration. No policy is loaded.
+
+The excitation is frozen at 201 ticks per joint in the 14-joint contract order
+(2,814 ticks total). Its smooth two-frequency target begins and ends at home,
+stays within `0.03 rad`, and stays below `0.21 rad/s`. The collector verifies
+all servo responses, device alarms, round-robin current, sensor freshness, and
+the watchdog every tick. A bounded preallocated writer serializes off-thread.
+Any fault publishes no final trace/profile, and redundant torque-off runs on
+all exit paths.
+
+Metadata v2 and tick v2 add explicit mock/serial provenance, hardware and
+motion authority, device identity, bus time, contact values, and separate IMU
+and contact monotonic timestamps. Profile v3 cannot represent mock output as a
+physical pass. Extraction now rejects tick p99 above `21 ms`, p99.9 above
+`22 ms`, or bus maximum at/above `5 ms`, in addition to the D057 response and
+freshness rules. The complete mock chain and injected cutoff/fault cases pass
+offline. This decision grants no physical calibration run, Gate 5, deployment,
+or robot clearance.

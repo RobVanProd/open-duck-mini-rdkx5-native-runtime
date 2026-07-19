@@ -46,6 +46,7 @@ validate_imu_calibration = "open_duck_x5.imu_calibration_review:main"
 verify_winner_v2_handoff = "open_duck_x5.winner_v2_verifier:main"
 validate_configuration_support = "open_duck_x5.configuration_support:main"
 build_automatic_configuration_profile = "open_duck_x5.configuration_profile:main"
+collect_automatic_configuration = "open_duck_x5.configuration_collector:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
