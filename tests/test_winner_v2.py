@@ -621,6 +621,10 @@ def test_reduced_result_contains_preregistered_cell_evidence() -> None:
         assert cell["platform"]
         assert cell["onnx_execution_provider"] == "CPUExecutionProvider"
         assert cell["all_cell_gates_passed"] is True
+        assert cell["semantic_gates"]["teacher_forced_observation_exact_zero"] is True
+        assert "teacher_forced_observation_at_most_1e_6" not in cell[
+            "semantic_gates"
+        ]
         assert set(cell["per_joint_max_abs_error"]) == {
             "logical_target_rad",
             "p30_observer_rad",

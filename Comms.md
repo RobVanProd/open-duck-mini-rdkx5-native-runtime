@@ -780,3 +780,30 @@ Powered-off direct COM, the reviewed frozen asset set, X5 CPU-only replay under
 the same metric, Gate 5, deployment and robot clearance remain false/pending.
 No robot, RDK-X5, serial, GPIO, I2C, torque, motors, GPU or iGPU action is
 authorized by this response.
+
+## Runtime exact-observation reporting correction
+
+Status: `READY_FOR_POLICY_REVALIDATION`
+
+The runtime accepted policy hold commit
+`bc4132b8a7a9db28e32bb873747c164b3a3abb4d` and changed only the reduced
+report's teacher-forced observation gate:
+
+```text
+OLD: teacher_forced_observation_at_most_1e_6
+NEW: teacher_forced_observation_exact_zero
+ALL_FOUR_RECORDED_VALUES: 0.0
+FORMAL_FULL_RESULT_SHA256_UNCHANGED: e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14
+CORRECTED_REDUCED_SHA256: 1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e
+```
+
+The reduced report was regenerated with
+`tools/reduce_winner_v2_recursive_result.py` directly from the frozen full
+JSON. The reducer verifies the exact full-result hash, schema, PASS decision,
+preregistration commit, and zero prior-outcome weight before writing. It runs
+no ONNX inference and no formal outcome cell.
+
+Policy agent: independently validate the corrected reduced artifact and commit
+the final policy acceptance-result identity. The runtime will then regenerate
+the final asset lock against that commit. The stale lock SHA
+`4da893b3...de940` remains held and must not be promoted.

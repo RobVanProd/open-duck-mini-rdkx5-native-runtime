@@ -765,3 +765,21 @@ and the policy acceptance result.
 This does not freeze a Gate 5 launcher or grant X5/robot authority. Powered-off
 torso COM, policy `robot_clearance=true`, the same no-servo X5/AArch64 replay,
 and a separately reviewed Gate 5 launcher remain required.
+
+## D052 — Hold the stale asset lock and correct exact-observation reporting
+
+Accepted. Policy commit `bc4132b8a7a9db28e32bb873747c164b3a3abb4d`
+found that the reduced recursive report labeled teacher-forced observation as
+`<=1e-6`; the preregistered requirement is exact zero. All four committed
+values are already exactly `0.0`, so this does not change the formal full
+result, policy graph, thresholds, or accepted wire-closure decision.
+
+The runtime changed only the reduced gate to exact equality and regenerated
+the reduced report directly from unchanged full-result SHA-256
+`e1842ca6...049b14`, without ONNX inference or formal outcome rerun. Corrected
+reduced SHA-256 is `1292772e...65dc5e`.
+
+Asset-lock SHA-256 `4da893b3...de940` is now historical and must not be
+promoted. Policy must independently validate the correction and commit its
+final result identity before the runtime regenerates the final lock. Physical
+COM, X5, Gate 5, deployment, and robot clearance remain blocked.

@@ -991,8 +991,8 @@ def reduce_recursive_result(
         x0_required = command_x == 0.0
         gates = {
             "ticks_600_exact": int(recursive["ticks"]) == EXPECTED_TICKS_PER_CELL,
-            "teacher_forced_observation_at_most_1e_6": (
-                float(semantic_error["observation"]) <= TOLERANCE
+            "teacher_forced_observation_exact_zero": (
+                float(semantic_error["observation"]) == 0.0
             ),
             "same_input_action_at_most_1e_6": (
                 float(same_input_error["action"]) <= TOLERANCE

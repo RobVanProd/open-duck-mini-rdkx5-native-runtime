@@ -1,6 +1,6 @@
 # Winner-v2 Runtime-v2 Offline Review
 
-Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE — BLOCKED_FOR_COM_AND_X5_PREFLIGHT`
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE — HOLD_FINAL_ASSET_LOCK_REVALIDATION`
 
 This review covers a separate, default-disabled 115-D winner-v2 implementation.
 It does not modify or route around the frozen 101-D v1 runtime. It has no
@@ -110,29 +110,38 @@ Its SHA-256 is
 The same verifier invocation emits the policy-requested reduced result at
 `artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json`
 with SHA-256
-`4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace`.
+`1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e`.
 It contains the platform/provider and all preregistered decision inputs for
 each of the four cells and binds the full result by hash.
+
+Policy commit `bc4132b8a7a9db28e32bb873747c164b3a3abb4d` identified a
+reporting-only mismatch: the reduced artifact called the teacher-forced
+observation gate `<=1e-6`, but the frozen rule is exact zero. All four values
+were already exactly zero. The runtime changed the gate name/evaluation to
+exact equality and regenerated only the reduced artifact from the unchanged
+full-result bytes. No outcome cell or accepted decision changed.
 
 Policy commit `fab1feaa8d136fed0ab33d5590d0eec88ef90d8f` independently
 reviewed the formal Windows result together with its separate Linux replay and
 accepted `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. The reviewed CPU recursive-
 numeric blocker is therefore closed on both sides.
 
-The external deployment identities are frozen without committing either ONNX
-binary to this repository. The hash-only lock is
+The first hash-only asset lock is preserved but held stale pending policy
+revalidation of the corrected reduced artifact. The stale lock is
 `artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json`
 (SHA-256 `4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`).
-Its offline verifier passes and pins the selected ONNX, P30 fit, reference,
-corrected package, live config hash/semantics, runtime sources, and both formal
-review records. This is an identity freeze, not deployment authority.
+It must not be promoted. After policy commits its final corrected-result
+identity, the runtime will regenerate and independently verify the final lock
+without committing either ONNX binary.
 
 ## Remaining gates
 
-1. Complete the powered-off direct-reaction torso-COM packet and receive the
+1. Receive policy revalidation of the exact-observation reduced report and
+   regenerate the final asset lock.
+2. Complete the powered-off direct-reaction torso-COM packet and receive the
    policy repository's reviewed result.
-2. Receive policy-side `robot_clearance: true`.
-3. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
+3. Receive policy-side `robot_clearance: true`.
+4. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
    after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
 

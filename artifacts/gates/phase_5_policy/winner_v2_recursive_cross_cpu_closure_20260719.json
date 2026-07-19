@@ -105,7 +105,7 @@
         "same_input_action_at_most_1e_6": true,
         "same_input_state_at_most_1e_6": true,
         "saturation_classification_unchanged": true,
-        "teacher_forced_observation_at_most_1e_6": true,
+        "teacher_forced_observation_exact_zero": true,
         "ticks_600_exact": true,
         "x0_action_state_target_p30_bit_exact": true
       },
@@ -219,7 +219,7 @@
         "same_input_action_at_most_1e_6": true,
         "same_input_state_at_most_1e_6": true,
         "saturation_classification_unchanged": true,
-        "teacher_forced_observation_at_most_1e_6": true,
+        "teacher_forced_observation_exact_zero": true,
         "ticks_600_exact": true,
         "x0_action_state_target_p30_bit_exact": true
       },
@@ -333,7 +333,7 @@
         "same_input_action_at_most_1e_6": true,
         "same_input_state_at_most_1e_6": true,
         "saturation_classification_unchanged": true,
-        "teacher_forced_observation_at_most_1e_6": true,
+        "teacher_forced_observation_exact_zero": true,
         "ticks_600_exact": true,
         "x0_action_state_target_p30_bit_exact": true
       },
@@ -447,7 +447,7 @@
         "same_input_action_at_most_1e_6": true,
         "same_input_state_at_most_1e_6": true,
         "saturation_classification_unchanged": true,
-        "teacher_forced_observation_at_most_1e_6": true,
+        "teacher_forced_observation_exact_zero": true,
         "ticks_600_exact": true,
         "x0_action_state_target_p30_bit_exact": true
       },
