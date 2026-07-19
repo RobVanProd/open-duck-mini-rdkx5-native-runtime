@@ -743,3 +743,25 @@ This closes the Windows CPU recursive-numeric blocker only. Policy-side
 independent reproduction, physical torso COM, robot clearance, frozen assets,
 and the same no-servo X5/AArch64 CPU metric remain required. V1 is unchanged;
 Gate 5 remains `NOT_RUN`.
+
+## D051 — Accept independent CPU closure and freeze offline asset identities
+
+Accepted as an offline identity decision only. Policy commit
+`fab1feaa8d136fed0ab33d5590d0eec88ef90d8f` independently checked the formal
+Windows result and reconciled it with a separate Linux CPU replay. Both decide
+`PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`; the selected raw STS goals are
+bit-exact on both platforms. This closes the reviewed CPU recursive-numeric
+blocker.
+
+The hash-only offline asset lock pins the selected 512000 ONNX, corrected v1.1
+handoff manifest, P30 fit, projected reference, policy contracts, live board
+config hash and semantics, physical offsets, runtime implementation/conversion,
+and both sides' formal evidence. Its SHA-256 is
+`4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`.
+The policy binaries remain external and are not committed here. The verifier
+checks 7 runtime files, 2 runtime evidence files, 6 external package files,
+and the policy acceptance result.
+
+This does not freeze a Gate 5 launcher or grant X5/robot authority. Powered-off
+torso COM, policy `robot_clearance=true`, the same no-servo X5/AArch64 replay,
+and a separately reviewed Gate 5 launcher remain required.

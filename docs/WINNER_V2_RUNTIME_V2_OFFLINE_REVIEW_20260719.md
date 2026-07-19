@@ -114,16 +114,25 @@ with SHA-256
 It contains the platform/provider and all preregistered decision inputs for
 each of the four cells and binds the full result by hash.
 
+Policy commit `fab1feaa8d136fed0ab33d5590d0eec88ef90d8f` independently
+reviewed the formal Windows result together with its separate Linux replay and
+accepted `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. The reviewed CPU recursive-
+numeric blocker is therefore closed on both sides.
+
+The external deployment identities are frozen without committing either ONNX
+binary to this repository. The hash-only lock is
+`artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json`
+(SHA-256 `4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`).
+Its offline verifier passes and pins the selected ONNX, P30 fit, reference,
+corrected package, live config hash/semantics, runtime sources, and both formal
+review records. This is an identity freeze, not deployment authority.
+
 ## Remaining gates
 
-1. Have the policy repository independently rerun the committed formal
-   verifier and record its decision.
-2. Complete the powered-off direct-reaction torso-COM packet and receive the
+1. Complete the powered-off direct-reaction torso-COM packet and receive the
    policy repository's reviewed result.
-3. Receive policy-side `robot_clearance: true`.
-4. Freeze the accepted runtime, selected graph, fit, reference, config, and
-   evidence hashes.
-5. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
+2. Receive policy-side `robot_clearance: true`.
+3. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
    after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
 

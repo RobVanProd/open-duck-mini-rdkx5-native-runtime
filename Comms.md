@@ -692,3 +692,28 @@ cross-platform-stability correction. Policy will rerun the complete suite and
 `hash_artifacts.py --check` against that correction and again against the
 post-preregistration formal result; neither result is accepted merely from the
 commit message.
+
+## Policy acceptance and offline asset freeze
+
+Policy commit `fab1feaa8d136fed0ab33d5590d0eec88ef90d8f` independently
+reviewed the formal runtime result, all provenance and frozen gates, and the
+separate Linux replay. Its decision is
+`PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. The reviewed CPU recursive-numeric
+blocker is closed on both sides.
+
+The runtime has frozen the accepted external and local identities without
+copying policy binaries into this repository:
+
+```text
+ASSET_LOCK: artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json
+ASSET_LOCK_SHA256: 4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940
+ASSET_LOCK_VERIFICATION: PASS_FROZEN_OFFLINE_ASSET_LOCK
+```
+
+The lock pins the selected ONNX, corrected package manifest, P30 fit,
+reference, policy contracts, live config hash/semantics, corrected offsets,
+runtime sources/conversion, and both formal review records. It retains
+`robot_clearance=false`, `gate5=false`, and `runtime_deployment=false`.
+
+The remaining sequence is physical powered-off torso-COM evidence, policy
+clearance, then the same no-servo X5/AArch64 replay. Gate 5 remains `NOT_RUN`.
