@@ -67,7 +67,7 @@ def test_benchmark_is_in_memory_and_resets_each_golden_episode() -> None:
         now += 100
         return now
 
-    assert gc.isenabled()
+    gc_was_enabled = gc.isenabled()
     cell = benchmark_cell(
         command_x=0.08,
         inputs=_golden(0.08),
@@ -82,7 +82,7 @@ def test_benchmark_is_in_memory_and_resets_each_golden_episode() -> None:
     np.testing.assert_array_equal(cell.stage_ns, 100)
     np.testing.assert_array_equal(cell.commit_ns, 100)
     np.testing.assert_array_equal(cell.transaction_ns, 200)
-    assert gc.isenabled()
+    assert gc.isenabled() is gc_was_enabled
 
 
 def test_benchmark_restores_gc_after_transaction_failure() -> None:
@@ -91,6 +91,7 @@ def test_benchmark_restores_gc_after_transaction_failure() -> None:
             assert not gc.isenabled()
             raise RuntimeError("synthetic inference failure")
 
+    gc_was_enabled = gc.isenabled()
     with pytest.raises(RuntimeError, match="synthetic inference failure"):
         benchmark_cell(
             command_x=0.0,
@@ -99,7 +100,7 @@ def test_benchmark_restores_gc_after_transaction_failure() -> None:
             ticks=1,
             make_transaction=BrokenTransaction,
         )
-    assert gc.isenabled()
+    assert gc.isenabled() is gc_was_enabled
 
 
 def test_environment_gate_requires_exact_x5_rt_shape() -> None:
