@@ -13,11 +13,14 @@ from .configuration_support import (
     ConfigurationSupportError,
     validate_supported_configuration_envelope_data,
 )
+from .policy_envelope_provenance import (
+    EXPECTED_CONTRACT_ID,
+    EXPECTED_POLICY_REPOSITORY,
+    validate_policy_envelope_repository_provenance,
+)
 
 CLOSURE_SCHEMA_VERSION = "open_duck_x5.policy_envelope_closure.v1"
 PENDING_SENTINEL = "PENDING_POLICY_ENVELOPE_SHA256"
-EXPECTED_POLICY_REPOSITORY = "RobVanProd/open-duck-mini-rdkx5"
-EXPECTED_CONTRACT_ID = "winner-v2-115d"
 EXPECTED_CONFIGURATION_SHA256 = (
     "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 )
@@ -112,7 +115,10 @@ def _candidate_script(
 def build_policy_envelope_closure(
     *,
     repo_root: Path,
+    policy_repo_root: Path,
     envelope_path: Path,
+    envelope_repository_path: str,
+    envelope_commit: str,
     expected_envelope_sha256: str,
 ) -> dict[str, Any]:
     """Validate one handoff and compute exact future launcher hashes without writing."""
@@ -128,6 +134,13 @@ def build_policy_envelope_closure(
             "policy-envelope identity differs from the independently supplied SHA-256"
         )
     envelope = _load_envelope(envelope_file)
+    provenance = validate_policy_envelope_repository_provenance(
+        policy_repo_root=policy_repo_root,
+        envelope_path=envelope_file,
+        envelope_repository_path=envelope_repository_path,
+        envelope_commit=envelope_commit,
+        expected_envelope_sha256=expected_envelope_sha256,
+    )
     policy = envelope["policy"]
     if policy["repository"] != EXPECTED_POLICY_REPOSITORY:
         raise PolicyEnvelopeClosureError("policy repository differs from the handoff contract")
@@ -205,10 +218,8 @@ def build_policy_envelope_closure(
             "candidate_launchers": finalized,
             "templates_modified": False,
         },
+        "repository_provenance": provenance,
         "remaining_review": {
-            "verify_policy_commit_exists": True,
-            "verify_preregistration_artifact_at_commit": True,
-            "verify_envelope_artifact_at_policy_commit": True,
             "apply_only_the_two_recorded_sentinel_replacements": True,
             "refreeze_preflight_reviewer_runner_identity": True,
         },
@@ -228,6 +239,9 @@ def build_parser() -> argparse.ArgumentParser:
         description="Validate a policy envelope and compute no-write launcher closure hashes"
     )
     parser.add_argument("--envelope", type=Path, required=True)
+    parser.add_argument("--policy-repository", type=Path, required=True)
+    parser.add_argument("--envelope-repository-path", required=True)
+    parser.add_argument("--envelope-commit", required=True)
     parser.add_argument("--expected-envelope-sha256", required=True)
     parser.add_argument("--output", type=Path, required=True)
     return parser
@@ -247,7 +261,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = build_policy_envelope_closure(
             repo_root=repo_root,
+            policy_repo_root=args.policy_repository,
             envelope_path=args.envelope,
+            envelope_repository_path=args.envelope_repository_path,
+            envelope_commit=args.envelope_commit,
             expected_envelope_sha256=args.expected_envelope_sha256,
         )
         output.parent.mkdir(parents=True, exist_ok=True)

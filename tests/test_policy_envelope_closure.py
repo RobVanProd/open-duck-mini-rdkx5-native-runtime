@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -17,13 +19,35 @@ from open_duck_x5.policy_envelope_closure import (
     build_policy_envelope_closure,
     main,
 )
+from open_duck_x5.policy_envelope_provenance import (
+    PolicyEnvelopeProvenanceError,
+    validate_policy_envelope_repository_provenance,
+)
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _envelope() -> dict[str, object]:
+def _git(repo: Path, *arguments: str) -> str:
+    return subprocess.run(
+        ["git", *arguments],
+        cwd=repo,
+        check=True,
+        stdout=subprocess.PIPE,
+        text=True,
+    ).stdout.strip()
+
+
+def _commit_all(repo: Path, message: str) -> str:
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", message)
+    return _git(repo, "rev-parse", "HEAD")
+
+
+def _envelope(
+    *, policy_commit: str, preregistration_commit: str, preregistration_sha256: str
+) -> dict[str, object]:
     joint_bounds = {
         "delay_ticks": [0.0, 4.0],
         "gain_ratio": [0.5, 1.5],
@@ -35,14 +59,14 @@ def _envelope() -> dict[str, object]:
         "schema_version": ENVELOPE_SCHEMA_VERSION,
         "policy": {
             "repository": "RobVanProd/open-duck-mini-rdkx5",
-            "commit": "d" * 40,
+            "commit": policy_commit,
             "onnx_sha256": EXPECTED_SELECTED_ONNX_SHA256,
             "contract_id": "winner-v2-115d",
         },
         "preregistration": {
-            "commit": "e" * 40,
+            "commit": preregistration_commit,
             "artifact_path": "outputs/analysis/configuration_domain.json",
-            "artifact_sha256": "c" * 64,
+            "artifact_sha256": preregistration_sha256,
         },
         "per_unit_physical_measurement_required": False,
         "policy_robustness_gate_passed": True,
@@ -74,8 +98,44 @@ def _envelope() -> dict[str, object]:
     }
 
 
-def _repo_copy(tmp_path: Path) -> Path:
-    root = tmp_path / "repo"
+def _policy_repo(
+    tmp_path: Path,
+    mutate_envelope: Callable[[dict[str, object]], None] | None = None,
+) -> tuple[Path, Path, str, str]:
+    repo = tmp_path / "policy"
+    repo.mkdir()
+    _git(repo, "init")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "Test")
+    _git(
+        repo,
+        "remote",
+        "add",
+        "origin",
+        "https://github.com/RobVanProd/open-duck-mini-rdkx5.git",
+    )
+    preregistration = repo / "outputs/analysis/configuration_domain.json"
+    preregistration.parent.mkdir(parents=True)
+    preregistration.write_bytes(b'{"frozen":true}\n')
+    preregistration_commit = _commit_all(repo, "preregister")
+    (repo / "policy-source.txt").write_text("selected\n", encoding="utf-8")
+    policy_commit = _commit_all(repo, "select policy")
+    envelope_value = _envelope(
+        policy_commit=policy_commit,
+        preregistration_commit=preregistration_commit,
+        preregistration_sha256=_sha256(preregistration),
+    )
+    if mutate_envelope is not None:
+        mutate_envelope(envelope_value)
+    repository_path = "outputs/analysis/supported_configuration_envelope.json"
+    envelope = repo / repository_path
+    envelope.write_bytes((json.dumps(envelope_value, sort_keys=True) + "\n").encode())
+    envelope_commit = _commit_all(repo, "publish envelope")
+    return repo, envelope, repository_path, envelope_commit
+
+
+def _runtime_repo_copy(tmp_path: Path) -> Path:
+    root = tmp_path / "runtime"
     for relative_path in TEMPLATE_SHA256:
         destination = root / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -83,28 +143,34 @@ def _repo_copy(tmp_path: Path) -> Path:
     return root
 
 
-def _write_envelope(tmp_path: Path, value: dict[str, object]) -> Path:
-    path = tmp_path / "envelope.json"
-    path.write_text(json.dumps(value, sort_keys=True) + "\n", encoding="utf-8")
-    return path
+def _build(root: Path, policy: tuple[Path, Path, str, str]) -> dict[str, object]:
+    repo, envelope, repository_path, envelope_commit = policy
+    return build_policy_envelope_closure(
+        repo_root=root,
+        policy_repo_root=repo,
+        envelope_path=envelope,
+        envelope_repository_path=repository_path,
+        envelope_commit=envelope_commit,
+        expected_envelope_sha256=_sha256(envelope),
+    )
 
 
 def test_closure_computes_exact_future_hashes_without_writing(tmp_path: Path) -> None:
-    root = _repo_copy(tmp_path)
-    envelope = _write_envelope(tmp_path, _envelope())
+    root = _runtime_repo_copy(tmp_path)
+    policy = _policy_repo(tmp_path)
+    envelope = policy[1]
     originals = {
         relative_path: (root / relative_path).read_bytes()
         for relative_path in TEMPLATE_SHA256
     }
 
-    result = build_policy_envelope_closure(
-        repo_root=root,
-        envelope_path=envelope,
-        expected_envelope_sha256=_sha256(envelope),
-    )
+    result = _build(root, policy)
 
     assert result["status"] == (
         "POLICY_ENVELOPE_STRUCTURE_ACCEPTED_PROVENANCE_REVIEW_REQUIRED"
+    )
+    assert result["repository_provenance"]["status"] == (
+        "PASS_POLICY_ENVELOPE_REPOSITORY_PROVENANCE"
     )
     assert result["runtime"]["templates_modified"] is False
     assert result["envelope"]["per_unit_physical_measurement_required"] is False
@@ -118,68 +184,153 @@ def test_closure_computes_exact_future_hashes_without_writing(tmp_path: Path) ->
         assert (root / record["path"]).read_bytes() == original
 
 
+def test_provenance_distinguishes_policy_and_envelope_commits(tmp_path: Path) -> None:
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path)
+
+    result = validate_policy_envelope_repository_provenance(
+        policy_repo_root=repo,
+        envelope_path=envelope,
+        envelope_repository_path=repository_path,
+        envelope_commit=envelope_commit,
+        expected_envelope_sha256=_sha256(envelope),
+    )
+
+    assert result["commits"]["selected_policy"] != envelope_commit
+    assert result["commits"]["envelope_artifact"] == envelope_commit
+    assert result["commits"]["preregistration_is_ancestor_of_policy"] is True
+    assert result["commits"]["policy_is_ancestor_of_envelope"] is True
+
+
+def test_provenance_rejects_uncommitted_envelope_bytes(tmp_path: Path) -> None:
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path)
+    envelope.write_text(envelope.read_text(encoding="utf-8") + " ", encoding="utf-8")
+
+    with pytest.raises(PolicyEnvelopeProvenanceError, match="artifact commit"):
+        validate_policy_envelope_repository_provenance(
+            policy_repo_root=repo,
+            envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
+            expected_envelope_sha256=_sha256(envelope),
+        )
+
+
+def test_provenance_rejects_wrong_origin(tmp_path: Path) -> None:
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path)
+    _git(repo, "remote", "set-url", "origin", "https://example.com/wrong.git")
+
+    with pytest.raises(PolicyEnvelopeProvenanceError, match="origin"):
+        validate_policy_envelope_repository_provenance(
+            policy_repo_root=repo,
+            envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
+            expected_envelope_sha256=_sha256(envelope),
+        )
+
+
+def test_provenance_rejects_wrong_preregistration_bytes(tmp_path: Path) -> None:
+    def mutate(value: dict[str, object]) -> None:
+        value["preregistration"]["artifact_sha256"] = "a" * 64
+
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path, mutate)
+
+    with pytest.raises(PolicyEnvelopeProvenanceError, match="preregistration artifact"):
+        validate_policy_envelope_repository_provenance(
+            policy_repo_root=repo,
+            envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
+            expected_envelope_sha256=_sha256(envelope),
+        )
+
+
+def test_provenance_rejects_policy_outside_preregistration_history(
+    tmp_path: Path,
+) -> None:
+    repo, envelope, repository_path, _envelope_commit = _policy_repo(tmp_path)
+    branch = _git(repo, "branch", "--show-current")
+    _git(repo, "checkout", "--orphan", "unrelated-policy")
+    _git(repo, "rm", "-rf", ".")
+    (repo / "unrelated.txt").write_bytes(b"unrelated\n")
+    unrelated_commit = _commit_all(repo, "unrelated policy")
+    _git(repo, "checkout", branch)
+    value = json.loads(envelope.read_text(encoding="utf-8"))
+    value["policy"]["commit"] = unrelated_commit
+    envelope.write_bytes((json.dumps(value, sort_keys=True) + "\n").encode())
+    envelope_commit = _commit_all(repo, "publish unrelated envelope")
+
+    with pytest.raises(PolicyEnvelopeProvenanceError, match="ancestry"):
+        validate_policy_envelope_repository_provenance(
+            policy_repo_root=repo,
+            envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
+            expected_envelope_sha256=_sha256(envelope),
+        )
+
+
 def test_closure_rejects_independent_envelope_hash_mismatch(tmp_path: Path) -> None:
-    root = _repo_copy(tmp_path)
-    envelope = _write_envelope(tmp_path, _envelope())
+    root = _runtime_repo_copy(tmp_path)
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path)
 
     with pytest.raises(PolicyEnvelopeClosureError, match="independently supplied"):
         build_policy_envelope_closure(
             repo_root=root,
+            policy_repo_root=repo,
             envelope_path=envelope,
+            envelope_repository_path=repository_path,
+            envelope_commit=envelope_commit,
             expected_envelope_sha256="a" * 64,
         )
 
 
 def test_closure_requires_asset_refreeze_for_changed_policy(tmp_path: Path) -> None:
-    root = _repo_copy(tmp_path)
-    value = _envelope()
-    value["policy"]["onnx_sha256"] = "a" * 64
-    envelope = _write_envelope(tmp_path, value)
+    def mutate(value: dict[str, object]) -> None:
+        value["policy"]["onnx_sha256"] = "a" * 64
+
+    root = _runtime_repo_copy(tmp_path)
+    policy = _policy_repo(tmp_path, mutate)
 
     with pytest.raises(PolicyEnvelopeClosureError, match="asset freeze"):
-        build_policy_envelope_closure(
-            repo_root=root,
-            envelope_path=envelope,
-            expected_envelope_sha256=_sha256(envelope),
-        )
+        _build(root, policy)
 
 
 def test_closure_rejects_changed_launcher_template(tmp_path: Path) -> None:
-    root = _repo_copy(tmp_path)
-    envelope = _write_envelope(tmp_path, _envelope())
+    root = _runtime_repo_copy(tmp_path)
+    policy = _policy_repo(tmp_path)
     runner = root / "setup/run_winner_v2_cpu_preflight.sh"
     runner.write_text(runner.read_text(encoding="utf-8") + "\n", encoding="utf-8")
 
     with pytest.raises(PolicyEnvelopeClosureError, match="template identity changed"):
-        build_policy_envelope_closure(
-            repo_root=root,
-            envelope_path=envelope,
-            expected_envelope_sha256=_sha256(envelope),
-        )
+        _build(root, policy)
 
 
 def test_closure_rejects_invalid_envelope_before_computing_hashes(tmp_path: Path) -> None:
-    root = _repo_copy(tmp_path)
-    value = _envelope()
-    value["per_unit_physical_measurement_required"] = True
-    envelope = _write_envelope(tmp_path, value)
+    def mutate(value: dict[str, object]) -> None:
+        value["per_unit_physical_measurement_required"] = True
+
+    root = _runtime_repo_copy(tmp_path)
+    policy = _policy_repo(tmp_path, mutate)
 
     with pytest.raises(PolicyEnvelopeClosureError, match="per-unit measurement"):
-        build_policy_envelope_closure(
-            repo_root=root,
-            envelope_path=envelope,
-            expected_envelope_sha256=_sha256(envelope),
-        )
+        _build(root, policy)
 
 
 def test_cli_failure_leaves_no_output(tmp_path: Path) -> None:
-    envelope = _write_envelope(tmp_path, _envelope())
+    repo, envelope, repository_path, envelope_commit = _policy_repo(tmp_path)
     output = tmp_path / "closure.json"
 
     status = main(
         [
             "--envelope",
             str(envelope),
+            "--policy-repository",
+            str(repo),
+            "--envelope-repository-path",
+            repository_path,
+            "--envelope-commit",
+            envelope_commit,
             "--expected-envelope-sha256",
             "a" * 64,
             "--output",
