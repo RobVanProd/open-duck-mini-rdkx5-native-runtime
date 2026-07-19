@@ -103,16 +103,31 @@ def _stats(values: list[float]) -> dict[str, float | int]:
     }
 
 
-def run_benchmark(*, warmup: int, batches: int, iterations_per_batch: int) -> dict[str, object]:
-    if warmup < 1 or batches < 2 or iterations_per_batch < 1:
-        raise ValueError("warmup and iterations must be positive; batches must be at least 2")
-    train = _response_train()
-    if len(train) != 140:
-        raise RuntimeError(f"expected a 140-byte train, got {len(train)}")
+def _configure_instrumentation(bus: STS3215Bus, snapshot: ServoSnapshot, *, enabled: bool) -> None:
+    snapshot.instrumentation_enabled = enabled
+    if not enabled:
+        bus._rx_chunk_count = 0
+        return
+    bus._rx_chunk_count = 10
+    for index in range(10):
+        bus._rx_chunk_end[index] = (index + 1) * 14
+        bus._rx_chunk_time_ns[index] = (index + 1) * 100_000
+
+
+def _benchmark_mode(
+    train: bytes,
+    *,
+    instrumented: bool,
+    warmup: int,
+    batches: int,
+    iterations_per_batch: int,
+) -> dict[str, object]:
     fixed_bus = STS3215Bus(transport=_NoopTransport())
     generic_bus = STS3215Bus(transport=_NoopTransport())
     fixed_snapshot = ServoSnapshot.create()
     generic_snapshot = ServoSnapshot.create()
+    _configure_instrumentation(fixed_bus, fixed_snapshot, enabled=instrumented)
+    _configure_instrumentation(generic_bus, generic_snapshot, enabled=instrumented)
 
     for _ in range(warmup):
         _prepare(fixed_bus, train)
@@ -165,7 +180,29 @@ def run_benchmark(*, warmup: int, batches: int, iterations_per_batch: int) -> di
     fixed_stats = _stats(fixed_values)
     generic_stats = _stats(generic_values)
     return {
-        "schema_version": "open_duck_x5.fixed_frame_benchmark.v1",
+        "instrumentation_enabled": instrumented,
+        "synthetic_receive_chunks": 10 if instrumented else 0,
+        "generic": generic_stats,
+        "fixed_frame": fixed_stats,
+        "mean_speedup": float(generic_stats["mean"] / fixed_stats["mean"]),
+        "mean_saving_us": float(generic_stats["mean"] - fixed_stats["mean"]),
+        "equivalence": {
+            "status": True,
+            "staleness": True,
+            "positions": True,
+            "velocities": True,
+        },
+    }
+
+
+def run_benchmark(*, warmup: int, batches: int, iterations_per_batch: int) -> dict[str, object]:
+    if warmup < 1 or batches < 2 or iterations_per_batch < 1:
+        raise ValueError("warmup and iterations must be positive; batches must be at least 2")
+    train = _response_train()
+    if len(train) != 140:
+        raise RuntimeError(f"expected a 140-byte train, got {len(train)}")
+    return {
+        "schema_version": "open_duck_x5.fixed_frame_benchmark.v2",
         "environment": {
             "python": sys.version.split()[0],
             "platform": platform.platform(),
@@ -179,14 +216,21 @@ def run_benchmark(*, warmup: int, batches: int, iterations_per_batch: int) -> di
             "response_bytes": len(train),
         },
         "unit": "microseconds_per_parse_and_decode_iteration",
-        "generic": generic_stats,
-        "fixed_frame": fixed_stats,
-        "mean_speedup": float(generic_stats["mean"] / fixed_stats["mean"]),
-        "equivalence": {
-            "status": True,
-            "staleness": True,
-            "positions": True,
-            "velocities": True,
+        "modes": {
+            "uninstrumented": _benchmark_mode(
+                train,
+                instrumented=False,
+                warmup=warmup,
+                batches=batches,
+                iterations_per_batch=iterations_per_batch,
+            ),
+            "instrumented_10_chunks": _benchmark_mode(
+                train,
+                instrumented=True,
+                warmup=warmup,
+                batches=batches,
+                iterations_per_batch=iterations_per_batch,
+            ),
         },
         "hardware_access": False,
     }
