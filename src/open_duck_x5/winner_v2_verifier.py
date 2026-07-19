@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import platform
 from contextlib import suppress
@@ -962,6 +963,139 @@ def verify_handoff(root: Path, *, runtime_root: Path | None = None) -> dict[str,
     }
 
 
+def reduce_recursive_result(
+    result: dict[str, object], *, full_result_sha256: str
+) -> dict[str, object]:
+    environment = dict(result["environment"])
+    semantic_cells = list(result["semantic_cells"])
+    policy_cells = list(result["policy_chain_cells"])
+    recursive_cells = list(result["recursive_runtime_cells"])
+    _require(
+        len(semantic_cells) == len(policy_cells) == len(recursive_cells) == EXPECTED_CELLS,
+        "full result does not contain the four aligned cells required for reduction",
+    )
+    cells: list[dict[str, object]] = []
+    for semantic_cell, policy_cell, recursive_cell in zip(
+        semantic_cells, policy_cells, recursive_cells, strict=True
+    ):
+        semantic = dict(semantic_cell)
+        policy = dict(policy_cell)
+        recursive = dict(recursive_cell)
+        semantic_error = dict(semantic["max_abs_error"])
+        same_input_error = dict(policy["max_abs_error"])
+        recursive_error = dict(recursive["max_abs_error"])
+        native = dict(recursive["native_resolution"])
+        classifications = dict(recursive["classifications"])
+        command_x = float(recursive["command_x"])
+        gating = recursive["policy_sha256"] == WINNER_V2_SELECTED_POLICY_SHA256
+        x0_required = command_x == 0.0
+        gates = {
+            "ticks_600_exact": int(recursive["ticks"]) == EXPECTED_TICKS_PER_CELL,
+            "teacher_forced_observation_at_most_1e_6": (
+                float(semantic_error["observation"]) <= TOLERANCE
+            ),
+            "same_input_action_at_most_1e_6": (
+                float(same_input_error["action"]) <= TOLERANCE
+            ),
+            "same_input_state_at_most_1e_6": max(
+                float(same_input_error["state_in"]),
+                float(same_input_error["state_out"]),
+            )
+            <= TOLERANCE,
+            "logical_target_within_half_sts_lsb": (
+                float(native["maximum_logical_target_error_rad"])
+                <= STS_HALF_LSB_RAD
+            ),
+            "p30_within_half_sts_lsb": (
+                float(native["maximum_p30_observer_error_rad"])
+                <= STS_HALF_LSB_RAD
+            ),
+            "raw_goal_within_one_count": (
+                int(native["maximum_raw_goal_absolute_count_difference"])
+                <= MAX_RAW_GOAL_DIFFERENCE
+            ),
+            "raw_goal_range_valid": bool(native["raw_goal_in_signed_multiturn_range"]),
+            "saturation_classification_unchanged": bool(
+                classifications["saturation_unchanged"]
+            ),
+            "rate_and_envelope_classification_unchanged": bool(
+                classifications["rate_and_envelope_unchanged"]
+            ),
+            "external_5p24_limiter_identity": bool(
+                classifications["external_5p24_limiter_identity"]
+            ),
+            "x0_action_state_target_p30_bit_exact": (
+                not x0_required
+                or bool(recursive["x0_action_and_state_bit_exact_zero"])
+            ),
+        }
+        cells.append(
+            {
+                "policy": recursive["policy"],
+                "policy_sha256": recursive["policy_sha256"],
+                "golden_pack": recursive["golden_pack"],
+                "golden_pack_sha256": recursive["golden_pack_sha256"],
+                "command_x": command_x,
+                "gating": gating,
+                "role": "SELECTED_GATING" if gating else "AUDIT_ONLY_NON_GATING",
+                "platform": environment["platform"],
+                "python": environment["python"],
+                "onnxruntime": environment["onnxruntime"],
+                "onnx_execution_provider": environment["onnx_execution_provider"],
+                "ticks": int(recursive["ticks"]),
+                "semantic_gates": gates,
+                "all_cell_gates_passed": all(gates.values()),
+                "same_input_max_abs_error": same_input_error,
+                "semantic_max_abs_error": semantic_error,
+                "recursive_max_abs_error": {
+                    "normalized_action": recursive_error["action"],
+                    "normalized_state_in": recursive_error["state_in"],
+                    "normalized_state_out": recursive_error["state_out"],
+                    "observation": recursive_error["observation"],
+                    "logical_target_rad": recursive_error["sent_target"],
+                    "p30_observer_rad": recursive_error["observer_next"],
+                },
+                "per_joint_max_abs_error": {
+                    "logical_target_rad": native[
+                        "logical_target_error_by_joint_rad"
+                    ],
+                    "p30_observer_rad": native[
+                        "p30_observer_error_by_joint_rad"
+                    ],
+                    "raw_goal_counts": native["raw_goal_error_by_joint_counts"],
+                },
+                "raw_goal_mismatch_count": native["raw_goal_mismatch_count"],
+                "raw_goal_max_abs_count_difference": native[
+                    "maximum_raw_goal_absolute_count_difference"
+                ],
+                "first_raw_goal_mismatch": native["first_raw_goal_mismatch"],
+                "classifications": classifications,
+            }
+        )
+    return {
+        "schema_version": "open_duck_x5.winner_v2_recursive_closure_reduced.v1",
+        "status": result["status"],
+        "overall_disposition": result["overall_disposition"],
+        "formal_full_result_sha256": full_result_sha256,
+        "formal_full_result_schema_version": result["schema_version"],
+        "recursive_preregistration": result["recursive_preregistration"],
+        "decision_inputs": {
+            "component_contract_passed": result["component_contract_passed"],
+            "recursive_x0_action_state_target_observer_bit_exact": result[
+                "recursive_x0_action_state_target_observer_bit_exact"
+            ],
+            "native_resolution_gate": result["native_resolution_gate"],
+        },
+        "runtime_identity": result["runtime_identity"],
+        "selected_policy": result["selected_policy"],
+        "history_metadata_correction": result["history_metadata_correction"],
+        "manifest_sha256": result["manifest_sha256"],
+        "cells": cells,
+        "authority": result["authority"],
+        "remaining_blockers": result["remaining_blockers"],
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Verify the reviewed winner-v2 handoff through all 2,400 CPU ticks"
@@ -969,6 +1103,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--artifact-root", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--reduced-output", type=Path)
     return parser
 
 
@@ -980,9 +1115,22 @@ def main(argv: list[str] | None = None) -> int:
         print(f"winner-v2 verification failed: {exc}")
         return 2
     payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+    full_result_sha256 = hashlib.sha256(payload.encode("utf-8")).hexdigest()
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(payload, encoding="utf-8", newline="\n")
+    if args.reduced_output is not None:
+        reduced = reduce_recursive_result(
+            result,
+            full_result_sha256=full_result_sha256,
+        )
+        reduced_payload = json.dumps(reduced, indent=2, sort_keys=True) + "\n"
+        args.reduced_output.parent.mkdir(parents=True, exist_ok=True)
+        args.reduced_output.write_text(
+            reduced_payload,
+            encoding="utf-8",
+            newline="\n",
+        )
     print(payload, end="")
     return 0 if str(result["status"]).startswith("PASS_") else 2
 

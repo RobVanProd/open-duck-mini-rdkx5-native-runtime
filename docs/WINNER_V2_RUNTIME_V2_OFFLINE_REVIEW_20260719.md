@@ -105,6 +105,14 @@ host action repair was introduced.
 
 The machine-readable result is
 `artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json`.
+Its SHA-256 is
+`e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14`.
+The same verifier invocation emits the policy-requested reduced result at
+`artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json`
+with SHA-256
+`4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace`.
+It contains the platform/provider and all preregistered decision inputs for
+each of the four cells and binds the full result by hash.
 
 ## Remaining gates
 

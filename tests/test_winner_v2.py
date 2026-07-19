@@ -572,16 +572,62 @@ def test_verifier_writes_cross_platform_lf_json(
         "verify_handoff",
         lambda _root, **_kwargs: {"status": "PASS_TEST", "value": 1},
     )
+    monkeypatch.setattr(
+        winner_v2_verifier,
+        "reduce_recursive_result",
+        lambda _result, **_kwargs: {"status": "PASS_REDUCED_TEST", "value": 2},
+    )
     output = tmp_path / "result.json"
+    reduced_output = tmp_path / "reduced.json"
     assert (
         winner_v2_verifier.main(
-            ["--artifact-root", str(tmp_path), "--output", str(output)]
+            [
+                "--artifact-root",
+                str(tmp_path),
+                "--output",
+                str(output),
+                "--reduced-output",
+                str(reduced_output),
+            ]
         )
         == 0
     )
-    payload = output.read_bytes()
-    assert b"\r\n" not in payload
-    assert payload.endswith(b"\n")
+    for path in (output, reduced_output):
+        payload = path.read_bytes()
+        assert b"\r\n" not in payload
+        assert payload.endswith(b"\n")
+
+
+def test_reduced_result_contains_preregistered_cell_evidence() -> None:
+    full_path = Path(
+        "artifacts/gates/phase_5_policy/"
+        "winner_v2_runtime_v2_verification_20260719.json"
+    )
+    full_payload = full_path.read_bytes()
+    result = json.loads(full_payload)
+    reduced = winner_v2_verifier.reduce_recursive_result(
+        result,
+        full_result_sha256=hashlib.sha256(full_payload).hexdigest(),
+    )
+    assert reduced["status"] == "PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE"
+    assert reduced["formal_full_result_sha256"] == hashlib.sha256(
+        full_payload
+    ).hexdigest()
+    cells = reduced["cells"]
+    assert len(cells) == 4
+    assert sum(bool(cell["gating"]) for cell in cells) == 2
+    for cell in cells:
+        assert cell["ticks"] == 600
+        assert cell["platform"]
+        assert cell["onnx_execution_provider"] == "CPUExecutionProvider"
+        assert cell["all_cell_gates_passed"] is True
+        assert set(cell["per_joint_max_abs_error"]) == {
+            "logical_target_rad",
+            "p30_observer_rad",
+            "raw_goal_counts",
+        }
+        assert cell["raw_goal_max_abs_count_difference"] == 0
+        assert cell["first_raw_goal_mismatch"] is None
 
 
 @pytest.mark.parametrize(

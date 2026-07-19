@@ -733,6 +733,12 @@ count mismatches and zero maximum count difference. Saturation, measured-rate,
 envelope, and inherited-5.24 classifications remain unchanged. The 1024000
 sibling is reported but non-gating.
 
+The full result SHA-256 is `e1842ca6...049b14`. The same deterministic
+invocation emits the requested reduced four-cell decision packet with SHA-256
+`4d403623...85ace`; that packet binds the full result hash and records every
+cell's platform/provider, decision gates, maxima, per-joint values, and raw
+word comparison.
+
 This closes the Windows CPU recursive-numeric blocker only. Policy-side
 independent reproduction, physical torso COM, robot clearance, frozen assets,
 and the same no-servo X5/AArch64 CPU metric remain required. V1 is unchanged;
