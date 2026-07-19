@@ -346,7 +346,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = audit_winner_v2_completion(repo_root=args.repo_root)
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        with output.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     except (OSError, WinnerV2CompletionAuditError) as exc:
         output.unlink(missing_ok=True)
         print(f"result=FAIL reason={exc}")

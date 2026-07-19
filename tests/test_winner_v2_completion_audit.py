@@ -10,6 +10,7 @@ from open_duck_x5.winner_v2_completion_audit import (
     EXPECTED_SHA256,
     WinnerV2CompletionAuditError,
     audit_winner_v2_completion,
+    main,
 )
 
 
@@ -48,6 +49,15 @@ def test_checked_in_completion_audit_matches_current_evidence() -> None:
     )
 
     assert expected == audit_winner_v2_completion(repo_root=Path.cwd())
+
+
+def test_completion_audit_cli_writes_cross_platform_lf_json(tmp_path: Path) -> None:
+    output = tmp_path / "audit.json"
+
+    status = main(["--repo-root", str(Path.cwd()), "--output", str(output)])
+
+    assert status == 0
+    assert b"\r\n" not in output.read_bytes()
 
 
 def test_completion_audit_rejects_coherently_unreviewed_artifact_change(
