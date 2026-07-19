@@ -1,6 +1,6 @@
 # Winner-v2 offline asset lock hold
 
-Status: `HOLD_STALE_OFFLINE_ASSET_LOCK`
+Status: `SUPERSEDED_STALE_OFFLINE_ASSET_LOCK`
 
 The lock at `winner_v2_offline_asset_lock_20260719.json` with SHA-256
 `4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`
@@ -19,10 +19,12 @@ reduced artifact from unchanged full-result SHA-256
 The corrected reduced SHA-256 is
 `1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e`.
 
-Do not regenerate or promote the asset lock until the policy repository
-independently validates that corrected reduced artifact and commits its final
-acceptance-result identity. No formal outcome rerun, threshold change, X5,
-robot, Gate 5, torque, or motion is authorized by this correction.
+Policy commit `4c99b5e3be203af419536382f11f3cce98283ba2` subsequently
+independently validated the corrected reduced artifact and committed final
+acceptance-result SHA-256
+`5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc`.
+The active lock was therefore regenerated from new identities. This historical
+SHA remains revoked and must never be rehabilitated or promoted.
 
 `tools/verify_winner_v2_asset_lock.py` also rejects this exact stale SHA-256
 before evaluating any lock contents. A later independently revalidated lock

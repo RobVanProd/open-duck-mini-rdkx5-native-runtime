@@ -1,6 +1,6 @@
 # Winner-v2 Runtime-v2 Offline Review
 
-Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE — HOLD_FINAL_ASSET_LOCK_REVALIDATION`
+Status: `PASS_RUNTIME_ASSET_LOCK_VERIFICATION — HOLD_POLICY_LOCK_REVIEW`
 
 This review covers a separate, default-disabled 115-D winner-v2 implementation.
 It does not modify or route around the frozen 101-D v1 runtime. It has no
@@ -126,18 +126,25 @@ reviewed the formal Windows result together with its separate Linux replay and
 accepted `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. The reviewed CPU recursive-
 numeric blocker is therefore closed on both sides.
 
-The first hash-only asset lock is preserved but held stale pending policy
-revalidation of the corrected reduced artifact. The stale lock is
+Policy commit `4c99b5e3be203af419536382f11f3cce98283ba2`
+independently reproduced the exact-zero reduced report and reran all 2,400
+Linux CPU ticks. Its final acceptance-result SHA-256 is
+`5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc`.
+
+The regenerated hash-only lock is
 `artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json`
-(SHA-256 `4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`).
-It must not be promoted. After policy commits its final corrected-result
-identity, the runtime will regenerate and independently verify the final lock
-without committing either ONNX binary.
+with SHA-256
+`48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31`.
+Its verifier passes 12 runtime files, two runtime evidence files, six policy
+package files, and the exact policy acceptance result. The superseded lock
+SHA-256 `4da893b3...de940` remains machine-revoked. Neither ONNX binary is
+committed to this repository. Policy-side review of replacement lock SHA-256
+`48fd6d81...f64ef31` remains required before the lock is called final.
 
 ## Remaining gates
 
-1. Receive policy revalidation of the exact-observation reduced report and
-   regenerate the final asset lock.
+1. Receive policy-side review of regenerated asset-lock SHA-256
+   `48fd6d81...f64ef31`.
 2. Complete the powered-off direct-reaction torso-COM packet and receive the
    policy repository's reviewed result.
 3. Receive policy-side `robot_clearance: true`.

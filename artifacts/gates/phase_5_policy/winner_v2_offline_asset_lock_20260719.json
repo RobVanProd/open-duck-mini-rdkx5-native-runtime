@@ -42,10 +42,10 @@
   },
   "evidence_assets": {
     "policy_recursive_closure_result": {
-      "commit": "fab1feaa8d136fed0ab33d5590d0eec88ef90d8f",
+      "commit": "4c99b5e3be203af419536382f11f3cce98283ba2",
       "path": "outputs/analysis/winner_v2_recursive_cross_cpu_closure_result.json",
       "repository": "RobVanProd/open-duck-mini-rdkx5",
-      "sha256": "17ddae42b67cd17c559ca28be07f8e9439140c371745f37018a3d9eedbabf06a"
+      "sha256": "5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc"
     },
     "runtime_full_recursive_result": {
       "path": "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json",
@@ -53,7 +53,7 @@
     },
     "runtime_reduced_recursive_result": {
       "path": "artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json",
-      "sha256": "4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace"
+      "sha256": "1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e"
     }
   },
   "frozen_offline_asset_identities": true,
@@ -83,10 +83,15 @@
       "src/open_duck_x5/config.py": "8ff4250050daaf9af01ba4139630466478114ccbfb9446129982cc6fbab59fb6",
       "src/open_duck_x5/constants.py": "80ff38cd4a4436b445754051f1de608797f051f1886b142a29bf4f5f8b2f2ca3",
       "src/open_duck_x5/winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
-      "src/open_duck_x5/winner_v2_verifier.py": "5f38094f98e939322c86234438207dabae8d96c9a7e65d1a77119e0323e96259",
+      "src/open_duck_x5/winner_v2_verifier.py": "44d185e61cf737c3d8ece664d8e8d10837a3e0087d96faea1dae02348a496a88",
+      "tests/test_winner_v2.py": "c174785969050eb6006166d6896219ace369695db1d2196a25f315d45faf3874",
+      "tests/test_winner_v2_asset_lock.py": "053ae91e4a536f186ac0027a5be814594363d8bfdc43d6ae1361098c95256f76",
+      "tests/test_winner_v2_reducer.py": "b3a1b54db4a526d8311f49fb3d7bd628488fb5488b8b2c8b637b3bc61b84296c",
+      "tools/reduce_winner_v2_recursive_result.py": "e0f63fac16a85e2d21402e26ccc323a930d7b9e7a68a86618f290204d1be36a0",
+      "tools/verify_winner_v2_asset_lock.py": "fe51150d427d49999d50e04da10bc79560909c6279206467230de249bbfe5172",
       "tools/verify_winner_v2_handoff.py": "3387e256d917c1f41a1c658c071335b101ab817e4bc20ad86a5d1d3b71178108"
     },
-    "identity_commit": "9c637ec4a161d20b24b06e91dc309a49c46cf981",
+    "identity_commit": "71895596f620756f52cf2b5d513f671ede4d3d86",
     "repository": "RobVanProd/open-duck-mini-rdkx5-native-runtime"
   },
   "schema_version": "open_duck_x5.winner_v2_offline_asset_lock.v1",

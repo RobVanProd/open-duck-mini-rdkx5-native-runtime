@@ -785,3 +785,24 @@ examining the lock. Policy must independently validate the correction and
 commit its final result identity before the runtime regenerates the final
 lock. Physical COM, X5, Gate 5, deployment, and robot clearance remain
 blocked.
+
+## D053 — Regenerate the revalidated offline asset lock for policy review
+
+Accepted. Policy commit `4c99b5e3be203af419536382f11f3cce98283ba2`
+independently reproduced corrected reduced SHA-256 `1292772e...65dc5e`, reran
+the complete 2,400-tick Linux CPU matrix, confirmed exact-zero teacher-forced
+observation closure, and committed acceptance-result SHA-256
+`5380897c...b7ddc`. The formal result remains byte-identical at
+`e1842ca6...049b14`.
+
+Accepted as the runtime-side replacement-lock candidate. The regenerated
+offline asset lock has SHA-256 `48fd6d81...f64ef31`; its
+verifier passes 12 committed runtime files, two runtime evidence files, six
+policy-package files, and the exact policy acceptance result. Superseded lock
+SHA-256 `4da893b3...de940` remains explicitly revoked.
+
+Policy-side review of the replacement lock remains required before final asset
+freeze. Powered-off torso COM, policy `robot_clearance=true`, no-servo
+X5/AArch64 replay, a separately reviewed Gate 5 launcher, and separately
+authorized suspended replay also remain required. No hardware or motion
+authority is granted.

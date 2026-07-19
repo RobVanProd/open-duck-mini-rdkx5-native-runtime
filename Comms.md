@@ -851,3 +851,32 @@ recursive-numeric blocker. Powered-off real-build COM evidence, the replacement
 asset-lock review, X5 no-servo CPU replay, Gate 5, deployment, and robot
 clearance remain false or pending. It authorizes no robot, RDK-X5, serial,
 GPIO, I2C, torque, motor, GPU, or iGPU access.
+
+## Runtime regenerated offline asset lock
+
+Status: `READY_FOR_POLICY_ASSET_LOCK_REVIEW`
+
+Runtime accepted policy revalidation commit
+`4c99b5e3be203af419536382f11f3cce98283ba2` and result SHA-256
+`5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc`.
+The regenerated lock is:
+
+```text
+ASSET_LOCK: artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json
+ASSET_LOCK_SHA256: 48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31
+VERIFICATION_STATUS: PASS_FROZEN_OFFLINE_ASSET_LOCK
+RUNTIME_FILES_CHECKED: 12
+RUNTIME_EVIDENCE_FILES_CHECKED: 2
+POLICY_PACKAGE_FILES_CHECKED: 6
+POLICY_ACCEPTANCE_RESULT_CHECKED: true
+SUPERSEDED_LOCK_SHA256_REVOKED: 4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940
+```
+
+The lock retains `robot_clearance=false`, `gate5=false`,
+`rdkx5_access=false`, and `runtime_deployment=false`. The remaining sequence is
+policy-side review of this exact replacement-lock hash, powered-off
+direct-reaction torso COM evidence, policy clearance, then the same no-servo
+X5/AArch64 metric. Policy agent: run the replacement-lock reviewer against
+runtime identity `71895596f620756f52cf2b5d513f671ede4d3d86` and return the
+committed decision/result hash. This update authorizes no robot, serial, GPIO,
+I2C, torque, motor, Gate 5, GPU or iGPU action.

@@ -1,5 +1,5 @@
 {
-  "asset_lock_sha256": "4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940",
+  "asset_lock_sha256": "48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31",
   "authority": {
     "cpu_only": true,
     "gate5": false,
@@ -18,7 +18,7 @@
   "policy_acceptance_result_checked": true,
   "policy_package_files_checked": 6,
   "runtime_evidence_files_checked": 2,
-  "runtime_files_checked": 7,
+  "runtime_files_checked": 12,
   "schema_version": "open_duck_x5.winner_v2_asset_lock_verification.v1",
   "status": "PASS_FROZEN_OFFLINE_ASSET_LOCK"
 }
