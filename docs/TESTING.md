@@ -93,6 +93,17 @@ python tools/hash_artifacts.py
 python tools/hash_artifacts.py --check
 ```
 
+The stateful winner-v2 X5 preflight has a separate no-servo entry point:
+
+```bash
+preflight_winner_v2_cpu --help
+bash -n setup/run_winner_v2_cpu_preflight.sh
+```
+
+Its checked-in launcher is intentionally blocked by the pending policy-envelope
+identity. Do not substitute a short local population for its frozen 10,000
+transactions per command or report a non-X5 result as the X5 preflight.
+
 Mock timing is informational only. It validates accounting and artifact
 production; it cannot authorize a phase or trigger the native-extension
 escalation criterion.

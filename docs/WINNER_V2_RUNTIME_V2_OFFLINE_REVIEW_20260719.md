@@ -163,6 +163,14 @@ authority as false.
    after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
 
+The no-servo preflight implementation and locked X5 wrapper now exist at
+`src/open_duck_x5/winner_v2_cpu_preflight.py` and
+`setup/run_winner_v2_cpu_preflight.sh`. Their frozen population and thresholds
+are preregistered under
+`artifacts/gates/phase_5_policy/x5_cpu_preflight/PRE_REGISTRATION.md`. The
+wrapper's non-SHA envelope sentinel blocks before setup or ONNX load, so the X5
+preflight remains `NOT_RUN`.
+
 The prior direct-reaction and component-level COM worksheets are not selected
 advancement routes. The frozen candidate's raw torso-X bracket passes through
 `-22.65625 mm/+5.46875 mm` and fails at

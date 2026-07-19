@@ -1107,3 +1107,18 @@ signal handling, and governor restoration. A non-SHA pending-envelope sentinel
 blocks it before `/dev/ttyS1` is checked. Runtime will replace only that value
 after policy publishes the envelope, then freeze the resulting final launcher
 hash. The policy response request and all authority boundaries are unchanged.
+
+## Runtime no-servo X5 CPU preflight freeze
+
+Status: `LOCKED_PENDING_POLICY_ENVELOPE — X5_RUN_NOT_RUN`
+
+Runtime now implements the next post-envelope step without adding a hardware
+surface. Commit `c6b03ce318f8d427813bef4cc93134f954b102d6` freezes
+`preflight_winner_v2_cpu`: it validates the envelope/config first, reruns the
+formal 2,400-tick verifier, and measures 10,000 in-memory transactions each at
+x=0 and x=.08. The locked wrapper SHA-256 is
+`698b747bcd1217c51f0059f8a68a2ee34cc2bca6ea674da9f04af8ecfa96493c`.
+It has no serial-device argument or torque/motion path and its pending-envelope
+sentinel exits before path resolution, output creation, governor changes, ONNX
+load, or formal verification. The X5 invocation remains `NOT_RUN`; no policy,
+robot, Gate 5, deployment, or motion authority is implied.

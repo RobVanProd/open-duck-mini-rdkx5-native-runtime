@@ -980,3 +980,19 @@ publishes the reviewed envelope, runtime may replace only this sentinel and
 must freeze the new launcher hash in a closure artifact before requesting exact
 motion authorization. This implementation itself authorizes no hardware or
 motion and leaves physical collection `NOT_RUN`.
+
+## D062 — Preregister a no-servo X5 winner-v2 CPU timing gate
+
+Accepted offline only. The X5 CPU preflight first validates the policy envelope
+and frozen config, reruns the formal 2,400-tick handoff verifier, then measures
+10,000 complete in-memory winner-v2 transactions independently at x=0 and
+x=.08. The measured transaction includes assembly, stateful CPU ONNX inference,
+graph-authoritative checks, P30 staging, and confirmed commit; session creation,
+warm-up, sleeping, logging, and all bus work are outside the population.
+
+The preregistered per-command gates are p99 at most 5 ms, p99.9 at most 7 ms,
+and maximum at most 10 ms on isolated CPU 7 under `SCHED_FIFO` 80 with the
+temporary performance governor restored on every exit. The launcher exposes no
+device, command, population, CPU, priority, or threshold override and is locked
+before setup by the pending policy-envelope sentinel. A result is review-only
+and grants no serial, torque, motion, Gate 5, or robot clearance.
