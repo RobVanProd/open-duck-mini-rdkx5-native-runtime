@@ -29,6 +29,13 @@ measurement, or policy inference is used.
   governor during the frozen populations, with the prior governor restored on
   every exit path
 - policy envelope SHA-256: `PENDING — NO PHYSICAL RUN PERMITTED`
+- locked launcher implementation commit:
+  `4389bab6d4388a0ef0d971a737b1462ef3250cdb`
+- locked launcher path: `setup/run_automatic_configuration.sh`
+- locked launcher SHA-256 with the pending-envelope sentinel:
+  `7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`
+- final launcher SHA-256 after inserting the reviewed envelope identity:
+  `PENDING — NO PHYSICAL RUN PERMITTED`
 
 The source archive can be reproduced only as:
 
@@ -40,9 +47,10 @@ git archive --format=tar.gz \
 
 ## Frozen sequence
 
-The robot must be securely supported or benched, with hands clear. A reviewed
-launcher will accept paths and acknowledgements only; device, baud, CPU,
+The robot must be securely supported or benched, with hands clear. The locked
+launcher accepts paths and acknowledgements only; device, baud, CPU,
 priority, population, order, amplitude, and thresholds will have no override.
+Its pending-envelope sentinel exits before the serial-device check.
 
 1. Validate the already-passed policy envelope and record its SHA-256 before
    opening `/dev/ttyS1`.
@@ -101,7 +109,8 @@ policy envelope. There is no measurement waiver and no closest-result pass.
 
 After the policy envelope arrives, runtime must independently validate it and
 commit a closure artifact containing its repository commit, artifact path,
-artifact SHA-256, selected ONNX SHA-256, and the final launcher SHA-256. Only
+artifact SHA-256, selected ONNX SHA-256, and the final launcher SHA-256 after
+the one-value sentinel replacement. Only
 then may Rob explicitly authorize this exact supported moving sequence.
 
 Current authority remains: physical collection `NOT_RUN`, robot clearance

@@ -170,6 +170,12 @@ source/config/calibration/envelope hashes and exact motion authorization must
 be frozen in a reviewed run artifact first. No physical collection has been run or
 authorized by this work, so physical status remains `NOT_RUN`.
 
+`setup/run_automatic_configuration.sh` implements the complete torque-off
+preflight → raw validation → calibration → full-chain support decision. Its
+checked-in form contains a non-SHA policy-envelope sentinel and exits before
+checking `/dev/ttyS1`; the only remaining launcher edit is replacement with the
+independently reviewed envelope SHA-256 followed by a new hash closure.
+
 Missing shells, covers, mounts, or other supported non-locomotion pieces must
 be represented in the policy domain rather than entered manually. Missing a
 contract-required leg, neck/head actuator, IMU, or contact sensor cannot be

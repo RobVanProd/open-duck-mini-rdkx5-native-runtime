@@ -965,3 +965,18 @@ This ordering allows the policy envelope to be independently selected and then
 bound in a closure artifact before serial access. It does not authorize the
 preflight, home entry, calibration excitation, policy inference, Gate 5, or any
 other robot action.
+
+## D061 — Implement the physical launcher in a deliberately locked state
+
+Accepted offline only. `setup/run_automatic_configuration.sh` implements the
+frozen torque-off preflight, raw validation, guarded collector, full-chain
+support decision, governor restoration, and evidence hashing. Its command line
+exposes only input/output paths and the four exact acknowledgements; no device,
+timing, waveform, CPU, sensor-bus, or threshold override exists.
+
+The checked-in launcher contains `PENDING_POLICY_ENVELOPE_SHA256`, which is not
+a valid digest and causes an exit before the serial-device check. After policy
+publishes the reviewed envelope, runtime may replace only this sentinel and
+must freeze the new launcher hash in a closure artifact before requesting exact
+motion authorization. This implementation itself authorizes no hardware or
+motion and leaves physical collection `NOT_RUN`.

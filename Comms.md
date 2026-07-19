@@ -1097,3 +1097,13 @@ collected until policy commits the passed envelope and runtime freezes that
 exact identity plus a final launcher hash in a closure artifact. This prevents
 physical outcome leakage into the bounds. No physical run or motion is
 authorized; robot clearance and Gate 5 remain false/`NOT_RUN`.
+
+The locked two-stage launcher is now committed at
+`4389bab6d4388a0ef0d971a737b1462ef3250cdb`; its SHA-256 is
+`7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`.
+It freezes the 10,000-tick torque-off preflight, independent raw validation,
+2,814-tick collector, full-chain envelope decision, evidence hashes, child
+signal handling, and governor restoration. A non-SHA pending-envelope sentinel
+blocks it before `/dev/ttyS1` is checked. Runtime will replace only that value
+after policy publishes the envelope, then freeze the resulting final launcher
+hash. The policy response request and all authority boundaries are unchanged.

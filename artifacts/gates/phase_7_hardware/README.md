@@ -15,6 +15,9 @@ The automatic configuration check has a separately frozen structure under
 `automatic_configuration/`, but remains blocked on the preregistered policy
 envelope, a final launcher/hash closure, and exact calibration-motion
 authorization. It is not Gate 5 and has not run physically.
+The checked-in launcher is hard-blocked by a non-SHA pending-envelope sentinel
+before its serial-device check; tests freeze that ordering and every exposed
+argument.
 
 Each gate directory keeps its own status so partial progress cannot be mistaken
 for complete robot clearance. Grounded replay is outside this repository.
