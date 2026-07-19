@@ -9,14 +9,14 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Area | Status |
 | --- | --- |
 | Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
-| Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
+| Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; verified winner handoff is a separate stateful 115-D contract and is not v1-compatible |
 | Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; exact 140-byte state burst is collected before one-pass parsing; 10,000-tick governor A/B passes the `<5 ms` sweep budget |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
 | IMU / contacts / policy host | BNO055 calibration/mapping and active-low contacts pass the reviewed nine-label matrix; all 2,250 rows were fresh with zero worker errors |
-| Hardware gates 1-5 | Gates 1-3 `PASS_REVIEWED`; Gate 3 used no servo, torque, target, or policy path; Gates 4-5 `NOT_RUN` and separately unauthorized |
+| Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; Gate 5 is `NOT_RUN`, policy-side robot clearance is false, and no policy replay is authorized |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract
@@ -31,9 +31,10 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 
 The exact field map and the inherited one-tick phase-ordering discrepancy are documented in [the contract](docs/OBSERVATION_ACTION_CONTRACT.md).
 
-The deployable policy interface remains exactly 101/14. A simulation or stateful ONNX
-using 115 inputs is not assumed equivalent: it must export the frozen single-input
-interface and prove that `obs[83:97]`, phase ordering, and slew semantics match.
+The v1 policy interface remains exactly 101/14. The independently verified
+winner handoff is stateful 115-D and is deliberately classified as a separate
+versioned v2 requirement; it must not be loaded through or silently adapted to
+the frozen v1 path.
 
 ## Quick start: offline only
 
@@ -66,6 +67,7 @@ and `start_paused=true`.
 Read these before any X5 work:
 
 - [Runtime/policy Codex handoff](Comms.md)
+- [Winner-v2 policy handoff review](docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md)
 - [Active rebuild reconciliation](docs/ACTIVE_REBUILD_RECONCILIATION_20260719.md)
 - [Hardware gate runbook](docs/HARDWARE_GATE_RUNBOOK.md)
 - [Real-time setup](docs/REALTIME_SETUP.md)

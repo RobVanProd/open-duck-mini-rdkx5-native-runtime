@@ -2,7 +2,7 @@
 
 | Requirement | Implementation | Offline evidence | Hardware status |
 | --- | --- | --- | --- |
-| 101 observations / 14 actions | `contract.py`, `policy.py`, snapshot extractor/verifier | independent legacy-formula, named-mismatch tests, corrected-knee board snapshot | deployed golden vector exact; candidate training parity pending |
+| 101 observations / 14 actions | `contract.py`, `policy.py`, snapshot extractor/verifier | independent legacy-formula, named-mismatch tests, corrected-knee board snapshot | deployed v1 golden vector exact; verified winner is a distinct stateful 115-D v2 requirement and cannot use this path |
 | 50 Hz / bounded timing | `AbsoluteTicker`, `TimingSeries`, probe; self-describing complete-sweep population and schema-bound provenance | mock summary, population-definition, comparison, collision/tamper tests | Gate 2 home hold tick p99/p99.9 20.002683/20.008892 ms and sweep max 4.721847 ms pass |
 | Gate 1 single-servo echo/read | torque-off `probe_single_servo`; raw hash/auth/cutoff/framing summary | mock tick+summary schema and provenance tests | 10,000-read serial run `PASS_REVIEWED` |
 | `duck_config.json` semantics | `config.py` | config, strict boolean, finite phase, and offset-order tests | live file validated and hashed; no writes performed |
@@ -27,7 +27,7 @@
 | Watchdog >40 ms / consecutive bus faults | `Watchdog` in probe/runtime home entry and steady-state loops | work/period/failure plus injected home-overrun cutoff tests | Gate 2 home entry and hold completed with final cutoff `ok`; trip latency pending |
 | Finite active replay duration | separate hard total-tick and valid-policy-tick caps | target-met and target-not-reached tests | 600 active-tick replay `NOT_RUN` |
 | Xbox/F710 controller parity | locked seven-command publication in `controller.py` | axis, A-edge pause, Y-edge head mode, and LB sprint-factor tests | physical controller mapping check pending |
-| Staged authority boundary | dual CLI assertions, movement/Gate-5-specific assertions, finite exact-command replay, frozen Gate 2 launcher, runbook, `NOT_RUN` files | pre-I/O guard, source/config freeze, stage-order, and summary-validator tests | Gates 1-3 `PASS_REVIEWED`; Gate 3 used no servo/torque/policy; Gates 4-5 remain unauthorized/`NOT_RUN` |
+| Staged authority boundary | dual CLI assertions, movement/Gate-5-specific assertions, finite exact-command replay, frozen Gate 2 launcher, runbook, `NOT_RUN` files | pre-I/O guard, source/config freeze, stage-order, and summary-validator tests | Gates 1-4 `PASS_REVIEWED`; Gate 5 remains unauthorized/`NOT_RUN` and policy-side robot clearance is false |
 | Board evidence extraction | safe-default collector, schemas, policy handoff | archive/manifest, secret-skip, 115-D rejection, and guard tests | Gate 1 bundle and 199-entry manifest verified |
 | Artifact hashing | `tools/hash_artifacts.py` | checked-in SHA-256 manifest | update per authorized gate |
 

@@ -1,6 +1,6 @@
 # Active Rebuild Track Reconciliation
 
-Status: `NATIVE_RUNTIME_GATE4_PASS_GATE5_BLOCKED`
+Status: `POLICY_HANDOFF_VERIFIED_V2_REQUIRED_GATE5_BLOCKED`
 
 ## Authority split
 
@@ -24,6 +24,14 @@ Pinned policy evidence at source commit
   `42282815986035105a5ab4f29b1d76ac082142ff096e46a8ffcf260f99362102`;
 - P30 pin result SHA-256
   `1c320276f8ea6343a1059f9ec7eda670b596f13141c49a0f7ae69af84ba15c85`.
+
+The evidence-complete handoff superseding that read-only pin is policy commit
+`ad1cd8e9b9fdacd26a5453318411dafe423588b4`, artifact root
+`artifacts/runtime_handoff/rdkx5_native_20260719`, manifest SHA-256
+`ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7`.
+The native-runtime review independently reproduced every declared package and
+external hash, inspected both graph ABIs, and replayed all 2,400 packaged
+ticks. Its accepted disposition is `REQUIRES_REVIEWED_115_RUNTIME_V2`.
 
 ## Native-runtime evidence state
 
@@ -49,13 +57,36 @@ On branch `agent/measurement-contract-evidence`:
 The fresh local mock remains `INFORMATIONAL_ONLY`; it is not Gate 4 evidence
 and its host-specific timing values are not promoted into a reviewed artifact.
 
+## Verified policy/runtime boundary
+
+The winner family consumes `obs float32[1,115]` plus recurrent
+`previous_action float32[1,14]` and returns `continuous_actions` plus
+`previous_action_out`, both float32 `[1,14]`. It requires:
+
+- P30 observer-realized target at `obs[83:97]`, not v1's previous commanded
+  target;
+- projected reference action at `obs[101:115]`;
+- phase `[1,0]` at reset and current-phase observation before one advance;
+- graph-owned measured rate limits, actual-centered guard, x=0 deadband, and
+  recurrent final-action state;
+- a host 5.24 limiter that is asserted to be an identity and no head overlay.
+
+The ordering rule is compatible with v1, but the phase reset is not: v1's
+inherited `PhaseClock` begins at `[0,0]`. On the exact moving tick-0 golden
+inputs, substituting that v1 reset changes output by `0.03805099` and
+`0.04923201` normalized action for the two protected graphs. A v2 path must
+therefore use its own versioned phase/reset contract rather than mutate or
+reuse v1 implicitly.
+
+Full 600-tick CPU replay of both checkpoints at x=0/.080 produced maximum
+action/state/chain error `4.7683716e-7`, target-equation error
+`1.1920929e-7`, and exact P30 observer agreement, all within `1e-6`.
+
 ## Current boundary
 
-Gate 4 is complete and does not authorize Gate 5. A legacy 101-D policy
-can exercise the frozen 101x14.v1 stack only under its Gate 5 contract. The
-115-D composite winner requires a separately reviewed interface/handoff path;
-it must not be mislabeled as 101-D, wrapped ad hoc, or treated as robot-cleared.
-The separate COM measurement remains relevant to eventual winner deployment,
-not to the completed native-runtime Gate 4. Until the observation/action handoff
-is resolved with golden vectors and an explicitly reviewed deployable export,
-Gate 5 remains `NOT_RUN`, blocked, and unauthorized.
+Gate 4 is complete and does not authorize Gate 5. The frozen 101x14.v1 path is
+unchanged. The verified 115-D winner requires a separately specified, tested,
+and reviewed v2 path; it must not be mislabeled as 101-D or wrapped ad hoc.
+The policy repository has not selected one deployment checkpoint, its
+real-build COM/inertia calculator still lacks 46 inputs, and its robot
+clearance is false. Gate 5 remains `NOT_RUN`, blocked, and unauthorized.

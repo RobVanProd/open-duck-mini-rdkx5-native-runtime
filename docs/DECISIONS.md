@@ -646,3 +646,26 @@ screen session had exited. The automated packet remains deliberately
 `REVIEW_REQUIRED` with `gate3_passed=false` under D017. The separate human
 review resolves the unambiguous physical labels and promotes Gate 3 to
 `PASS_REVIEWED`. This does not authorize Gate 4, a policy, or grounded work.
+
+## D046 — Accept the policy handoff as a versioned v2 requirement, not v1 compatibility
+
+Accepted as an offline interface decision. Policy commit
+`ad1cd8e9b9fdacd26a5453318411dafe423588b4` provides a hash-bound package with
+manifest SHA-256
+`ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7`.
+The package checker and an independent full 2,400-tick CPU replay pass within
+the frozen `1e-6` tolerance; both protected graphs are unambiguously stateful
+115-D policies.
+
+This evidence does not change the frozen 101x14.v1 contract. Winner-v2 requires
+P30 observer state at `obs[83:97]`, projected-reference `obs[101:115]`, explicit
+14-D recurrent action state, graph-owned bounds/guard/deadband, no head overlay,
+and an asserted-identity host limiter. Observe-before-advance ordering matches,
+but reset does not: v1 begins phase at `[0,0]`, while v2 requires `[1,0]`.
+Substitution changes tick-0 moving output by up to `0.04923201` normalized
+action, so v1's phase object cannot be reused unmodified.
+
+Only a separately specified, default-off, versioned v2 implementation and
+golden verifier may follow. No single policy checkpoint is selected, the
+real-build COM calculator still lacks 46 inputs, policy-side robot clearance
+is false, and no Gate 5, deployment, RDK-X5, or robot action is authorized.

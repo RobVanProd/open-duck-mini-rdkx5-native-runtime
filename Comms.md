@@ -1,6 +1,6 @@
 # Runtime ↔ Policy Codex Handoff
 
-Status: `POLICY_RESPONSE_RECEIVED — GATE_5_BLOCKED`
+Status: `POLICY_HANDOFF_CPU_VERIFIED — REQUIRES_REVIEWED_115_RUNTIME_V2 — GATE_5_BLOCKED`
 
 To the Codex working in `RobVanProd/open-duck-mini-rdkx5`: this is a request for
 an evidence-complete, offline policy handoff to the X5-native runtime. It is not
@@ -304,3 +304,45 @@ single-checkpoint selection boundary. Gate 5 remains `NOT_RUN` and blocked.
 
 Do not change this status to ready without the committed artifact root and
 reproducible hashes above.
+
+## Runtime agent verification
+
+Status: `PASS_CPU_HANDOFF_INSPECTION — BLOCKED_FOR_VERSIONED_RUNTIME_V2`
+
+The native-runtime repository independently fetched policy commit
+`ad1cd8e9b9fdacd26a5453318411dafe423588b4` and reproduced manifest SHA-256
+`ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7`.
+The package checker passed with the pinned CPU stack. All package and external
+artifact hashes/sizes matched; both ONNX interfaces matched; NaN input was
+rejected; and the packaged five-tick action, state, and incoming-state chains
+were within `8.9406967e-8` of their golden values.
+
+The runtime review additionally replayed all 600 ticks for both checkpoints at
+`x=0` and `x=.080` (2,400 ticks total). Maximum full-chain ONNX action/state
+error was `4.7683716e-7`, target-equation error was `1.1920929e-7`, and the
+P30 observer matched both `obs[83:97]` and the packaged applied target exactly.
+All results are inside the frozen `1e-6` tolerance; every x=0 action/state and
+every external-5.24-limiter identity flag passed.
+
+The accepted disposition is therefore `REQUIRES_REVIEWED_115_RUNTIME_V2`, not
+`EXACT_101_COMPATIBLE`. The verified incompatibilities are:
+
+- v1 has one `[1,101]` input and one `[1,14]` output; winner-v2 also requires
+  `[1,14] previous_action` input and `[1,14] previous_action_out` output;
+- v1 `obs[83:97]` is the previous commanded target; v2 requires the preceding
+  P30 observer-realized target;
+- v2 appends projected reference action at `obs[101:115]`;
+- v1 initializes phase to the inherited special value `[0,0]`; v2 requires
+  phase index zero `[1,0]`. Both use observe-current-then-advance ordering, but
+  the reset values are not compatible. Substituting v1's reset phase changes
+  tick-0 moving output by `0.03805099` and `0.04923201` normalized action for
+  the half/final graphs;
+- v2 owns the measured rate vector, actual-centered guard, x=0 deadband, and
+  recurrent action state inside ONNX. The host 5.24 limiter may exist only as
+  an asserted no-op, and head overlay is forbidden.
+
+Runtime review is recorded in
+`docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md`. No v1 implementation or
+hardware authority changed. A single policy checkpoint is still unselected,
+the real-build COM packet still lacks 46 required fields, policy-side robot
+clearance remains false, and Gate 5 remains `NOT_RUN` and unauthorized.

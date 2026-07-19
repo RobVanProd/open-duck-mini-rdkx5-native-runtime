@@ -1,11 +1,12 @@
 # Staged Hardware Gate Runbook
 
-Gates 1 through 3 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
+Gates 1 through 4 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
 torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
 restored `schedutil`. Gate 3 completed the corrected nine-label BNO055/contact
-matrix with no servo path. Gates 4-5 remain `NOT_RUN`; authorization for one
-gate does not authorize the next.
+matrix with no servo path. Gate 4 completed its frozen two-frequency sine
+sequence. Gate 5 remains `NOT_RUN`; authorization for one gate does not
+authorize the next.
 
 ## Common preflight
 
@@ -438,7 +439,9 @@ The operator unpauses with the preserved controller action only after the home
 hold is visually verified. Review and close the `x=0` artifact before Rob
 separately authorizes a new invocation using `--fixed-command-x 0.08`. A 115-D
 or stateful candidate is rejected by the frozen 101/14 host and cannot be used
-as a substitute export.
+as a substitute export. The verified winner is such a stateful 115-D policy;
+it requires a separately reviewed v2 host and remains blocked by checkpoint
+selection and policy-side robot clearance.
 
 During serial Gate 5 the controller is pause/unpause-only. The authorized X
 command is fixed, all lateral/yaw/head command fields are zero, and the phase

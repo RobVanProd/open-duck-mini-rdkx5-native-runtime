@@ -1,0 +1,80 @@
+{
+  "authority": {
+    "gate5": false,
+    "robot_clearance": false,
+    "runtime_deployment": false
+  },
+  "compatibility": {
+    "accepted_disposition": "REQUIRES_REVIEWED_115_RUNTIME_V2",
+    "runtime_v1": {
+      "input_contract": "obs float32[1,101]",
+      "obs_83_97": "previous commanded logical target",
+      "output_contract": "continuous_actions float32[1,14]",
+      "phase_reset": [
+        0.0,
+        0.0
+      ]
+    },
+    "winner_v2": {
+      "input_contract": "obs float32[1,115] + previous_action float32[1,14]",
+      "obs_83_97": "preceding P30 observer-realized absolute logical target",
+      "obs_101_115": "projected reference action at current command and phase",
+      "output_contract": "continuous_actions float32[1,14] + previous_action_out float32[1,14]",
+      "phase_reset": [
+        1.0,
+        0.0
+      ]
+    }
+  },
+  "independent_cpu_verification": {
+    "cells": 4,
+    "execution_provider": "CPUExecutionProvider",
+    "full_chain_ticks": 2400,
+    "manifest_hash_and_size_check": true,
+    "max_action_error": 4.76837158203125e-07,
+    "max_incoming_state_chain_error": 4.76837158203125e-07,
+    "max_observer_applied_target_error_rad": 0.0,
+    "max_observer_obs_83_97_error_rad": 0.0,
+    "max_recurrent_output_error": 4.76837158203125e-07,
+    "max_target_equation_error_rad": 1.1920928955078125e-07,
+    "package_checker_status": "PASS_CPU_HANDOFF_INSPECTION_BLOCKED_FOR_RUNTIME_REVIEW",
+    "python": "3.12.10",
+    "tolerance": 1e-06,
+    "x0_action_and_state_bit_exact_zero": true
+  },
+  "measured_semantic_divergence": {
+    "advanced_first_phase_tick0_max_action_error": {
+      "1024000": 0.11153934895992279,
+      "512000": 0.10399797558784485
+    },
+    "commanded_target_substitution_tick1_max_action_error": {
+      "1024000": 0.029209673404693604,
+      "512000": 0.03518424555659294
+    },
+    "runtime_v1_zero_phase_tick0_max_action_error": {
+      "1024000": 0.04923200607299805,
+      "512000": 0.03805098682641983
+    }
+  },
+  "policy_handoff": {
+    "artifact_root": "artifacts/runtime_handoff/rdkx5_native_20260719",
+    "branch": "codex/torso-com-decode-probe",
+    "commit": "ad1cd8e9b9fdacd26a5453318411dafe423588b4",
+    "manifest_sha256": "ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7",
+    "policy_repository": "RobVanProd/open-duck-mini-rdkx5",
+    "selected_onnx_sha256": "NOT_READY"
+  },
+  "policy_sha256": {
+    "T2_EQUAL_1024000": "0dfc24bde5d839e4d346dd8c08d9a7d0222a3847764ec6738bfc7f8d947f4ece",
+    "T2_EQUAL_512000": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de"
+  },
+  "remaining_blockers": [
+    "No single deployment checkpoint is selected.",
+    "A reviewed default-off versioned 115-D runtime-v2 path is absent.",
+    "The real-build torso COM/inertia packet lacks 46 required fields.",
+    "Policy-side robot clearance is false.",
+    "Gate 5 remains NOT_RUN and unauthorized."
+  ],
+  "review_status": "PASS_CPU_HANDOFF_INSPECTION_BLOCKED_FOR_VERSIONED_RUNTIME_V2",
+  "schema_version": "open_duck_x5.policy_handoff_review.v1"
+}
