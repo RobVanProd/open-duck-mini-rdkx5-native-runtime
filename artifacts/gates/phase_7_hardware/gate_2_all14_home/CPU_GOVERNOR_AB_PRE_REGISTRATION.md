@@ -1,6 +1,6 @@
 # CPU Governor Torque-Off A/B Pre-Registration
 
-Status: `NOT_AUTHORIZED_NOT_RUN`
+Status: `EXECUTED_REVIEWED_PASS`
 
 This freezes a one-variable causal test of the remaining exact-collector timing
 tail. It does not authorize opening `/dev/ttyS1`.
@@ -73,3 +73,15 @@ arguments; refuses a preexisting evidence directory; validates the completed
 summary; and restores the original governor through an EXIT/INT/TERM cleanup
 path. Offline contract tests verify that the script exposes no device, tick,
 source-commit, torque, motion, config, or policy override.
+
+## Reviewed result
+
+Rob explicitly authorized this named run with the robot on its stand. Arm B
+completed 10,000/10,000 ticks with torque disabled and restored `schedutil`.
+Complete-sweep mean/p99.9/max changed from
+`5.655528/8.067290/8.352496 ms` to
+`4.115062/4.522262/4.821428 ms`. Tick p99/p99.9 was
+`20.002755/20.005297 ms`; failures, bursts, alarms, and telemetry drops were
+all zero. The causal and absolute preregistered conditions pass. See
+`cpu_governor_ab/RESULT.md`. This result does not authorize the moving Gate 2
+home hold.

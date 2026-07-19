@@ -28,6 +28,23 @@ image must not claim either feature.
 - Request SCHED_FIFO priority 80.
 - Run logging, controller input, and noncritical sensor work off the isolated core.
 
+## Verified CPU-frequency requirement
+
+The preregistered 2026-07-18 torque-off A/B changed only policy0 from
+`schedutil` to `performance` for the frozen 10,000-tick serial population.
+Complete-sweep mean/p99.9/max improved from
+`5.655528/8.067290/8.352496 ms` to
+`4.115062/4.522262/4.821428 ms`; tick p99/p99.9 was
+`20.002755/20.005297 ms`. The A/B passed its material-effect threshold and the
+absolute `<5 ms` bus budget with zero failures or bursts.
+
+Therefore subsequent timing gates must verify policy0 is `performance` before
+opening the serial device. The gate launcher must record the before/during/after
+values and restore the prior governor on normal exit, failure, or signal. Do
+not make this a silent machine-wide assumption, and do not reuse the torque-off
+A/B runner for a moving gate. See D036-D037 and
+`artifacts/gates/phase_7_hardware/gate_2_all14_home/cpu_governor_ab/RESULT.md`.
+
 The CPU ONNX session is explicitly sequential and single-threaded, with intra-
 and inter-op spinning disabled. Inference therefore executes on the RT control
 thread instead of making it wait for default SCHED_OTHER worker pools on the

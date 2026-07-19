@@ -1,11 +1,17 @@
 # Hardware Gate 2 Preflight Result
 
-Status: `NOT_RUN_BLOCKED_PREFLIGHT`
+Status: `SUPERSEDED_TIMING_PREFLIGHT_PASS_GATE_2_NOT_RUN`
 
 Gate 2 was explicitly authorized for a suspended/benched all-14 home hold with
 no policy. Torque-off preflight did not satisfy the frozen bus gates, so torque
 was never enabled, the home move did not begin, and the 10,000-tick moving hold
 was not run. `NOT_RUN.md` therefore remains authoritative for Gate 2 itself.
+
+A later separately authorized one-variable governor A/B supersedes the timing
+blocker recorded here: under `performance`, the torque-off 10,000-tick sweep
+passed with a 4.821428 ms maximum and restored `schedutil`. Gate 2 itself remains
+not run and requires fresh moving-gate authorization. See
+`cpu_governor_ab/RESULT.md`.
 
 ## Safety and provenance
 
@@ -161,3 +167,16 @@ fixed-length SyncRead collector A/B passed its exact 140-byte receive contract
 but measured complete-sweep mean/p99.9/max of
 `5.655528/8.067290/8.352496 ms`. Gate 2 remains blocked by the unchanged
 `<5 ms` maximum; see `sync_read_collector_ab/RESULT.md`.
+
+## 2026-07-18 CPU-governor timing preflight passes
+
+The frozen governor arm changed only policy0 from `schedutil` to `performance`
+for the exact same 10,000-tick torque-off population. Complete-sweep
+mean/p99.9/max became `4.115062/4.522262/4.821428 ms`, tick p99/p99.9 became
+`20.002755/20.005297 ms`, and failures, bursts, alarms, and drops were zero.
+The runner restored `schedutil` and final torque-off was `ok`.
+
+This clears the independent torque-off timing preflight. It does not turn the
+historical stopped home hold into a pass: no torque or motion occurred, and a
+new authorization is still required for Gate 2 itself. See
+`cpu_governor_ab/RESULT.md`.

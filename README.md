@@ -10,13 +10,13 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | --- | --- |
 | Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
 | Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; candidate training semantics still required |
-| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; exact 140-byte state burst is collected before one-pass parsing; hardware A/B pending |
+| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; exact 140-byte state burst is collected before one-pass parsing; 10,000-tick governor A/B passes the `<5 ms` sweep budget |
 | Extended servo telemetry | Current/voltage/temperature, one servo per tick |
 | Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
-| RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified on X5; Gate 2 tick timing preflight green |
+| RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
 | IMU / contacts / policy host | Implemented; policy inference is single-thread sequential; hardware remains unverified |
-| Hardware gates 1-5 | Gate 1 `PASS_REVIEWED`; Gate 2 `NOT_RUN_BLOCKED_PREFLIGHT` after matched 10,000-tick USB and direct-UART sweeps both failed the `<5 ms` bus gate; Gates 3-5 `NOT_RUN` |
+| Hardware gates 1-5 | Gate 1 `PASS_REVIEWED`; Gate 2 moving hold remains `NOT_RUN`, but its torque-off timing preflight now passes under `performance` and awaits a fresh authorization; Gates 3-5 `NOT_RUN` |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract

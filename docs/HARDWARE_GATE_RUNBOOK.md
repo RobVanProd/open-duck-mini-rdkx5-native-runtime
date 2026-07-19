@@ -1,16 +1,16 @@
 # Staged Hardware Gate Runbook
 
-Gate 1 is `PASS_REVIEWED`. Gate 2 remains `NOT_RUN` because its authorized
-torque-off preflight failed the bus gates before torque enable. Gates 3-5 remain
-`NOT_RUN`. Each invocation requires a fresh, explicit authorization from Rob and
-a physically suspended or benched robot. Authorization for one gate does not
-authorize the next.
+Gate 1 is `PASS_REVIEWED`. Gate 2 remains `NOT_RUN`: the earlier torque-off
+preflight failed, but the later frozen CPU-governor A/B cleared every timing
+preflight gate under `performance`. Torque was never enabled and the home hold
+still requires a fresh, explicit authorization from Rob. Gates 3-5 remain
+`NOT_RUN`. Authorization for one gate does not authorize the next.
 
 ## Common preflight
 
 1. Record repository commit, config SHA-256, policy SHA-256 if applicable, board image/kernel, Python version, serial driver, baud, USB topology, CPU isolation, scheduler, and operator.
 2. Confirm hands clear, robot supported, power cutoff reachable, and `start_paused=true`.
-3. Run `taskset -c 0-7 setup/verify_rt_setup.sh 7 80` and `setup/verify_serial_path.sh /dev/ttyACM0`; attach output. An SSH login inherits housekeeping-only affinity after `isolcpus`, so the explicit initial mask is required to reproduce the reviewed service configuration. RT verification must show exact isolation membership plus successful affinity and `SCHED_FIFO` tests.
+3. Run `taskset -c 0-7 setup/verify_rt_setup.sh 7 80` and `setup/verify_serial_path.sh /dev/ttyS1`; attach output. An SSH login inherits housekeeping-only affinity after `isolcpus`, so the explicit initial mask is required to reproduce the reviewed service configuration. RT verification must show exact isolation membership plus successful affinity and `SCHED_FIFO` tests. Timing gates must also verify policy0 is `performance` before serial startup and restore the prior governor through the reviewed launcher.
 4. Pre-register duration, commands, failure threshold, consecutive-failure watchdog count, and stop conditions in the gate artifact.
 5. Use both CLI acknowledgements: `--hardware-authorized --suspended-or-benched`.
 6. Stop on unexpected motion, wrong joint/side/sign, hard overrun, any burst of read failures, or operator concern.
@@ -47,7 +47,7 @@ Gate 1 artifact directory. Gate 2 remains unauthorized.
 
 ## Gate 2 — Fourteen-servo home hold, no policy
 
-Current status: `NOT_RUN_BLOCKED_PREFLIGHT`. The ID-13-last wire-order repair
+Current status: `NOT_RUN_AWAITING_REAUTHORIZATION`. The ID-13-last wire-order repair
 removed the reproduced CRC mechanism, but the repeated torque-off preflight had
 one device-status reply, `0.125%` failures, and `7.703526 ms` max bus time. The
 50 Hz tick p99.9 was green at `20.101307 ms`. Torque was never enabled. See the
@@ -211,8 +211,17 @@ torque-off is `ok`. See `voltage_limit_8v4_complete/RESULT.md`. This clears the
 voltage alarm only. The subsequently authorized fixed-length collector A/B
 completed all 10,000 sweeps and passed its receive contract, but complete-sweep
 mean/p99.9/max was `5.655528/8.067290/8.352496 ms`. Gate 2 therefore remains
-blocked by the unchanged `<5 ms` maximum. See
+blocked at that stage by the unchanged `<5 ms` maximum. See
 `sync_read_collector_ab/RESULT.md`; no moving command is authorized.
+
+The separately authorized 10,000-tick CPU-governor A/B then changed only
+policy0 from `schedutil` to `performance`. Complete-sweep
+mean/p99.9/max improved to `4.115062/4.522262/4.821428 ms`; tick p99/p99.9 was
+`20.002755/20.005297 ms`, with zero failures, bursts, alarms, or drops. The
+runner restored `schedutil`. This clears the torque-off timing preflight and
+selects a verified temporary `performance` governor for the eventual moving
+Gate 2 launcher. It does not retroactively authorize or complete the moving
+home hold. See `cpu_governor_ab/RESULT.md`.
 
 - Verify all 14 IDs before torque enable.
 - Slowly move to home, then run SyncWrite plus grouped position/speed read and round-robin telemetry.

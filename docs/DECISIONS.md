@@ -447,8 +447,8 @@ because the implementation is faster in isolation.
 
 ## D036 — Test RT CPU frequency before changing bus architecture again
 
-Accepted as the next one-variable hardware hypothesis; execution remains
-`NOT_AUTHORIZED_NOT_RUN`. In the exact-collector trace, group parse tail and
+Accepted and executed as a one-variable hardware hypothesis. In the
+exact-collector trace, group parse tail and
 read-call count correlate at `-0.953669`: fewer wakeups precede dramatically
 slower parsing. The entire CPU cluster remains on `schedutil` with a 300 MHz to
 1.5 GHz range, so the isolated 50 Hz loop can wake below maximum frequency.
@@ -460,3 +460,21 @@ population: rerun the accepted exact collector while changing only policy0 to
 preregistered, but Gate 2 still requires the absolute `<5 ms` maximum. Failure
 stops the branch; it does not authorize a parser/no-instrumentation combination
 or a threshold change.
+
+The authorized 10,000-tick arm B changed only policy0 to `performance` and
+passed. Complete-sweep mean/p99.9/max fell from
+`5.655528/8.067290/8.352496 ms` to
+`4.115062/4.522262/4.821428 ms`; tick p99/p99.9 was
+`20.002755/20.005297 ms`, with zero failures, bursts, alarms, or drops. The
+runner restored `schedutil`. This passes both the preregistered causal threshold
+and the absolute bus budget, identifying CPU-frequency scaling as the remaining
+host-tail cause for this probe. It is torque-off preflight evidence, not moving
+Gate 2 clearance.
+
+## D037 — Require a verified performance governor for subsequent timing gates
+
+Accepted from D036. Any subsequent Gate 2 timing run must verify policy0 is
+`performance` before serial startup and preserve evidence of that state. A
+reviewed fail-closed launcher must restore the prior governor on normal exit,
+failure, or signal. The standalone A/B runner is not reused as a moving runner,
+and no moving gate is authorized by this decision.
