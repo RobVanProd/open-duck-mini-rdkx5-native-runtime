@@ -23,8 +23,8 @@ def test_runner_is_physically_blocked_until_envelope_identity_is_frozen() -> Non
 
 def test_runner_freezes_source_hardware_and_population() -> None:
     script = _script()
-    assert "d43ce270d9c24d075e7baf02efc741d65bb12f47" in script
-    assert "ff1c22716430cc15b4c60d340375976959c2a2a5524c68b0e7c1bf6aa473116c" in script
+    assert "de870de8cde29a3e645c73c6f6cdeaa48cd8ea46" in script
+    assert "9caefc209dfb85bd1ca28d998e37bcf0832c361468cec0d8d46c97cf6d7c9c17" in script
     assert "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b" in script
     assert "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be" in script
     assert 'readonly device="/dev/ttyS1"' in script

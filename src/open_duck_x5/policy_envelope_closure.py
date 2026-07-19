@@ -29,10 +29,10 @@ EXPECTED_SELECTED_ONNX_SHA256 = (
 )
 TEMPLATE_SHA256 = {
     "setup/run_automatic_configuration.sh": (
-        "7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245"
+        "34a7ad10d42953e01fa28f786242d2dada74653659125e78b4fe6a493b3f366f"
     ),
     "setup/run_winner_v2_cpu_preflight.sh": (
-        "c70fa0ed182ae78b640ef731f175489046136aa51894db241ae455af06dbede7"
+        "3fb3cffa8bf02481c584482dae1196a5412ec79a17c533d37a55792f6c10483d"
     ),
 }
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
