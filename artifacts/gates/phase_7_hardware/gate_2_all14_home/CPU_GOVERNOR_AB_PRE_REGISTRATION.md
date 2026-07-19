@@ -65,3 +65,11 @@ torque-off A/B and a fresh confirmation that the robot is on its stand or
 suspended/benched. The probe invocation must contain
 `--hardware-authorized --suspended-or-benched` and must not contain
 `--enable-torque` or `--moving-gate-authorized`.
+
+The fail-closed implementation is
+`setup/run_cpu_governor_ab_torque_off.sh`. It freezes the source archive hash,
+commit, endpoint, tick population, packet settings, RT settings, and probe
+arguments; refuses a preexisting evidence directory; validates the completed
+summary; and restores the original governor through an EXIT/INT/TERM cleanup
+path. Offline contract tests verify that the script exposes no device, tick,
+source-commit, torque, motion, config, or policy override.
