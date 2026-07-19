@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly expected_source_commit="__GATE4_SOURCE_COMMIT__"
-readonly expected_archive_sha256="__GATE4_ARCHIVE_SHA256__"
+readonly expected_source_commit="c5f27598b68fa7d69d81d0675f50a06435ecdaf8"
+readonly expected_archive_sha256="5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8"
 readonly expected_config_sha256="131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 readonly device="/dev/ttyS1"
 readonly ticks="10000"

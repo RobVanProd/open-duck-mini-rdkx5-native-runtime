@@ -11,6 +11,8 @@ def _script() -> str:
 
 def test_gate4_runner_freezes_scope_and_population() -> None:
     script = _script()
+    assert "c5f27598b68fa7d69d81d0675f50a06435ecdaf8" in script
+    assert "5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8" in script
     assert 'readonly device="/dev/ttyS1"' in script
     assert 'readonly ticks="10000"' in script
     assert 'readonly home_seconds="5"' in script

@@ -10,7 +10,20 @@ import numpy as np
 import pytest
 
 from open_duck_x5.constants import HOME_RAD
-from open_duck_x5.gate4_validation import Gate4ValidationError, validate_gate4_stage
+from open_duck_x5.gate4_validation import (
+    EXPECTED_ARCHIVE_SHA256,
+    EXPECTED_SOURCE_COMMIT,
+    Gate4ValidationError,
+    validate_gate4_stage,
+)
+
+
+def test_gate4_validator_freezes_source_archive_identity() -> None:
+    assert EXPECTED_SOURCE_COMMIT == "c5f27598b68fa7d69d81d0675f50a06435ecdaf8"
+    assert (
+        EXPECTED_ARCHIVE_SHA256
+        == "5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8"
+    )
 
 
 def _fixture(tmp_path: Path) -> tuple[Path, Path, Path]:

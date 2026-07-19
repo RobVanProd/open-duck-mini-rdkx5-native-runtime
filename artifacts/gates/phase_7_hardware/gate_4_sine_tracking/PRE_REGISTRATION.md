@@ -77,8 +77,8 @@ checks the source/config/runtime provenance. Summary booleans alone cannot pass.
 These values are filled only after the implementation commit is archived twice
 with matching SHA-256 and the launcher is frozen in a separate commit:
 
-- source commit: `__GATE4_SOURCE_COMMIT__`
-- source archive SHA-256: `__GATE4_ARCHIVE_SHA256__`
+- source commit: `c5f27598b68fa7d69d81d0675f50a06435ecdaf8`
+- source archive SHA-256: `5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8`
 - config SHA-256: `131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b`
 - launcher: `setup/run_gate4_sine_tracking.sh`
 - validator: `src/open_duck_x5/gate4_validation.py`
