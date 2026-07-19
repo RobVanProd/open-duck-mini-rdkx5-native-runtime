@@ -806,3 +806,22 @@ freeze. Powered-off torso COM, policy `robot_clearance=true`, no-servo
 X5/AArch64 replay, a separately reviewed Gate 5 launcher, and separately
 authorized suspended replay also remain required. No hardware or motion
 authority is granted.
+
+## D054 — Close the two-repository winner-v2 offline asset freeze
+
+Accepted. Policy commit `4521cd8fdcf5603dfb1405417ce38cd2f031fd84`
+independently reviewed replacement-lock SHA-256 `48fd6d81...f64ef31`
+against runtime commit `290fe4726a0310c1a368767ce900340a52eba412`.
+All 46 policy checks pass, the issue list is empty, and the exact policy review
+result has SHA-256 `53351707...aadea`.
+
+The runtime preserves an exact byte-identical snapshot of that result and a
+non-circular closure artifact with SHA-256 `281382bb...83110`. Its executable
+verifier binds the reviewed lock, runtime verification, policy review,
+selected ONNX, corrected handoff, live config, and formal/reduced results, and
+returns `PASS_FINAL_OFFLINE_ASSET_FREEZE`.
+
+This closes the offline asset-freeze gate. Powered-off real-build torso COM,
+policy `robot_clearance=true`, no-servo X5/AArch64 replay, a separately
+reviewed Gate 5 launcher, and separately authorized suspended replay remain.
+No hardware or motion authority is granted.

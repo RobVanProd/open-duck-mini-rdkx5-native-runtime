@@ -1,6 +1,6 @@
 # Winner-v2 Runtime-v2 Offline Review
 
-Status: `PASS_RUNTIME_ASSET_LOCK_VERIFICATION — HOLD_POLICY_LOCK_REVIEW`
+Status: `PASS_FINAL_OFFLINE_ASSET_FREEZE — BLOCKED_FOR_COM_AND_X5_PREFLIGHT`
 
 This review covers a separate, default-disabled 115-D winner-v2 implementation.
 It does not modify or route around the frozen 101-D v1 runtime. It has no
@@ -139,16 +139,24 @@ Its verifier passes 12 runtime files, two runtime evidence files, six policy
 package files, and the exact policy acceptance result. The superseded lock
 SHA-256 `4da893b3...de940` remains machine-revoked. Neither ONNX binary is
 committed to this repository. Policy-side review of replacement lock SHA-256
-`48fd6d81...f64ef31` remains required before the lock is called final.
+`48fd6d81...f64ef31` subsequently passed at commit
+`4521cd8fdcf5603dfb1405417ce38cd2f031fd84`. The exact policy review result
+has SHA-256
+`53351707ab1477541a4193b291bdc5ec8073ad500c171f7778fc36bf363aadea`,
+contains 46 passing checks, and reports no issues.
+
+The non-circular two-repository closure record is
+`artifacts/gates/phase_5_policy/winner_v2_final_asset_freeze_closure_20260719.json`
+with SHA-256 `281382bb...83110`. Its executable verifier returns
+`PASS_FINAL_OFFLINE_ASSET_FREEZE`; it preserves all hardware and deployment
+authority as false.
 
 ## Remaining gates
 
-1. Receive policy-side review of regenerated asset-lock SHA-256
-   `48fd6d81...f64ef31`.
-2. Complete the powered-off direct-reaction torso-COM packet and receive the
+1. Complete the powered-off direct-reaction torso-COM packet and receive the
    policy repository's reviewed result.
-3. Receive policy-side `robot_clearance: true`.
-4. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
+2. Receive policy-side `robot_clearance: true`.
+3. Run the same frozen closure metric in a no-servo X5 CPU preflight. Only
    after that and the preceding gates, prepare a separately reviewed,
    separately authorized suspended Gate 5 launcher.
 

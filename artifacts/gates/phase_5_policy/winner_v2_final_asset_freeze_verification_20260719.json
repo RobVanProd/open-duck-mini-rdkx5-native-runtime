@@ -1,0 +1,24 @@
+{
+  "asset_lock_sha256": "48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31",
+  "authority": {
+    "cpu_only": true,
+    "gate5": false,
+    "rdkx5_access": false,
+    "robot_clearance": false,
+    "robot_or_motor_access": false,
+    "runtime_deployment": false
+  },
+  "closure_sha256": "281382bb7d29d71e27211356da740535e0bcbbbe21ff5c6ef429fd05bf383110",
+  "policy_checks_verified": 46,
+  "policy_review_commit": "4521cd8fdcf5603dfb1405417ce38cd2f031fd84",
+  "policy_review_sha256": "53351707ab1477541a4193b291bdc5ec8073ad500c171f7778fc36bf363aadea",
+  "remaining_blockers": [
+    "completed powered-off direct-reaction torso COM packet",
+    "policy-side robot_clearance=true decision",
+    "X5 CPU-only replay under the same frozen native-resolution metric",
+    "separately reviewed Gate 5 launcher and authorization"
+  ],
+  "reviewed_runtime_commit": "290fe4726a0310c1a368767ce900340a52eba412",
+  "schema_version": "open_duck_x5.winner_v2_final_asset_freeze_verification.v1",
+  "status": "PASS_FINAL_OFFLINE_ASSET_FREEZE"
+}

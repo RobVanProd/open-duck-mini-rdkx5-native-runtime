@@ -1,0 +1,42 @@
+{
+  "asset_lock": {
+    "path": "artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json",
+    "runtime_verification_path": "artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_verification_20260719.json",
+    "runtime_verification_sha256": "a71bcdbbaf8942cc38a6956dc81290a1969a865651388aca21215af5f185b744",
+    "sha256": "48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31"
+  },
+  "authority": {
+    "cpu_only": true,
+    "gate5": false,
+    "rdkx5_access": false,
+    "robot_clearance": false,
+    "robot_or_motor_access": false,
+    "runtime_deployment": false
+  },
+  "frozen_identities": {
+    "corrected_handoff_manifest_sha256": "d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5",
+    "live_config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "policy_acceptance_commit": "4c99b5e3be203af419536382f11f3cce98283ba2",
+    "policy_acceptance_sha256": "5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc",
+    "runtime_formal_result_sha256": "e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14",
+    "runtime_reduced_result_sha256": "1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e",
+    "selected_onnx_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de"
+  },
+  "policy_review": {
+    "commit": "4521cd8fdcf5603dfb1405417ce38cd2f031fd84",
+    "decision": "PASS_FROZEN_OFFLINE_ASSET_LOCK_POLICY_REVIEW",
+    "external_path": "outputs/analysis/winner_v2_offline_asset_lock_review.json",
+    "repository": "RobVanProd/open-duck-mini-rdkx5",
+    "snapshot_path": "artifacts/gates/phase_5_policy/policy_winner_v2_offline_asset_lock_review_20260719.json",
+    "snapshot_sha256": "53351707ab1477541a4193b291bdc5ec8073ad500c171f7778fc36bf363aadea"
+  },
+  "remaining_blockers": [
+    "completed powered-off direct-reaction torso COM packet",
+    "policy-side robot_clearance=true decision",
+    "X5 CPU-only replay under the same frozen native-resolution metric",
+    "separately reviewed Gate 5 launcher and authorization"
+  ],
+  "reviewed_runtime_commit": "290fe4726a0310c1a368767ce900340a52eba412",
+  "schema_version": "open_duck_x5.winner_v2_final_asset_freeze_closure.v1",
+  "status": "PASS_FINAL_OFFLINE_ASSET_FREEZE"
+}

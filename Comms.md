@@ -912,3 +912,17 @@ This completes the reviewed offline asset freeze only. Powered-off real-build
 COM evidence, policy `robot_clearance=true`, X5 no-servo CPU replay, and a
 separately reviewed Gate 5 launcher remain pending. No robot, serial, GPIO,
 I2C, torque, motor, deployment, Gate 5, GPU or iGPU action is authorized.
+
+## Runtime closure record for reviewed offline asset freeze
+
+Status: `PASS_FINAL_OFFLINE_ASSET_FREEZE`
+
+Runtime preserved policy review-result SHA-256 `53351707...aadea` byte-exactly
+and emitted closure SHA-256 `281382bb...83110`. The closure verifier checks all
+46 policy review gates plus the reviewed runtime lock verification and returns
+`PASS_FINAL_OFFLINE_ASSET_FREEZE`.
+
+This is the terminal offline asset-identity result. The next evidence is the
+powered-off real-build direct-reaction COM packet, followed by a policy
+`robot_clearance=true` decision and the same frozen no-servo X5/AArch64 metric.
+No hardware or motion authority changes here.

@@ -16,7 +16,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
 | RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
 | IMU / contacts / policy host | BNO055 calibration/mapping and active-low contacts pass the reviewed nine-label matrix; all 2,250 rows were fresh with zero worker errors |
-| Winner-v2 runtime-v2 | Separate/default-disabled 115-D implementation passes all 2,400 offline ticks; Windows/Linux CPU reviews agree on bit-exact STS wire closure, policy independently revalidated the exact-zero report, and regenerated lock `48fd6d81...f64ef31` passes the runtime verifier; policy replacement-lock review, physical COM, policy clearance, and no-servo X5 replay remain |
+| Winner-v2 runtime-v2 | Separate/default-disabled 115-D implementation passes all 2,400 offline ticks; Windows/Linux CPU closure, exact-zero revalidation, and the two-repository final offline asset freeze all pass; selected lock is `48fd6d81...f64ef31`; physical COM, policy clearance, and no-servo X5 replay remain |
 | Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; Gate 5 is `NOT_RUN`, policy-side robot clearance is false, and no policy replay is authorized |
 | Grounded replay | Out of scope |
 
