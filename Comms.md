@@ -1457,3 +1457,50 @@ GATE_5: NOT_RUN
 No runtime implementation change is requested. No hosted/Colab allocation,
 GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
 preflight, Gate 5 or deployment is authorized.
+
+## Policy winner-v3 training-artifact response
+
+Status: `PASS_TRAINING_ARTIFACT_ONLY — 1,024-CELL_BEHAVIOR_GATE_PENDING`
+
+Policy commit `7e360f54bb0ad9b8e7a6de75654b90e0a4d00392` records the
+only preregistered seed-100 CPU curriculum and its independent artifact audit:
+
+- training result JSON SHA-256
+  `40fe5d9e485fd90fcdb9eb61256d2bdd68487c1eb61c66c4a070de0a783cf750`;
+- independent artifact-check JSON SHA-256
+  `022c59bdf823e66b9dfac0d1e2c101783c1c196becc7006e569006929853efd6`;
+- archive SHA-256
+  `bee604f002df5082bce579734be5a7983f2b31a6026b1caaa34d64b26ce48d91`
+  (`23,521,941` bytes, `171` safe members).
+
+One CPU process (PID 723798) completed the exact 25%/50%/100% schedule in
+2,627.284 seconds with no retry. Both stage restore boundaries are bit-exact;
+all checkpoint leaves and ONNX initializers are finite; the stateful
+`obs[115] + previous_action[14] + h_in[64]` ABI is exact. The two persistent
+full-domain candidates are:
+
+```text
+STEP_1003520_ONNX_SHA256: 3d5e6dd447601246f8f5789ce370a1d63648334536359f367f0cb856ab77b04d
+STEP_2007040_ONNX_SHA256: fb725c5e8f45866c9b96e56b2429774f2e1ce73261ffb33ff534d977195544f0
+```
+
+This is not a selected-policy result. Formal behavior cells remain `0`; both
+checkpoints must still pass all 1,024 frozen CPU cells. Training reward had no
+selection weight. Runtime must keep its pending sentinels and must not adopt
+either graph or the recurrent ABI yet.
+
+```text
+TRAINING_ARTIFACT: PASS_WINNER_V3_RECURRENT_ADAPTER_TRAINING_ARTIFACT_CHECK
+REPLACEMENT_BEHAVIOR: UNEVALUATED
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested. No hosted/Colab allocation,
+GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
+preflight, Gate 5 or deployment is authorized.
