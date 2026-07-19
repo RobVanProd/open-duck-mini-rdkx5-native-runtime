@@ -99,6 +99,7 @@ The stateful winner-v2 X5 preflight has a separate no-servo entry point:
 preflight_winner_v2_cpu --help
 review_winner_v2_cpu_preflight --help
 prepare_policy_envelope_closure --help
+audit_winner_v2_completion --help
 bash -n setup/run_winner_v2_cpu_preflight.sh
 ```
 
@@ -118,6 +119,11 @@ envelope bytes from Git, proves the three-commit ancestry, validates current
 asset identity, pins both launcher templates, and reports their exact candidate
 hashes without modifying them. A new ONNX must stop here for a complete
 two-repository asset re-freeze.
+
+The checked-in winner-v2 completion audit is reproduced from the pinned v1/v2
+sources and reviewed JSON evidence. Its hold is deliberate: all offline runtime
+requirements pass, but it must continue to report the policy envelope,
+clearance, X5 execution, and Gate 5 as pending/`NOT_RUN`.
 
 Mock timing is informational only. It validates accounting and artifact
 production; it cannot authorize a phase or trigger the native-extension

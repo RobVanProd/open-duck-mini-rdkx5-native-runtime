@@ -1043,3 +1043,18 @@ repository origin, and proves preregistration -> selected-policy ->
 envelope-artifact ancestry. Wrong origin, uncommitted bytes, wrong artifact
 bytes, or unrelated history fails closed. This remains an offline provenance
 check with all hardware authority false.
+
+## D066 — Separate completed offline runtime work from pending campaign gates
+
+Accepted. A machine-readable completion audit pins the frozen 101-D contract,
+winner-v2 source, 2,400-tick semantic/recursive/full-chain evidence, final
+offline asset freeze, and configuration-sensitivity hold. It also scans imports
+to prove winner-v2 remains absent from the production runtime and checks the
+fail-closed fault population, P30 observer slot, selected checkpoint, graph
+limits, x=0 behavior, and legacy-limiter identity.
+
+All 12 offline runtime-v2 requirements pass. This does not make the campaign
+complete: the manual COM packet is explicitly superseded by the no-measurement
+product requirement, while the policy envelope and clearance are pending and
+automatic calibration, X5 CPU execution, and both Gate 5 cells remain
+`NOT_RUN`. The audit therefore emits a hold with all hardware authority false.

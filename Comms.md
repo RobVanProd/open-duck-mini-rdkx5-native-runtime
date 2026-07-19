@@ -1162,3 +1162,21 @@ unchanged, structural acceptance still requires runtime to verify the policy
 and envelope artifact identities before applying exactly the two sentinel
 replacements and re-freezing the preflight reviewer. No hardware or motion
 authority changes.
+
+## Runtime winner-v2 completion audit
+
+Status: `OFFLINE_RUNTIME_COMPLETE — CAMPAIGN_HOLD`
+
+Runtime commit `6e0dd247de830c6abfa686acd6c7e16ca7464e4f` adds the
+machine-readable `audit_winner_v2_completion` command; implementation SHA-256
+is `85ff8cf39f3c4ceb765391ce1f7f992501b46f3813204098dff203a018113495`.
+It pins the frozen 101-D contract and winner-v2 source/evidence, scans every
+runtime module to prove the 115-D path remains default-disabled, and rechecks
+all 12 offline requirements including 2,400-tick coverage and fault injection.
+
+The audit result is
+`artifacts/gates/phase_5_policy/winner_v2_completion_audit_20260719.json`.
+It reports every offline runtime-v2 requirement `PASS`, the manual COM packet
+`SUPERSEDED_NO_MEASUREMENT`, the supported-configuration envelope and policy
+clearance `PENDING_POLICY`, automatic calibration and X5 preflight `NOT_RUN`,
+and Gate 5 blocked by those prior gates. All hardware authority remains false.

@@ -1,0 +1,122 @@
+{
+  "architecture": {
+    "allowed_consumers": [
+      "winner_v2_completion_audit.py",
+      "winner_v2_cpu_preflight.py",
+      "winner_v2_verifier.py"
+    ],
+    "forbidden_transforms": [],
+    "hardware_imports": [],
+    "production_runtime_consumer_count": 0
+  },
+  "authority": {
+    "gate5": false,
+    "grounded_walking": false,
+    "motion": false,
+    "rdkx5_policy_execution": false,
+    "robot_clearance": false,
+    "serial": false,
+    "torque": false
+  },
+  "campaign_requirements": [
+    {
+      "id": "manual_com_measurement_packet",
+      "status": "SUPERSEDED_NO_MEASUREMENT"
+    },
+    {
+      "id": "supported_configuration_envelope",
+      "status": "PENDING_POLICY"
+    },
+    {
+      "id": "policy_robot_clearance",
+      "status": "PENDING_POLICY"
+    },
+    {
+      "id": "automatic_supported_calibration",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "x5_cpu_only_preflight",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "frozen_gate5_launcher",
+      "status": "BLOCKED_BY_PRIOR_GATES"
+    },
+    {
+      "id": "suspended_x0_600_ticks",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "suspended_x008_600_ticks",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "grounded_walking",
+      "status": "OUT_OF_SCOPE"
+    }
+  ],
+  "goal_complete": false,
+  "identities": {
+    "artifacts/gates/phase_5_policy/winner_v2_final_asset_freeze_closure_20260719.json": "281382bb7d29d71e27211356da740535e0bcbbbe21ff5c6ef429fd05bf383110",
+    "artifacts/gates/phase_5_policy/winner_v2_full_chain_verification_20260719.json": "85a5b230a8f4f79e04683b1098357df3ade55e90154a7e7ee2b8dc415d4ca541",
+    "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json": "e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14",
+    "artifacts/gates/phase_5_policy/winner_v2_variable_configuration_hold_20260719.json": "534d78e485739c1a956acc8907c5021ec27f2b600503b7ab4b274bc12bdb3791",
+    "docs/OBSERVATION_ACTION_CONTRACT.md": "f9fb7b6edbf8d1ae6ad24e92bfe4371b83944e69eb8f611bb4aba296a9025db3",
+    "src/open_duck_x5/contract.py": "96dabb64e7e36b8e8515f2f34961b9d01e0f3da0de9e8e41260cd256bb7fa504",
+    "src/open_duck_x5/winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b"
+  },
+  "offline_requirements": [
+    {
+      "id": "frozen_v1_101d_untouched",
+      "status": "PASS"
+    },
+    {
+      "id": "separate_default_disabled_115d_path",
+      "status": "PASS"
+    },
+    {
+      "id": "p30_observer_in_obs_83_97",
+      "status": "PASS"
+    },
+    {
+      "id": "projected_reference_in_obs_101_115",
+      "status": "PASS"
+    },
+    {
+      "id": "stateful_previous_action_chain",
+      "status": "PASS"
+    },
+    {
+      "id": "phase_reset_and_observe_then_advance",
+      "status": "PASS"
+    },
+    {
+      "id": "graph_authoritative_limits_guard_deadband",
+      "status": "PASS"
+    },
+    {
+      "id": "legacy_5p24_limiter_identity",
+      "status": "PASS"
+    },
+    {
+      "id": "no_overlay_filter_or_extra_projection",
+      "status": "PASS"
+    },
+    {
+      "id": "transactional_fail_closed_state",
+      "status": "PASS"
+    },
+    {
+      "id": "full_2400_tick_cpu_verification",
+      "status": "PASS"
+    },
+    {
+      "id": "selected_checkpoint_and_asset_freeze",
+      "status": "PASS"
+    }
+  ],
+  "offline_runtime_v2_complete": true,
+  "schema_version": "open_duck_x5.winner_v2_completion_audit.v1",
+  "status": "HOLD_POLICY_ENVELOPE_AND_PHYSICAL_GATES"
+}

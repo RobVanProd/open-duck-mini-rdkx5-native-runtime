@@ -186,4 +186,11 @@ advancement routes. The frozen candidate's raw torso-X bracket passes through
 measurement obligation. See
 `docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
 
+The machine-readable current-state audit is
+`artifacts/gates/phase_5_policy/winner_v2_completion_audit_20260719.json`.
+Implementation commit `6e0dd247de830c6abfa686acd6c7e16ca7464e4f` and source
+SHA-256 `85ff8cf39f3c4ceb765391ce1f7f992501b46f3813204098dff203a018113495`
+pin all 12 offline runtime requirements and explicitly distinguish the
+superseded measurement route from the still-pending policy and physical gates.
+
 Gate 5 remains `NOT_RUN`. Grounded work remains out of scope.

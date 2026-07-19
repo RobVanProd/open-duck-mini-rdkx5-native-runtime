@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -36,6 +37,17 @@ def test_completion_audit_separates_offline_pass_from_pending_campaign() -> None
     assert campaign["supported_configuration_envelope"] == "PENDING_POLICY"
     assert campaign["x5_cpu_only_preflight"] == "NOT_RUN"
     assert all(value is False for value in result["authority"].values())
+
+
+def test_checked_in_completion_audit_matches_current_evidence() -> None:
+    expected = json.loads(
+        Path(
+            "artifacts/gates/phase_5_policy/"
+            "winner_v2_completion_audit_20260719.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert expected == audit_winner_v2_completion(repo_root=Path.cwd())
 
 
 def test_completion_audit_rejects_coherently_unreviewed_artifact_change(
