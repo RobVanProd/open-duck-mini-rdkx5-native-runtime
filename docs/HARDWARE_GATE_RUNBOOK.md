@@ -440,8 +440,12 @@ hold is visually verified. Review and close the `x=0` artifact before Rob
 separately authorizes a new invocation using `--fixed-command-x 0.08`. A 115-D
 or stateful candidate is rejected by the frozen 101/14 host and cannot be used
 as a substitute export. The verified winner is such a stateful 115-D policy;
-it requires a separately reviewed v2 host and remains blocked by checkpoint
-selection and policy-side robot clearance.
+its 512000-step checkpoint is selected and its default-off v2 path passes the
+offline matrix, but that path has no reviewed serial integration. Gate 5 remains
+blocked on the policy's passed variable-configuration envelope and
+`robot_clearance: true`, automatic supported calibration, the no-servo X5 CPU
+preflight, and a separately frozen v2 launcher. Per-build COM measurement is
+not required and cannot waive those gates.
 
 During serial Gate 5 the controller is pause/unpause-only. The authorized X
 command is fixed, all lateral/yaw/head command fields are zero, and the phase

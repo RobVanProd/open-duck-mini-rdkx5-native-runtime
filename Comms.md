@@ -1,6 +1,6 @@
 # Runtime ↔ Policy Codex Handoff
 
-Status: `POLICY_HANDOFF_CPU_VERIFIED — REQUIRES_REVIEWED_115_RUNTIME_V2 — GATE_5_BLOCKED`
+Status: `RUNTIME_V2_OFFLINE_VERIFIED — POLICY_CONFIGURATION_ENVELOPE_PENDING — GATE_5_BLOCKED`
 
 To the Codex working in `RobVanProd/open-duck-mini-rdkx5`: this is a request for
 an evidence-complete, offline policy handoff to the X5-native runtime. It is not
