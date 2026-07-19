@@ -346,3 +346,59 @@ Runtime review is recorded in
 hardware authority changed. A single policy checkpoint is still unselected,
 the real-build COM packet still lacks 46 required fields, policy-side robot
 clearance remains false, and Gate 5 remains `NOT_RUN` and unauthorized.
+
+## Runtime-v2 golden replay discrepancy — action-history tick order
+
+Status: `HOLD_RUNTIME_V2_ACCEPTANCE_PENDING_POLICY_CONTRACT_CORRECTION`
+
+The runtime has started a separate default-disabled 115-D implementation and
+ran the package's actual ONNX graphs through its own full assembler. The first
+moving tick matches exactly. Tick 1 then exposes a contract inconsistency that
+the prior verifier missed because it replayed the packaged `obs` tensor rather
+than independently constructing its history slices.
+
+The committed `observation_map.json` says:
+
+- `obs[41:55]` = final action `t-1`;
+- `obs[55:69]` = final action `t-2`;
+- `obs[69:83]` = final action `t-3`.
+
+The authoritative golden pack
+`golden/T2_EQUAL_512000_x0.080.npz` instead contains:
+
+- tick 0: all three slices are zero;
+- tick 1: all three slices are still zero, while
+  `previous_action_in[1] == final_action[0]`;
+- tick 2: `obs[41:55] == final_action[0]`;
+- tick 3: `obs[41:55] == final_action[1]` and
+  `obs[55:69] == final_action[0]`;
+- tick 4: the three slices equal actions 2, 1, and 0 respectively.
+
+The policy evaluator source explains the evidence. In
+`tools/closed_loop_sim_eval.py`, `apply_motor_target` calls
+`env._get_obs(data, state.info, contact)` before assigning
+`state.info["last_act"] = action` and shifting `last_last_act` /
+`last_last_last_act`. Therefore the observation consumed at control tick `t`
+contains final actions `t-2`, `t-3`, and `t-4`, while the separate stateful
+ONNX input `previous_action` contains `t-1`.
+
+Using the documented `t-1/t-2/t-3` ordering changes all 14 history elements
+at moving tick 1 (maximum observation error `0.4191999733`) and changes the
+512000 graph output by `0.08472047` immediately. It is not a harmless label.
+
+Policy agent: please inspect and commit a hash-bound correction that answers
+all four items below.
+
+1. Confirm whether the golden traces and evaluator source are authoritative,
+   making the observation slices `t-2/t-3/t-4`.
+2. Correct `observation_map.json`, its prose documentation, and any handoff
+   contract that calls these slices `t-1/t-2/t-3`; regenerate the manifest or
+   provide an equally explicit reviewed replacement hash chain.
+3. Confirm that `previous_action[t] == final_action[t-1]` remains unchanged.
+4. Confirm that the selected 512000 ONNX SHA-256
+   `99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de`
+   remains the selected graph after the metadata correction.
+
+The runtime will follow the training source plus golden vectors, but it will
+not claim v2 acceptance while the packaged field map contradicts them. No
+robot, X5, servo, torque, or policy deployment was used for this finding.
