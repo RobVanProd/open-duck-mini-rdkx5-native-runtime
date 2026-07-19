@@ -11,6 +11,10 @@ NAMESPACE = runpy.run_path("tools/verify_winner_v2_asset_lock.py")
 AssetLockError = NAMESPACE["AssetLockError"]
 verify_asset_lock: FunctionType = NAMESPACE["verify_asset_lock"]
 verify_files: FunctionType = NAMESPACE["verify_files"]
+require_not_revoked_asset_lock_hash: FunctionType = NAMESPACE[
+    "require_not_revoked_asset_lock_hash"
+]
+REVOKED_ASSET_LOCK_SHA256 = NAMESPACE["REVOKED_ASSET_LOCK_SHA256"]
 
 
 def _load_lock() -> dict[str, object]:
@@ -35,17 +39,10 @@ def test_asset_lock_keeps_all_hardware_authority_false(tmp_path: Path) -> None:
         )
 
 
-def test_asset_lock_verifier_refuses_revoked_historical_lock(tmp_path: Path) -> None:
-    lock_path = Path(
-        "artifacts/gates/phase_5_policy/"
-        "winner_v2_offline_asset_lock_20260719.json"
-    )
+def test_asset_lock_verifier_refuses_revoked_historical_lock() -> None:
+    revoked_hash = next(iter(REVOKED_ASSET_LOCK_SHA256))
     with pytest.raises(AssetLockError, match="explicitly stale/revoked"):
-        verify_asset_lock(
-            lock_path,
-            runtime_root=tmp_path,
-            policy_repo_root=tmp_path,
-        )
+        require_not_revoked_asset_lock_hash(revoked_hash)
 
 
 def test_asset_lock_freezes_corrected_knee_and_runtime_semantics() -> None:

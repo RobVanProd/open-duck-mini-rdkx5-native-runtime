@@ -19,7 +19,16 @@ EXPECTED_HANDOFF_MANIFEST_SHA256 = (
 EXPECTED_LIVE_CONFIG_SHA256 = (
     "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 )
-EXPECTED_POLICY_ACCEPTANCE_COMMIT = "fab1feaa8d136fed0ab33d5590d0eec88ef90d8f"
+EXPECTED_POLICY_ACCEPTANCE_COMMIT = "4c99b5e3be203af419536382f11f3cce98283ba2"
+EXPECTED_POLICY_ACCEPTANCE_SHA256 = (
+    "5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc"
+)
+EXPECTED_FORMAL_RESULT_SHA256 = (
+    "e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14"
+)
+EXPECTED_REDUCED_RESULT_SHA256 = (
+    "1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e"
+)
 REVOKED_ASSET_LOCK_SHA256 = frozenset(
     {
         "4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940",
@@ -60,6 +69,13 @@ def require(condition: bool, message: str) -> None:
         raise AssetLockError(message)
 
 
+def require_not_revoked_asset_lock_hash(lock_sha256: str) -> None:
+    require(
+        lock_sha256 not in REVOKED_ASSET_LOCK_SHA256,
+        f"asset lock is explicitly stale/revoked: {lock_sha256}",
+    )
+
+
 def verify_files(root: Path, files: dict[str, str], *, label: str) -> int:
     checked = 0
     for relative, expected_hash in sorted(files.items()):
@@ -80,10 +96,7 @@ def verify_asset_lock(
     policy_repo_root: Path,
 ) -> dict[str, object]:
     lock_sha256 = sha256_file(lock_path)
-    require(
-        lock_sha256 not in REVOKED_ASSET_LOCK_SHA256,
-        f"asset lock is explicitly stale/revoked: {lock_sha256}",
-    )
+    require_not_revoked_asset_lock_hash(lock_sha256)
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
     require(lock["schema_version"] == EXPECTED_SCHEMA, "asset-lock schema changed")
     require(lock["status"] == EXPECTED_STATUS, "asset-lock status changed")
@@ -135,6 +148,16 @@ def verify_asset_lock(
         evidence_files,
         label="runtime evidence",
     )
+    require(
+        lock["evidence_assets"]["runtime_full_recursive_result"]["sha256"]
+        == EXPECTED_FORMAL_RESULT_SHA256,
+        "formal runtime result identity changed",
+    )
+    require(
+        lock["evidence_assets"]["runtime_reduced_recursive_result"]["sha256"]
+        == EXPECTED_REDUCED_RESULT_SHA256,
+        "corrected reduced runtime result identity changed",
+    )
 
     policy_repo_root = policy_repo_root.resolve()
     policy_assets = lock["policy_assets"]
@@ -166,6 +189,10 @@ def verify_asset_lock(
         "policy acceptance commit changed",
     )
     require(
+        acceptance["sha256"] == EXPECTED_POLICY_ACCEPTANCE_SHA256,
+        "policy acceptance result identity changed",
+    )
+    require(
         sha256_file(policy_repo_root / acceptance["path"])
         == acceptance["sha256"],
         "policy recursive-closure acceptance result changed",
@@ -176,6 +203,29 @@ def verify_asset_lock(
     require(
         policy_result["decision"] == "PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE",
         "policy acceptance decision changed",
+    )
+    require(
+        policy_result["runtime_result_sha256"] == EXPECTED_FORMAL_RESULT_SHA256,
+        "policy acceptance binds a different formal result",
+    )
+    require(
+        policy_result["runtime_reduced_result_sha256"]
+        == EXPECTED_REDUCED_RESULT_SHA256,
+        "policy acceptance binds a different corrected reduced result",
+    )
+    require(
+        policy_result["checks"]["independent_replay"][
+            "independent_teacher_forced_observation_exact_zero"
+        ]
+        is True,
+        "policy independent replay did not prove exact-zero observation closure",
+    )
+    require(
+        policy_result["checks"]["reduced_reporting"][
+            "teacher_forced_observation_gate_exact_zero_only"
+        ]
+        is True,
+        "policy reduced report does not enforce exact-zero observation closure",
     )
     require(
         policy_result["authority"]["robot_clearance"] is False,
