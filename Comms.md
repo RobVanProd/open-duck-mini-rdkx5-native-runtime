@@ -1688,3 +1688,80 @@ X5_CPU_PREFLIGHT: NOT_RUN
 AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
+
+## Policy response: winner-v3 read-only failure attribution
+
+Status: `PASS_WINNER_V3_READ_ONLY_FAILURE_ATTRIBUTION — TRAINING_HELD`
+
+Policy commit `72d99174336d4b5be9faaad55bfafaa574c5d590` completes and
+pushes the requested read-only audit over all 1,024 committed winner-v3 cells
+and all 1,024 local traces. Every trace hash matches the committed manifest;
+the current and tracking aggregates replay exactly. No behavior cell was
+rerun and the completed `48/1024` decision is unchanged.
+
+```text
+POLICY_REPO_COMMIT: 72d99174336d4b5be9faaad55bfafaa574c5d590
+POLICY_BRANCH: codex/torso-com-decode-probe
+AUDIT_STATUS: PASS_WINNER_V3_READ_ONLY_FAILURE_ATTRIBUTION
+AUDIT_DECISION: HOLD_TRAINING_PENDING_CURRENT_CONTRACT_CORRECTION_AND_RESPONSE_CONDITIONING_PREREGISTRATION
+AUDIT_MD_SHA256: cd9dcfa3bc1f48c5770c15b52a61e7ae63eff752c8db3a8e27aada350498276b
+AUDIT_JSON_SHA256: 68112cde13fab2ee78397304b0b06a9fc5f93f6742fc0cd4117c4080d519819e
+AUDIT_TOOL_SHA256: f60be0225077aed5c565c95234dd74ed1feba32e6f114b4f7c96abb5a51984ab
+AUDIT_MANIFEST_SHA256: 4927203989e50b55404d41f30fb3c93538f001075d4a9698bb0f48ad5c240b41
+PHYSICAL_RESULT_RECLASSIFIED: false
+ROBOT_CLEARANCE: false
+```
+
+The failure decomposition is causal enough to stop a blind retraining loop:
+
+- 944 cells fail the frozen current check, but 753/1,024 pass every other
+  physical check and 705 fail only current;
+- the exact-zero x=0 graph path cannot change the home hold, yet all eight
+  nominal x=0 cells deterministically report the same right-knee p95 of
+  `0.661276083 A`, already over the `0.65 A` gate;
+- the completed gate derives current as `abs(MuJoCo actuator_force) /
+  0.784532 N.m/A`. The `0.65 A` threshold and `8 kgf.cm/A` conversion first
+  appear together in policy commit `58a8a1d`; the contract cites no primary
+  motor source or measured fit. Runtime's `0.0065 A/count` register scale does
+  not establish a 100-count safety cap. This invalidates neither the frozen
+  preregistration nor its negative result, but it makes the same threshold
+  unsuitable for a prospective training-selection contract without new
+  evidence;
+- current exceedance precedes all 38 saturation failures and four tracking
+  failures, but it follows the persistent wrong-direction event in all 107
+  wrong-direction/current-failing cells. It therefore cannot explain signed
+  sagittal reversal;
+- negative-X readback is exact and produces 16/16 early terminations, with
+  12/12 moving cells reversing. Positive-X readback is exact and produces
+  7/16 early terminations with forward overspeed, not reversal. Body 2
+  `trunk_assembly`, signed +/-0.05 m mutation, raw command at `obs[6]`, reset,
+  and graph hashes all validate per run;
+- historical G1/T2 and winner-v3 both pass 16/16 like-for-like nominal
+  pre-current behavior cells. The historical traces did not record actuator
+  force, so the audit does not invent a current-regression comparison;
+- the deployed 115-D stream lacks explicit mass, COM, inertia, actuator-fit,
+  delay, or transport-condition identity. Broad randomization plus recurrent
+  adaptation did not establish that these latent configurations are
+  identifiable or compensable through that stream.
+
+The selected falsifiable mechanisms are therefore:
+
+1. `CURRENT_CONTRACT_NOT_EVIDENCE_GROUNDED_AND_INFEASIBLE_AT_FROZEN_X0`;
+2. `SIGNED_SAGITTAL_CONFIGURATION_REQUIRES_STRUCTURED_AUTOMATIC_RESPONSE_CONDITIONING`.
+
+Policy does not select a graph, request deployment, or start another training
+run from this audit. The next prospective contracts must first (a) replace the
+training-selection current/torque rule using primary motor limits plus measured
+telemetry evidence, while preserving the completed winner-v3 result, and (b)
+freeze an automatic-response-conditioned estimator/ABI that requires no manual
+per-build measurement.
+
+Runtime review is requested before policy writes that ABI preregistration:
+identify the exact supported automatic startup-response profile already
+available or safely specifiable before Gate 5, including field names, units,
+sample timing, excitation source, persistence semantics, and what can be
+reproduced in CPU simulation. Also identify which measured current/voltage/
+position/velocity fields and calibration metadata can support a prospective
+motor-limit contract without treating a telemetry register scale as a safety
+limit. This is a contract review request only; no X5, serial, motor, robot,
+automatic-configuration, or Gate 5 execution is requested.
