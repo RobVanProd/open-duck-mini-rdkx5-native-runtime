@@ -1209,6 +1209,69 @@ AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
 
+## Policy result: winner-v6 zero-PPO contract hold and bound-semantics request
+
+Status: `HOLD_ZERO_PPO_CONTRACT — REQUEST_RUNTIME_BOUND_SEMANTICS_REVIEW`
+
+Policy commit `885147d62621d1ab991801a25716afa821d7f081` on draft PR
+https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76 records the completed
+winner-v6 zero-PPO CPU contract and its read-only causal attribution.
+
+The formal result remains a hold and is not retried or reclassified. Its
+preregistration SHA-256 is
+`aa3b847fc80a30501afdaa10f5f332ff9426166e425763bc36a4ecc67db40544`;
+the imported result SHA-256 is
+`5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9`.
+Exactly one combined check failed: `graph_owned_action_bounds_hold`.
+
+The failure is not an adapter-bound failure. Both deliberately nonzero-head
+stress graphs obeyed their absolute and slew projections, both protected
+G1/T2 checkpoints retained bit-exact action and previous-action outputs in all
+132 default-off identity cases, the 250-tick calibration and both locomotion
+chains matched JAX/ONNX within `1e-7`, all nine invalid handoffs failed closed,
+and the recurrent response encoder received finite nonzero auxiliary
+gradients.
+
+The failed subchecks applied an upstream previous-action slew assertion to the
+unchanged protected output after its downstream actual-centered guard, using
+joint position values randomized independently of `previous_action`. In each
+protected graph, `velocity_bounded_actions` is produced at node 20, while the
+actual-centered guard can replace it at node 33 before the final action at
+node 38. The earlier guard transform contract explicitly made randomized
+joint offsets consistent with the previous action for this reason.
+
+Runtime should review only this semantic split:
+
+1. default-off expanded graphs must preserve the accepted protected graph
+   byte-for-byte for arbitrary finite ABI inputs;
+2. deliberately enabled new-adapter graphs must enforce their graph-owned
+   absolute and per-joint slew projection for arbitrary tested tensors; and
+3. the protected full-action contract, including its downstream
+   actual-centered guard, is checked on physically chained observation/action
+   state rather than impossible independent joint/action pairs.
+
+If accepted, policy requests permission to freeze a separately named `v6b`
+zero-PPO contract with the same checkpoints, network weights, seeds, ABI,
+`1e-7` tolerance, 250-tick chain, and fail-closed cases. The failed v3 contract
+stays closed. Do not authorize the v6b execution itself from this request.
+
+```text
+POLICY_REPO_COMMIT: 885147d62621d1ab991801a25716afa821d7f081
+POLICY_PR: 76
+FORMAL_RESULT_SHA256: 5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9
+HOLD_ATTRIBUTION_SHA256: d318f2c0ef1931f30574f71e8f7f1bffd971bf16815f152c1213bc9dc4e2a3b3
+REQUEST: READ_ONLY_RUNTIME_BOUND_SEMANTICS_REVIEW
+FORMAL_CONTRACT_RETRY: false
+REPLACEMENT_CONTRACT_RUN: false
+TRAINING: false
+HOSTED_COMPUTE: false
+RUNTIME_IMPLEMENTATION: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
 Policy will not emit a passing
 `open_duck_x5.supported_configuration_envelope.v1` for this failed graph and
 will not backfill bounds from the frozen runtime excitation. The pending
@@ -1896,6 +1959,62 @@ motion, Gate 5, deployment, or clearance.
 RUNTIME_REVIEW_STATUS: PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT
 RUNTIME_REVIEW_SHA256: f0b95db839cff0c0329ffb1d9458c06e1ec6e6432b2b3ef84ef5f451550547c8
 POLICY_NEXT_AUTHORIZED_STEP: ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Runtime review of winner-v6 bound semantics
+
+Status: `PASS_BOUND_SEMANTICS_SPLIT_HOLD_V6B_CONTRACT`
+
+Decision: `AUTHORIZE_POLICY_V6B_ZERO_PPO_CPU_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`885147d62621d1ab991801a25716afa821d7f081`, the held formal result
+SHA-256
+`5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9`,
+and the read-only hold attribution SHA-256
+`d318f2c0ef1931f30574f71e8f7f1bffd971bf16815f152c1213bc9dc4e2a3b3`.
+The completed formal result remains held and may not be retried or
+reclassified.
+
+Runtime accepts the requested three-way semantic split:
+
+1. Default-off expanded graphs must delegate the protected action and
+   previous-action state byte-for-byte for arbitrary finite ABI tensors. No
+   second host or adapter limiter may change that disabled path.
+2. When the new adapter is deliberately enabled, the final combined output
+   must enforce the graph-owned protected winner-v2 absolute and per-joint
+   delta vector for arbitrary finite stress tensors.
+3. The protected graph's complete action contract includes the downstream
+   actual-centered guard. It is evaluated on chained observations whose joint
+   state and previous action come from the same sequence, not independently
+   randomized impossible pairs subjected to an upstream-only delta assertion.
+
+Policy may freeze and run one separately named `v6b` zero-PPO CPU contract.
+It must retain the same two protected checkpoints, weights, seeds, graph ABIs,
+`1e-7` tolerance, 250-tick chain, and invalid-handoff cases. The only allowed
+change is separating the disabled, enabled, and physically chained bound
+populations as reviewed. A v6b pass may authorize only a later, separately
+reviewed calibrator-training preregistration; it does not authorize an
+optimizer step by itself.
+
+The review artifact is
+`artifacts/gates/phase_0_audit/winner_v6_bound_semantics_review/result.json`,
+SHA-256
+`5505308efc146146c3609fc7594eb4dfa4d27ad67d9336673cb38fc6692b895f`.
+
+```text
+RUNTIME_BOUND_REVIEW_STATUS: PASS_BOUND_SEMANTICS_SPLIT_HOLD_V6B_CONTRACT
+RUNTIME_BOUND_REVIEW_SHA256: 5505308efc146146c3609fc7594eb4dfa4d27ad67d9336673cb38fc6692b895f
+POLICY_NEXT_AUTHORIZED_STEP: V6B_ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY
+FAILED_V6_CONTRACT_RETRY: false
 RUNTIME_V1_101X14: UNCHANGED
 RUNTIME_V2_IMPLEMENTATION: false
 TRAINING: false

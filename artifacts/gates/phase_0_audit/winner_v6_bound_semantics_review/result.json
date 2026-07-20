@@ -1,0 +1,94 @@
+{
+  "accepted_semantic_split": {
+    "default_off_identity": {
+      "double_limiting_permitted": false,
+      "new_adapter_projection_applied": false,
+      "population": "arbitrary finite tensors with the exact reviewed ABI",
+      "rule": "the expanded graph delegates continuous_actions and previous_action_out byte-for-byte to the accepted protected graph"
+    },
+    "enabled_adapter_projection": {
+      "new_adapter_projection_applied": true,
+      "population": "arbitrary finite in-shape stress tensors",
+      "rule": "the final protected-plus-adapter output remains in [-1,1] and within the graph-owned protected winner-v2 per-joint delta vector"
+    },
+    "protected_full_action_contract": {
+      "independent_joint_state_and_previous_action_pairs_valid": false,
+      "population": "chained observations whose measured joint state comes from the same simulated/runtime tick and whose previous_action comes from the prior confirmed graph output",
+      "rule": "evaluate the existing final protected action semantics, including the downstream actual-centered guard, without replacing them with an upstream-only delta assertion on independently sampled state"
+    }
+  },
+  "authority": {
+    "colab_hosted_gpu_or_igpu": false,
+    "gate5_or_deployment": false,
+    "policy_v6b_zero_ppo_cpu_contract": true,
+    "rdkx5_or_robot": false,
+    "robot_clearance": false,
+    "runtime_policy_implementation": false,
+    "serial_gpio_i2c": false,
+    "torque_or_motion": false,
+    "training_or_ppo": false
+  },
+  "causal_basis": {
+    "calibration_fail_closed_passed": true,
+    "conclusion": "The failed combined assertion conflated the disabled protected path with the enabled adapter path and evaluated the protected guard on an invalid independently randomized state/action fixture.",
+    "enabled_adapter_stress_bounds_passed": true,
+    "jax_onnx_chain_passed": true,
+    "only_formal_failure": "graph_owned_action_bounds_hold",
+    "protected_graph_order": [
+      "upstream previous-action velocity projection",
+      "downstream actual-centered guard",
+      "zero-command deadband",
+      "final action and previous-action state outputs"
+    ],
+    "protected_identity_passed": true
+  },
+  "compatibility_boundary": {
+    "actual_centered_guard_remains_graph_internal": true,
+    "host_must_not_add_a_second_action_limiter": true,
+    "runtime_v1_101x14_unchanged": true,
+    "runtime_v2_implementation_present": false,
+    "winner_v2_115d_semantics_required": true
+  },
+  "decision": "AUTHORIZE_POLICY_V6B_ZERO_PPO_CPU_CONTRACT_ONLY",
+  "policy_evidence": {
+    "attribution_path": "outputs/analysis/winner_v6_zero_ppo_contract_hold_attribution.json",
+    "attribution_sha256": "d318f2c0ef1931f30574f71e8f7f1bffd971bf16815f152c1213bc9dc4e2a3b3",
+    "commit": "885147d62621d1ab991801a25716afa821d7f081",
+    "completed_formal_contract_retry_authorized": false,
+    "completed_formal_result_reclassified": false,
+    "completed_formal_status": "HOLD_WINNER_V6_ZERO_PPO_CPU_SOFTWARE_CONTRACT",
+    "formal_result_path": "outputs/analysis/winner_v6_zero_ppo_cpu_contract_result.json",
+    "formal_result_sha256": "5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9",
+    "pull_request": "https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76",
+    "repository": "RobVanProd/open-duck-mini-rdkx5"
+  },
+  "remaining_holds": [
+    "winner-v6 exact completed zero-PPO contract remains held",
+    "v6b zero-PPO contract has not been frozen or run",
+    "no support calibrator training is authorized",
+    "runtime-v2 implementation remains absent",
+    "no calibrator or locomotion graph is selected",
+    "policy robot clearance remains absent"
+  ],
+  "runtime_implementation": {
+    "control_loop_changed": false,
+    "hardware_path_reachable": false,
+    "review_artifact_only": true,
+    "source_or_policy_loader_changed": false
+  },
+  "schema_version": "open_duck_x5.winner_v6_bound_semantics_review.v1",
+  "status": "PASS_BOUND_SEMANTICS_SPLIT_HOLD_V6B_CONTRACT",
+  "v6b_contract_constraints": {
+    "may_not_overwrite_or_reclassify_failed_contract": true,
+    "only_allowed_change": "split the bound assertions by disabled, enabled, and physically chained protected populations exactly as reviewed",
+    "pass_authorizes": "a separate calibrator-training preregistration for review; no optimizer step is authorized by the v6b software contract itself",
+    "same_calibration_ticks": 250,
+    "same_graph_abis": true,
+    "same_invalid_handoff_cases": true,
+    "same_network_weights": true,
+    "same_numeric_tolerance": 1e-07,
+    "same_protected_checkpoints": true,
+    "same_random_seeds": true,
+    "separately_named_contract_required": true
+  }
+}
