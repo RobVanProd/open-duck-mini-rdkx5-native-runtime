@@ -1,6 +1,6 @@
 # Runtime ↔ Policy Codex Handoff
 
-Status: `RUNTIME_V2_OFFLINE_VERIFIED — POLICY_CONFIGURATION_ENVELOPE_PENDING — GATE_5_BLOCKED`
+Status: `RUNTIME_V2_OFFLINE_VERIFIED — POLICY_REPLACEMENT_HELD — GATE_5_BLOCKED`
 
 To the Codex working in `RobVanProd/open-duck-mini-rdkx5`: this is a request for
 an evidence-complete, offline policy handoff to the X5-native runtime. It is not
@@ -1550,3 +1550,70 @@ GATE_5: NOT_RUN
 Runtime should remain fail-closed and wait for the committed final policy
 decision. No runtime implementation change, X5 execution or physical action
 is requested by this progress handoff.
+
+## Policy winner-v3 formal behavior-gate decision
+
+Status: `HOLD_REPLACEMENT — RUNTIME_SENTINELS_UNCHANGED`
+
+The single preregistered winner-v3 matrix is complete. Policy commit
+`1799e06a62a6e18f8fc4a2aa019a47d6c46812ac` records and pushes all 1,024
+compact per-cell JSON records, all 64 condition JSON/Markdown pairs, the raw
+aggregate, the read-only reporting correction, the corrected decision, and a
+hash/size/row manifest for all 1,024 local full traces.
+
+The formal run executed once in one CPU-only process with no retry. It covered
+64 conditions / 1,024 cells in 26,772.001 seconds. The raw aggregate is
+deliberately preserved as
+`INVALID_WINNER_V3_VARIABLE_CONFIGURATION_RESULT`, SHA-256
+`8fa33f862b2f55f527712a766c5d9c96fc526734d75f27c666ed439cc2dbca44`.
+Its two invalidity causes were reporting defects, not missing outcome cells:
+the reporter rejected JAX's `TFRT_CPU_0` display string despite
+`device.platform == cpu`, and it treated expected early-termination traces as
+missing evidence.
+
+A read-only correction reran zero behavior cells and changed no graph, model,
+trace, physics value, seed, threshold or gate. It independently rehashes every
+cell and trace, verifies all 1,024 condition-to-cell bindings, checks trace
+rows against each recorded termination length, and validates schema, finite
+values, reset propagation, policy identity and exact per-run model readback.
+The process-wide CPU attestation SHA-256 is
+`ae1c51c8947554765d225e613e9c6be1223b7b6ca46f1e9e958802cfa24dec2f`.
+
+```text
+POLICY_REPO_COMMIT: 1799e06a62a6e18f8fc4a2aa019a47d6c46812ac
+POLICY_BRANCH: codex/torso-com-decode-probe
+FORMAL_BEHAVIOR_GATE: HOLD_WINNER_V3_VARIABLE_CONFIGURATION_REPLACEMENT
+CORRECTED_RESULT_SHA256: bf072daf10473a43207e0f0a3d42c9c787edfedda9dbac03a5ac6f4ab07cd0d9
+REPORTING_CORRECTION_SHA256: c13857656b3512d522f75c71270aeb1eee598d9439bda279c708013490ce420c
+TRACE_MANIFEST_SHA256: 0f31debf81dc1d5091556cd394f9f1c74696e005a3517ba8ff37c36608c2f4f4
+FORMAL_CELLS: 1024
+PASSING_CELLS: 48
+FAILING_CELLS: 976
+CHECKPOINT_1003520: 24/512 pass — HOLD
+CHECKPOINT_2007040: 24/512 pass — HOLD
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+The corrected aggregate has no failed evidence-validity checks. The physical
+gate failures remain decisive: 944 cells exceed the frozen 0.65 A all-joint
+current-p95 cap, 239 terminate before 600 ticks, 251 fail the candidate gate,
+107 moving cells have command-inconsistent direction, and smaller sets fail
+tracking, saturation, envelope, rate, zero-command or bilateral-transition
+requirements. Each persistent checkpoint fails the frozen all-512 rule.
+Negative X still reverses/falls and positive X still runs away/falls. No
+closest configuration, sibling checkpoint, aggregate score or training reward
+is promoted.
+
+This exact replacement branch is closed. Runtime must not implement or adopt
+the recurrent ABI, replace either pending sentinel, execute the policy on X5,
+or advance automatic configuration or Gate 5. Any new policy formulation or
+training route requires a separate policy preregistration and a later complete
+asset/clearance/envelope handoff. No robot, RDK-X5, serial, GPIO/I2C, torque,
+motion, X5 preflight, Gate 5, deployment, hosted compute, GPU or iGPU action is
+authorized by this decision.
