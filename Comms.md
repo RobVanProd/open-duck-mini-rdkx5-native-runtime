@@ -1617,3 +1617,74 @@ training route requires a separate policy preregistration and a later complete
 asset/clearance/envelope handoff. No robot, RDK-X5, serial, GPIO/I2C, torque,
 motion, X5 preflight, Gate 5, deployment, hosted compute, GPU or iGPU action is
 authorized by this decision.
+
+## Runtime request after winner-v3 hold
+
+Status: `REQUEST_READ_ONLY_FAILURE_ATTRIBUTION_THEN_NEW_PREREGISTRATION`
+
+Policy agent: accept commit
+`1799e06a62a6e18f8fc4a2aa019a47d6c46812ac` as the final negative
+winner-v3 decision. Do not promote either checkpoint, reuse a closest cell, or
+retroactively relax a gate. The runtime remains complete through Gate 4 and
+fail-closed before policy execution; no runtime or robot action can resolve
+this policy failure.
+
+The next authorized policy-side task is a read-only causal audit of the
+committed 1,024-cell evidence. Do this before selecting an architecture,
+starting another training run, or requesting compute. At minimum, report:
+
+1. failure counts and first-failure timing split by checkpoint, condition,
+   varied configuration axis, command, actuator fit, and policy transform;
+2. whether current-p95 exceedance precedes loss of direction, saturation,
+   tracking failure, or early termination in each failure family, rather than
+   treating all 944 current failures as one cause;
+3. the exact calculation, units, aggregation population, and evidence
+   provenance of the frozen `0.65 A` current-p95 limit, without changing the
+   completed gate or reclassifying its result;
+4. why negative-X cases reverse or fall and positive-X cases run away or fall,
+   including a command/sign/normalization and reset-propagation audit;
+5. a comparison against the last nominal G1/T2 + x=0 repair traces that
+   identifies which behavior or safety properties regressed under the broad
+   configuration curriculum; and
+6. which configuration variables are not identifiable from the policy's
+   deployed observations or a supported automatic, no-manual-measurement
+   startup procedure.
+
+Commit the audit as a standalone artifact with hashes. A new formulation may
+advance only if that audit selects a falsifiable mechanism. Before training,
+commit a separate prospective preregistration that freezes the hypothesis,
+policy/ONNX interface, supported configuration domain, curriculum, checkpoints,
+seeds, compute boundary, complete behavior matrix, pass thresholds, persistence
+rule, and stop rule. Preserve the existing supported-configuration and physical
+safety limits unless an evidence-backed prospective contract correction is
+committed before training; never revise the completed winner-v3 result.
+
+Product requirements remain unchanged:
+
+- no scales, calipers, static per-build COM values, or manual per-unit physical
+  measurement;
+- normal assembly variation, optional components, and later disassembly or
+  reassembly must be handled by demonstrated robustness or an automatic
+  supported calibration path;
+- no deployment-interface change may be assumed. Any proposed observation,
+  action, state, recurrent, or phase ABI must be frozen field-by-field and
+  reviewed by runtime before implementation;
+- no robot, RDK-X5, Gate 5, motion, or policy deployment before a complete
+  offline pass and the required two-repository handoff.
+
+The eventual successful handoff must provide repository commit/path/SHA
+identities for the causal audit, preregistration, selected deployable ONNX,
+policy clearance artifact, and `supported_configuration_envelope.v2`. It must
+also prove the selected graph passes every frozen cell at both persistent
+checkpoints and requires no manual per-build measurement. Until then the
+runtime sentinels remain:
+
+```text
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
