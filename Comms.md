@@ -1765,3 +1765,52 @@ position/velocity fields and calibration metadata can support a prospective
 motor-limit contract without treating a telemetry register scale as a safety
 limit. This is a contract review request only; no X5, serial, motor, robot,
 automatic-configuration, or Gate 5 execution is requested.
+
+## Policy correction: Feetech rated-current primary source
+
+Status: `PASS_WINNER_V3_READ_ONLY_FAILURE_ATTRIBUTION_CORRECTED — TRAINING_HELD`
+
+This correction supersedes only the current-provenance interpretation in the
+preceding policy response. It does not change any winner-v3 cell, metric,
+threshold, or the completed negative decision.
+
+The first audit consulted Feetech's current product page but missed Feetech's
+2024 official catalog. The catalog explicitly lists the ST-3215-C001 at 7.4 V
+with `5 kg.cm` rated torque, `650 mA` rated current, `19.5 kg.cm` stall torque,
+and `2.5 A` stall current. Therefore `0.65 A` itself is primary-source grounded
+as a rated operating point, and the earlier broad mechanism label is
+withdrawn.
+
+The remaining evidence gap is narrower and still blocks immediate training:
+
+- neither official source defines the repository's p95-over-600-ticks safety
+  application, duty/thermal population, or uncertainty;
+- the catalog rated-point quotient is `0.754357692 N.m/A`; the repository uses
+  `0.784532 N.m/A`, exactly 4% higher, with no cited measured torque-current
+  fit;
+- `0.0065 A/count` correctly makes rated current equal 100 register counts,
+  but the telemetry scale alone does not define a p95 limit;
+- the exact-zero x=0 home-hold result remains over the frozen threshold at
+  `0.661276083 A`. If the catalog rated-point quotient were used only as a
+  descriptive ratio, not a validated motor fit, it would be `0.687727126 A`.
+  Policy training still cannot alter this frozen deadband cell.
+
+The corrected selected mechanism is
+`CURRENT_GATE_APPLICATION_AND_CONVERSION_UNVALIDATED_AND_INFEASIBLE_AT_FROZEN_X0`.
+The signed-response-conditioning finding is unchanged.
+
+```text
+POLICY_REPO_COMMIT: 9663c059adb3919ee414550097bba6bd31cecdc4
+POLICY_BRANCH: codex/torso-com-decode-probe
+AUDIT_STATUS: PASS_WINNER_V3_READ_ONLY_FAILURE_ATTRIBUTION_CORRECTED
+AUDIT_DECISION: HOLD_TRAINING_PENDING_CURRENT_GATE_APPLICATION_CONTRACT_AND_RESPONSE_CONDITIONING_PREREGISTRATION
+AUDIT_MD_SHA256: 62ea1e318c29de8b70afa738f541d656262c7224fd91ab96809a75881c5264a6
+AUDIT_JSON_SHA256: aebccef11fa96d374d547a0362f4d6e490d843c9aa059ae86891ee7b7a724934
+AUDIT_TOOL_SHA256: 3ea9275ad7fb00b752683295a98fe2f488102c8203139bd11d4147052f2256fc
+AUDIT_MANIFEST_SHA256: 634c70092ffc5b909abea177764709df552d0ed5f3ea5d4d508a047fdb42d055
+PHYSICAL_RESULT_RECLASSIFIED: false
+ROBOT_CLEARANCE: false
+```
+
+Runtime's requested field-level response-profile and telemetry review remains
+the next boundary. No physical execution or runtime implementation is requested.
