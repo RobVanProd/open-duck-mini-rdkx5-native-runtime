@@ -1,0 +1,286 @@
+{
+  "accepted_calibrator_abi": {
+    "action_semantics_changed": false,
+    "initial_hidden_state": "exact float32 zeros",
+    "initial_previous_action": "exact float32 zeros",
+    "inputs": [
+      {
+        "dtype": "float32",
+        "name": "obs",
+        "shape": [
+          1,
+          115
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "previous_action",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "h_in",
+        "shape": [
+          1,
+          64
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "dtype": "float32",
+        "name": "calibration_actions",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "previous_action_out",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "h_out",
+        "shape": [
+          1,
+          64
+        ]
+      }
+    ],
+    "x0_deadband_present": false
+  },
+  "accepted_locomotion_abi": {
+    "context_bounds": [
+      -1.0,
+      1.0
+    ],
+    "context_dtype": "float32",
+    "context_order": [
+      "learned_response_latent[0]",
+      "learned_response_latent[1]",
+      "learned_response_latent[2]",
+      "learned_response_latent[3]",
+      "learned_response_latent[4]",
+      "learned_response_latent[5]",
+      "learned_response_latent[6]",
+      "learned_response_latent[7]",
+      "learned_response_latent[8]",
+      "learned_response_latent[9]",
+      "learned_response_latent[10]",
+      "learned_response_latent[11]",
+      "learned_response_latent[12]",
+      "learned_response_latent[13]",
+      "learned_response_latent[14]",
+      "learned_response_latent[15]",
+      "learned_response_latent[16]",
+      "learned_response_latent[17]",
+      "learned_response_latent[18]",
+      "learned_response_latent[19]",
+      "learned_response_latent[20]",
+      "learned_response_latent[21]",
+      "learned_response_latent[22]",
+      "learned_response_latent[23]",
+      "learned_response_latent[24]",
+      "learned_response_latent[25]",
+      "learned_response_latent[26]",
+      "learned_response_latent[27]",
+      "learned_response_latent[28]",
+      "learned_response_latent[29]",
+      "learned_response_latent[30]",
+      "learned_response_latent[31]",
+      "learned_response_latent[32]",
+      "learned_response_latent[33]",
+      "learned_response_latent[34]",
+      "learned_response_latent[35]",
+      "learned_response_latent[36]",
+      "learned_response_latent[37]",
+      "learned_response_latent[38]",
+      "learned_response_latent[39]",
+      "learned_response_latent[40]",
+      "learned_response_latent[41]",
+      "learned_response_latent[42]",
+      "learned_response_latent[43]",
+      "learned_response_latent[44]",
+      "learned_response_latent[45]",
+      "learned_response_latent[46]",
+      "learned_response_latent[47]",
+      "learned_response_latent[48]",
+      "learned_response_latent[49]",
+      "learned_response_latent[50]",
+      "learned_response_latent[51]",
+      "learned_response_latent[52]",
+      "learned_response_latent[53]",
+      "learned_response_latent[54]",
+      "learned_response_latent[55]",
+      "learned_response_latent[56]",
+      "learned_response_latent[57]",
+      "learned_response_latent[58]",
+      "learned_response_latent[59]",
+      "learned_response_latent[60]",
+      "learned_response_latent[61]",
+      "learned_response_latent[62]",
+      "learned_response_latent[63]"
+    ],
+    "context_shape": [
+      1,
+      64
+    ],
+    "inputs": [
+      {
+        "dtype": "float32",
+        "name": "obs",
+        "shape": [
+          1,
+          115
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "previous_action",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "h_in",
+        "shape": [
+          1,
+          64
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "calibration_context",
+        "shape": [
+          1,
+          64
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "dtype": "float32",
+        "name": "continuous_actions",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "previous_action_out",
+        "shape": [
+          1,
+          14
+        ]
+      },
+      {
+        "dtype": "float32",
+        "name": "h_out",
+        "shape": [
+          1,
+          64
+        ]
+      }
+    ],
+    "runtime_scaling": "none"
+  },
+  "accepted_sequence_semantics": {
+    "applied_target_observer_continues_without_reset": true,
+    "calibration_command_fields": "exact zeros",
+    "calibration_phase": [
+      1.0,
+      0.0
+    ],
+    "calibration_phase_advances": false,
+    "calibration_ticks": 250,
+    "context_source": "exact final successful calibrator h_out",
+    "frequency_hz": 50,
+    "locomotion_context_immutable": true,
+    "locomotion_hidden_reset": "exact zeros",
+    "locomotion_phase_reset": [
+      1.0,
+      0.0
+    ],
+    "locomotion_previous_action_source": "final confirmed calibrator previous_action_out",
+    "paused_hold_target": "final confirmed safe calibration target",
+    "runtime_remains_paused_after_handoff": true
+  },
+  "authority": {
+    "gate5_or_deployment": false,
+    "policy_zero_ppo_cpu_contract": true,
+    "rdkx5_or_robot": false,
+    "robot_clearance": false,
+    "runtime_policy_implementation": false,
+    "serial_gpio_i2c": false,
+    "torque_or_motion": false,
+    "training_or_hosted_compute": false
+  },
+  "compatibility_boundary": {
+    "required_path": "default-off versioned runtime-v2",
+    "runtime_v1_101x14_unchanged": true,
+    "runtime_v1_policy_loader_changed": false,
+    "runtime_v2_implementation_present": false,
+    "shared_101_slice_is_not_compatible": true,
+    "winner_v2_115d_semantics_required": true
+  },
+  "decision": "AUTHORIZE_POLICY_ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY",
+  "policy_cpu_contract_requirements": [
+    "exact calibrator and locomotion names, shapes, and dtypes",
+    "calibrator step-zero action exact zero for fixed and pseudorandom input/state controls",
+    "calibrator hidden response state finite, bounded, and able to evolve",
+    "locomotion context branch exact-zero default-off with protected action/state bit-exact",
+    "no true configuration label enters either actor or exported graph",
+    "graph-owned conservative action bounds hold for all tested tensors",
+    "JAX/ONNX 250-tick calibration plus handoff plus locomotion chain agrees within 1e-7",
+    "failed calibration never produces an armable context"
+  ],
+  "policy_request": {
+    "artifact_path": "outputs/analysis/winner_v6_dynamic_calibration_interface_preregistration.json",
+    "artifact_sha256": "a66ff7138bdc474c5bd6d0a8899eba041d00305a3d3bd38fc13b0c00e4c3007e",
+    "commit": "53fb7e28cad693e7ac9844559690bc9bbd35093c",
+    "pull_request": "https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76",
+    "repository": "RobVanProd/open-duck-mini-rdkx5"
+  },
+  "remaining_holds": [
+    "policy zero-PPO CPU software contract not run",
+    "support calibrator training not authorized until that contract passes",
+    "runtime-v2 implementation remains absent",
+    "no calibrator or locomotion graph is selected",
+    "policy robot clearance and supported configuration envelope remain absent"
+  ],
+  "required_fail_closed_rules": [
+    "missing, stale, failed, nonfinite, wrong-shape, or out-of-bound state prevents arming",
+    "any lost contact, watchdog, bus, sensor, support-mode, or timing failure aborts calibration",
+    "context is never loaded from a prior boot or persisted as a per-build measurement",
+    "every runtime process start requires a new successful calibration before v2 locomotion arming",
+    "torque off on every abort, exception, signal, watchdog, or failed handoff"
+  ],
+  "runtime_feasibility": {
+    "calibration_evidence_hash_binding_feasible": true,
+    "fail_closed_before_policy_arming_feasible": true,
+    "no_python_context_scaling_required": true,
+    "preallocated_context_buffer_feasible": true,
+    "session_local_context_only_feasible": true,
+    "state_and_observer_handoff_feasible": true,
+    "two_preallocated_onnx_sessions_feasible": true
+  },
+  "runtime_implementation": {
+    "control_loop_changed": false,
+    "hardware_path_reachable": false,
+    "review_artifact_only": true,
+    "source_or_policy_loader_changed": false
+  },
+  "schema_version": "open_duck_x5.winner_v6_dynamic_calibration_review.v1",
+  "status": "PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT"
+}

@@ -1790,3 +1790,118 @@ GATE_5: NOT_RUN
 No Colab session, GPU/iGPU, runtime implementation, X5 or robot access,
 serial/GPIO/I2C, torque, motion, Gate 5, deployment, or clearance is authorized
 by this result.
+
+## Policy result: corrected reset and winner-v5 automatic recovery falsification
+
+Status: `HOLD_ONE_SHOT_RECOVERY — REQUEST_WINNER_V6_SCHEMA_REVIEW`
+
+Policy commit `53fb7e28cad693e7ac9844559690bc9bbd35093c` on draft PR
+https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76 records the
+prospective follow-up to response73.
+
+The response73 completed result remains failed and is not retried or
+reclassified. A CPU causal audit proved that its simulator harness called
+`mj_setConst` after loading the episode home pose. That ordering makes even the
+nominal model invert. Correct ordering restores nominal upright support, but
+the corrected -0.05 m torso-X endpoint still falls, so response73 remains
+closed. Causal-audit result SHA-256:
+`619ed2f3d4927e53a8d9f3e51e6ee0aa781cafe7eb13eebbd0672bb8695dc682`.
+
+Policy then froze a new one-shot IMU threshold plus fixed-recovery rule before
+running an independent 960-cell population: 96 unseen configurations, both
+measured actuator fits, native gyro quantization, and five bounded gyro-bias
+cases. Preregistration SHA-256:
+`0e9e1d78444ce2f9d5e3d8c14d4f5805369e39ac645ad5b097b0cf7c4d3a2276`.
+The no-retry gate failed 176/960 cells. Raw result SHA-256:
+`f36855923f91f683ebe691b0726e1231c04c5036ab7dff27836534ade7b0d17a`;
+attributed repository result SHA-256:
+`641b164d451cca6d83f94dc6f4b1f9961b5c774c28a3e738d04c480d5e798653`.
+
+All 176 failed cells were triggered recoveries, so the detector did not miss
+the failed population. The fixed target itself is non-universal: 58 cells
+collapsed and 118 remained upright but lost uninterrupted two-foot support.
+Under nominal quantized input, 12/96 configurations split between the two
+measured actuator fits. Opposing P30 pass/fail outcomes occur one native gyro
+count apart. Threshold and fixed-target retuning are therefore closed.
+
+The selected new question is a dedicated dynamic support-calibration policy:
+it changes its bounded action every tick for 250 ticks, encodes only deployable
+sensor/action response into a 64-D recurrent state, and hands the final state
+to a response-conditioned locomotion graph. It uses no true mass, COM,
+inertia, dimensions, component identity, scales, calipers, or manual per-build
+measurement. The exact request is:
+
+```text
+POLICY_REPO_COMMIT: 53fb7e28cad693e7ac9844559690bc9bbd35093c
+POLICY_PR: 76
+POLICY_INTERFACE_ARTIFACT: outputs/analysis/winner_v6_dynamic_calibration_interface_preregistration.json
+POLICY_INTERFACE_SHA256: a66ff7138bdc474c5bd6d0a8899eba041d00305a3d3bd38fc13b0c00e4c3007e
+REQUEST: READ_ONLY_DEFAULT_OFF_RUNTIME_V2_SCHEMA_REVIEW
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Runtime review should decide only whether the default-off versioned-v2 path
+can preserve the exact calibrator and locomotion ABI, winner-v2 115-D
+observation semantics, recurrent state, final-action/applied-target handoff,
+phase reset, immutable 64-D context, `start_paused`, and fail-closed behavior.
+Do not implement either graph or authorize training from this request. The
+frozen runtime-v1 101x14 path must remain unchanged.
+
+## Runtime review of winner-v6 dynamic calibration interface
+
+Status: `PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT`
+
+Decision: `AUTHORIZE_POLICY_ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`53fb7e28cad693e7ac9844559690bc9bbd35093c` and exact interface artifact
+SHA-256
+`a66ff7138bdc474c5bd6d0a8899eba041d00305a3d3bd38fc13b0c00e4c3007e`.
+The reduced runtime review is committed at
+`artifacts/gates/phase_0_audit/winner_v6_dynamic_calibration_review/result.json`,
+SHA-256
+`f0b95db839cff0c0329ffb1d9458c06e1ec6e6432b2b3ef84ef5f451550547c8`.
+
+The proposed calibrator `115+14+64 -> 14+14+64` ABI and locomotion
+`115+14+64+64 -> 14+14+64` ABI are implementable as a default-off,
+versioned runtime-v2 path. The frozen runtime-v1 101x14 path is unchanged and
+the shared 0:101 slice is not treated as compatible. Runtime can pass the
+final successful calibrator `h_out[64]` without scaling into immutable
+locomotion `calibration_context[64]`, carry the final confirmed previous
+action and applied-target observer state across the handoff, reset locomotion
+hidden state and phase exactly once, and remain paused while holding the last
+safe calibration target.
+
+The learned context is session-local and must never be persisted or loaded
+from a prior boot. Every runtime process start requires a new successful
+calibration before v2 locomotion can arm; this covers later disassembly or
+configuration changes without manual mass, COM, dimension, or component
+entry. Any stale sample, failed transaction, lost contact, watchdog, timing,
+support-mode, nonfinite, shape, bound, or handoff failure prevents arming and
+must torque off on the future implemented path.
+
+This review authorizes only the policy-side zero-PPO CPU software contract.
+It does not authorize calibrator training, locomotion training, Colab, hosted
+compute, GPU/iGPU use, runtime implementation, X5 or robot access, torque,
+motion, Gate 5, deployment, or clearance.
+
+```text
+RUNTIME_REVIEW_STATUS: PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT
+RUNTIME_REVIEW_SHA256: f0b95db839cff0c0329ffb1d9458c06e1ec6e6432b2b3ef84ef5f451550547c8
+POLICY_NEXT_AUTHORIZED_STEP: ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
