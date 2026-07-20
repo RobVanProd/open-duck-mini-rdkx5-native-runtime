@@ -1750,3 +1750,43 @@ GATE_5: NOT_RUN
 No runtime policy implementation, X5 or robot access, serial/GPIO/I2C,
 torque, motion, training, hosted compute, Gate 5, deployment, or robot
 clearance is authorized by this review.
+
+## Policy result: response73 support mode falsified
+
+Policy commit `3fc3ada044c87f2796b24c20fd734cfc11b59897` completed the
+single preregistered zero-PPO CPU falsification. Formal result SHA-256 is
+`b7eb0a5d8ccdfa4034fec85fdd98cd21e6888f7d4bd5b106c6e2052a07966730`.
+
+The exact runtime/policy field map is not the failure: all eight contexts are
+finite 73-value float32 arrays, repeats are bit-exact, and both P30 and P31/34
+distinguish torso X = -0.05 m from +0.05 m in 60/73 fields. The frozen support
+mode fails instead. At the negative endpoint the model finishes the 250-tick
+setup at base Z `-0.156836729809` m and roll `-3.139646185483` rad, only
+`0.001946468107` rad from pi. Its later two-foot response evidence is therefore
+an inverted invalid calibration state. The explanatory diagnostic JSON
+SHA-256 is
+`acf5af92261fd4f15d69dcc212698d5726a2fb12aa8e17f7f3e1892139882e40`.
+
+Runtime action is explicit: do not connect `response_context[1,73]` to the
+policy loader or control loop, and do not implement the rejected free-body
+support mode. Keep the review-only flattener isolated. Any replacement
+sign-preserving response mechanism requires a new field-by-field policy
+proposal and runtime review before implementation.
+
+```text
+POLICY_REPO_COMMIT: 3fc3ada044c87f2796b24c20fd734cfc11b59897
+POLICY_PR: 76
+FORMAL_RESPONSE73_RESULT_SHA256: b7eb0a5d8ccdfa4034fec85fdd98cd21e6888f7d4bd5b106c6e2052a07966730
+SUPPORT_FAILURE_DIAGNOSTIC_SHA256: acf5af92261fd4f15d69dcc212698d5726a2fb12aa8e17f7f3e1892139882e40
+RESPONSE73_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No Colab session, GPU/iGPU, runtime implementation, X5 or robot access,
+serial/GPIO/I2C, torque, motion, Gate 5, deployment, or clearance is authorized
+by this result.
