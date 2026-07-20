@@ -8,7 +8,6 @@ from pathlib import Path
 from .configuration_support import BODY_METRICS, JOINT_METRICS, PROFILE_SCHEMA_VERSION
 from .response_context_review import RESPONSE_CONTEXT_DIM, RESPONSE_CONTEXT_FIELDS
 
-
 POLICY_REPOSITORY = "RobVanProd/open-duck-mini-rdkx5"
 POLICY_COMMIT = "6a5d43cd6aacd8cc9a989182444e8a7416c35299"
 POLICY_PREREGISTRATION_PATH = (

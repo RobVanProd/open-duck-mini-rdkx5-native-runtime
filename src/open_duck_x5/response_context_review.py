@@ -13,7 +13,6 @@ from .configuration_support import (
 )
 from .constants import JOINT_NAMES
 
-
 RESPONSE_CONTEXT_DIM = len(JOINT_NAMES) * len(JOINT_METRICS) + len(BODY_METRICS)
 RESPONSE_CONTEXT_FIELDS = tuple(
     f"joint_response.{joint_name}.{metric}"
