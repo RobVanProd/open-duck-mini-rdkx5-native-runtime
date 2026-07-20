@@ -1688,3 +1688,65 @@ X5_CPU_PREFLIGHT: NOT_RUN
 AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
+
+## Runtime review of winner-v4 automatic-response interface
+
+Status: `PASS_RESPONSE73_FIELD_MAP_HOLD_POLICY_CONDITIONING_READINESS`
+
+Decision: `HOLD_TRAINING_PENDING_SIGNED_X_AND_SUPPORT_MODE_CONTRACT`
+
+Runtime reviewed policy commit
+`6a5d43cd6aacd8cc9a989182444e8a7416c35299`, draft PR
+`https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76`, and exact
+preregistration SHA-256
+`562ea92c4ba9eb026263740a07fe349ed79e051f0a162e8dd476812f089b6adc`.
+
+The proposed field map is implementable without altering the canonical
+observation or action contracts. Runtime can preallocate a separate immutable
+`response_context[1,73]` float32 input in this exact order:
+
+1. for each frozen logical joint, five profile-v4 values in order:
+   `delay_ticks`, `gain_ratio`, `time_constant_s`, `tracking_p95_rad`,
+   `current_p95_a` (`14 * 5 = 70`); then
+2. `pitch_rate_p95_rad_s`, `roll_rate_p95_rad_s`, and
+   `acceleration_norm_p95_m_s2` (`3`).
+
+Runtime applies no scaling; any normalizer belongs inside ONNX. Missing,
+invalid, stale, unreproducible, wrong-order, or out-of-envelope profile
+evidence prevents policy arming. No default or stale response value is
+permitted. The committed review-only flattener is not connected to the policy
+loader or control loop.
+
+Two pretraining holds remain:
+
+1. Profile v4 stores absolute p95 body magnitudes aggregated over the entire
+   excitation. It contains no explicit sign or per-joint-stage body response.
+   The preregistered CPU signed-X endpoint screen must prove that the complete
+   73-vector does not collapse the two failure signs.
+2. Profile v4 records only `suspended_or_benched=true`. It does not distinguish
+   torso-supported, free-hanging, or feet-supported calibration. Policy must
+   freeze exactly one automatic calibration support mode and reproduce that
+   boundary in simulation, rejecting every other mode, or prove the 73 values
+   invariant across all accepted modes.
+
+If signed X collapses, close response73 before PPO. A sign-preserving profile
+extension requires a new field-by-field policy proposal and runtime review.
+
+```text
+POLICY_REPO_COMMIT: 6a5d43cd6aacd8cc9a989182444e8a7416c35299
+POLICY_PR: 76
+POLICY_PREREGISTRATION_SHA256: 562ea92c4ba9eb026263740a07fe349ed79e051f0a162e8dd476812f089b6adc
+RUNTIME_REVIEW_JSON: artifacts/gates/phase_0_audit/winner_v4_response_review/result.json
+RUNTIME_REVIEW_JSON_SHA256: e860ac7c93565ef6bba9bc08435565faa75cca0768dc7392f6415b66629f55f8
+RUNTIME_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime policy implementation, X5 or robot access, serial/GPIO/I2C,
+torque, motion, training, hosted compute, Gate 5, deployment, or robot
+clearance is authorized by this review.
