@@ -1,0 +1,159 @@
+{
+  "schema_version": "open_duck_x5.usb_10k_review.v1",
+  "status": "COMPLETE_REVIEWED_BLOCKED",
+  "source": {
+    "commit": "793db27d873362b87f5f2ab4166c227707286e34",
+    "archive_sha256": "c9ed31b507755f50470754eac6f902cac4b9624c8d854b069a3b48779345f17d",
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
+  },
+  "adapter": {
+    "usb_id": "1a86:55d3",
+    "description": "QinHeng Electronics USB Single Serial",
+    "device": "/dev/ttyACM0",
+    "driver": "cdc_acm",
+    "ftdi": false,
+    "latency_timer_exposed": false,
+    "baudrate": 1000000
+  },
+  "population": {
+    "attempted_ticks": 10000,
+    "completed_ticks": 10000,
+    "frequency_hz": 50.0,
+    "bus_observation": "one all-14 goal SyncWrite plus one 0x82 all-14 position/speed response burst plus one round-robin extended read",
+    "group_observation": "one 0x82 request plus one contiguous 14-response burst",
+    "statistic": "sample maximum over completed ticks"
+  },
+  "safety": {
+    "torque_enabled": false,
+    "final_torque_off": "ok",
+    "policy_inference": false,
+    "home_move": false,
+    "target_amplitude_rad": 0.0,
+    "halt_reason": null,
+    "telemetry_records_dropped": 0
+  },
+  "realtime": {
+    "isolated_cpu": 7,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "tick_period_ms": {
+      "p99": 20.101184,
+      "p99_9": 20.105310084,
+      "max": 20.143516
+    }
+  },
+  "complete_sweep_ms": {
+    "min": 3.636185,
+    "mean": 5.4408589582,
+    "p95": 7.5391154,
+    "p99": 7.82108266,
+    "p99_9": 8.060332417,
+    "max": 8.293083,
+    "samples_at_or_above_5_ms": 5103,
+    "under_5_ms_gate": false
+  },
+  "group_0x82_ms": {
+    "min": 2.372387,
+    "mean": 3.5752490104,
+    "p95": 4.74724245,
+    "p99": 4.91186341,
+    "p99_9": 5.136984126,
+    "max": 5.200234,
+    "samples_at_or_above_5_ms": 45
+  },
+  "extended_read_ms": {
+    "min": 0.526836,
+    "mean": 0.8213607855,
+    "p95": 1.18631675,
+    "p99": 1.2268824,
+    "p99_9": 1.258383541,
+    "max": 1.309132
+  },
+  "transport": {
+    "transactions_expected": 160000,
+    "transactions_failed": 4,
+    "failure_rate": 0.000025,
+    "failure_percent": 0.0025,
+    "failures": {
+      "timeout": 2,
+      "crc": 2,
+      "partial": 0,
+      "device": 0,
+      "unexpected_id": 0,
+      "io": 0,
+      "unexpected_packet": 0
+    },
+    "failure_events": [
+      {
+        "tick": 195,
+        "servo_ids": [13, 14],
+        "status": "timeout"
+      },
+      {
+        "tick": 6786,
+        "servo_ids": [11],
+        "status": "crc"
+      },
+      {
+        "tick": 7809,
+        "servo_ids": [11],
+        "status": "crc"
+      }
+    ],
+    "read_burst_count": 0,
+    "transaction_failure_below_0_1_percent": true
+  },
+  "device_alarms": {
+    "alarm_replies": 146900,
+    "voltage_alarm_replies": 146900,
+    "valid_read_replies": 149996,
+    "alarm_fraction_of_valid_read_replies": 0.9793594495853223,
+    "zero_device_alarms_gate": false
+  },
+  "application_stage_us": {
+    "sync_write_call": {
+      "mean": 360.114,
+      "p99_9": 867.88,
+      "max": 3605.644
+    },
+    "group_tx_return_to_first_rx": {
+      "mean": 614.128,
+      "p99_9": 851.255,
+      "max": 939.713
+    },
+    "group_rx_span": {
+      "mean": 2033.574,
+      "p99_9": 3053.058,
+      "max": 3086.266
+    },
+    "group_parse_tail": {
+      "mean": 624.499,
+      "p99_9": 1774.426,
+      "max": 2203.928
+    },
+    "extended_tx_return_to_first_rx": {
+      "mean": 411.144,
+      "p99_9": 590.214,
+      "max": 606.628
+    },
+    "extended_parse_tail": {
+      "mean": 193.83,
+      "p99_9": 348.71,
+      "max": 366.335
+    }
+  },
+  "raw_evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/usb10k-torque-off-20260715",
+    "timing_records": 10000,
+    "transaction_trace_records": 10000,
+    "timing_jsonl_sha256": "6ec4a764215bd45bafbf0956370fec1cade7a784bc524e026bc2bd316e2669d1",
+    "summary_sha256": "156f7122c598cccbb95c878d1aa78c7a27048f53391a83d83fdc0b3b69824aff",
+    "transaction_trace_sha256": "26812c2a266cb00da9ba532eaaf9bfbcbb6d6505547acc7dbb250a9d8ed63e34"
+  },
+  "decision": {
+    "usb_complete_sweep_pass": false,
+    "tick_timing_pass": true,
+    "gate_2_candidate": false,
+    "next_transport_ab": "direct X5 UART with the same 10000-tick population after physical rewiring"
+  }
+}

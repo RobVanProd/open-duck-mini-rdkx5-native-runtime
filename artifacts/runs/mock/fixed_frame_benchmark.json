@@ -1,0 +1,71 @@
+{
+  "environment": {
+    "clock": "time.perf_counter_ns",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11"
+  },
+  "hardware_access": false,
+  "modes": {
+    "instrumented_10_chunks": {
+      "equivalence": {
+        "positions": true,
+        "staleness": true,
+        "status": true,
+        "velocities": true
+      },
+      "fixed_frame": {
+        "batches": 10,
+        "max": 117.098,
+        "mean": 81.87469999999999,
+        "min": 56.0375,
+        "p95": 106.13892499999997
+      },
+      "generic": {
+        "batches": 10,
+        "max": 159.344,
+        "mean": 139.6045,
+        "min": 104.287,
+        "p95": 157.53635
+      },
+      "instrumentation_enabled": true,
+      "mean_saving_us": 57.72980000000001,
+      "mean_speedup": 1.705099377463368,
+      "synthetic_receive_chunks": 10
+    },
+    "uninstrumented": {
+      "equivalence": {
+        "positions": true,
+        "staleness": true,
+        "status": true,
+        "velocities": true
+      },
+      "fixed_frame": {
+        "batches": 10,
+        "max": 90.5535,
+        "mean": 74.66235,
+        "min": 58.5535,
+        "p95": 88.7418
+      },
+      "generic": {
+        "batches": 10,
+        "max": 194.425,
+        "mean": 135.89915000000002,
+        "min": 107.8295,
+        "p95": 183.58697499999997
+      },
+      "instrumentation_enabled": false,
+      "mean_saving_us": 61.23680000000002,
+      "mean_speedup": 1.8201831311229826,
+      "synthetic_receive_chunks": 0
+    }
+  },
+  "population": {
+    "batches_per_parser": 10,
+    "iterations_per_batch": 200,
+    "response_bytes": 140,
+    "total_iterations_per_parser": 2000,
+    "warmup_pairs": 100
+  },
+  "schema_version": "open_duck_x5.fixed_frame_benchmark.v2",
+  "unit": "microseconds_per_parse_and_decode_iteration"
+}

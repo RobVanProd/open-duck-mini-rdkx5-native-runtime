@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/runtime-event.schema.json",
+  "title": "Open Duck X5 runtime event",
+  "type": "object",
+  "required": ["schema_version", "timestamp_monotonic_ns", "event"],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.runtime_event.v1" },
+    "timestamp_monotonic_ns": { "type": "integer", "minimum": 0 },
+    "event": { "enum": ["runtime_start", "realtime_verified", "runtime_halt"] },
+    "details": { "type": "object" },
+    "reason": { "type": "string", "minLength": 1 },
+    "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
+    "torque_off_attempted": { "type": "boolean" },
+    "torque_off_status": {
+      "enum": [
+        "ok",
+        "timeout",
+        "crc",
+        "partial",
+        "device",
+        "unexpected_id",
+        "io",
+        "exception",
+        "not_attempted"
+      ]
+    },
+    "torque_off_error": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "event": { "const": "runtime_start" } } },
+      "then": {
+        "required": ["details"],
+        "properties": { "details": { "$ref": "#/$defs/startup" } }
+      }
+    },
+    {
+      "if": { "properties": { "event": { "const": "realtime_verified" } } },
+      "then": {
+        "required": ["details"],
+        "properties": { "details": { "$ref": "#/$defs/realtime" } }
+      }
+    },
+    {
+      "if": { "properties": { "event": { "const": "runtime_halt" } } },
+      "then": {
+        "required": [
+          "reason",
+          "telemetry_records_dropped",
+          "torque_off_attempted",
+          "torque_off_status",
+          "torque_off_error"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "onnxTensor": {
+      "type": "object",
+      "required": ["name", "shape", "type"],
+      "properties": {
+        "name": { "type": "string" },
+        "shape": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer" } },
+        "type": { "const": "tensor(float)" }
+      },
+      "additionalProperties": false
+    },
+    "startup": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "control_frequency_hz",
+        "control_period_ns",
+        "bus",
+        "config",
+        "sensors",
+        "policy",
+        "joint_names",
+        "servo_ids",
+        "controller",
+        "fixed_command_x",
+        "max_ticks",
+        "max_active_ticks",
+        "home_seconds",
+        "watchdog_consecutive_failures",
+        "realtime_required",
+        "gate5_authorized",
+        "hardware_authorized",
+        "suspended_or_benched"
+      ],
+      "properties": {
+        "contract_id": { "const": "open-duck-mini.best-walk.101x14.v1" },
+        "control_frequency_hz": { "const": 50.0 },
+        "control_period_ns": { "const": 20000000 },
+        "bus": {
+          "type": "object",
+          "required": ["backend", "device", "baudrate", "timeout_ms"],
+          "properties": {
+            "backend": { "enum": ["mock", "serial"] },
+            "device": { "type": "string", "minLength": 1 },
+            "baudrate": { "type": "integer", "minimum": 1 },
+            "timeout_ms": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "config": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256",
+            "start_paused",
+            "imu_upside_down",
+            "phase_frequency_factor_offset"
+          ],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "start_paused": { "type": "boolean" },
+            "imu_upside_down": { "type": "boolean" },
+            "phase_frequency_factor_offset": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "sensors": {
+          "type": "object",
+          "required": ["initial_sample_ready_timeout_s", "imu", "contacts"],
+          "properties": {
+            "initial_sample_ready_timeout_s": { "const": 2.0 },
+            "imu": {
+              "type": "object",
+              "required": [
+                "backend",
+                "i2c_device",
+                "address",
+                "upside_down",
+                "identity_verified",
+                "calibration_applied",
+                "calibration_readback_verified",
+                "calibration_profile_path",
+                "calibration_profile_sha256",
+                "calibration_source_sha256"
+              ],
+              "properties": {
+                "backend": { "enum": ["mock", "bno055_smbus"] },
+                "i2c_device": { "type": "string", "minLength": 1 },
+                "address": { "type": "integer", "minimum": 0, "maximum": 127 },
+                "upside_down": { "type": "boolean" },
+                "identity_verified": { "type": "boolean" },
+                "calibration_applied": { "type": "boolean" },
+                "calibration_readback_verified": { "type": "boolean" },
+                "calibration_profile_path": { "type": ["string", "null"] },
+                "calibration_profile_sha256": {
+                  "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+                },
+                "calibration_source_sha256": {
+                  "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }]
+                }
+              },
+              "additionalProperties": false
+            },
+            "contacts": {
+              "type": "object",
+              "required": ["backend", "numbering", "left", "right", "polarity"],
+              "properties": {
+                "backend": { "enum": ["mock", "Hobot.GPIO"] },
+                "numbering": { "const": "BCM" },
+                "left": {
+                  "type": "object",
+                  "required": ["bcm", "physical_pin"],
+                  "properties": {
+                    "bcm": { "const": 22 },
+                    "physical_pin": { "const": 15 }
+                  },
+                  "additionalProperties": false
+                },
+                "right": {
+                  "type": "object",
+                  "required": ["bcm", "physical_pin"],
+                  "properties": {
+                    "bcm": { "const": 27 },
+                    "physical_pin": { "const": 13 }
+                  },
+                  "additionalProperties": false
+                },
+                "polarity": { "const": "raw GPIO false -> contact true" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "policy": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["path", "sha256", "input", "output", "session"],
+              "properties": {
+                "path": { "type": "string", "minLength": 1 },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "input": { "$ref": "#/$defs/onnxTensor" },
+                "output": { "$ref": "#/$defs/onnxTensor" },
+                "session": {
+                  "type": "object",
+                  "required": [
+                    "execution_mode",
+                    "graph_optimization_level",
+                    "intra_op_num_threads",
+                    "inter_op_num_threads",
+                    "intra_op_allow_spinning",
+                    "inter_op_allow_spinning"
+                  ],
+                  "properties": {
+                    "execution_mode": { "const": "ORT_SEQUENTIAL" },
+                    "graph_optimization_level": { "const": "ORT_ENABLE_ALL" },
+                    "intra_op_num_threads": { "const": 1 },
+                    "inter_op_num_threads": { "const": 1 },
+                    "intra_op_allow_spinning": { "const": false },
+                    "inter_op_allow_spinning": { "const": false }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "joint_names": { "type": "array", "minItems": 14, "maxItems": 14, "items": { "type": "string" } },
+        "servo_ids": { "type": "array", "minItems": 14, "maxItems": 14, "items": { "type": "integer" } },
+        "controller": { "enum": ["none", "xbox", "f710"] },
+        "fixed_command_x": { "type": ["number", "null"] },
+        "max_ticks": { "type": "integer", "minimum": 0 },
+        "max_active_ticks": { "type": "integer", "minimum": 0 },
+        "home_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "watchdog_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "realtime_required": { "type": "boolean" },
+        "gate5_authorized": { "type": "boolean" },
+        "hardware_authorized": { "type": "boolean" },
+        "suspended_or_benched": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "bus": { "properties": { "backend": { "const": "mock" } } }
+            }
+          },
+          "then": {
+            "properties": {
+              "sensors": {
+                "properties": {
+                  "imu": {
+                    "properties": {
+                      "backend": { "const": "mock" },
+                      "identity_verified": { "const": false },
+                      "calibration_applied": { "const": false },
+                      "calibration_readback_verified": { "const": false }
+                    }
+                  },
+                  "contacts": { "properties": { "backend": { "const": "mock" } } }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "bus": { "properties": { "backend": { "const": "serial" } } }
+            }
+          },
+          "then": {
+            "properties": {
+              "sensors": {
+                "properties": {
+                  "imu": {
+                    "properties": {
+                      "backend": { "const": "bno055_smbus" },
+                      "identity_verified": { "const": true },
+                      "calibration_applied": { "const": true },
+                      "calibration_readback_verified": { "const": true },
+                      "calibration_profile_path": { "type": "string" },
+                      "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
+                      "calibration_source_sha256": { "$ref": "#/$defs/sha256" }
+                    }
+                  },
+                  "contacts": {
+                    "properties": { "backend": { "const": "Hobot.GPIO" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "realtime": {
+      "type": "object",
+      "required": [
+        "cpu",
+        "scheduler",
+        "priority",
+        "isolated",
+        "affinity",
+        "initial_affinity",
+        "housekeeping_affinity",
+        "background_threads"
+      ],
+      "properties": {
+        "cpu": { "type": "integer", "minimum": 0 },
+        "scheduler": { "const": "SCHED_FIFO" },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "isolated": { "const": true },
+        "affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+        "initial_affinity": { "type": "array", "minItems": 2, "items": { "type": "integer" } },
+        "housekeeping_affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+        "background_threads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tid", "affinity", "scheduler", "priority"],
+            "properties": {
+              "tid": { "type": "integer", "minimum": 1 },
+              "affinity": { "type": "array", "minItems": 1, "items": { "type": "integer" } },
+              "scheduler": { "type": "integer" },
+              "priority": { "type": "integer", "minimum": 0, "maximum": 99 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": "open_duck_x5.gate4_human_review.v1",
+  "status": "PASS",
+  "confirmed_by": "Rob",
+  "date": "2026-07-19",
+  "physical_setup": "robot securely supported on its stand; hands clear",
+  "authorized_joint": "left_hip_yaw",
+  "statement": "looked good to me nothing weird, it was smooth",
+  "wrong_joint_side_sign_or_unexpected_behavior_reported": false
+}

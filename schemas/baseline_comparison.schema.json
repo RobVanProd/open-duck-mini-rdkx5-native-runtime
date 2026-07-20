@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/baseline-comparison.schema.json",
+  "title": "Open Duck X5 legacy-versus-new timing comparison",
+  "type": "object",
+  "required": ["schema_version", "status", "new_summary_source", "legacy", "new"],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.baseline_comparison.v1" },
+    "status": { "enum": ["NOT_RUN", "INFORMATIONAL_MOCK", "REVIEW_REQUIRED"] },
+    "new_summary_source": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "legacy": {
+      "type": "object",
+      "required": [
+        "x0_read_failure_percent",
+        "x008_read_failure_percent",
+        "tick_max_ms",
+        "read_bursts_observed",
+        "phase_1_full_timing_artifact"
+      ],
+      "properties": {
+        "x0_read_failure_percent": { "const": 1.07 },
+        "x008_read_failure_percent": { "const": 2.68 },
+        "tick_max_ms": { "const": 26.0 },
+        "read_bursts_observed": { "const": true },
+        "phase_1_full_timing_artifact": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "new": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "backend",
+            "run_status",
+            "jsonl_sha256",
+            "gates"
+          ],
+          "properties": {
+            "schema_version": { "const": "open_duck_x5.timing_summary.v2" },
+            "backend": { "enum": ["mock", "serial"] },
+            "run_status": { "const": "COMPLETE" },
+            "jsonl_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "gates": {
+              "type": "object",
+              "required": ["complete_record_stream", "torque_off_confirmed"],
+              "properties": {
+                "complete_record_stream": { "const": true },
+                "torque_off_confirmed": { "const": true }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "new": {
+            "type": "object",
+            "required": ["backend"],
+            "properties": { "backend": { "const": "mock" } }
+          }
+        }
+      },
+      "then": { "properties": { "status": { "const": "INFORMATIONAL_MOCK" } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "new": {
+            "type": "object",
+            "required": ["backend"],
+            "properties": { "backend": { "const": "serial" } }
+          }
+        }
+      },
+      "then": { "properties": { "status": { "const": "REVIEW_REQUIRED" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "NOT_RUN" } } },
+      "then": {
+        "properties": {
+          "new_summary_source": { "type": "null" },
+          "new": { "type": "null" }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

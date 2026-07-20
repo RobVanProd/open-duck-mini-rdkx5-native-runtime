@@ -1,6 +1,6 @@
 # Phase 0 Audit Result
 
-Status: `COMPLETE_OFFLINE`
+Status: `COMPLETE_OFFLINE_AND_BOARD_INVENTORY`
 
 Audited source:
 
@@ -12,7 +12,10 @@ Audited source:
 
 Result: `docs/PHASE_0_PI_INHERITANCE_AUDIT.md`
 
-The source audit is complete. Board-local package versions, serial driver,
-sysfs latency controls, IRQ affinity, GPIO mapping, and kernel setup remain
-unverified and require explicit hardware authorization. This result does not
-authorize Gate 1.
+The source audit is complete. A user-authorized, read-only board inventory was
+captured on 2026-07-15 and is summarized in
+`BOARD_INVENTORY_20260715.md`. It verifies the installed package versions,
+serial driver and sysfs controls, CPU topology, current scheduler/isolation
+state, I2C adapter inventory, boot-script location, and live config hash.
+GPIO line ownership remains unverified because `gpioinfo` is not installed.
+This result does not authorize Gate 1.

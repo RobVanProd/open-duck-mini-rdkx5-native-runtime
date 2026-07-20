@@ -1,0 +1,151 @@
+{
+  "artifacts": {
+    "legacy_pickle": {
+      "path": "imu_calib_data.pkl",
+      "sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+    },
+    "profile": {
+      "path": "imu_calibration.json",
+      "sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+      "source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+    },
+    "status_jsonl": {
+      "path": "calibration-status.jsonl",
+      "records": 1318,
+      "sha256": "d6e843a52a5cb7bf54d92c1f8af7de728364889c5d1f74539c5ddb0ada599966"
+    }
+  },
+  "backend": "x5",
+  "calibration": {
+    "elapsed_seconds": 330.934490925,
+    "final_status_raw": 255,
+    "initial_device": {
+      "axis_map_config": 33,
+      "axis_map_sign": 7,
+      "calibration_applied": false,
+      "calibration_profile_path": null,
+      "calibration_profile_sha256": null,
+      "calibration_readback": null,
+      "calibration_readback_verified": false,
+      "calibration_source_sha256": null,
+      "calibration_status": {
+        "accelerometer": 3,
+        "gyroscope": 3,
+        "magnetometer": 3,
+        "system": 3
+      },
+      "calibration_status_raw": 255,
+      "chip_id": 160,
+      "identity_verified": true,
+      "operation_mode": 12,
+      "unit_selection": 0,
+      "upside_down": true
+    },
+    "offsets": {
+      "offsets_accelerometer": [
+        118,
+        0,
+        33
+      ],
+      "offsets_gyroscope": [
+        1,
+        0,
+        -2
+      ],
+      "offsets_magnetometer": [
+        -421,
+        -125,
+        360
+      ]
+    },
+    "polls": 1318,
+    "post_profile_readback": {
+      "axis_map_config": 33,
+      "axis_map_sign": 7,
+      "calibration_applied": true,
+      "calibration_profile_path": "None",
+      "calibration_profile_sha256": null,
+      "calibration_readback": {
+        "offsets_accelerometer": [
+          118,
+          0,
+          33
+        ],
+        "offsets_gyroscope": [
+          1,
+          0,
+          -2
+        ],
+        "offsets_magnetometer": [
+          -421,
+          -125,
+          360
+        ]
+      },
+      "calibration_readback_verified": true,
+      "calibration_source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08",
+      "calibration_status": {
+        "accelerometer": 0,
+        "gyroscope": 0,
+        "magnetometer": 0,
+        "system": 0
+      },
+      "calibration_status_raw": 0,
+      "chip_id": 160,
+      "identity_verified": true,
+      "operation_mode": 12,
+      "unit_selection": 0,
+      "upside_down": true
+    },
+    "stable_full_samples": 5
+  },
+  "checks": {
+    "authorization_provenance": true,
+    "exact_offset_readback": true,
+    "full_calibration_sustained": true,
+    "identity_and_frozen_mapping_verified": true,
+    "profile_candidate": true,
+    "profile_source_matches_legacy": true
+  },
+  "completed_utc": "2026-07-19T03:05:39.302722+00:00",
+  "config": {
+    "imu_upside_down": true,
+    "path": "/home/sunrise/duck_config.json",
+    "sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
+  },
+  "environment": {
+    "goal_position_writes": 0,
+    "hardware_authorized": true,
+    "imu_address": 40,
+    "imu_i2c_device": "/dev/i2c-5",
+    "manual_calibration_authorized": true,
+    "policy_inference_count": 0,
+    "policy_loaded": false,
+    "poll_seconds": 0.25,
+    "servo_bus_accessed": false,
+    "stable_full_samples_required": 5,
+    "suspended_or_benched": true,
+    "timeout_seconds": 600.0,
+    "torque_enabled": false
+  },
+  "hardware_status": "REVIEW_REQUIRED",
+  "informational_only": false,
+  "review_status": "REVIEW_REQUIRED",
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.bno055_calibration_capture.v1",
+  "software": {
+    "capture": {
+      "path": "/home/sunrise/open-duck-x5-calibration-4e9b748/src/open_duck_x5/imu_calibration_capture.py",
+      "sha256": "a87655c66dc10164a493b6bc977fdb2a4f69fa030d52ec80bed88766c9969447"
+    },
+    "imu_calibration": {
+      "path": "/home/sunrise/open-duck-x5-calibration-4e9b748/src/open_duck_x5/imu_calibration.py",
+      "sha256": "193851d96615996df8a7d906a14aee52491197eebdd4fe237051918bb5988d5d"
+    },
+    "sensors": {
+      "path": "/home/sunrise/open-duck-x5-calibration-4e9b748/src/open_duck_x5/sensors.py",
+      "sha256": "77867106e49ec0c6104152981c8a1a8a69238e5bf358c67b081cb4ac1f40acb3"
+    }
+  },
+  "started_utc": "2026-07-19T03:00:08.131774+00:00"
+}

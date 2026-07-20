@@ -1,0 +1,20 @@
+{
+  "offsets_accelerometer": [
+    118,
+    0,
+    33
+  ],
+  "offsets_gyroscope": [
+    1,
+    0,
+    -2
+  ],
+  "offsets_magnetometer": [
+    -421,
+    -125,
+    360
+  ],
+  "schema_version": "open_duck_x5.bno055_calibration.v1",
+  "source_format": "apirrone.imu_calib_data.pkl",
+  "source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+}

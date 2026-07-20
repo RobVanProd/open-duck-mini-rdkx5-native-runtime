@@ -1,0 +1,4 @@
+9edcfa0fe46f8c6b42199d1864882bf371f843d52c65084c6ec5d128a175e5e7  /home/sunrise/duck-evidence/voltage-limit-8v4-ce161b57/result.json
+ac79b6acc66105acc5fc58ca487b8fed484fda1e93f604c57c12c5bcb5dafb4c  /home/sunrise/duck-evidence/voltage-limit-8v4-ce161b57/journal.jsonl
+9edcfa0fe46f8c6b42199d1864882bf371f843d52c65084c6ec5d128a175e5e7  /home/sunrise/duck-evidence/voltage-limit-8v4-ce161b57/stdout.txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /home/sunrise/duck-evidence/voltage-limit-8v4-ce161b57/stderr.txt

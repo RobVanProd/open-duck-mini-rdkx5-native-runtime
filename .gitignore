@@ -20,3 +20,9 @@ artifacts/runs/**/*.csv
 # Keep small, reviewed summaries and the directory structure.
 !artifacts/runs/**/.gitkeep
 !duck_config.example.json
+
+# Board evidence bundles stay local until reviewed and deliberately copied out.
+duck-evidence/
+duck-evidence-*/
+duck-evidence-*.tar.gz
+duck-evidence-*.tar.gz.sha256

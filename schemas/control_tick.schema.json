@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/control-tick.schema.json",
+  "title": "Open Duck X5 control-loop tick",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tick",
+    "timestamp_monotonic_ns",
+    "tick_period_ms",
+    "tick_work_ms",
+    "paused",
+    "observation_valid",
+    "sensor_age_ms",
+    "bus",
+    "extended",
+    "observation",
+    "action",
+    "actual_position_rad",
+    "sent_target_rad",
+    "implied_target_velocity_rad_s",
+    "over_3_75_rad_s"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.control_tick.v1" },
+    "tick": { "type": "integer", "minimum": 0 },
+    "timestamp_monotonic_ns": { "type": "integer", "minimum": 0 },
+    "tick_period_ms": { "type": ["number", "null"], "minimum": 0 },
+    "tick_work_ms": { "type": "number", "minimum": 0 },
+    "paused": { "type": "boolean" },
+    "observation_valid": { "type": "boolean" },
+    "sensor_age_ms": {
+      "type": "object",
+      "required": ["imu", "contacts"],
+      "properties": {
+        "imu": { "type": "number", "minimum": 0 },
+        "contacts": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "bus": {
+      "type": "object",
+      "required": [
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "bus_total_ms",
+        "write_status",
+        "per_servo_status",
+        "stale",
+        "partial_bytes",
+        "unexpected_packets"
+      ],
+      "properties": {
+        "group_round_trip_ms": { "type": "number", "minimum": 0 },
+        "extended_round_trip_ms": { "type": "number", "minimum": 0 },
+        "bus_total_ms": { "type": "number", "minimum": 0 },
+        "write_status": { "$ref": "#/$defs/status" },
+        "per_servo_status": { "$ref": "#/$defs/status14" },
+        "per_servo_device_status": { "$ref": "#/$defs/byte14" },
+        "stale": { "$ref": "#/$defs/bool14" },
+        "partial_bytes": { "type": "integer", "minimum": 0 },
+        "unexpected_packets": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "extended": {
+      "type": "object",
+      "required": [
+        "servo_id",
+        "status",
+        "present_current_a",
+        "present_voltage_v",
+        "present_temperature_c"
+      ],
+      "properties": {
+        "servo_id": { "type": "integer", "minimum": -1, "maximum": 253 },
+        "status": { "$ref": "#/$defs/status" },
+        "device_status_raw": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "present_current_a": { "type": "number" },
+        "present_voltage_v": { "type": "number" },
+        "present_temperature_c": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "observation": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/number101" }
+      ]
+    },
+    "action": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/number14" }
+      ]
+    },
+    "actual_position_rad": { "$ref": "#/$defs/number14" },
+    "sent_target_rad": { "$ref": "#/$defs/number14" },
+    "implied_target_velocity_rad_s": { "$ref": "#/$defs/number14" },
+    "over_3_75_rad_s": { "$ref": "#/$defs/bool14" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "observation_valid": { "const": true } } },
+      "then": {
+        "properties": {
+          "paused": { "const": false },
+          "observation": { "$ref": "#/$defs/number101" },
+          "action": { "$ref": "#/$defs/number14" }
+        }
+      },
+      "else": {
+        "properties": {
+          "observation": { "type": "null" },
+          "action": { "type": "null" },
+          "over_3_75_rad_s": {
+            "type": "array",
+            "minItems": 14,
+            "maxItems": 14,
+            "items": { "const": false }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "status": {
+      "enum": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"]
+    },
+    "number14": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "type": "number" }
+    },
+    "number101": {
+      "type": "array",
+      "minItems": 101,
+      "maxItems": 101,
+      "items": { "type": "number" }
+    },
+    "bool14": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "type": "boolean" }
+    },
+    "byte14": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+    },
+    "status14": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "$ref": "#/$defs/status" }
+    }
+  },
+  "additionalProperties": false
+}

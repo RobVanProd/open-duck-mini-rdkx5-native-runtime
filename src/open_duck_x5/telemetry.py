@@ -13,6 +13,10 @@ from .clock import clock_ns
 from .constants import ACTION_DIM, OBSERVATION_DIM
 
 
+class TelemetryError(RuntimeError):
+    """The evidence stream is incomplete or could not be written."""
+
+
 @dataclass(slots=True)
 class ProbeRecord:
     tick: int = 0
@@ -24,6 +28,7 @@ class ProbeRecord:
     bus_total_ns: int = 0
     write_status: int = 0
     extended_status: int = 0
+    extended_device_status: int = 0
     extended_servo_id: int = -1
     current_raw: int = 0
     current_a: float = 0.0
@@ -34,8 +39,20 @@ class ProbeRecord:
     status: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
     )
+    device_status: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
+    )
     stale: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.bool_)
+    )
+    target_positions_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
+    )
+    actual_positions_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
+    )
+    absolute_error_rad: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.float64)
     )
 
     def capture(
@@ -45,6 +62,7 @@ class ProbeRecord:
         tick_period_ns: int,
         release_lateness_ns: int,
         snapshot: ServoSnapshot,
+        target_positions_rad: np.ndarray,
     ) -> None:
         self.tick = tick
         self.tick_start_ns = tick_start_ns
@@ -55,6 +73,7 @@ class ProbeRecord:
         self.bus_total_ns = snapshot.bus_total_ns
         self.write_status = int(snapshot.write_status)
         self.extended_status = int(snapshot.extended_status)
+        self.extended_device_status = int(snapshot.extended_device_status)
         self.extended_servo_id = snapshot.extended_servo_id
         self.current_raw = snapshot.present_current_raw
         self.current_a = snapshot.present_current_a
@@ -63,11 +82,20 @@ class ProbeRecord:
         self.partial_bytes = snapshot.partial_bytes
         self.unexpected_packets = snapshot.unexpected_packets
         np.copyto(self.status, snapshot.status)
+        np.copyto(self.device_status, snapshot.device_status)
         np.copyto(self.stale, snapshot.stale)
+        np.copyto(self.target_positions_rad, target_positions_rad)
+        np.copyto(self.actual_positions_rad, snapshot.positions_rad)
+        np.subtract(
+            self.actual_positions_rad,
+            self.target_positions_rad,
+            out=self.absolute_error_rad,
+        )
+        np.absolute(self.absolute_error_rad, out=self.absolute_error_rad)
 
     def as_jsonable(self) -> dict[str, object]:
         return {
-            "schema_version": "open_duck_x5.timing_tick.v1",
+            "schema_version": "open_duck_x5.timing_tick.v2",
             "tick": self.tick,
             "timestamp_monotonic_ns": self.tick_start_ns,
             "tick_period_ms": self.tick_period_ns / 1e6 if self.tick_period_ns else None,
@@ -78,6 +106,7 @@ class ProbeRecord:
                 "bus_total_ms": self.bus_total_ns / 1e6,
                 "write_status": ERROR_NAMES[self.write_status],
                 "per_servo_status": [ERROR_NAMES[int(code)] for code in self.status],
+                "per_servo_device_status": self.device_status.tolist(),
                 "stale": self.stale.tolist(),
                 "partial_bytes": self.partial_bytes,
                 "unexpected_packets": self.unexpected_packets,
@@ -85,10 +114,16 @@ class ProbeRecord:
             "extended": {
                 "servo_id": self.extended_servo_id,
                 "status": ERROR_NAMES[self.extended_status],
+                "device_status_raw": self.extended_device_status,
                 "present_current_raw": self.current_raw,
                 "present_current_a": self.current_a,
                 "present_voltage_v": self.voltage_v,
                 "present_temperature_c": self.temperature_c,
+            },
+            "motion": {
+                "target_positions_rad": self.target_positions_rad.tolist(),
+                "actual_positions_rad": self.actual_positions_rad.tolist(),
+                "absolute_error_rad": self.absolute_error_rad.tolist(),
             },
         }
 
@@ -104,8 +139,16 @@ class AsyncProbeWriter:
         for _ in range(capacity):
             self._free.put(ProbeRecord())
         self.dropped = 0
+        self._error: BaseException | None = None
+        self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, name="probe-jsonl-writer", daemon=True)
         self._thread.start()
+        self._ready.wait()
+        self._raise_if_failed()
+
+    def _raise_if_failed(self) -> None:
+        if self._error is not None:
+            raise TelemetryError(f"timing telemetry writer failed: {self._error}") from self._error
 
     def publish(
         self,
@@ -114,37 +157,54 @@ class AsyncProbeWriter:
         tick_period_ns: int,
         release_lateness_ns: int,
         snapshot: ServoSnapshot,
+        target_positions_rad: np.ndarray,
     ) -> None:
+        self._raise_if_failed()
         try:
             record = self._free.get_nowait()
-        except queue.Empty:
+        except queue.Empty as exc:
             self.dropped += 1
-            return
+            raise TelemetryError("timing telemetry record pool exhausted") from exc
         record.capture(
             tick,
             tick_start_ns,
             tick_period_ns,
             release_lateness_ns,
             snapshot,
+            target_positions_rad,
         )
         try:
             self._pending.put_nowait(record)
-        except queue.Full:
+        except queue.Full as exc:
             self.dropped += 1
             self._free.put(record)
+            raise TelemetryError("timing telemetry queue overflow") from exc
 
     def _run(self) -> None:
-        with self.path.open("w", encoding="utf-8", buffering=1) as handle:
-            while True:
-                record = self._pending.get()
-                if record is None:
-                    return
-                handle.write(json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n")
-                self._free.put(record)
+        try:
+            with self.path.open("w", encoding="utf-8", buffering=1) as handle:
+                self._ready.set()
+                while True:
+                    record = self._pending.get()
+                    if record is None:
+                        return
+                    handle.write(
+                        json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n"
+                    )
+                    self._free.put(record)
+        except BaseException as exc:
+            self._error = exc
+            self._ready.set()
 
     def close(self) -> None:
-        self._pending.put(None)
+        while self._thread.is_alive():
+            try:
+                self._pending.put(None, timeout=0.1)
+                break
+            except queue.Full:
+                continue
         self._thread.join()
+        self._raise_if_failed()
 
 
 @dataclass(slots=True)
@@ -162,6 +222,7 @@ class ControlRecord:
     bus_total_ns: int = 0
     write_status: int = 0
     extended_status: int = 0
+    extended_device_status: int = 0
     extended_servo_id: int = -1
     current_a: float = 0.0
     voltage_v: float = 0.0
@@ -169,6 +230,9 @@ class ControlRecord:
     partial_bytes: int = 0
     unexpected_packets: int = 0
     status: np.ndarray = field(
+        default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
+    )
+    device_status: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.uint8)
     )
     stale: np.ndarray = field(
@@ -222,6 +286,7 @@ class ControlRecord:
         self.bus_total_ns = snapshot.bus_total_ns
         self.write_status = int(snapshot.write_status)
         self.extended_status = int(snapshot.extended_status)
+        self.extended_device_status = int(snapshot.extended_device_status)
         self.extended_servo_id = snapshot.extended_servo_id
         self.current_a = snapshot.present_current_a
         self.voltage_v = snapshot.present_voltage_v
@@ -229,6 +294,7 @@ class ControlRecord:
         self.partial_bytes = snapshot.partial_bytes
         self.unexpected_packets = snapshot.unexpected_packets
         np.copyto(self.status, snapshot.status)
+        np.copyto(self.device_status, snapshot.device_status)
         np.copyto(self.stale, snapshot.stale)
         np.copyto(self.observation, observation)
         np.copyto(self.action, action)
@@ -256,6 +322,7 @@ class ControlRecord:
                 "bus_total_ms": self.bus_total_ns / 1e6,
                 "write_status": ERROR_NAMES[self.write_status],
                 "per_servo_status": [ERROR_NAMES[int(code)] for code in self.status],
+                "per_servo_device_status": self.device_status.tolist(),
                 "stale": self.stale.tolist(),
                 "partial_bytes": self.partial_bytes,
                 "unexpected_packets": self.unexpected_packets,
@@ -263,6 +330,7 @@ class ControlRecord:
             "extended": {
                 "servo_id": self.extended_servo_id,
                 "status": ERROR_NAMES[self.extended_status],
+                "device_status_raw": self.extended_device_status,
                 "present_current_a": self.current_a,
                 "present_voltage_v": self.voltage_v,
                 "present_temperature_c": self.temperature_c,
@@ -287,8 +355,16 @@ class AsyncControlWriter:
         for _ in range(capacity):
             self._free.put(ControlRecord())
         self.dropped = 0
+        self._error: BaseException | None = None
+        self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, name="control-jsonl-writer", daemon=True)
         self._thread.start()
+        self._ready.wait()
+        self._raise_if_failed()
+
+    def _raise_if_failed(self) -> None:
+        if self._error is not None:
+            raise TelemetryError(f"control telemetry writer failed: {self._error}") from self._error
 
     def publish(
         self,
@@ -308,11 +384,12 @@ class AsyncControlWriter:
         implied_velocity_rad_s: np.ndarray,
         over_envelope: np.ndarray,
     ) -> None:
+        self._raise_if_failed()
         try:
             record = self._free.get_nowait()
-        except queue.Empty:
+        except queue.Empty as exc:
             self.dropped += 1
-            return
+            raise TelemetryError("control telemetry record pool exhausted") from exc
         record.capture(
             tick,
             tick_start_ns,
@@ -332,30 +409,77 @@ class AsyncControlWriter:
         )
         try:
             self._pending.put_nowait(record)
-        except queue.Full:
+        except queue.Full as exc:
             self.dropped += 1
             self._free.put(record)
+            raise TelemetryError("control telemetry queue overflow") from exc
 
     def _run(self) -> None:
-        with self.path.open("w", encoding="utf-8", buffering=1) as handle:
-            while True:
-                record = self._pending.get()
-                if record is None:
-                    return
-                if isinstance(record, dict):
-                    handle.write(json.dumps(record, separators=(",", ":")) + "\n")
-                    continue
-                handle.write(json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n")
-                self._free.put(record)
+        try:
+            with self.path.open("w", encoding="utf-8", buffering=1) as handle:
+                self._ready.set()
+                while True:
+                    record = self._pending.get()
+                    if record is None:
+                        return
+                    if isinstance(record, dict):
+                        handle.write(json.dumps(record, separators=(",", ":")) + "\n")
+                        continue
+                    handle.write(
+                        json.dumps(record.as_jsonable(), separators=(",", ":")) + "\n"
+                    )
+                    self._free.put(record)
+        except BaseException as exc:
+            self._error = exc
+            self._ready.set()
 
-    def close(self, *, reason: str = "normal_exit") -> None:
-        self._pending.put(
-            {
-                "schema_version": "open_duck_x5.runtime_event.v1",
-                "timestamp_monotonic_ns": clock_ns(),
-                "event": "runtime_halt",
-                "reason": reason,
-            }
-        )
-        self._pending.put(None)
+    def publish_event(
+        self, event: str, *, details: dict[str, object] | None = None
+    ) -> None:
+        self._raise_if_failed()
+        payload: dict[str, object] = {
+            "schema_version": "open_duck_x5.runtime_event.v1",
+            "timestamp_monotonic_ns": clock_ns(),
+            "event": event,
+        }
+        if details is not None:
+            payload["details"] = details
+        try:
+            self._pending.put_nowait(payload)
+        except queue.Full as exc:
+            self.dropped += 1
+            raise TelemetryError("control telemetry queue overflow") from exc
+
+    def close(
+        self,
+        *,
+        reason: str = "normal_exit",
+        torque_off_attempted: bool = False,
+        torque_off_status: str = "not_attempted",
+        torque_off_error: str | None = None,
+    ) -> None:
+        halt_record = {
+            "schema_version": "open_duck_x5.runtime_event.v1",
+            "timestamp_monotonic_ns": clock_ns(),
+            "event": "runtime_halt",
+            "reason": reason,
+            "telemetry_records_dropped": self.dropped,
+            "torque_off_attempted": torque_off_attempted,
+            "torque_off_status": torque_off_status,
+            "torque_off_error": torque_off_error,
+        }
+        halt_queued = False
+        while self._thread.is_alive() and not halt_queued:
+            try:
+                self._pending.put(halt_record, timeout=0.1)
+                halt_queued = True
+            except queue.Full:
+                continue
+        while self._thread.is_alive():
+            try:
+                self._pending.put(None, timeout=0.1)
+                break
+            except queue.Full:
+                continue
         self._thread.join()
+        self._raise_if_failed()

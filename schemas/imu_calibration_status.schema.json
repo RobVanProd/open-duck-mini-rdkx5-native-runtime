@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/imu-calibration-status.schema.json",
+  "title": "Open Duck X5 BNO055 calibration status sample",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "poll",
+    "elapsed_seconds",
+    "status_raw",
+    "system",
+    "gyroscope",
+    "accelerometer",
+    "magnetometer"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.bno055_calibration_status.v1" },
+    "poll": { "type": "integer", "minimum": 0 },
+    "elapsed_seconds": { "type": "number", "minimum": 0 },
+    "status_raw": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "system": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "gyroscope": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "accelerometer": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "magnetometer": { "type": "integer", "minimum": 0, "maximum": 3 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,53 @@
+{
+  "authority": {
+    "gate5": false,
+    "motion": false,
+    "rdkx5_access": false,
+    "robot_clearance": false,
+    "runtime_deployment": false,
+    "torque": false
+  },
+  "decision": "HOLD_POLICY_CONFIGURATION_SENSITIVITY_NO_PER_UNIT_MEASUREMENT",
+  "evidence": {
+    "negative_inner_pass_m": -0.022656250000000003,
+    "negative_outer_fail_m": -0.0234375,
+    "policy_break_radius_result_path": "outputs/analysis/composite_winner_torso_com_break_radius_result.json",
+    "policy_break_radius_result_sha256": "6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32",
+    "positive_inner_pass_m": 0.0054687500000000005,
+    "positive_outer_fail_m": 0.00625
+  },
+  "frozen_candidate": {
+    "asset_lock_sha256": "48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31",
+    "handoff_manifest_sha256": "d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5",
+    "policy_commit": "4521cd8fdcf5603dfb1405417ce38cd2f031fd84",
+    "selected_onnx_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de"
+  },
+  "operator_requirement": {
+    "automatic_supported_calibration_allowed_only_after_separate_motion_authorization": true,
+    "component_by_component_measurement_required": false,
+    "manual_com_entry_required": false,
+    "measuring_equipment_required": false,
+    "per_build_com_clearance_route_selected": false,
+    "policy_must_support_variable_configuration": true
+  },
+  "replacement_gate": {
+    "current_candidate_evaluated_first": true,
+    "domain_frozen_before_candidate_outcomes": true,
+    "minimum_torso_x_com_domain_m": [
+      -0.05,
+      0.05
+    ],
+    "per_build_measurement_waiver_allowed": false,
+    "required_dimensions": [
+      "torso_mass",
+      "torso_com_x",
+      "torso_com_y",
+      "torso_com_z",
+      "torso_inertia",
+      "coupled_variation",
+      "supported_optional_component_combinations"
+    ]
+  },
+  "schema_version": "winner_v2_variable_configuration_hold.v1",
+  "status": "REQUEST_POLICY_ROBUSTNESS_REPLACEMENT"
+}

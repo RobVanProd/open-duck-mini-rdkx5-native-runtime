@@ -1,0 +1,14 @@
+usage: probe.py [-h] [--bus {mock,serial}] [--device DEVICE]
+                [--baudrate BAUDRATE] [--timeout-ms TIMEOUT_MS]
+                [--ticks TICKS] [--frequency-hz FREQUENCY_HZ]
+                [--sine-hz SINE_HZ] [--amplitude-rad AMPLITUDE_RAD]
+                [--sine-joint {left_hip_yaw,left_hip_roll,left_hip_pitch,left_knee,left_ankle,neck_pitch,head_pitch,head_yaw,head_roll,right_hip_yaw,right_hip_roll,right_hip_pitch,right_knee,right_ankle}]
+                [--mock-latency-ms MOCK_LATENCY_MS] [--enable-torque]
+                [--moving-gate-authorized] [--config CONFIG]
+                [--home-seconds HOME_SECONDS]
+                [--watchdog-failures WATCHDOG_FAILURES] [--require-realtime]
+                [--rt-cpu RT_CPU] [--rt-priority RT_PRIORITY] --output OUTPUT
+                --summary SUMMARY [--instrument-transactions]
+                [--instrumentation-output INSTRUMENTATION_OUTPUT]
+                [--hardware-authorized] [--suspended-or-benched]
+probe.py: error: servo verification failed: 20:device, 21:device, 22:device, 23:device, 24:device, 30:device, 31:device, 32:device, 33:device, 10:device, 11:device, 12:device, 13:device, 14:device

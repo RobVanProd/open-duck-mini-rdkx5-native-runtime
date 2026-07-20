@@ -8,13 +8,17 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 
 | Area | Status |
 | --- | --- |
-| Pi inheritance audit | Complete from the preserved reference snapshot |
-| Frozen 101/14 contract | Implemented and unit-tested; hardware golden-vector capture still required |
-| Direct STS3215 bus | Python implementation plus deterministic/fault-injecting mock |
-| Timing probe | Implemented for mock and explicitly gated serial hardware |
-| RT scheduling / affinity | Implemented; X5 verification is `NOT_RUN` |
-| IMU / contacts / policy host | Implemented behind hardware authorization |
-| Hardware gates 1-5 | `NOT_RUN` — each requires separate explicit authorization |
+| Pi inheritance audit | Complete from preserved source plus hashed read-only X5 inventory |
+| Frozen 101/14 contract | Deployed golden vector passes 101 observations and 14 targets exactly; verified winner handoff is a separate stateful 115-D contract and is not v1-compatible |
+| Direct STS3215 bus | ID-routed Python implementation; wire SyncRead order ends 14,13; exact 140-byte state burst is collected before one-pass parsing; 10,000-tick governor A/B passes the `<5 ms` sweep budget |
+| Extended servo telemetry | Current/voltage/temperature, one servo per tick |
+| Timing probe | v2 per-class evidence with an explicit complete-tick-sweep population, raw hash, RT/auth/cutoff provenance, and gated movement |
+| Runtime evidence | Hashed provenance, cutoff-bearing terminal record, strict schemas, and offline summarizer |
+| RT scheduling / affinity | CPU 7 isolation and `SCHED_FIFO 80` verified; `performance` governor causally clears the Python host tail and tick gates remain green |
+| IMU / contacts / policy host | BNO055 calibration/mapping and active-low contacts pass the reviewed nine-label matrix; all 2,250 rows were fresh with zero worker errors |
+| Winner-v2 runtime-v2 | Machine-audited separate/default-disabled 115-D implementation passes all 12 offline requirements and 2,400 golden ticks while the 101-D v1 remains pinned; the candidate is held pending a variable-configuration envelope; the no-servo X5 CPU preflight, locked launcher, independent full-evidence reviewer, and deterministic envelope-closure checker are ready but physically `NOT_RUN` behind the same pending-envelope sentinel |
+| Automatic configuration support | Guarded mock/serial collector, trace-to-profile identification, timing gates, 73-metric fail-closed envelope validator, and no-write two-launcher closure checker pass offline fault tests; v4 profiles are reproduced from SHA-bound trace, metadata, exact config, and a policy envelope frozen before physical collection; mock is permanently informational; manual mass/COM/inertia inputs are rejected; physical run is `NOT_RUN` |
+| Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; Gate 5 is `NOT_RUN`, policy-side robot clearance is false, and no policy replay is authorized |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract
@@ -25,8 +29,14 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 - `target_rad = home_rad + action * 0.25`, followed by the inherited 5.24 rad/s target slew limit and head-command overlay.
 - `duck_config.json` keeps the existing soft-offset, `imu_upside_down`, `start_paused`, and `phase_frequency_factor_offset` meanings.
 - A stale required servo or sensor sample invalidates the tick; it is never silently substituted into the policy observation.
+- A checksum-valid servo reply with a device alarm retains its fresh payload and raw status; runtime startup still blocks before torque until the alarm is resolved or explicitly reviewed.
 
 The exact field map and the inherited one-tick phase-ordering discrepancy are documented in [the contract](docs/OBSERVATION_ACTION_CONTRACT.md).
+
+The v1 policy interface remains exactly 101/14. The independently verified
+winner handoff is stateful 115-D and is deliberately classified as a separate
+versioned v2 requirement; it must not be loaded through or silently adapted to
+the frozen v1 path.
 
 ## Quick start: offline only
 
@@ -51,15 +61,61 @@ Every hardware CLI requires both of these exact flags:
 ```
 
 Those flags are an operator assertion that Rob approved the specific gate and the robot is physically supported. They are not blanket authorization for later gates. There is intentionally no grounded-run option.
+Moving probes additionally require `--moving-gate-authorized`. The serial policy
+runtime is reserved for Gate 5 and additionally requires `--gate5-authorized`,
+an exact fixed command, bounded total/active tick counts, a physical controller,
+and `start_paused=true`.
 
 Read these before any X5 work:
 
+- [Runtime/policy Codex handoff](Comms.md)
+- [Winner-v2 policy handoff review](docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md)
+- [Winner-v2 runtime-v2 offline review](docs/WINNER_V2_RUNTIME_V2_OFFLINE_REVIEW_20260719.md)
+- [Variable-configuration policy robustness request](docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md)
+- [Automatic configuration support](docs/AUTOMATIC_CONFIGURATION_SUPPORT.md)
+- [Historical powered-off torso COM worksheet — not selected](docs/POWERED_OFF_TORSO_COM_DIRECT_REACTION_WORKSHEET.md)
+- [Historical component-level COM worksheet — not selected](docs/POWERED_OFF_TORSO_COM_MEASUREMENT_WORKSHEET.md)
+- [Active rebuild reconciliation](docs/ACTIVE_REBUILD_RECONCILIATION_20260719.md)
 - [Hardware gate runbook](docs/HARDWARE_GATE_RUNBOOK.md)
 - [Real-time setup](docs/REALTIME_SETUP.md)
 - [Serial latency verification](docs/SERIAL_LATENCY.md)
 - [Phase 0 inheritance audit](docs/PHASE_0_PI_INHERITANCE_AUDIT.md)
 - [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md)
 - [Offline verification](docs/TESTING.md)
+- [Control-run evidence](docs/CONTROL_RUN_EVIDENCE.md)
+- [Duck evidence collector](docs/DUCK_EVIDENCE_COLLECTION.md)
+
+Gate 3 and the serial Gate 5 runtime require a strict BNO055 calibration JSON.
+`calibrate_imu` can capture this robot's offsets without opening the servo bus,
+enabling torque, writing a target, or loading a policy. It requires Rob to be
+physically present plus all three explicit acknowledgements, sustains full
+3/3/3/3 calibration, reapplies the captured profile to a fresh BNO055 session,
+and accepts it only after exact offset and frozen-mapping readback. Missing,
+malformed, or non-matching calibration data blocks later hardware startup.
+This robot's reviewed candidate profile is now recorded under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/calibration_20260718/`; its
+completion did not auto-pass the nine-label Gate 3 matrix. Its first authorized
+attempt halted on a startup-publication race with no servo access or torque;
+that failed artifact remains preserved under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/startup_stale_halt_20260718/`.
+The corrected 2026-07-19 matrix then passed all data-integrity and physical-label
+reviews; its reduced packet is under
+`artifacts/gates/phase_7_hardware/gate_3_sensors/matrix_20260719/`.
+
+## Board evidence collector
+
+When the X5 is available, the safe default collector captures the installed runtime,
+board/serial/RT inventory, config, policy interface hashes, and legacy telemetry into a
+local hashed archive. It performs no servo-bus access, inference, movement, or upload:
+
+```bash
+python3 tools/collect_duck_evidence.py \
+  --legacy-root /home/sunrise/project \
+  --notes "pre-gate board inventory"
+```
+
+An optional torque-off single-servo read probe exists, but remains behind the same two
+hardware acknowledgements and requires separate Gate 1 authorization.
 
 ## Layout
 
@@ -90,11 +146,13 @@ Mock results validate code paths, schemas, failure accounting, and artifact prod
 
 The checked-in 1,000-tick mock run used stock Windows scheduling and the shared
 high-resolution monotonic clock. It produced zero transaction failures and zero
-bursts, with bus-time max 2.547 ms. Tick p99 was 22.001 ms and p99.9 was
-22.013 ms, so the mock host does not pass the hardware timing gates. That is an
+bursts, with bus-time max 2.527 ms. Tick p99 was 21.999 ms and p99.9 was
+22.012 ms, so the mock host does not pass the hardware timing gates. Mock
+tracking p95 was 0.00345 rad. That is an
 informational result, not a failure of an X5 gate and not evidence about
 `SCHED_FIFO` or CPU isolation.
 
 Reviewed summaries are in `artifacts/runs/mock/summary.json` and
+`artifacts/runs/mock/single_servo_summary.json`, with the legacy comparison at
 `artifacts/comparisons/baseline_vs_new.mock.json`. Raw JSONL is intentionally
 ignored. `artifacts/manifest.sha256` authenticates every checked-in artifact.

@@ -10,10 +10,11 @@
     "tick_period_ms",
     "release_lateness_ms",
     "serial",
-    "extended"
+    "extended",
+    "motion"
   ],
   "properties": {
-    "schema_version": {"const": "open_duck_x5.timing_tick.v1"},
+    "schema_version": {"const": "open_duck_x5.timing_tick.v2"},
     "tick": {"type": "integer", "minimum": 0},
     "timestamp_monotonic_ns": {"type": "integer", "minimum": 0},
     "tick_period_ms": {"type": ["number", "null"]},
@@ -41,6 +42,12 @@
           "maxItems": 14,
           "items": {"type": "string"}
         },
+        "per_servo_device_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "integer", "minimum": 0, "maximum": 255}
+        },
         "stale": {
           "type": "array",
           "minItems": 14,
@@ -60,7 +67,38 @@
         "present_current_a",
         "present_voltage_v",
         "present_temperature_c"
-      ]
+      ],
+      "properties": {
+        "device_status_raw": {"type": "integer", "minimum": 0, "maximum": 255}
+      }
+    },
+    "motion": {
+      "type": "object",
+      "required": [
+        "target_positions_rad",
+        "actual_positions_rad",
+        "absolute_error_rad"
+      ],
+      "properties": {
+        "target_positions_rad": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "number"}
+        },
+        "actual_positions_rad": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "number"}
+        },
+        "absolute_error_rad": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": {"type": "number", "minimum": 0}
+        }
+      }
     }
   }
 }

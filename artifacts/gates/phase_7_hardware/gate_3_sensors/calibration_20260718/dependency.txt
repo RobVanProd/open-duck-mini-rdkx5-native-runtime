@@ -1,0 +1,6 @@
+smbus2_version=0.6.1
+smbus2_wheel=smbus2-0.6.1-py2.py3-none-any.whl
+smbus2_wheel_sha256=650feeb27ca0ed58b07db4c10201c2a662c41305b7bf6e5fab9d888056f48180
+install_scope=/home/sunrise/.local/lib/python3.10/site-packages
+capture_source_commit=4e9b748139a65449a71e6c58ec2401f0a90d42bd
+capture_source_archive_sha256=7e8189501dbb24ecf0301b86e5c7d787e095aad24a634a3a599b7e5d8cd864cb

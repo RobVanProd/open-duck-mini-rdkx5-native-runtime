@@ -1,0 +1,75 @@
+{
+  "calibration_profile_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+  "calibration_source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08",
+  "capture_archive_sha256": "7e8189501dbb24ecf0301b86e5c7d787e095aad24a634a3a599b7e5d8cd864cb",
+  "capture_software_sha256": {
+    "capture": "a87655c66dc10164a493b6bc977fdb2a4f69fa030d52ec80bed88766c9969447",
+    "imu_calibration": "193851d96615996df8a7d906a14aee52491197eebdd4fe237051918bb5988d5d",
+    "sensors": "77867106e49ec0c6104152981c8a1a8a69238e5bf358c67b081cb4ac1f40acb3"
+  },
+  "capture_source_commit": "4e9b748139a65449a71e6c58ec2401f0a90d42bd",
+  "checks": {
+    "authorization_provenance_verified": true,
+    "config_contract_verified": true,
+    "exact_capture_population": true,
+    "exact_device_readback_verified": true,
+    "legacy_source_restricted_and_hashed": true,
+    "no_servo_or_policy_access_verified": true,
+    "profile_matches_legacy": true,
+    "software_provenance_verified": true,
+    "status_stream_rederived": true
+  },
+  "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+  "data_integrity_candidate": true,
+  "offsets": {
+    "offsets_accelerometer": [
+      118,
+      0,
+      33
+    ],
+    "offsets_gyroscope": [
+      1,
+      0,
+      -2
+    ],
+    "offsets_magnetometer": [
+      -421,
+      -125,
+      360
+    ]
+  },
+  "physical_calibration_decision": "REVIEW_REQUIRED",
+  "raw_artifacts": [
+    {
+      "path": "calibration-status.jsonl",
+      "sha256": "d6e843a52a5cb7bf54d92c1f8af7de728364889c5d1f74539c5ddb0ada599966"
+    },
+    {
+      "path": "calibration-summary.json",
+      "sha256": "375fafe5e096651059d0a90e101656f857ebc65a9d28daeda642fbbccdef1651"
+    },
+    {
+      "path": "imu_calib_data.pkl",
+      "sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+    },
+    {
+      "path": "imu_calibration.json",
+      "sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be"
+    }
+  ],
+  "review_instructions": [
+    "Confirm Rob performed the calibration while physically supporting the robot.",
+    "Confirm the final five status samples are 3/3/3/3 and offsets are plausible for this unit.",
+    "Keep Gate 3 blocked until this packet and the raw capture are reviewed and hashed."
+  ],
+  "review_software_sha256": {
+    "capture": "a87655c66dc10164a493b6bc977fdb2a4f69fa030d52ec80bed88766c9969447",
+    "imu_calibration": "40fb3ea05f16f312f83416d5da8ed84b81e3ae45d1bcd03ce26f842e47d7c3ae",
+    "review": "88883955089ae59537286f2bdf61c740f95261d3ca323f9e28215cf2e0870831",
+    "sensors": "f0b40c2726170341f23a766271fee8ea0842b747f2936f057965b03440f4d546"
+  },
+  "schema_version": "open_duck_x5.bno055_calibration_review.v1",
+  "stable_full_samples": 5,
+  "status": "REVIEW_REQUIRED",
+  "status_rows": 1318
+}

@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/gate3-review.schema.json",
+  "title": "Open Duck X5 Gate 3 review packet",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "data_integrity_candidate",
+    "physical_label_decision",
+    "gate3_passed",
+    "required_labels",
+    "capture_contract",
+    "provenance",
+    "labels",
+    "raw_artifacts",
+    "review_instructions"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.gate3_review.v1" },
+    "status": { "const": "REVIEW_REQUIRED" },
+    "data_integrity_candidate": { "const": true },
+    "physical_label_decision": { "const": "REVIEW_REQUIRED" },
+    "gate3_passed": { "const": false },
+    "required_labels": {
+      "const": [
+        "upright",
+        "nose_forward",
+        "nose_back",
+        "left_tilt",
+        "right_tilt",
+        "no_contacts",
+        "left_contact",
+        "right_contact",
+        "both_contacts"
+      ]
+    },
+    "capture_contract": {
+      "type": "object",
+      "required": [
+        "samples_per_label",
+        "frequency_hz",
+        "sensor_frequency_hz",
+        "stale_after_ms",
+        "initial_sample_ready_timeout_s",
+        "config_sha256",
+        "imu_i2c_device",
+        "imu_address",
+        "servo_bus_accessed",
+        "torque_enabled"
+      ],
+      "properties": {
+        "samples_per_label": { "const": 250 },
+        "frequency_hz": { "const": 50.0 },
+        "sensor_frequency_hz": { "const": 100.0 },
+        "stale_after_ms": { "const": 40.0 },
+        "initial_sample_ready_timeout_s": { "const": 2.0 },
+        "config_sha256": { "$ref": "#/$defs/sha256" },
+        "imu_i2c_device": { "const": "/dev/i2c-5" },
+        "imu_address": { "const": 40 },
+        "servo_bus_accessed": { "const": false },
+        "torque_enabled": { "const": false }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "config_sha256",
+        "calibration_profile_sha256",
+        "calibration_source_sha256",
+        "calibration_capture_source_commit",
+        "calibration_capture_archive_sha256",
+        "calibration_review_sha256",
+        "software"
+      ],
+      "properties": {
+        "config_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_source_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_capture_source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "calibration_capture_archive_sha256": { "$ref": "#/$defs/sha256" },
+        "calibration_review_sha256": { "$ref": "#/$defs/sha256" },
+        "software": {
+          "type": "object",
+          "required": [
+            "sensor_probe_sha256",
+            "sensors_sha256",
+            "imu_calibration_sha256"
+          ],
+          "properties": {
+            "sensor_probe_sha256": { "$ref": "#/$defs/sha256" },
+            "sensors_sha256": { "$ref": "#/$defs/sha256" },
+            "imu_calibration_sha256": { "$ref": "#/$defs/sha256" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "labels": {
+      "type": "object",
+      "required": [
+        "upright",
+        "nose_forward",
+        "nose_back",
+        "left_tilt",
+        "right_tilt",
+        "no_contacts",
+        "left_contact",
+        "right_contact",
+        "both_contacts"
+      ],
+      "properties": {
+        "upright": { "$ref": "#/$defs/labelMetrics" },
+        "nose_forward": { "$ref": "#/$defs/labelMetrics" },
+        "nose_back": { "$ref": "#/$defs/labelMetrics" },
+        "left_tilt": { "$ref": "#/$defs/labelMetrics" },
+        "right_tilt": { "$ref": "#/$defs/labelMetrics" },
+        "no_contacts": { "$ref": "#/$defs/labelMetrics" },
+        "left_contact": { "$ref": "#/$defs/labelMetrics" },
+        "right_contact": { "$ref": "#/$defs/labelMetrics" },
+        "both_contacts": { "$ref": "#/$defs/labelMetrics" }
+      },
+      "additionalProperties": false
+    },
+    "raw_artifacts": {
+      "type": "array",
+      "minItems": 32,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "review_instructions": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "vector2": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number" }
+    },
+    "vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" }
+    },
+    "labelMetrics": {
+      "type": "object",
+      "required": [
+        "acceleration_mean_m_s2",
+        "gyro_mean_rad_s",
+        "gyro_abs_max_rad_s",
+        "contact_mean",
+        "operator_label_confirmed",
+        "physical_label_decision"
+      ],
+      "properties": {
+        "acceleration_mean_m_s2": { "$ref": "#/$defs/vector3" },
+        "gyro_mean_rad_s": { "$ref": "#/$defs/vector3" },
+        "gyro_abs_max_rad_s": { "$ref": "#/$defs/vector3" },
+        "contact_mean": { "$ref": "#/$defs/vector2" },
+        "operator_label_confirmed": { "const": true },
+        "physical_label_decision": { "const": "REVIEW_REQUIRED" },
+        "expected_contact_pattern": { "$ref": "#/$defs/vector2" },
+        "contact_pattern_consistent": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

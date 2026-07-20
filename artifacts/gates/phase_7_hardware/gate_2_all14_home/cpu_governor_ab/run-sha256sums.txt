@@ -1,0 +1,14 @@
+370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/governor-after.txt
+370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/governor-before.txt
+4cab62e134aeb01974c0134f6d31d72fc01a21c863ab2e3022c64178df3b763a  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/governor-during.txt
+1acf1e94660bf03b23b1265ac476eeb5c504e8b4a0e7ba3e2667bf1a59ea9895  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/max-frequency-before.txt
+e2e10bbc09f3ddf9fd2dca1db67d2b1c46d4dc3e9b2bf685668b99642ba49319  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/metadata.json
+2d5c043a952d70ef9564858b25a01a30613abfb3d1562f67ef8d089646bbf786  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/min-frequency-before.txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/probe-stderr.txt
+1444cd3f39afe0f980f282ada1b55df4ac7bec8c3deabd03d1230cf1ec2d0e79  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/probe-stdout.txt
+a72daec7abff1acf4b1737063465e9501efa4d3773e77792b5c882626746eafa  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/related-cpus.txt
+30cf9258bd1f2f02db4dff81189d792478c33f9d42f7030a7a04060914e44da1  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/source-archive-sha256.txt
+987afd0372b70f76d0f274fa78508a57695714eeaacb39c5a8a58b59619904e5  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/source-commit.txt
+1444cd3f39afe0f980f282ada1b55df4ac7bec8c3deabd03d1230cf1ec2d0e79  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/summary.json
+43178e5ff7621843a810d9f2a2f9000f3a29a35665b4c51c69226c37acdeff39  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/timing.jsonl
+ef28fb54b8651d5a8a18580bba15f827f43ec5801c65d904b0d14d784be34fb9  /home/sunrise/duck-evidence/cpu-governor-ab-8c73aae-performance-20260718/transaction-trace.jsonl

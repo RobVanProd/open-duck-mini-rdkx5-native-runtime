@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open_duck_x5/contract_snapshot.schema.json",
+  "title": "Captured legacy observation/action contract snapshot",
+  "type": "object",
+  "required": ["schema_version", "contract_id", "source", "phase_evidence", "inputs", "legacy_outputs"],
+  "properties": {
+    "schema_version": {"const": "open_duck_x5.contract_snapshot.v1"},
+    "contract_id": {"const": "open-duck-mini.best-walk.101x14.v1"},
+    "source": {"type": "string", "minLength": 1},
+    "phase_evidence": {
+      "type": "object",
+      "required": [
+        "observation_phase",
+        "previous_post_advance_phase",
+        "current_post_advance_phase",
+        "deployed_order_confirmed"
+      ],
+      "properties": {
+        "observation_phase": {"$ref": "#/$defs/vector2"},
+        "previous_post_advance_phase": {"$ref": "#/$defs/vector2"},
+        "current_post_advance_phase": {"$ref": "#/$defs/vector2"},
+        "deployed_order_confirmed": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "gyro_rad_s",
+        "acceleration_m_s2",
+        "commands",
+        "positions_rad",
+        "velocities_rad_s",
+        "action_history",
+        "previous_motor_target_rad",
+        "previous_rate_target_rad",
+        "foot_contacts",
+        "phase",
+        "action",
+        "soft_offsets_rad"
+      ],
+      "properties": {
+        "gyro_rad_s": {"$ref": "#/$defs/vector3"},
+        "acceleration_m_s2": {"$ref": "#/$defs/vector3"},
+        "commands": {"$ref": "#/$defs/vector7"},
+        "positions_rad": {"$ref": "#/$defs/vector14"},
+        "velocities_rad_s": {"$ref": "#/$defs/vector14"},
+        "action_history": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/vector14"}
+        },
+        "previous_motor_target_rad": {"$ref": "#/$defs/vector14"},
+        "previous_rate_target_rad": {"$ref": "#/$defs/vector14"},
+        "foot_contacts": {"$ref": "#/$defs/vector2"},
+        "phase": {"$ref": "#/$defs/vector2"},
+        "action": {"$ref": "#/$defs/vector14"},
+        "soft_offsets_rad": {"$ref": "#/$defs/vector14"}
+      },
+      "additionalProperties": false
+    },
+    "legacy_outputs": {
+      "type": "object",
+      "required": ["observation", "sent_target_rad", "physical_target_rad"],
+      "properties": {
+        "observation": {"$ref": "#/$defs/vector101"},
+        "sent_target_rad": {"$ref": "#/$defs/vector14"},
+        "physical_target_rad": {"$ref": "#/$defs/vector14"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "number": {"type": "number"},
+    "vector2": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/number"}},
+    "vector3": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/number"}},
+    "vector7": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"$ref": "#/$defs/number"}},
+    "vector14": {"type": "array", "minItems": 14, "maxItems": 14, "items": {"$ref": "#/$defs/number"}},
+    "vector101": {"type": "array", "minItems": 101, "maxItems": 101, "items": {"$ref": "#/$defs/number"}}
+  },
+  "additionalProperties": false
+}
