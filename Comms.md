@@ -2219,3 +2219,40 @@ GATE_5: NOT_RUN
 
 No robot, X5, serial, GPIO/I2C, torque, motion, Gate 5, onboard GPU, or policy
 deployment action is authorized by this status update.
+
+## Offline Winner-v12 two-stage host scaffold
+
+Status: `PASS_OFFLINE_TWO_STAGE_HOST_SCAFFOLD — DEFAULT_DISABLED`
+
+Runtime now contains an isolated, default-disabled host for the reviewed
+automatic-calibration handoff. It does not replace or import into the frozen
+101-D runtime-v1 path, and it is not connected to the control loop or any
+hardware surface.
+
+The host accepts only caller-supplied exact graph specifications and non-empty
+lowercase SHA-256 allowlists. The calibrator ABI is fixed to
+`obs[1,115] + previous_action[1,14] + h_in[1,64]` and
+`calibration_actions[1,14] + previous_action_out[1,14] + h_out[1,64]`.
+The future locomotion ABI remains caller-frozen because no deployment graph is
+selected yet; its semantic roles add immutable `calibration_context[1,64]`.
+
+Implemented invariants:
+
+- CPUExecutionProvider only, sequential single-threaded ONNX Runtime;
+- preallocated inputs, outputs, recurrent state, context, and I/O bindings;
+- inference stages state without committing it;
+- only the literal boolean `True` commits a transaction;
+- exactly 250 confirmed calibration ticks precede a separately confirmed
+  handoff;
+- the final confirmed calibrator action is carried into locomotion, locomotion
+  hidden state resets once, and the finite `[-1,1]` context is immutable and
+  process-local;
+- no context persistence/load API exists; and
+- wrong hashes, ABI/provider mismatch, nonfinite or out-of-range values,
+  divergent action state, premature locomotion, and failed or ambiguous commits
+  fail closed.
+
+Evidence at implementation time: the new focused suite passed 15 tests; the
+complete runtime suite passed all 368 collected tests; Ruff and
+`git diff --check` passed. No ONNX binary, selected hash, CLI/control-loop
+integration, X5 access, torque, motion, or Gate 5 authority is included.
