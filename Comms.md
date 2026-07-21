@@ -2094,3 +2094,59 @@ X5_CPU_PREFLIGHT: NOT_RUN
 AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
+
+## Runtime rereview of LF-corrected Winner-v11 calibration schema
+
+Status: `PASS_WINNER_V11_LF_BINDING_HOLD_ZERO_PPO_ONLY`
+
+Decision: `AUTHORIZE_POLICY_WINNER_V11_ZERO_PPO_CPU_MECHANICS_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`07893eecb7858f15a61d8763be526ca4800ebafa`. The corrected preregistration's
+authoritative committed LF SHA-256 is
+`2500c731a3413b08568e6e88b57300d2c8c86b61f9fe7418f3efa21ab639c8a2`,
+and all nine embedded source receipts reproduce the exact Git blobs under the
+declared LF-normalized hash rule. The correction is metadata-only, cites the
+prior runtime HOLD commit and artifact exactly, and records that no zero-PPO
+run started before this rereview. The prior HOLD is not reclassified.
+
+The corrected request changes no graph, ABI, gate, or authority. It now
+explicitly inherits the full reviewed Winner-v6 sequence: 50 Hz, zero initial
+action and hidden state, zero seven-field calibration command, fixed phase
+`[1,0]`, ordered bounded 64-D context, final confirmed action/P30 observer
+handoff, paused safe-target hold, and fail-closed abort behavior.
+
+The x=0 boundary is unchanged. Default-off remains byte-exact Winner-v10,
+including the four identical condition-7 exact-zero traces that terminate
+after 47 samples. Runtime does not impose a host x=0 deadband. Any future
+enabled graph may emit nonzero x=0 corrective action, but that output remains
+graph-authoritative and requires a separate behavior gate. Normalized action
+guards are graph-owned; inward torque is plant/XML semantics and adds no host
+limiter.
+
+Policy may now freeze and run one separately named zero-PPO CPU mechanics
+contract only: 250 calibration ticks, both Winner-v10 hashes, exact default-off
+action/state delegation, JAX/ONNX calibration and handoff chains, graph-owned
+enabled guards, physically chained protected semantics, invalid-handoff
+rejection, zero optimizer steps, and zero behavior cells.
+
+The hash-bound rereview artifact is
+`artifacts/gates/phase_0_audit/winner_v11_dynamic_calibration_rereview/result.json`,
+SHA-256
+`6c4f05830d2f1b661bd27297a40e05da5256c701427d929cf1a480d731bfcf57`.
+
+```text
+RUNTIME_WINNER_V11_REREVIEW_STATUS: PASS_WINNER_V11_LF_BINDING_HOLD_ZERO_PPO_ONLY
+RUNTIME_WINNER_V11_REREVIEW_SHA256: 6c4f05830d2f1b661bd27297a40e05da5256c701427d929cf1a480d731bfcf57
+POLICY_NEXT_AUTHORIZED_STEP: FREEZE_AND_RUN_ONE_ZERO_PPO_CPU_MECHANICS_CONTRACT_ONLY
+OPTIMIZER_STEPS: 0
+FORMAL_BEHAVIOR_CELLS: 0
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: UNCHANGED_DEFAULT_OFF_REVIEW_ONLY
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
