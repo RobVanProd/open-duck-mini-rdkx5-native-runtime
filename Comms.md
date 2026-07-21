@@ -1279,75 +1279,6 @@ AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
 
-## Winner-v12 full-calibrator training and runtime-v2 hold
-
-Status: `POLICY_TRAINING_IN_PROGRESS — RUNTIME_V2_OFFLINE_GREEN — FINAL_ABI_NOT_SELECTED`
-
-Policy PR 76 has advanced beyond the Winner-v11 mechanics review to one
-corrected, frozen full-calibrator run. GitHub Actions run `29808732634`, attempt
-`1`, is bound to training launch commit
-`30ba44b2461d0f11da77ebfe42ac30446682c22d`. As of 2026-07-21 07:39 UTC,
-Actions reports the single training step `in_progress`; every preceding
-environment, package, Playground, evidence-byte, XML, and fit reconstruction
-step passed. No completed training artifact or result exists yet.
-
-The policy branch has prospectively frozen the post-training evidence path:
-
-- independent safe raw-ZIP verification of all 415 expected files, all 201
-  immutable snapshots and receipts, the complete result/manifest/claim chain,
-  both persistent NPZ checkpoints, and both stateful ONNX graphs;
-- exact GitHub run/attempt/head/artifact-ID/name/digest attribution;
-- a zero-formal-cell pinned Linux/JAX integration contract;
-- the unchanged formal support gate: 124 cells at half plus 124 at final, with
-  64 deterministic heldout repeats and no closest-result selection; and
-- dormant workflows whose path filters cannot run until each preceding exact
-  evidence JSON is committed.
-
-The current calibrator ABI under test is:
-
-```text
-obs float32[1,115]
-previous_action float32[1,14]
-h_in float32[1,64]
-  -> calibration_actions float32[1,14]
-  -> previous_action_out float32[1,14]
-  -> h_out float32[1,64]
-```
-
-This calibrator is not a deployable walking policy. A final
-response-conditioned locomotion graph, one selected deployment checkpoint,
-its exact ONNX SHA-256, and policy `robot_clearance: true` do not exist yet.
-Runtime must therefore not replace the existing winner-v2 selected hash or
-connect the calibrator ABI to the control loop.
-
-Runtime-side read-only revalidation at commit
-`b91bf86` passed 66 focused winner-v2 tests, and
-`python tools/hash_artifacts.py --check` reproduced the complete tracked
-artifact manifest. The frozen 101-D v1 path remains unchanged. The older
-default-disabled 115-D host remains an offline compatibility scaffold only;
-its two-input/two-output selected candidate is not evidence for the pending
-Winner-v12 calibrator or the future locomotion ABI.
-
-```text
-POLICY_PR: 76
-TRAINING_RUN: 29808732634 attempt 1
-TRAINING_LAUNCH_HEAD: 30ba44b2461d0f11da77ebfe42ac30446682c22d
-TRAINING_STATUS: IN_PROGRESS
-TRAINING_ARTIFACT: NOT_AVAILABLE
-CALIBRATOR_SUPPORT_GATE: PREREGISTERED_NOT_RUN
-SELECTED_DEPLOYMENT_ONNX: NOT_AVAILABLE
-FINAL_LOCOMOTION_ABI: NOT_AVAILABLE
-RUNTIME_V1_101X14: UNCHANGED
-RUNTIME_V2_OFFLINE_TESTS: 66_PASS
-RUNTIME_V2_POLICY_INTEGRATION: false
-ROBOT_CLEARANCE: false
-X5_CPU_PREFLIGHT: NOT_RUN
-GATE_5: NOT_RUN
-```
-
-No robot, X5, serial, GPIO/I2C, torque, motion, Gate 5, onboard GPU, or policy
-deployment action is authorized by this status update.
-
 ## Policy result: winner-v6 zero-PPO contract hold and bound-semantics request
 
 Status: `HOLD_ZERO_PPO_CONTRACT — REQUEST_RUNTIME_BOUND_SEMANTICS_REVIEW`
@@ -2219,3 +2150,72 @@ X5_CPU_PREFLIGHT: NOT_RUN
 AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
+
+## Winner-v12 full-calibrator training and runtime-v2 hold
+
+Status: `POLICY_TRAINING_IN_PROGRESS — RUNTIME_V2_OFFLINE_GREEN — FINAL_ABI_NOT_SELECTED`
+
+Policy PR 76 has advanced beyond the Winner-v11 mechanics review to one
+corrected, frozen full-calibrator run. GitHub Actions run `29808732634`, attempt
+`1`, is bound to training launch commit
+`30ba44b2461d0f11da77ebfe42ac30446682c22d`. As of 2026-07-21 07:39 UTC,
+Actions reports the single training step `in_progress`; every preceding
+environment, package, Playground, evidence-byte, XML, and fit reconstruction
+step passed. No completed training artifact or result exists yet.
+
+The policy branch has prospectively frozen the post-training evidence path:
+
+- independent safe raw-ZIP verification of all 415 expected files, all 201
+  immutable snapshots and receipts, the complete result/manifest/claim chain,
+  both persistent NPZ checkpoints, and both stateful ONNX graphs;
+- exact GitHub run/attempt/head/artifact-ID/name/digest attribution;
+- a zero-formal-cell pinned Linux/JAX integration contract;
+- the unchanged formal support gate: 124 cells at half plus 124 at final, with
+  64 deterministic heldout repeats and no closest-result selection; and
+- dormant workflows whose path filters cannot run until each preceding exact
+  evidence JSON is committed.
+
+The current calibrator ABI under test is:
+
+```text
+obs float32[1,115]
+previous_action float32[1,14]
+h_in float32[1,64]
+  -> calibration_actions float32[1,14]
+  -> previous_action_out float32[1,14]
+  -> h_out float32[1,64]
+```
+
+This calibrator is not a deployable walking policy. A final
+response-conditioned locomotion graph, one selected deployment checkpoint,
+its exact ONNX SHA-256, and policy `robot_clearance: true` do not exist yet.
+Runtime must therefore not replace the existing winner-v2 selected hash or
+connect the calibrator ABI to the control loop.
+
+Runtime-side read-only revalidation at commit
+`b91bf86` passed 66 focused winner-v2 tests, and
+`python tools/hash_artifacts.py --check` reproduced the complete tracked
+artifact manifest. The frozen 101-D v1 path remains unchanged. The older
+default-disabled 115-D host remains an offline compatibility scaffold only;
+its two-input/two-output selected candidate is not evidence for the pending
+Winner-v12 calibrator or the future locomotion ABI.
+
+```text
+POLICY_PR: 76
+TRAINING_RUN: 29808732634 attempt 1
+TRAINING_LAUNCH_HEAD: 30ba44b2461d0f11da77ebfe42ac30446682c22d
+TRAINING_STATUS: IN_PROGRESS
+TRAINING_ARTIFACT: NOT_AVAILABLE
+CALIBRATOR_SUPPORT_GATE: PREREGISTERED_NOT_RUN
+SELECTED_DEPLOYMENT_ONNX: NOT_AVAILABLE
+FINAL_LOCOMOTION_ABI: NOT_AVAILABLE
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_OFFLINE_TESTS: 66_PASS
+RUNTIME_V2_POLICY_INTEGRATION: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No robot, X5, serial, GPIO/I2C, torque, motion, Gate 5, onboard GPU, or policy
+deployment action is authorized by this status update.
