@@ -2256,3 +2256,62 @@ Evidence at implementation time: the new focused suite passed 15 tests; the
 complete runtime suite passed all 368 collected tests; Ruff and
 `git diff --check` passed. No ONNX binary, selected hash, CLI/control-loop
 integration, X5 access, torque, motion, or Gate 5 authority is included.
+
+## Winner-v21 predictor-preserving policy handoff
+
+Status: `WINNER_V21_TRAINING_IN_PROGRESS — RUNTIME_V2_OFFLINE_GREEN`
+
+The prior Winner-v20 calibrator completed its frozen 100-update run, but its
+unchanged formal support gate held. Half passed `108/124` main cells and final
+passed `104/124`; every physical failure was roll/pitch-only. The frozen
+Stage-1 auxiliary response predictor had also become incompatible with the
+jointly updated recurrent policy and lost catastrophically to the constant
+baseline. That result remains closed and is not a deployment candidate.
+
+Winner-v21 preserves the same Stage-1 source, rollout, PPO objective,
+population, action boundary, and ONNX ABI while updating the three existing
+auxiliary-predictor leaves alongside the nine Winner-v20 leaves. The optimizer
+consumes an explicit per-leaf sum of separately differentiated PPO and
+predictor gradients at the single frozen scale `8.393629541414427e-11`. There
+was no scale search and no flat-transport or attention mechanism was added.
+
+The exact two-update Linux/JAX proof passed at GitHub run `29862894656`, attempt
+`1`, launch commit `5ba4eeb5c49df628cfd05bf44b988b41ac11238b`. Its artifact
+ZIP SHA-256 is
+`9e2ac8d1fdfe669412786800a718b34b72ab12f45de9c4fe1d2aa08f199ad2eb`.
+All twelve trainable leaves had nonzero gradients and deltas on both updates;
+the digest-protected twelve-leaf optimizer snapshot and deployable calibrator
+ONNX both passed exact readback and ABI checks.
+
+One separately preregistered 100-update Winner-v21 CPU training arm is running
+as GitHub run `29863785760`, attempt `1`, bound to launch commit
+`334be0b78d7e97c6fdff6dec44658ee38aecec41`. The dormant next gate reuses the
+unchanged reviewed population: 124 main cells and 32 heldout repeats at both
+half and final checkpoints. It still requires every support cell,
+repeatability, context separation, and learned-predictor-versus-constant check
+to pass at both checkpoints; no closest checkpoint can advance.
+
+Runtime-v2 remains default-disabled and disconnected from the control loop.
+The full runtime suite currently passes all `368` tests, including the isolated
+two-stage host. No manual mass/COM/inertia measurements are required by this
+automatic-response path, consistent with the robot's rebuildable configuration
+requirement.
+
+```text
+POLICY_PR: 76
+WINNER_V20_SUPPORT_GATE: HOLD
+WINNER_V21_TWO_UPDATE_PROOF: PASS
+WINNER_V21_TRAINING_RUN: 29863785760 attempt 1
+WINNER_V21_TRAINING_LAUNCH_HEAD: 334be0b78d7e97c6fdff6dec44658ee38aecec41
+WINNER_V21_TRAINING_STATUS: IN_PROGRESS
+WINNER_V21_SUPPORT_GATE: PREPARED_NOT_PREREGISTERED_NOT_RUN
+SELECTED_DEPLOYMENT_ONNX: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: OFFLINE_GREEN_DEFAULT_DISABLED
+X5_CPU_PREFLIGHT: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No robot, X5, serial, GPIO/I2C, torque, motion, policy deployment, or Gate 5
+action is authorized by this handoff.
