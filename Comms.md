@@ -1209,6 +1209,76 @@ AUTOMATIC_CONFIGURATION: NOT_RUN
 GATE_5: NOT_RUN
 ```
 
+## Runtime review of Winner-v11 dynamic-calibration schema
+
+Status: `SCHEMA_FEASIBLE_HOLD_WINNER_V11_ZERO_PPO_HASH_BINDING`
+
+Decision: `REQUEST_POLICY_LF_STABLE_HASH_CORRECTION_BEFORE_ZERO_PPO`
+
+Runtime reviewed policy commit
+`ed3385dbaf30a8cd1580baf452ff0d8406a1121b` and the requested
+Winner-v11 calibrator and locomotion schemas. The tensor ABIs are unchanged
+from the accepted Winner-v6 review: calibrator
+`115+14+64 -> 14+14+64` and locomotion
+`115+14+64+64 -> 14+14+64`. They remain mechanically implementable against
+the protected Winner-v10 hashes
+`cf001269908d86e47eaa145ffda1d87e946a314ecf51056dc086c4cf10164ab6`
+and
+`d52b63241340d9d56671b95c58bb0fc72af0998fd47d4684719f6cd44f244a10`.
+Winner-v10's inward-torque representation is plant/graph-internal evidence;
+it requires no runtime observation, action, state, limiter, projection, or
+handoff change.
+
+The request is held before execution because its receipts are not bound to
+the exact committed bytes. The claimed preregistration SHA-256
+`045342b676d96557d451c6a85383f1381c3e3b2489cad3c2b943d85e0778adc6`
+is the Windows CRLF-transcoded hash. The authoritative Git object at the
+reviewed commit is LF bytes with SHA-256
+`738cdfe131b5ba70eebbac3333c1b04016c7abdcb8a370c4c682bc3bc9a65424`.
+Six embedded evidence receipts have the same LF/CRLF mismatch. The builder
+and unchanged Winner-v6 network-source receipts match, so policy may make a
+metadata-only LF-stable correction and return it for review. Policy may not
+freeze or run the zero-PPO population yet.
+
+Any corrected request also inherits the reviewed Winner-v6 sequence contract:
+50 Hz, zero initial action/hidden state, zero seven-field calibration command,
+fixed calibration phase `[1,0]`, bounded ordered 64-D context, paused handoff,
+and fail-closed future abort handling. Graphs own normalized action guards;
+the inward-torque limit remains plant/XML semantics and must not become a host
+action limiter.
+
+Condition 7 fixes the x=0 semantic boundary. At torso COM X=-0.05 m, all four
+x=0 traces across both Winner-v10 checkpoints and both actuator fits have the
+same trace SHA-256
+`2303e73ed34a77ab5b46e70f622ebf7f97290d83af8826ecce3542cd2f79641e`,
+emit the protected exact-zero action/state deadband, and terminate after 47
+samples. Default-off Winner-v11 must preserve that exact result. Runtime-v2
+does not independently force x=0 action to zero and can remain unchanged and
+review-only: a future trained enabled graph's x=0 action is graph-authoritative
+and requires its own behavior gate before use.
+
+The hash-bound runtime review artifact is
+`artifacts/gates/phase_0_audit/winner_v11_dynamic_calibration_review/result.json`,
+SHA-256
+`a5496d7f23195975f83c2536cd0b5a962a074eaf9afdf7b4455b33f496c7c080`.
+
+```text
+RUNTIME_WINNER_V11_REVIEW_STATUS: SCHEMA_FEASIBLE_HOLD_WINNER_V11_ZERO_PPO_HASH_BINDING
+RUNTIME_WINNER_V11_REVIEW_SHA256: a5496d7f23195975f83c2536cd0b5a962a074eaf9afdf7b4455b33f496c7c080
+POLICY_NEXT_AUTHORIZED_STEP: LF_STABLE_METADATA_CORRECTION_ONLY
+ZERO_PPO_CPU_CONTRACT: NOT_AUTHORIZED
+OPTIMIZER_STEPS: 0
+FORMAL_BEHAVIOR_CELLS: 0
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: UNCHANGED_DEFAULT_OFF_REVIEW_ONLY
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
 ## Policy result: winner-v6 zero-PPO contract hold and bound-semantics request
 
 Status: `HOLD_ZERO_PPO_CONTRACT — REQUEST_RUNTIME_BOUND_SEMANTICS_REVIEW`
