@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import sys
 from dataclasses import dataclass
@@ -249,6 +250,43 @@ def test_host_is_default_disabled_and_uses_only_prebound_cpu_sessions(
         "previous_action_out",
         "h_out",
     }
+
+
+def test_two_stage_host_is_not_imported_by_production_or_hardware_modules() -> None:
+    source_root = Path("src/open_duck_x5")
+    consumers: list[str] = []
+    for path in sorted(source_root.rglob("*.py")):
+        if path.name == "winner_v12_two_stage.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import) and any(
+                alias.name == "open_duck_x5.winner_v12_two_stage"
+                for alias in node.names
+            ):
+                consumers.append(path.name)
+                break
+            if isinstance(node, ast.ImportFrom):
+                target = "." * node.level + (node.module or "")
+                if target in {
+                    ".winner_v12_two_stage",
+                    "open_duck_x5.winner_v12_two_stage",
+                }:
+                    consumers.append(path.name)
+                    break
+    assert consumers == []
+
+    host_path = source_root / "winner_v12_two_stage.py"
+    host_tree = ast.parse(
+        host_path.read_text(encoding="utf-8"), filename=str(host_path)
+    )
+    imported_roots: set[str] = set()
+    for node in ast.walk(host_tree):
+        if isinstance(node, ast.Import):
+            imported_roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported_roots.add(node.module.split(".", 1)[0])
+    assert imported_roots.isdisjoint({"gpiod", "serial", "smbus2"})
 
 
 def test_assets_require_exact_caller_hashes_and_exact_graph_abi(
