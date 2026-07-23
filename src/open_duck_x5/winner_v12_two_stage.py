@@ -8,8 +8,10 @@ load, save, or serialization API for it.
 
 The host is transactional.  Inference writes only staged buffers.  Confirming
 a successful external transaction commits action and recurrent state together;
-discarding leaves committed state untouched.  False or ambiguous confirmation
-faults the complete two-stage host closed.
+discarding leaves committed state untouched.  After calibration it requires the
+reviewed 250-tick zero-action home return before locomotion starts with exact
+zero previous action and recurrent state.  False or ambiguous confirmation
+faults the complete two-graph host closed.
 """
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ ACTION_DIM = 14
 HIDDEN_DIM = 64
 CONTEXT_DIM = 64
 CALIBRATION_TICKS = 250
+HOME_RETURN_TICKS = 250
 CONTEXT_MIN = np.float32(-1.0)
 CONTEXT_MAX = np.float32(1.0)
 _FLOAT_TENSOR = "tensor(float)"
@@ -457,7 +460,7 @@ class _BoundGraphSession:
 
 
 class WinnerV12TwoStageHost:
-    """Default-off transactional host for calibration then locomotion.
+    """Default-off transactional host for calibration, home return, locomotion.
 
     ``enabled`` defaults to ``False`` and there is intentionally no method that
     changes it after construction.  No runtime integration or hardware access
@@ -483,7 +486,12 @@ class WinnerV12TwoStageHost:
             locomotion, stage="locomotion", warmup_runs=effective_warmup_runs
         )
         self._calibration_context = np.zeros(CONTEXT_DIM, dtype=np.float32)
+        self._home_return_action = np.zeros(ACTION_DIM, dtype=np.float32)
+        self._home_return_action.setflags(write=False)
         self._confirmed_calibration_ticks = 0
+        self._confirmed_home_return_ticks = 0
+        self._calibration_complete = False
+        self._home_return_pending = False
         self._handoff_complete = False
         self._faulted = False
         self._fault_reason: str | None = None
@@ -503,6 +511,14 @@ class WinnerV12TwoStageHost:
     @property
     def confirmed_calibration_ticks(self) -> int:
         return self._confirmed_calibration_ticks
+
+    @property
+    def confirmed_home_return_ticks(self) -> int:
+        return self._confirmed_home_return_ticks
+
+    @property
+    def calibration_complete(self) -> bool:
+        return self._calibration_complete
 
     @property
     def handoff_complete(self) -> bool:
@@ -539,13 +555,14 @@ class WinnerV12TwoStageHost:
     def _fault(self, reason: str) -> None:
         self._calibrator.discard()
         self._locomotion.discard()
+        self._home_return_pending = False
         self._faulted = True
         self._fault_reason = reason
 
     def stage_calibration(self, observation: np.ndarray) -> np.ndarray:
         self._require_active()
-        if self._handoff_complete:
-            raise WinnerV12StateError("calibration already handed off")
+        if self._calibration_complete:
+            raise WinnerV12StateError("calibration sequence is already complete")
         if self._confirmed_calibration_ticks >= CALIBRATION_TICKS:
             raise WinnerV12StateError("calibration sequence awaits explicit handoff")
         try:
@@ -569,8 +586,8 @@ class WinnerV12TwoStageHost:
 
     def confirm_calibration_sequence(self, confirmed_success: object) -> None:
         self._require_active()
-        if self._handoff_complete:
-            raise WinnerV12StateError("calibration handoff already completed")
+        if self._calibration_complete:
+            raise WinnerV12StateError("calibration sequence is already complete")
         if self._calibrator.pending:
             raise WinnerV12StateError("cannot hand off a pending calibration tick")
         if self._confirmed_calibration_ticks != CALIBRATION_TICKS:
@@ -590,12 +607,73 @@ class WinnerV12TwoStageHost:
             _require_unit_range(context, "final calibration context")
             np.copyto(self._calibration_context, context)
             self._calibration_context.setflags(write=False)
+        except Exception as exc:
+            self._fault(f"calibration completion failed: {exc}")
+            raise
+        self._calibration_complete = True
+
+    def stage_home_return(self) -> np.ndarray:
+        """Stage the exact zero action used by the reviewed reset prefix."""
+
+        self._require_active()
+        if not self._calibration_complete:
+            raise WinnerV12StateError(
+                "home return cannot stage before successful calibration"
+            )
+        if self._handoff_complete:
+            raise WinnerV12StateError("home return already handed off")
+        if self._confirmed_home_return_ticks >= HOME_RETURN_TICKS:
+            raise WinnerV12StateError("home-return sequence awaits explicit handoff")
+        if self._home_return_pending:
+            raise WinnerV12StateError("home return already has a staged action")
+        self._home_return_pending = True
+        return self._home_return_action
+
+    def commit_home_return(self, confirmed_success: object) -> None:
+        self._require_active()
+        if not self._home_return_pending:
+            raise WinnerV12StateError("home return has no staged action")
+        self._home_return_pending = False
+        if confirmed_success is not True:
+            error = WinnerV12CommitError(
+                "home-return commit requires the literal bool True"
+            )
+            self._fault(str(error))
+            raise error
+        self._confirmed_home_return_ticks += 1
+
+    def discard_home_return(self) -> None:
+        self._require_active()
+        self._home_return_pending = False
+
+    def confirm_home_return_sequence(self, confirmed_success: object) -> None:
+        self._require_active()
+        if not self._calibration_complete:
+            raise WinnerV12StateError(
+                "home-return handoff requires completed calibration"
+            )
+        if self._handoff_complete:
+            raise WinnerV12StateError("home-return handoff already completed")
+        if self._home_return_pending:
+            raise WinnerV12StateError("cannot hand off a pending home-return tick")
+        if self._confirmed_home_return_ticks != HOME_RETURN_TICKS:
+            raise WinnerV12StateError(
+                f"handoff requires exactly {HOME_RETURN_TICKS} confirmed home-return "
+                f"ticks, got {self._confirmed_home_return_ticks}"
+            )
+        if confirmed_success is not True:
+            error = WinnerV12CommitError(
+                "home-return sequence handoff requires the literal bool True"
+            )
+            self._fault(str(error))
+            raise error
+        try:
             self._locomotion.initialize_locomotion_handoff(
-                self._calibrator.committed_previous_action,
+                np.zeros(ACTION_DIM, dtype=np.float32),
                 self._calibration_context,
             )
         except Exception as exc:
-            self._fault(f"calibration handoff failed: {exc}")
+            self._fault(f"home-return handoff failed: {exc}")
             raise
         self._handoff_complete = True
 
@@ -603,7 +681,8 @@ class WinnerV12TwoStageHost:
         self._require_active()
         if not self._handoff_complete:
             raise WinnerV12StateError(
-                "locomotion cannot stage before successful calibration handoff"
+                "locomotion cannot stage before successful calibration and "
+                "home-return handoff"
             )
         try:
             return self._locomotion.stage(observation)

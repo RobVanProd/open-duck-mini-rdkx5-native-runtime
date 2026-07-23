@@ -15,6 +15,7 @@ from open_duck_x5.winner_v12_two_stage import (
     CALIBRATION_TICKS,
     CONTEXT_DIM,
     HIDDEN_DIM,
+    HOME_RETURN_TICKS,
     OBSERVATION_DIM,
     GraphAsset,
     GraphSpec,
@@ -222,12 +223,16 @@ def _observation(value: float = 0.0) -> np.ndarray:
     return result
 
 
-def _finish_calibration(host: WinnerV12TwoStageHost) -> None:
+def _finish_reset_prefix(host: WinnerV12TwoStageHost) -> None:
     observation = _observation()
     for _ in range(CALIBRATION_TICKS):
         host.stage_calibration(observation)
         host.commit_calibration(True)
     host.confirm_calibration_sequence(True)
+    for _ in range(HOME_RETURN_TICKS):
+        host.stage_home_return()
+        host.commit_home_return(True)
+    host.confirm_home_return_sequence(True)
 
 
 def test_host_is_default_disabled_and_uses_only_prebound_cpu_sessions(
@@ -443,7 +448,7 @@ def test_failed_or_ambiguous_calibration_commit_faults_closed(
         host.stage_calibration(_observation())
 
 
-def test_handoff_captures_immutable_context_carries_action_and_resets_hidden_once(
+def test_handoff_captures_context_requires_home_return_and_resets_state(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     host, _, _ = _make_host(monkeypatch, tmp_path)
@@ -452,15 +457,46 @@ def test_handoff_captures_immutable_context_carries_action_and_resets_hidden_onc
     with pytest.raises(WinnerV12StateError, match="exactly 250"):
         host.confirm_calibration_sequence(True)
 
-    _finish_calibration(host)
+    observation = _observation()
+    for _ in range(CALIBRATION_TICKS):
+        host.stage_calibration(observation)
+        host.commit_calibration(True)
+    host.confirm_calibration_sequence(True)
+    assert host.calibration_complete is True
+    assert host.handoff_complete is False
+    assert host.confirmed_home_return_ticks == 0
+    with pytest.raises(WinnerV12StateError, match="not available"):
+        _ = host.calibration_context
+    with pytest.raises(WinnerV12StateError, match="home-return handoff"):
+        host.stage_locomotion(_observation())
+    with pytest.raises(WinnerV12StateError, match="exactly 250"):
+        host.confirm_home_return_sequence(True)
+
+    staged_home = host.stage_home_return()
+    assert staged_home.flags.writeable is False
+    np.testing.assert_array_equal(
+        staged_home, np.zeros(ACTION_DIM, dtype=np.float32)
+    )
+    host.discard_home_return()
+    assert host.confirmed_home_return_ticks == 0
+    for _ in range(HOME_RETURN_TICKS):
+        staged_home = host.stage_home_return()
+        np.testing.assert_array_equal(
+            staged_home, np.zeros(ACTION_DIM, dtype=np.float32)
+        )
+        host.commit_home_return(True)
+    with pytest.raises(WinnerV12StateError, match="awaits explicit handoff"):
+        host.stage_home_return()
+    host.confirm_home_return_sequence(True)
+
     assert host.handoff_complete is True
     assert host.confirmed_calibration_ticks == CALIBRATION_TICKS
+    assert host.confirmed_home_return_ticks == HOME_RETURN_TICKS
     expected_context = np.full(CONTEXT_DIM, 0.5, dtype=np.float32)
     np.testing.assert_allclose(host.calibration_context, expected_context, atol=2e-6)
-    np.testing.assert_allclose(
+    np.testing.assert_array_equal(
         host.locomotion_previous_action,
-        np.full(ACTION_DIM, 0.25, dtype=np.float32),
-        atol=2e-6,
+        np.zeros(ACTION_DIM, dtype=np.float32),
     )
     np.testing.assert_array_equal(
         host.locomotion_hidden, np.zeros(HIDDEN_DIM, dtype=np.float32)
@@ -471,16 +507,38 @@ def test_handoff_captures_immutable_context_carries_action_and_resets_hidden_onc
     external_context.fill(-1.0)
     np.testing.assert_allclose(host.calibration_context, expected_context, atol=2e-6)
     with pytest.raises(WinnerV12StateError, match="already completed"):
-        host.confirm_calibration_sequence(True)
+        host.confirm_home_return_sequence(True)
     assert not hasattr(host, "save_context")
     assert not hasattr(host, "load_context")
+
+
+@pytest.mark.parametrize("confirmation", [False, None, 1, np.bool_(True)])
+def test_failed_or_ambiguous_home_return_commit_faults_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    confirmation: object,
+) -> None:
+    host, _, _ = _make_host(monkeypatch, tmp_path)
+    observation = _observation()
+    for _ in range(CALIBRATION_TICKS):
+        host.stage_calibration(observation)
+        host.commit_calibration(True)
+    host.confirm_calibration_sequence(True)
+    host.stage_home_return()
+    with pytest.raises(WinnerV12CommitError, match="literal bool True"):
+        host.commit_home_return(confirmation)
+    assert host.faulted is True
+    assert host.confirmed_home_return_ticks == 0
+    assert host.handoff_complete is False
+    with pytest.raises(WinnerV12StateError, match="faulted closed"):
+        host.stage_home_return()
 
 
 def test_locomotion_stage_discard_commit_preserve_transactional_state(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     host, _, _ = _make_host(monkeypatch, tmp_path)
-    _finish_calibration(host)
+    _finish_reset_prefix(host)
     carried = host.locomotion_previous_action.copy()
     staged = host.stage_locomotion(_observation())
     np.testing.assert_allclose(staged, carried + np.float32(0.01), atol=2e-6)
@@ -500,6 +558,51 @@ def test_locomotion_stage_discard_commit_preserve_transactional_state(
         np.full(HIDDEN_DIM, 0.002, dtype=np.float32),
         atol=2e-6,
     )
+
+
+def test_home_return_aligned_host_replays_four_600_tick_cpu_cells(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    total_ticks = 0
+    for cell_index in range(4):
+        loco_spec = _locomotion_spec()
+        locomotion = FakeSession(
+            loco_spec,
+            stage="locomotion",
+            action_increment=0.0001,
+            hidden_step=0.0002,
+        )
+        host, _, _ = _make_host(
+            monkeypatch,
+            tmp_path / f"cell-{cell_index}",
+            locomotion_session=locomotion,
+        )
+        _finish_reset_prefix(host)
+        np.testing.assert_array_equal(
+            host.locomotion_previous_action,
+            np.zeros(ACTION_DIM, dtype=np.float32),
+        )
+        expected_context = host.calibration_context.copy()
+        for tick in range(600):
+            action = host.stage_locomotion(_observation(cell_index / 10.0))
+            expected_action = np.full(
+                ACTION_DIM, np.float32((tick + 1) * 0.0001), dtype=np.float32
+            )
+            np.testing.assert_allclose(action, expected_action, atol=2e-6)
+            host.commit_locomotion(True)
+            total_ticks += 1
+        np.testing.assert_allclose(
+            host.locomotion_previous_action,
+            np.full(ACTION_DIM, 0.06, dtype=np.float32),
+            atol=2e-6,
+        )
+        np.testing.assert_allclose(
+            host.locomotion_hidden,
+            np.full(HIDDEN_DIM, 0.12, dtype=np.float32),
+            atol=2e-6,
+        )
+        np.testing.assert_array_equal(host.calibration_context, expected_context)
+    assert total_ticks == 2400
 
 
 def test_nonfinite_stage_output_and_out_of_range_context_never_arm_locomotion(
@@ -577,13 +680,13 @@ def test_divergent_action_state_and_ambiguous_locomotion_commit_fail_closed(
     host, _, _ = _make_host(
         monkeypatch, tmp_path / "divergent", locomotion_session=divergent
     )
-    _finish_calibration(host)
+    _finish_reset_prefix(host)
     with pytest.raises(WinnerV12ContractError, match="chain diverged"):
         host.stage_locomotion(_observation())
     assert host.faulted is True
 
     second, _, _ = _make_host(monkeypatch, tmp_path / "ambiguous")
-    _finish_calibration(second)
+    _finish_reset_prefix(second)
     second.stage_locomotion(_observation())
     with pytest.raises(WinnerV12CommitError, match="literal bool True"):
         second.commit_locomotion(None)
