@@ -1,6 +1,7 @@
 {
   "schema_version": "open_duck_x5.baseline_comparison.v1",
   "status": "NOT_RUN",
+  "new_summary_source": null,
   "legacy": {
     "x0_read_failure_percent": 1.07,
     "x008_read_failure_percent": 2.68,
@@ -8,20 +9,5 @@
     "read_bursts_observed": true,
     "phase_1_full_timing_artifact": null
   },
-  "new": {
-    "x008_transaction_failure_percent": null,
-    "tick_p99_ms": null,
-    "tick_p99_9_ms": null,
-    "tick_max_ms": null,
-    "read_burst_count": null,
-    "bus_max_ms": null,
-    "artifact_sha256": null
-  },
-  "gates": {
-    "transaction_failure_below_0_1_percent": null,
-    "tick_p99_at_most_21_ms": null,
-    "tick_p99_9_at_most_22_ms": null,
-    "zero_read_bursts": null,
-    "bus_under_5_ms": null
-  }
+  "new": null
 }

@@ -34,7 +34,13 @@ pypot is not in the walking hot path, but it is installed and used by motor conf
 - Controller queues likewise retain the last command without age information.
 - The telemetry patch records cumulative read/write counts but not timeout/CRC/partial per transaction.
 
-Replacement: every servo receives an explicit status and staleness bit. Any required stale value rejects policy inference for that tick. Sensor samples carry monotonic timestamps. Consecutive failures feed the watchdog; nothing silently masquerades as fresh.
+Replacement: every servo receives an explicit transport status, staleness bit,
+and raw device-status byte. Timeout, checksum, or partial framing makes the
+sample stale; a correctly framed device-alarm reply preserves its payload but
+blocks torque-capable startup through a separate safety gate. Any required stale
+value rejects policy inference for that tick. Sensor samples carry monotonic
+timestamps. Consecutive transport failures feed the watchdog; nothing silently
+masquerades as fresh and no device alarm is hidden in an error counter.
 
 ## Timing constructs
 

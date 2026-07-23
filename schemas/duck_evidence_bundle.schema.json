@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/duck-evidence-bundle.schema.json",
+  "title": "Open Duck X5 evidence bundle metadata",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "collection_id",
+    "collected_at_utc",
+    "safety",
+    "host",
+    "legacy",
+    "policy_handoff_file",
+    "gate1",
+    "warnings",
+    "exit_code"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "open_duck_x5.duck_evidence_bundle.v1"
+    },
+    "collection_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "collected_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "local_only",
+        "network_upload_performed",
+        "policy_inference_performed",
+        "goal_position_writes_performed",
+        "torque_enable_performed",
+        "gate1_requested"
+      ],
+      "properties": {
+        "local_only": { "const": true },
+        "network_upload_performed": { "const": false },
+        "policy_inference_performed": { "const": false },
+        "goal_position_writes_performed": { "const": false },
+        "torque_enable_performed": { "const": false },
+        "gate1_requested": { "type": "boolean" },
+        "gate1_torque_off_before_reads": {
+          "type": ["boolean", "null"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "host": { "type": "object" },
+    "legacy": {
+      "type": "object",
+      "required": ["config", "policy", "source", "telemetry"],
+      "properties": {
+        "config": { "type": "object" },
+        "policy": { "type": "object" },
+        "source": { "type": "object" },
+        "telemetry": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "policy_handoff_file": { "type": "string" },
+    "gate1": {
+      "type": "object",
+      "required": ["requested", "status", "error", "summary"],
+      "properties": {
+        "requested": { "type": "boolean" },
+        "status": {
+          "enum": ["NOT_REQUESTED", "COMPLETE", "FAILED", "UNKNOWN"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "exit_code": { "type": "integer", "enum": [0, 2] }
+  },
+  "additionalProperties": true
+}

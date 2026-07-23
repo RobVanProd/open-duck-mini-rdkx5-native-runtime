@@ -1,68 +1,143 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 2.5472,
-    "mean": 1.9370785000000001,
-    "min": 0.9643,
-    "p95": 2.0327100000000002,
-    "p99": 2.047805,
-    "p99_9": 2.522025200000002
+    "max": 3.1737,
+    "mean": 1.992382,
+    "min": 0.7041,
+    "p95": 2.4359100000000002,
+    "p99": 2.816485999999999,
+    "p99_9": 3.138640800000005
   },
+  "bus_total_population": {
+    "components": [
+      "goal_sync_write_all_14",
+      "state_sync_read_0x82_all_14",
+      "extended_read_one_servo"
+    ],
+    "observation": "complete_tick_sweep",
+    "observations": 250,
+    "statistic": "sample_max_over_completed_ticks"
+  },
+  "device_alarm_reply_count": 0,
   "environment": {
+    "amplitude_rad": 0.03,
     "baudrate": 1000000,
+    "config_path": null,
+    "config_sha256": null,
     "device": "mock://sts3215",
     "frequency_hz": 50.0,
+    "hardware_authorized": false,
+    "home_seconds": 2.0,
+    "moving_gate_authorized": false,
     "platform": "Windows-10-10.0.26200-SP0",
     "python": "3.10.11",
+    "realtime": null,
+    "sine_hz": 0.5,
+    "sine_joint": "left_hip_yaw",
+    "suspended_or_benched": false,
     "telemetry_records_dropped": 0,
-    "timeout_ms": 4.0
+    "timeout_ms": 4.0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.0107,
-    "mean": 0.000981,
-    "min": 0.0004,
-    "p95": 0.0018,
-    "p99": 0.0022,
-    "p99_9": 0.00570500000000045
+    "max": 0.2396,
+    "mean": 0.0048292000000000005,
+    "min": 0.0017,
+    "p95": 0.005654999999999999,
+    "p99": 0.016503999999999994,
+    "p99_9": 0.18531800000000725
   },
   "gates": {
+    "authorization_provenance": true,
     "bus_max_under_5_ms": true,
-    "tick_p99_9_at_most_22_ms": false,
+    "complete_record_stream": true,
+    "gate2_home_hold_candidate": false,
+    "gate4_sine_candidate": false,
+    "moving_gate_scope": true,
+    "realtime_verified_when_required": true,
+    "tick_p99_9_at_most_22_ms": true,
     "tick_p99_at_most_21_ms": false,
+    "torque_off_confirmed": true,
+    "tracking_p95_at_most_0_011_rad": true,
     "transaction_failure_below_0_1_percent": true,
+    "zero_device_alarms": true,
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 2.5401,
-    "mean": 1.9278164,
-    "min": 0.9501,
-    "p95": 2.025145,
-    "p99": 2.039805,
-    "p99_9": 2.5165236000000024
+    "max": 3.0072,
+    "mean": 1.9619436000000003,
+    "min": 0.6826,
+    "p95": 2.4126,
+    "p99": 2.7041599999999995,
+    "p99_9": 2.962653900000006
   },
+  "group_round_trip_population": {
+    "observation": "one_0x82_request_plus_14_response_burst",
+    "observations": 250,
+    "statistic": "sample_max_over_completed_ticks"
+  },
+  "halt_reason": null,
+  "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
+  "jsonl_sha256": "d00a69a3d809bd23aa52a00618701140e24dacc3a9506058283341aa049d4070",
   "max_read_burst_ticks": 0,
+  "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 2.8735,
-    "mean": 1.2548283999999998,
+    "max": 2.747,
+    "mean": 1.1644836,
     "min": 0.0004,
-    "p95": 2.508515,
-    "p99": 2.769345,
-    "p99_9": 2.827246300000004
+    "p95": 2.034214999999999,
+    "p99": 2.282094,
+    "p99_9": 2.7418208000000006
   },
-  "schema_version": "open_duck_x5.timing_summary.v1",
+  "review_status": "INFORMATIONAL_ONLY",
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 22.0273,
-    "mean": 20.001885785785788,
-    "min": 17.9763,
-    "p95": 21.5111,
-    "p99": 22.000512,
-    "p99_9": 22.0126294
+    "max": 21.8884,
+    "mean": 20.004570281124497,
+    "min": 17.7751,
+    "p95": 21.1048,
+    "p99": 21.491012,
+    "p99_9": 21.805320000000012
   },
-  "ticks": 1000,
+  "ticks": 250,
+  "ticks_requested": 250,
+  "tracking_absolute_error_rad": {
+    "max": 0.0034631801101951227,
+    "mean": 0.0021663269402231035,
+    "min": 0.0,
+    "p95": 0.0034451701886752516,
+    "p99": 0.0034631801095548484,
+    "p99_9": 0.003463180110035699,
+    "samples": 250
+  },
+  "tracking_joint_index": 0,
+  "transaction_failure_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0,
+    "unexpected_packet": 0
+  },
   "transaction_failure_percent": 0.0,
   "transaction_failure_rate": 0.0,
-  "transactions_expected": 16000,
-  "transactions_failed": 0
+  "transaction_status_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "ok": 4000,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0
+  },
+  "transactions_expected": 4000,
+  "transactions_failed": 0,
+  "unexpected_packet_count": 0,
+  "voltage_alarm_reply_count": 0
 }

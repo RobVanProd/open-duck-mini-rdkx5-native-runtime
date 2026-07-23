@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/sensor-tick.schema.json",
+  "title": "Open Duck X5 labeled sensor sample",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "sample",
+    "label",
+    "timestamp_monotonic_ns",
+    "tick_period_ms",
+    "release_lateness_ms",
+    "imu",
+    "contacts"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.sensor_tick.v1" },
+    "sample": { "type": "integer", "minimum": 0 },
+    "label": { "type": "string" },
+    "timestamp_monotonic_ns": { "type": "integer", "minimum": 0 },
+    "tick_period_ms": { "type": ["number", "null"], "minimum": 0 },
+    "release_lateness_ms": { "type": "number", "minimum": 0 },
+    "imu": {
+      "type": "object",
+      "required": [
+        "sample_timestamp_ns",
+        "age_ms",
+        "stale",
+        "gyro_rad_s",
+        "acceleration_m_s2"
+      ],
+      "properties": {
+        "sample_timestamp_ns": { "type": "integer", "minimum": 0 },
+        "age_ms": { "type": "number", "minimum": 0 },
+        "stale": { "type": "boolean" },
+        "gyro_rad_s": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number" }
+        },
+        "acceleration_m_s2": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "contacts": {
+      "type": "object",
+      "required": ["sample_timestamp_ns", "age_ms", "stale", "left", "right"],
+      "properties": {
+        "sample_timestamp_ns": { "type": "integer", "minimum": 0 },
+        "age_ms": { "type": "number", "minimum": 0 },
+        "stale": { "type": "boolean" },
+        "left": { "type": "number", "minimum": 0, "maximum": 1 },
+        "right": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

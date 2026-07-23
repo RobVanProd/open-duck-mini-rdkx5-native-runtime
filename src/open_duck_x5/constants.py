@@ -33,6 +33,11 @@ JOINT_NAMES = (
 
 SERVO_IDS = (20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 13, 14)
 
+# Wire-only response order. ID 13 must follow ID 14 on this physical chain to
+# avoid corrupting ID 13's grouped-read status packet. Logical/action ordering
+# remains SERVO_IDS and received packets are routed by their ID.
+SERVO_SYNC_READ_IDS = (20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13)
+
 HOME_RAD = np.array(
     [
         0.002,

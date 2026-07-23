@@ -1,0 +1,24 @@
+{
+  "asset_lock_sha256": "48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31",
+  "authority": {
+    "cpu_only": true,
+    "gate5": false,
+    "rdkx5_access": false,
+    "robot_clearance": false,
+    "robot_or_motor_access": false,
+    "runtime_deployment": false
+  },
+  "blockers": [
+    "completed powered-off direct-reaction torso COM packet",
+    "policy-side robot_clearance=true decision",
+    "X5 CPU-only replay under the same frozen native-resolution metric",
+    "separately reviewed Gate 5 launcher and authorization"
+  ],
+  "live_config_verification": "HASH_ONLY_UNTIL_NO_SERVO_X5_PREFLIGHT",
+  "policy_acceptance_result_checked": true,
+  "policy_package_files_checked": 6,
+  "runtime_evidence_files_checked": 2,
+  "runtime_files_checked": 12,
+  "schema_version": "open_duck_x5.winner_v2_asset_lock_verification.v1",
+  "status": "PASS_FROZEN_OFFLINE_ASSET_LOCK"
+}

@@ -1,0 +1,275 @@
+{
+  "accepted_interface": {
+    "calibration_ticks": 250,
+    "calibrator": {
+      "inputs": [
+        {
+          "dtype": "float32",
+          "name": "obs",
+          "shape": [
+            1,
+            115
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "previous_action",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "h_in",
+          "shape": [
+            1,
+            64
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "dtype": "float32",
+          "name": "calibration_actions",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "previous_action_out",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "h_out",
+          "shape": [
+            1,
+            64
+          ]
+        }
+      ]
+    },
+    "host_action_projection_or_limiter_added": false,
+    "identical_to_reviewed_winner_v6_abi": true,
+    "locomotion": {
+      "inputs": [
+        {
+          "dtype": "float32",
+          "name": "obs",
+          "shape": [
+            1,
+            115
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "previous_action",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "h_in",
+          "shape": [
+            1,
+            64
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "calibration_context",
+          "shape": [
+            1,
+            64
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "dtype": "float32",
+          "name": "continuous_actions",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "previous_action_out",
+          "shape": [
+            1,
+            14
+          ]
+        },
+        {
+          "dtype": "float32",
+          "name": "h_out",
+          "shape": [
+            1,
+            64
+          ]
+        }
+      ]
+    },
+    "normalization_location": "inside future ONNX graph",
+    "observation_contract": "winner-v2-115d"
+  },
+  "authority": {
+    "colab_hosted_gpu_or_igpu": false,
+    "gate5_or_deployment": false,
+    "policy_freeze_zero_ppo_cpu_mechanics_contract": true,
+    "policy_run_zero_ppo_cpu_mechanics_contract": true,
+    "rdkx5_or_robot": false,
+    "robot_clearance": false,
+    "runtime_policy_implementation": false,
+    "serial_gpio_i2c": false,
+    "torque_or_motion": false,
+    "training_or_optimizer": false
+  },
+  "authorized_zero_ppo_cpu_contract": {
+    "arbitrary_finite_default_off_population": true,
+    "both_winner_v10_hashes_required": true,
+    "calibrator_and_locomotion_jax_onnx_chain": true,
+    "calibrator_ticks": 250,
+    "cpu_only": true,
+    "default_off_action_and_previous_state_bit_exact": true,
+    "enabled_graph_owns_absolute_and_delta_action_guards": true,
+    "formal_behavior_cells": 0,
+    "invalid_handoffs_fail_closed": true,
+    "optimizer_steps": 0,
+    "pass_authorizes_only": "a separate training preregistration proposal for review; no optimizer step",
+    "protected_physical_chain_semantics_required": true,
+    "separately_named_contract_required": true
+  },
+  "compatibility_boundary": {
+    "existing_runtime_v2_115d_unchanged": true,
+    "production_policy_loader_changed": false,
+    "review_artifact_only": true,
+    "runtime_implementation_added": false,
+    "runtime_v1_101x14_unchanged": true
+  },
+  "decision": "AUTHORIZE_POLICY_WINNER_V11_ZERO_PPO_CPU_MECHANICS_CONTRACT_ONLY",
+  "hash_correction_closure": {
+    "all_source_receipts_match_committed_git_blobs": true,
+    "committed_git_blobs_authoritative": true,
+    "graph_abi_gate_or_authority_changed": false,
+    "lf_hash_binding_closed": true,
+    "metadata_only_correction": true,
+    "prior_hold_reclassified": false,
+    "prior_runtime_hold_artifact_sha256": "a5496d7f23195975f83c2536cd0b5a962a074eaf9afdf7b4455b33f496c7c080",
+    "prior_runtime_hold_commit": "9d9410f9ff892e467551e75332dd17bcdcd9f819",
+    "source_receipt_count": 9,
+    "source_receipt_hash_mode": "sha256 after CRLF-to-LF normalization",
+    "source_receipts": {
+      "builder": "0627a810c2caa99de62a2b0b815ef667ca97e2689facce86eb8a8ae14ac3c16a",
+      "closed_v6b_result": "44c8c8c86c91f0f8145c309656ce478d40603d06512ea40dcf963bfc2cd6a054",
+      "runtime_hash_review_receipt": "20995a5c6116f2db5a5bf5d44cbab1e553dc00dcf42475d9b9971ebdb4b285e2",
+      "v6_network_source": "cfff280a1c592043d7e1849c68a3c99b05574814180506e6608f17877a5dbb90",
+      "v6b_numeric_attribution": "0b40472af2b427bdc20bd4985a83924f5018d7884cc32b678c958fe31f5dafff",
+      "winner_v10_nominal": "236772a969955bb49e35c685bab2ecb19ab912b6511b7bbdc22c199c6307fa0b",
+      "winner_v10_r2_condition6": "89cb884879448d480915870c169ed1af942c082ce092b00af5b0dbc0af3209a1",
+      "winner_v10_r2_condition7_hold": "4cccd7f93110c4b6f758b6979a008ad31c8791e2cd0d285db69a80d7bddb676d",
+      "winner_v10_representation": "c66d36dd073464fbe09a1c68b9c6d5ca2acda8406e52570032df90c61b833a17"
+    },
+    "zero_ppo_run_started_before_review": false
+  },
+  "policy_request": {
+    "artifact_path": "outputs/analysis/winner_v11_dynamic_calibration_interface_preregistration.json",
+    "commit": "07893eecb7858f15a61d8763be526ca4800ebafa",
+    "committed_lf_sha256": "2500c731a3413b08568e6e88b57300d2c8c86b61f9fe7418f3efa21ab639c8a2",
+    "contract_id": "winner-v11-dynamic-calibration-r64",
+    "pull_request": "https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76",
+    "repository": "RobVanProd/open-duck-mini-rdkx5",
+    "schema_version": "winner_v11.dynamic_calibration_interface_preregistration.v2"
+  },
+  "protected_winner_v10_base": {
+    "default_off_action_and_state_must_be_bit_exact": true,
+    "deployment_policy_selected": false,
+    "policy_sha256": {
+      "final": "d52b63241340d9d56671b95c58bb0fc72af0998fd47d4684719f6cd44f244a10",
+      "half": "cf001269908d86e47eaa145ffda1d87e946a314ecf51056dc086c4cf10164ab6"
+    },
+    "r2_condition7_terminal_hold_preserved": true,
+    "r2_conditions_1_through_6_passed": true,
+    "r2_resumption": false,
+    "robot_clearance": false,
+    "winner_v6_and_v6b_results_remain_closed": true
+  },
+  "remaining_holds": [
+    "zero-PPO CPU mechanics contract has not run",
+    "no optimizer step or training is authorized",
+    "no support-mode behavior has been defined or tested",
+    "no calibrator or locomotion deployment graph is selected",
+    "Winner-v10 condition-7 hold remains terminal",
+    "policy robot clearance remains false",
+    "runtime implementation, X5 preflight, Gate 5, and deployment remain blocked"
+  ],
+  "required_fail_closed_rules": [
+    "wrong policy, source, contract, reference, fit, config, or runtime hash",
+    "missing, stale, mixed-epoch, nonfinite, wrong-shape, or out-of-bound input",
+    "failed or ambiguous send, lost contact, bus, sensor, watchdog, or timing failure",
+    "missing, mutable, persisted, scaled, or invalid calibration context",
+    "any invalid handoff prevents locomotion arming",
+    "every future abort path torque-offs before exit"
+  ],
+  "required_sequence_semantics": {
+    "calibration_command": "exact float32 zeros[7]",
+    "calibration_phase": [
+      1.0,
+      0.0
+    ],
+    "calibration_phase_advances": false,
+    "calibrator_initial_hidden_state": "exact float32 zeros[1,64]",
+    "calibrator_initial_previous_action": "exact float32 zeros[1,14]",
+    "context_bounds_inclusive": [
+      -1.0,
+      1.0
+    ],
+    "context_dtype": "float32",
+    "context_order": "learned_response_latent[0:64]",
+    "context_recomputed_each_process_start": true,
+    "context_runtime_scaling": "none",
+    "context_session_local_immutable_nonpersistent": true,
+    "context_shape": [
+      1,
+      64
+    ],
+    "context_source": "exact final successful calibrator h_out",
+    "frequency_hz": 50,
+    "locomotion_hidden_initial": "exact float32 zeros[1,64]",
+    "locomotion_phase_reset": [
+      1.0,
+      0.0
+    ],
+    "p30_applied_target_observer_continues_without_reset": true,
+    "paused_hold_target": "final confirmed safe calibration target",
+    "previous_action_handoff": "final confirmed previous_action_out",
+    "runtime_remains_paused_after_handoff": true
+  },
+  "schema_version": "open_duck_x5.winner_v11_dynamic_calibration_rereview.v1",
+  "status": "PASS_WINNER_V11_LF_BINDING_HOLD_ZERO_PPO_ONLY",
+  "x0_and_torque_boundary": {
+    "condition7_torso_com_x_m": -0.05,
+    "condition7_x0_action_and_state_exact_zero": true,
+    "condition7_x0_all_byte_identical": true,
+    "condition7_x0_all_terminate_after_samples": 47,
+    "condition7_x0_all_trace_sha256": "2303e73ed34a77ab5b46e70f622ebf7f97290d83af8826ecce3542cd2f79641e",
+    "condition7_x0_trace_population": 4,
+    "default_off_x0_remains_byte_exact_winner_v10": true,
+    "future_enabled_x0_is_graph_authoritative_and_may_be_nonzero": true,
+    "future_enabled_x0_requires_separate_behavior_gate": true,
+    "graph_owns_normalized_action_absolute_and_delta_guards": true,
+    "host_must_not_translate_torque_bounds_into_action_limits": true,
+    "inward_torque_representation_is_plant_xml_semantics": true,
+    "inward_torque_requires_runtime_semantic_change": false,
+    "runtime_must_not_force_enabled_x0_zero": true
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "backend": "mock",
+  "environment": {
+    "baudrate": 1000000,
+    "device": "mock://sts3215",
+    "frequency_hz": 50.0,
+    "hardware_authorized": false,
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.11",
+    "suspended_or_benched": false,
+    "telemetry_records_dropped": 0,
+    "timeout_ms": 4.0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "watchdog_consecutive_failures": 2
+  },
+  "gates": {
+    "authorization_provenance": true,
+    "complete_record_stream": true,
+    "gate1_candidate": false,
+    "ping_ok": true,
+    "torque_off_confirmed": true,
+    "zero_read_bursts": true,
+    "zero_transaction_failures": true,
+    "zero_unexpected_response_lengths": true
+  },
+  "halt_reason": null,
+  "hardware_gate_status": "NOT_APPLICABLE_MOCK",
+  "informational_only": true,
+  "jsonl_sha256": "1b235739b9b1d1d7d0d417d01d2e0569e8b469296f11db0cc0267a091cc0521d",
+  "max_read_burst_ticks": 0,
+  "ping_status": "ok",
+  "read_burst_count": 0,
+  "review_status": "INFORMATIONAL_ONLY",
+  "round_trip_ms": {
+    "max": 0.0598,
+    "mean": 0.017718900000000003,
+    "min": 0.0039,
+    "p95": 0.027109999999999992,
+    "p99": 0.050504,
+    "p99_9": 0.05680300000000027
+  },
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.single_servo_summary.v1",
+  "servo_id": 20,
+  "tick_period_ms": {
+    "max": 22.0067,
+    "mean": 20.00252192192192,
+    "min": 17.9872,
+    "p95": 21.961199999999998,
+    "p99": 21.999112,
+    "p99_9": 22.006300799999998
+  },
+  "ticks": 1000,
+  "ticks_requested": 1000,
+  "transaction_failure_rate": 0.0,
+  "transaction_status_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "ok": 1000,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0
+  },
+  "transactions_failed": 0,
+  "unexpected_response_length_count": 0
+}

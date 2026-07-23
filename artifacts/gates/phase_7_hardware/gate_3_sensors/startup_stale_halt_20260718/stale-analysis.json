@@ -1,0 +1,73 @@
+{
+  "contacts_stale_indices": [
+    0
+  ],
+  "imu_stale_indices": [
+    0
+  ],
+  "row_0": {
+    "contacts": {
+      "age_ms": 19049442.458151,
+      "left": 0.0,
+      "right": 0.0,
+      "sample_timestamp_ns": 0,
+      "stale": true
+    },
+    "imu": {
+      "acceleration_m_s2": [
+        0.0,
+        0.0,
+        9.81
+      ],
+      "age_ms": 19049442.458151,
+      "gyro_rad_s": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "sample_timestamp_ns": 0,
+      "stale": true
+    },
+    "label": "upright",
+    "release_lateness_ms": 0.018583,
+    "sample": 0,
+    "schema_version": "open_duck_x5.sensor_tick.v1",
+    "tick_period_ms": null,
+    "timestamp_monotonic_ns": 19049442453192
+  },
+  "row_1": {
+    "contacts": {
+      "age_ms": 6.065933,
+      "left": 0.0,
+      "right": 0.0,
+      "sample_timestamp_ns": 19049456410062,
+      "stale": false
+    },
+    "imu": {
+      "acceleration_m_s2": [
+        0.49,
+        0.89,
+        10.71
+      ],
+      "age_ms": 6.413058,
+      "gyro_rad_s": [
+        -0.007635815477475192,
+        0.003272492347489368,
+        -0.020725784867432664
+      ],
+      "sample_timestamp_ns": 19049456062937,
+      "stale": false
+    },
+    "label": "upright",
+    "release_lateness_ms": 0.034178,
+    "sample": 1,
+    "schema_version": "open_duck_x5.sensor_tick.v1",
+    "tick_period_ms": 20.015595,
+    "timestamp_monotonic_ns": 19049462468787
+  },
+  "row_count": 250,
+  "rows_after_0_all_fresh": true,
+  "schema_version": "open_duck_x5.gate3_startup_stale_analysis.v1",
+  "source_path_on_board": "/home/sunrise/gate3/sensor-matrix-20260718/upright/sensor.jsonl",
+  "source_sha256": "0236adf1481dcdd7e921451ffa00fe0b90ef7c5f2d1fc1a048e63d8e30214454"
+}

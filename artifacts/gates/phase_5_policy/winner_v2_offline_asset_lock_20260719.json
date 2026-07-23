@@ -1,0 +1,99 @@
+{
+  "authority": {
+    "cpu_only": true,
+    "gate5": false,
+    "rdkx5_access": false,
+    "robot_clearance": false,
+    "robot_or_motor_access": false,
+    "runtime_deployment": false
+  },
+  "blockers": [
+    "completed powered-off direct-reaction torso COM packet",
+    "policy-side robot_clearance=true decision",
+    "X5 CPU-only replay under the same frozen native-resolution metric",
+    "separately reviewed Gate 5 launcher and authorization"
+  ],
+  "config_asset": {
+    "board_path": "/home/sunrise/duck_config.json",
+    "content_committed_here": false,
+    "live_board_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "semantics": {
+      "imu_upside_down": true,
+      "joints_offsets_rad_in_contract_order": [
+        0.0844,
+        0.0721,
+        -0.089,
+        0.0371,
+        -0.0767,
+        0.0245,
+        0.0,
+        -0.089,
+        -0.0399,
+        0.0951,
+        -0.0476,
+        0.066,
+        0.0798,
+        0.1887
+      ],
+      "phase_frequency_factor_offset": 0.0,
+      "start_paused": true
+    },
+    "verification": "HASH_ONLY_UNTIL_NO_SERVO_X5_PREFLIGHT"
+  },
+  "evidence_assets": {
+    "policy_recursive_closure_result": {
+      "commit": "4c99b5e3be203af419536382f11f3cce98283ba2",
+      "path": "outputs/analysis/winner_v2_recursive_cross_cpu_closure_result.json",
+      "repository": "RobVanProd/open-duck-mini-rdkx5",
+      "sha256": "5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc"
+    },
+    "runtime_full_recursive_result": {
+      "path": "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json",
+      "sha256": "e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14"
+    },
+    "runtime_reduced_recursive_result": {
+      "path": "artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json",
+      "sha256": "1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e"
+    }
+  },
+  "frozen_offline_asset_identities": true,
+  "policy_assets": {
+    "corrected_handoff_commit": "e63226eb5b60a9a96cca4bfbb20ef231c0cada64",
+    "corrected_handoff_manifest_sha256": "d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5",
+    "files": {
+      "observation_map.json": "f0b78431a3a98d418fbe04eebeb0316538121d1199d35f38dbdd0528ee1917a7",
+      "observer/p30_actuator_fit.json": "908ddb01e5d82e661d77b8f3cb186a84665695660b86b304c6d1ae89c79cdb0b",
+      "observer_contract.json": "63261636dbec7259dbede679d8f22288608963634dcf3570bcc65d544e160350",
+      "policies/T2_EQUAL_512000.onnx": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+      "policy_contract.json": "58831a252c43ba9577b9b743e69e0e3d739992d6e1fbae0ee1caba615014eba4",
+      "reference/ground_up_projected_reference_feature_table.npz": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    },
+    "package_root": "artifacts/runtime_handoff/rdkx5_native_20260719",
+    "repository": "RobVanProd/open-duck-mini-rdkx5",
+    "selected_checkpoint_evidence_commit": "e0badd7aa79ff791212b8d3822f9eefdc4c162e0",
+    "selected_checkpoint_step": 512000,
+    "selected_onnx_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+    "selected_result_sha256": "38b7fc13522844fc3fe7be848f50d68d5cb26064ddb391dbf5e17ff6f31d284f"
+  },
+  "runtime_assets": {
+    "branch": "agent/measurement-contract-evidence",
+    "files": {
+      "artifacts/contracts/legacy-contract-snapshot.json": "298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff",
+      "src/open_duck_x5/bus/sts3215.py": "a52b5a1551dce7940aadbd1b6446b91a796d279875d77ee247e4ef1cd43b4aa8",
+      "src/open_duck_x5/config.py": "8ff4250050daaf9af01ba4139630466478114ccbfb9446129982cc6fbab59fb6",
+      "src/open_duck_x5/constants.py": "80ff38cd4a4436b445754051f1de608797f051f1886b142a29bf4f5f8b2f2ca3",
+      "src/open_duck_x5/winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
+      "src/open_duck_x5/winner_v2_verifier.py": "44d185e61cf737c3d8ece664d8e8d10837a3e0087d96faea1dae02348a496a88",
+      "tests/test_winner_v2.py": "c174785969050eb6006166d6896219ace369695db1d2196a25f315d45faf3874",
+      "tests/test_winner_v2_asset_lock.py": "053ae91e4a536f186ac0027a5be814594363d8bfdc43d6ae1361098c95256f76",
+      "tests/test_winner_v2_reducer.py": "b3a1b54db4a526d8311f49fb3d7bd628488fb5488b8b2c8b637b3bc61b84296c",
+      "tools/reduce_winner_v2_recursive_result.py": "e0f63fac16a85e2d21402e26ccc323a930d7b9e7a68a86618f290204d1be36a0",
+      "tools/verify_winner_v2_asset_lock.py": "fe51150d427d49999d50e04da10bc79560909c6279206467230de249bbfe5172",
+      "tools/verify_winner_v2_handoff.py": "3387e256d917c1f41a1c658c071335b101ab817e4bc20ad86a5d1d3b71178108"
+    },
+    "identity_commit": "71895596f620756f52cf2b5d513f671ede4d3d86",
+    "repository": "RobVanProd/open-duck-mini-rdkx5-native-runtime"
+  },
+  "schema_version": "open_duck_x5.winner_v2_offline_asset_lock.v1",
+  "status": "PASS_FROZEN_OFFLINE_ASSET_IDENTITIES_BLOCKED_FOR_COM_X5_AND_GATE5"
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/gate3-label-review.schema.json",
+  "title": "Open Duck X5 single Gate 3 label integrity review",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "physical_label_decision",
+    "label",
+    "metrics",
+    "config_sha256",
+    "calibration_profile_sha256",
+    "calibration_source_sha256",
+    "calibration_capture_source_commit",
+    "sensor_software",
+    "jsonl_sha256",
+    "summary_sha256"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.gate3_label_review.v1" },
+    "status": { "const": "DATA_INTEGRITY_ACCEPTED" },
+    "physical_label_decision": { "const": "REVIEW_REQUIRED" },
+    "label": {
+      "enum": [
+        "upright",
+        "nose_forward",
+        "nose_back",
+        "left_tilt",
+        "right_tilt",
+        "no_contacts",
+        "left_contact",
+        "right_contact",
+        "both_contacts"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "acceleration_mean_m_s2",
+        "gyro_mean_rad_s",
+        "gyro_abs_max_rad_s",
+        "contact_mean"
+      ],
+      "properties": {
+        "acceleration_mean_m_s2": { "$ref": "#/$defs/vector3" },
+        "gyro_mean_rad_s": { "$ref": "#/$defs/vector3" },
+        "gyro_abs_max_rad_s": { "$ref": "#/$defs/vector3" },
+        "contact_mean": { "$ref": "#/$defs/vector2" }
+      },
+      "additionalProperties": false
+    },
+    "config_sha256": { "$ref": "#/$defs/sha256" },
+    "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
+    "calibration_source_sha256": { "$ref": "#/$defs/sha256" },
+    "calibration_capture_source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sensor_software": {
+      "type": "object",
+      "required": [
+        "sensor_probe_sha256",
+        "sensors_sha256",
+        "imu_calibration_sha256"
+      ],
+      "properties": {
+        "sensor_probe_sha256": { "$ref": "#/$defs/sha256" },
+        "sensors_sha256": { "$ref": "#/$defs/sha256" },
+        "imu_calibration_sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "jsonl_sha256": { "$ref": "#/$defs/sha256" },
+    "summary_sha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "vector2": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number" }
+    },
+    "vector3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" }
+    }
+  },
+  "additionalProperties": false
+}

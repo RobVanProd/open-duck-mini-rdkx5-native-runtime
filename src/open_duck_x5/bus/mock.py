@@ -42,7 +42,12 @@ class MockSTS3215Bus:
         self.faults = faults
         self._registers = {servo_id: bytearray(256) for servo_id in SERVO_IDS}
         for servo_id, registers in self._registers.items():
+            registers[3:5] = bytes((9, 3))
             registers[5] = servo_id
+            registers[14] = 80
+            registers[15] = 40
+            registers[55] = 1
+            registers[62] = 74
         self._last_update_ns = clock_ns()
         self._active_tick = 0
 
@@ -94,25 +99,55 @@ class MockSTS3215Bus:
 
     def read_state_into(self, snapshot: ServoSnapshot) -> None:
         start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_start_ns = start_ns
+            snapshot.trace_group_flush_start_ns = start_ns
+            snapshot.trace_group_flush_end_ns = start_ns
+            snapshot.trace_group_write_start_ns = start_ns
+            snapshot.trace_group_write_end_ns = start_ns
         self._sleep_latency()
         self._advance()
         np.copyto(snapshot.positions_rad, self.positions)
         np.copyto(snapshot.velocities_rad_s, self.velocities)
         snapshot.status.fill(int(ErrorCode.OK))
+        snapshot.device_status.fill(0)
         snapshot.stale.fill(False)
         self._apply_faults(snapshot)
         snapshot.sample_time_ns = clock_ns()
         snapshot.group_round_trip_ns = snapshot.sample_time_ns - start_ns
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_group_first_rx_ns = snapshot.sample_time_ns
+            snapshot.trace_group_last_rx_ns = snapshot.sample_time_ns
+            snapshot.trace_group_end_ns = snapshot.sample_time_ns
+            snapshot.trace_group_read_calls = 1
+            snapshot.trace_group_parse_calls = 1
+            snapshot.trace_group_first_parse_bytes = 140
+            snapshot.trace_group_parser_mode = 1
+            if snapshot.trace_group_response_complete_ns is not None:
+                snapshot.trace_group_response_complete_ns.fill(snapshot.sample_time_ns)
 
     def read_extended_into(self, snapshot: ServoSnapshot, servo_id: int) -> None:
         start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_start_ns = start_ns
+            snapshot.trace_extended_flush_start_ns = start_ns
+            snapshot.trace_extended_flush_end_ns = start_ns
+            snapshot.trace_extended_write_start_ns = start_ns
+            snapshot.trace_extended_write_end_ns = start_ns
         snapshot.extended_servo_id = servo_id
         snapshot.present_current_raw = 18
         snapshot.present_current_a = 18 * 0.0065
         snapshot.present_voltage_v = 7.4
         snapshot.present_temperature_c = 28.0
         snapshot.extended_status = ErrorCode.OK
-        snapshot.extended_round_trip_ns = clock_ns() - start_ns
+        snapshot.extended_device_status = 0
+        end_ns = clock_ns()
+        snapshot.extended_round_trip_ns = end_ns - start_ns
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_extended_first_rx_ns = end_ns
+            snapshot.trace_extended_last_rx_ns = end_ns
+            snapshot.trace_extended_end_ns = end_ns
+            snapshot.trace_extended_read_calls = 1
 
     def exchange_into(
         self, positions_rad: np.ndarray, snapshot: ServoSnapshot, tick_index: int
@@ -120,14 +155,28 @@ class MockSTS3215Bus:
         snapshot.begin_tick()
         self._active_tick = int(tick_index)
         start_ns = clock_ns()
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_bus_start_ns = start_ns
+            snapshot.trace_write_start_ns = start_ns
         snapshot.write_status = self.write_positions(positions_rad)
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_write_end_ns = clock_ns()
         self.read_state_into(snapshot)
         self.read_extended_into(snapshot, self.ids[tick_index % ACTION_DIM])
-        snapshot.bus_total_ns = clock_ns() - start_ns
+        end_ns = clock_ns()
+        snapshot.bus_total_ns = end_ns - start_ns
+        if snapshot.instrumentation_enabled:
+            snapshot.trace_bus_end_ns = end_ns
 
     def ping(self, servo_id: int, *, timeout_s: float | None = None) -> ErrorCode:
         del timeout_s
         return ErrorCode.OK if servo_id in self.ids else ErrorCode.TIMEOUT
+
+    def ping_with_device_status(
+        self, servo_id: int, *, timeout_s: float | None = None
+    ) -> tuple[ErrorCode, int | None]:
+        status = self.ping(servo_id, timeout_s=timeout_s)
+        return status, (0 if status is ErrorCode.OK else None)
 
     def read_register(self, servo_id: int, address: int, length: int) -> tuple[ErrorCode, bytes]:
         if servo_id not in self.ids:
@@ -138,8 +187,24 @@ class MockSTS3215Bus:
             return ErrorCode.OK, struct.pack("<h", raw)
         return ErrorCode.OK, bytes(self._registers[servo_id][address : address + length])
 
+    def read_register_with_device_status(
+        self, servo_id: int, address: int, length: int
+    ) -> tuple[ErrorCode, int | None, bytes]:
+        status, parameters = self.read_register(servo_id, address, length)
+        return status, (0 if status is ErrorCode.OK else None), parameters
+
     def write_register(self, servo_id: int, address: int, data: bytes) -> ErrorCode:
+        status, device_status = self.write_register_with_device_status(
+            servo_id, address, data
+        )
+        if status is ErrorCode.OK and device_status:
+            return ErrorCode.DEVICE
+        return status
+
+    def write_register_with_device_status(
+        self, servo_id: int, address: int, data: bytes
+    ) -> tuple[ErrorCode, int | None]:
         if servo_id not in self.ids:
-            return ErrorCode.TIMEOUT
+            return ErrorCode.TIMEOUT, None
         self._registers[servo_id][address : address + len(data)] = data
-        return ErrorCode.OK
+        return ErrorCode.OK, 0

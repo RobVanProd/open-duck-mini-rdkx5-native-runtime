@@ -8,7 +8,7 @@ from ..hardware_guard import add_hardware_ack_arguments, require_hardware_author
 
 def add_bus_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
-    parser.add_argument("--device", default="/dev/ttyACM0")
+    parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     add_hardware_ack_arguments(parser)

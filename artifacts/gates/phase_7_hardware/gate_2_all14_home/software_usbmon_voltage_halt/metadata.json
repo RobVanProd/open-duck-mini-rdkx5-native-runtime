@@ -1,0 +1,24 @@
+{
+  "capture_scope": "software-usbmon",
+  "clock_anchor_after": {
+    "monotonic_ns": 10912988809303,
+    "perf_counter_ns": 10912988801928,
+    "realtime_ns": 1784087299704871249
+  },
+  "clock_anchor_before": {
+    "monotonic_ns": 10911636704397,
+    "perf_counter_ns": 10911636697064,
+    "realtime_ns": 1784087298352766718
+  },
+  "external_logic_analyzer_present": false,
+  "kernel": "6.1.83",
+  "moving_gate_authorized": false,
+  "probe_exit_status": 2,
+  "repository_commit": "a50d32d22b7e60167a0087fd29ea02141628b1f5",
+  "schema_version": "open_duck_x5.usbmon_capture.v1",
+  "serial_device": "/dev/ttyACM0",
+  "ticks_requested": 50,
+  "torque_enable_requested": false,
+  "usb_bus": 1,
+  "usb_device": 3
+}

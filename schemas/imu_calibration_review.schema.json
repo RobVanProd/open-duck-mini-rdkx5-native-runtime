@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/imu-calibration-review.schema.json",
+  "title": "Open Duck X5 BNO055 calibration independent review packet",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "data_integrity_candidate",
+    "physical_calibration_decision",
+    "capture_source_commit",
+    "capture_archive_sha256",
+    "config_sha256",
+    "offsets",
+    "calibration_profile_sha256",
+    "calibration_source_sha256",
+    "status_rows",
+    "stable_full_samples",
+    "capture_software_sha256",
+    "review_software_sha256",
+    "raw_artifacts",
+    "checks",
+    "review_instructions"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.bno055_calibration_review.v1" },
+    "status": { "const": "REVIEW_REQUIRED" },
+    "data_integrity_candidate": { "const": true },
+    "physical_calibration_decision": { "const": "REVIEW_REQUIRED" },
+    "capture_source_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "capture_archive_sha256": { "$ref": "#/$defs/sha256" },
+    "config_sha256": { "$ref": "#/$defs/sha256" },
+    "offsets": { "$ref": "#/$defs/offsets" },
+    "calibration_profile_sha256": { "$ref": "#/$defs/sha256" },
+    "calibration_source_sha256": { "$ref": "#/$defs/sha256" },
+    "status_rows": { "type": "integer", "minimum": 5, "maximum": 18000 },
+    "stable_full_samples": { "const": 5 },
+    "capture_software_sha256": { "$ref": "#/$defs/captureSoftware" },
+    "review_software_sha256": {
+      "type": "object",
+      "required": ["review", "capture", "sensors", "imu_calibration"],
+      "properties": {
+        "review": { "$ref": "#/$defs/sha256" },
+        "capture": { "$ref": "#/$defs/sha256" },
+        "sensors": { "$ref": "#/$defs/sha256" },
+        "imu_calibration": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "raw_artifacts": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {
+            "enum": [
+              "calibration-status.jsonl",
+              "calibration-summary.json",
+              "imu_calib_data.pkl",
+              "imu_calibration.json"
+            ]
+          },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "exact_capture_population",
+        "config_contract_verified",
+        "authorization_provenance_verified",
+        "status_stream_rederived",
+        "legacy_source_restricted_and_hashed",
+        "profile_matches_legacy",
+        "exact_device_readback_verified",
+        "software_provenance_verified",
+        "no_servo_or_policy_access_verified"
+      ],
+      "additionalProperties": { "const": true }
+    },
+    "review_instructions": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "triplet": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "integer", "minimum": -32768, "maximum": 32767 }
+    },
+    "offsets": {
+      "type": "object",
+      "required": [
+        "offsets_accelerometer",
+        "offsets_gyroscope",
+        "offsets_magnetometer"
+      ],
+      "properties": {
+        "offsets_accelerometer": { "$ref": "#/$defs/triplet" },
+        "offsets_gyroscope": { "$ref": "#/$defs/triplet" },
+        "offsets_magnetometer": { "$ref": "#/$defs/triplet" }
+      },
+      "additionalProperties": false
+    },
+    "captureSoftware": {
+      "type": "object",
+      "required": ["capture", "sensors", "imu_calibration"],
+      "properties": {
+        "capture": { "$ref": "#/$defs/sha256" },
+        "sensors": { "$ref": "#/$defs/sha256" },
+        "imu_calibration": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

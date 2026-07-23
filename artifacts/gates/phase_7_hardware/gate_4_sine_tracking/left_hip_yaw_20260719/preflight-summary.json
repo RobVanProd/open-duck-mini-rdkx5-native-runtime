@@ -1,0 +1,284 @@
+{
+  "backend": "serial",
+  "bus_total_ms": {
+    "max": 4.37426,
+    "mean": 3.66191516,
+    "min": 3.608841,
+    "p95": 3.7417295,
+    "p99": 3.9487598299999997,
+    "p99_9": 4.058013167000001
+  },
+  "bus_total_population": {
+    "components": [
+      "goal_sync_write_all_14",
+      "state_sync_read_0x82_all_14",
+      "extended_read_one_servo"
+    ],
+    "observation": "complete_tick_sweep",
+    "observations": 10000,
+    "statistic": "sample_max_over_completed_ticks"
+  },
+  "device_alarm_reply_count": 0,
+  "environment": {
+    "amplitude_rad": 0.0,
+    "baudrate": 1000000,
+    "config_path": "/home/sunrise/duck_config.json",
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "device": "/dev/ttyS1",
+    "frequency_hz": 50.0,
+    "hardware_authorized": true,
+    "home_seconds": 5.0,
+    "moving_gate_authorized": false,
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "python": "3.10.12",
+    "realtime": {
+      "affinity": [
+        7
+      ],
+      "background_threads": [
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48384
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48385
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48386
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48387
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48388
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48389
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48390
+        },
+        {
+          "affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "priority": 0,
+          "scheduler": 0,
+          "tid": 48391
+        }
+      ],
+      "cpu": 7,
+      "housekeeping_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "initial_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "isolated": true,
+      "priority": 80,
+      "scheduler": "SCHED_FIFO"
+    },
+    "sine_hz": 0.25,
+    "sine_joint": "left_hip_yaw",
+    "suspended_or_benched": true,
+    "telemetry_records_dropped": 0,
+    "timeout_ms": 4.0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "watchdog_consecutive_failures": 2
+  },
+  "extended_round_trip_ms": {
+    "max": 0.646084,
+    "mean": 0.461335659,
+    "min": 0.443209,
+    "p95": 0.47312804999999997,
+    "p99": 0.5088365100000001,
+    "p99_9": 0.5806691670000002
+  },
+  "gates": {
+    "authorization_provenance": true,
+    "bus_max_under_5_ms": true,
+    "complete_record_stream": true,
+    "gate2_home_hold_candidate": false,
+    "gate4_sine_candidate": false,
+    "moving_gate_scope": false,
+    "realtime_verified_when_required": true,
+    "tick_p99_9_at_most_22_ms": true,
+    "tick_p99_at_most_21_ms": true,
+    "torque_off_confirmed": true,
+    "tracking_p95_at_most_0_011_rad": false,
+    "transaction_failure_below_0_1_percent": true,
+    "zero_device_alarms": true,
+    "zero_read_bursts": true
+  },
+  "group_round_trip_ms": {
+    "max": 3.179757,
+    "mean": 2.9231129189,
+    "min": 2.888673,
+    "p95": 2.95275905,
+    "p99": 2.96600825,
+    "p99_9": 2.989715083
+  },
+  "group_round_trip_population": {
+    "observation": "one_0x82_request_plus_14_response_burst",
+    "observations": 10000,
+    "statistic": "sample_max_over_completed_ticks"
+  },
+  "halt_reason": null,
+  "hardware_gate_status": "REVIEW_REQUIRED",
+  "informational_only": false,
+  "jsonl_sha256": "a2c9e6cb053b4728b0cd10069e7e9933599ee368654bf0d5ba299801300cc803",
+  "max_read_burst_ticks": 0,
+  "partial_byte_count": 0,
+  "read_burst_count": 0,
+  "release_lateness_ms": {
+    "max": 0.021941,
+    "mean": 0.0016724834000000001,
+    "min": 0.000718,
+    "p95": 0.003465,
+    "p99": 0.003887,
+    "p99_9": 0.010731019000000003
+  },
+  "review_status": "REVIEW_REQUIRED",
+  "run_status": "COMPLETE",
+  "schema_version": "open_duck_x5.timing_summary.v2",
+  "tick_period_ms": {
+    "max": 20.020711,
+    "mean": 19.99999816431643,
+    "min": 19.979127,
+    "p95": 20.002169,
+    "p99": 20.002752,
+    "p99_9": 20.009002002
+  },
+  "ticks": 10000,
+  "ticks_requested": 10000,
+  "tracking_absolute_error_rad": {
+    "max": null,
+    "mean": null,
+    "min": null,
+    "p95": null,
+    "p99": null,
+    "p99_9": null,
+    "samples": 0
+  },
+  "tracking_joint_index": 0,
+  "transaction_failure_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0,
+    "unexpected_packet": 0
+  },
+  "transaction_failure_percent": 0.0,
+  "transaction_failure_rate": 0.0,
+  "transaction_status_counts": {
+    "crc": 0,
+    "device": 0,
+    "io": 0,
+    "ok": 160000,
+    "partial": 0,
+    "timeout": 0,
+    "unexpected_id": 0
+  },
+  "transactions_expected": 160000,
+  "transactions_failed": 0,
+  "unexpected_packet_count": 0,
+  "voltage_alarm_reply_count": 0
+}

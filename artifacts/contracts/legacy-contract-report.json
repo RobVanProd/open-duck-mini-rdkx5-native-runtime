@@ -1,0 +1,41 @@
+{
+  "contract_id": "open-duck-mini.best-walk.101x14.v1",
+  "observation": {
+    "max_absolute_difference": 0.0,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "passed": true
+  },
+  "passed": true,
+  "phase_evidence": {
+    "current_post_advance_phase": [
+      0.8936326403234123,
+      0.4487991802004621
+    ],
+    "deployed_order_confirmed": true,
+    "observation_phase": [
+      0.9730448705798238,
+      0.23061587074244014
+    ],
+    "previous_post_advance_phase": [
+      0.9730448705798238,
+      0.23061587074244014
+    ]
+  },
+  "physical_target": {
+    "max_absolute_difference": 0.0,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "passed": true
+  },
+  "schema_version": "open_duck_x5.contract_report.v1",
+  "sent_target": {
+    "max_absolute_difference": 0.0,
+    "mismatch_count": 0,
+    "mismatches": [],
+    "passed": true
+  },
+  "snapshot_sha256": "298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff",
+  "source": "/home/sunrise/duck_logs/20260627T221019Z_corrected_dynamic_replay/suspended_policy_replay_x008_corrected_knee.jsonl:ticks:0,1",
+  "tolerance": 1e-06
+}

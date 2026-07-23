@@ -1,0 +1,203 @@
+{
+  "backend": "x5",
+  "checks": {
+    "authorization_provenance": true,
+    "bno055_identity_verified": true,
+    "calibration_profile_applied": true,
+    "calibration_readback_verified": true,
+    "exact_sample_count": true,
+    "gate3_data_candidate": false,
+    "operator_label_confirmed": true,
+    "orientation_and_contact_label_match": "REVIEW_REQUIRED",
+    "strictly_increasing_contact_timestamps": true,
+    "strictly_increasing_imu_timestamps": true,
+    "zero_contacts_stale": false,
+    "zero_imu_stale": false,
+    "zero_sensor_worker_errors": true
+  },
+  "config": {
+    "imu_upside_down": true,
+    "path": "/home/sunrise/duck_config.json",
+    "sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
+  },
+  "contacts": {
+    "age_ms": {
+      "max": 19049442.458150998,
+      "mean": 76203.26053039997,
+      "min": 3.7872179999999998,
+      "p95": 6.972062149999999
+    },
+    "frozen_polarity": "raw GPIO false -> contact true",
+    "left_mean": 0.0,
+    "left_true_count": 0,
+    "nonincreasing_timestamp_count": 0,
+    "right_mean": 0.0,
+    "right_true_count": 0,
+    "stale_count": 1,
+    "stale_rate": 0.004
+  },
+  "environment": {
+    "contact_gpio_mapping": {
+      "left": {
+        "bcm": 22,
+        "physical_pin": 15
+      },
+      "numbering": "BCM",
+      "polarity": "raw GPIO false -> contact true",
+      "right": {
+        "bcm": 27,
+        "physical_pin": 13
+      }
+    },
+    "frequency_hz": 50.0,
+    "goal_position_writes": 0,
+    "hardware_authorized": true,
+    "imu_address": 40,
+    "imu_bus": 5,
+    "imu_i2c_device": "/dev/i2c-5",
+    "platform": "Linux-6.1.83-aarch64-with-glibc2.35",
+    "policy_inference_count": 0,
+    "policy_loaded": false,
+    "python": "3.10.12",
+    "sensor_frequency_hz": 100.0,
+    "servo_bus_accessed": false,
+    "stale_after_ms": 40.0,
+    "suspended_or_benched": true,
+    "torque_enabled": false
+  },
+  "hardware_gate_status": "REVIEW_REQUIRED",
+  "imu": {
+    "acceleration_m_s2": {
+      "x": {
+        "max": 0.49,
+        "mean": 0.37496,
+        "min": 0.0,
+        "p95": 0.42
+      },
+      "y": {
+        "max": 0.95,
+        "mean": 0.8456,
+        "min": 0.0,
+        "p95": 0.9
+      },
+      "z": {
+        "max": 10.71,
+        "mean": 9.82472,
+        "min": 9.77,
+        "p95": 9.85
+      }
+    },
+    "age_ms": {
+      "max": 19049442.458150998,
+      "mean": 76204.30271430401,
+      "min": 4.944763,
+      "p95": 8.06133335
+    },
+    "device": {
+      "axis_map_config": 33,
+      "axis_map_sign": 7,
+      "calibration_applied": true,
+      "calibration_profile_path": "/home/sunrise/gate3/sensor-matrix-20260718/calibration/imu_calibration.json",
+      "calibration_profile_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+      "calibration_readback": {
+        "offsets_accelerometer": [
+          118,
+          0,
+          33
+        ],
+        "offsets_gyroscope": [
+          1,
+          0,
+          -2
+        ],
+        "offsets_magnetometer": [
+          -421,
+          -125,
+          360
+        ]
+      },
+      "calibration_readback_verified": true,
+      "calibration_source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08",
+      "calibration_status": {
+        "accelerometer": 0,
+        "gyroscope": 0,
+        "magnetometer": 0,
+        "system": 0
+      },
+      "calibration_status_raw": 0,
+      "chip_id": 160,
+      "identity_verified": true,
+      "operation_mode": 12,
+      "unit_selection": 0,
+      "upside_down": true
+    },
+    "gyro_rad_s": {
+      "x": {
+        "max": 0.01090830782496456,
+        "mean": 0.00019198621771937625,
+        "min": -0.01090830782496456,
+        "p95": 0.006544984694978736
+      },
+      "y": {
+        "max": 0.009817477042468103,
+        "mean": 0.00013962634015954634,
+        "min": -0.009817477042468103,
+        "p95": 0.00545415391248228
+      },
+      "z": {
+        "max": 0.00545415391248228,
+        "mean": -0.00042324234360862495,
+        "min": -0.0272707695624114,
+        "p95": 0.002181661564992912
+      }
+    },
+    "nonincreasing_timestamp_count": 0,
+    "stale_count": 1,
+    "stale_rate": 0.004
+  },
+  "imu_calibration": {
+    "path": "/home/sunrise/gate3/sensor-matrix-20260718/calibration/imu_calibration.json",
+    "profile_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+    "required": true,
+    "source_format": "apirrone.imu_calib_data.pkl",
+    "source_sha256": "a3552b357dc2d0e6a876c8e8406134ab36fa6e88a7b7f444c9f9d25122a9da08"
+  },
+  "informational_only": false,
+  "jsonl_sha256": "0236adf1481dcdd7e921451ffa00fe0b90ef7c5f2d1fc1a048e63d8e30214454",
+  "label": "upright",
+  "review_status": "REVIEW_REQUIRED",
+  "run_status": "COMPLETE",
+  "samples": 250,
+  "samples_requested": 250,
+  "schema_version": "open_duck_x5.sensor_summary.v2",
+  "sensor_health": {
+    "consecutive_errors_at_stop": 0,
+    "last_error_type": null,
+    "max_consecutive_errors": 0,
+    "sample_attempts": 499,
+    "sample_errors": 0,
+    "sample_successes": 499
+  },
+  "software": {
+    "imu_calibration_path": "/tmp/open-duck-gate3.VBFXNY/src/open_duck_x5/imu_calibration.py",
+    "imu_calibration_sha256": "40fb3ea05f16f312f83416d5da8ed84b81e3ae45d1bcd03ce26f842e47d7c3ae",
+    "sensor_probe_path": "/tmp/open-duck-gate3.VBFXNY/src/open_duck_x5/sensor_probe.py",
+    "sensor_probe_sha256": "827243b7c5d8f890b5af30c45b4d2ea68e9cb9b8eef8f7edb9fffab4caeca21a",
+    "sensors_path": "/tmp/open-duck-gate3.VBFXNY/src/open_duck_x5/sensors.py",
+    "sensors_sha256": "f0b40c2726170341f23a766271fee8ea0842b747f2936f057965b03440f4d546"
+  },
+  "timing": {
+    "release_lateness_ms": {
+      "max": 0.123968,
+      "mean": 0.094472068,
+      "min": 0.018583,
+      "p95": 0.1094622
+    },
+    "tick_period_ms": {
+      "max": 20.055595,
+      "mean": 20.00031944578313,
+      "min": 19.920136,
+      "p95": 20.0223108
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+  "policy_loaded": false,
+  "schema_version": "open_duck_x5.gate4_review.v1",
+  "serial_device": "/dev/ttyS1",
+  "sine_joint": "left_hip_yaw",
+  "source_archive_sha256": "5ee4aa30fb11e411ec7cea797c70ebf5aa53d1278e8c873544825253b193ffc8",
+  "source_commit": "c5f27598b68fa7d69d81d0675f50a06435ecdaf8",
+  "stage_order": [
+    "preflight",
+    "sine_0_25",
+    "sine_0_5"
+  ],
+  "stages": {
+    "preflight": {
+      "amplitude_rad": 0.0,
+      "bus_max_ms": 4.37426,
+      "frequency_hz": 0.25,
+      "moving": false,
+      "read_burst_count": 0,
+      "stage": "preflight",
+      "summary_sha256": "fff44a1c35b2dcae4b22a074bdea2e58b14d27451242c35ae0fbd61faee29192",
+      "tick_p99_9_ms": 20.009002002,
+      "tick_p99_ms": 20.002752,
+      "ticks": 10000,
+      "timing_sha256": "a2c9e6cb053b4728b0cd10069e7e9933599ee368654bf0d5ba299801300cc803",
+      "torque_off_status": "ok",
+      "tracking_p95_rad": null,
+      "transaction_failure_percent": 0.0
+    },
+    "sine_0_25": {
+      "amplitude_rad": 0.03,
+      "bus_max_ms": 4.556593,
+      "frequency_hz": 0.25,
+      "moving": true,
+      "read_burst_count": 0,
+      "stage": "sine_0_25",
+      "summary_sha256": "a56fe188d10c80afc2a13640bb0d39689ae9a36f1b61c6005554291b4f99f861",
+      "tick_p99_9_ms": 20.006835252,
+      "tick_p99_ms": 20.002669,
+      "ticks": 10000,
+      "timing_sha256": "80fbe76c307a03a63eb970acd5a1108e8b6b156456d9ef55e22e4099f34724a6",
+      "torque_off_status": "ok",
+      "tracking_p95_rad": 0.00694010762735039,
+      "transaction_failure_percent": 0.0
+    },
+    "sine_0_5": {
+      "amplitude_rad": 0.03,
+      "bus_max_ms": 4.574218,
+      "frequency_hz": 0.5,
+      "moving": true,
+      "read_burst_count": 0,
+      "stage": "sine_0_5",
+      "summary_sha256": "ada139eb20570ee404ccbbd43261e6535ba78daddcf962c03516c39e35efb913",
+      "tick_p99_9_ms": 20.010044334,
+      "tick_p99_ms": 20.002593,
+      "ticks": 10000,
+      "timing_sha256": "19b644a91de71f22febc30e185b284181d47b36f8fca9f215b3b9f6f9f733e9b",
+      "torque_off_status": "ok",
+      "tracking_p95_rad": 0.009892010493372138,
+      "transaction_failure_percent": 0.0
+    }
+  },
+  "status": "REVIEW_CANDIDATE"
+}

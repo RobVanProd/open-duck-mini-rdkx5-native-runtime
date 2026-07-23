@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/open-duck-x5/imu-calibration.schema.json",
+  "title": "Open Duck X5 BNO055 calibration profile",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_format",
+    "source_sha256",
+    "offsets_accelerometer",
+    "offsets_gyroscope",
+    "offsets_magnetometer"
+  ],
+  "properties": {
+    "schema_version": { "const": "open_duck_x5.bno055_calibration.v1" },
+    "source_format": { "const": "apirrone.imu_calib_data.pkl" },
+    "source_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "offsets_accelerometer": { "$ref": "#/$defs/triplet" },
+    "offsets_gyroscope": { "$ref": "#/$defs/triplet" },
+    "offsets_magnetometer": { "$ref": "#/$defs/triplet" }
+  },
+  "$defs": {
+    "triplet": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "integer", "minimum": -32768, "maximum": 32767 }
+    }
+  },
+  "additionalProperties": false
+}

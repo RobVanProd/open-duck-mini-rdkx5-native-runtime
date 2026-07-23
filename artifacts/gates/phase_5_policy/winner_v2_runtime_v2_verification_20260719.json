@@ -1,0 +1,577 @@
+{
+  "artifact_root_name": "rdkx5_native_20260719",
+  "audit_recursive_runtime_max_abs_error": 3.814697265625e-06,
+  "authority": {
+    "cpu_only": true,
+    "gate5": false,
+    "robot_access": false,
+    "robot_clearance": false,
+    "runtime_deployment": false
+  },
+  "component_contract_passed": true,
+  "direct_x0_action_and_state_bit_exact_zero": true,
+  "environment": {
+    "numpy": "2.5.0",
+    "onnx_execution_provider": "CPUExecutionProvider",
+    "onnxruntime": "1.27.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10",
+    "python_implementation": "CPython"
+  },
+  "fault_injection": {
+    "ambiguous_sample_epoch": true,
+    "failed_send_rejected": true,
+    "failed_send_state_unchanged": true,
+    "nonfinite_sensor": true,
+    "stale_sample": true,
+    "unsupported_command": true
+  },
+  "history_metadata_correction": {
+    "commit": "e63226eb5b60a9a96cca4bfbb20ef231c0cada64",
+    "passed": true,
+    "schema_version": "winner_v2_rdkx5_native_handoff.v1.1"
+  },
+  "manifest_files_checked": 21,
+  "manifest_sha256": "d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5",
+  "native_resolution_gate": {
+    "audit_checkpoint_is_non_gating": true,
+    "selected_classifications_unchanged": true,
+    "selected_logical_target_max_abs_error_rad": 5.960464477539062e-07,
+    "selected_normalized_action_state_max_abs_error_record_only": 2.384185791015625e-06,
+    "selected_p30_observer_max_abs_error_rad": 5.602507320290329e-07,
+    "selected_raw_goal_max_abs_count_difference": 0,
+    "selected_raw_goal_mismatch_count": 0,
+    "selected_raw_goal_range_valid": true
+  },
+  "overall_disposition": "BLOCKED_FOR_COM_CLEARANCE_AND_X5_CPU_PREFLIGHT",
+  "policy_chain_cells": [
+    {
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_512000_x0.000.npz",
+      "max_abs_error": {
+        "action": 0.0,
+        "state_in": 0.0,
+        "state_out": 0.0
+      },
+      "policy": "T2_EQUAL_512000.onnx",
+      "policy_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_512000_x0.080.npz",
+      "max_abs_error": {
+        "action": 4.76837158203125e-07,
+        "state_in": 4.76837158203125e-07,
+        "state_out": 4.76837158203125e-07
+      },
+      "policy": "T2_EQUAL_512000.onnx",
+      "policy_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_1024000_x0.000.npz",
+      "max_abs_error": {
+        "action": 0.0,
+        "state_in": 0.0,
+        "state_out": 0.0
+      },
+      "policy": "T2_EQUAL_1024000.onnx",
+      "policy_sha256": "0dfc24bde5d839e4d346dd8c08d9a7d0222a3847764ec6738bfc7f8d947f4ece",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_1024000_x0.080.npz",
+      "max_abs_error": {
+        "action": 4.76837158203125e-07,
+        "state_in": 4.76837158203125e-07,
+        "state_out": 4.76837158203125e-07
+      },
+      "policy": "T2_EQUAL_1024000.onnx",
+      "policy_sha256": "0dfc24bde5d839e4d346dd8c08d9a7d0222a3847764ec6738bfc7f8d947f4ece",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    }
+  ],
+  "policy_chain_max_abs_error": 4.76837158203125e-07,
+  "recursive_numeric_closure_passed": true,
+  "recursive_preregistration": {
+    "commit": "182459eb4d5eb422a6936b7744f5730d22a9bb27",
+    "direct_same_input_tolerance": 1e-06,
+    "formal_prior_runtime_outcome_weight": false,
+    "raw_goal_max_abs_count_difference": 1,
+    "sts_half_lsb_rad": 0.0007669903939428206,
+    "sts_position_counts_per_revolution": 4096,
+    "sts_position_lsb_rad": 0.0015339807878856412
+  },
+  "recursive_runtime_cells": [
+    {
+      "classifications": {
+        "external_5p24_limiter_identity": true,
+        "golden_rate_or_envelope_excess_any": false,
+        "golden_saturation_any": false,
+        "rate_and_envelope_unchanged": true,
+        "runtime_rate_or_envelope_excess_any": false,
+        "runtime_saturation_any": false,
+        "saturation_unchanged": true
+      },
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_512000_x0.000.npz",
+      "golden_pack_sha256": "aa84f0cbd4e885f9dcc36c553c43e17030f32d0304dff2a7bf06f1f41c4cbe2e",
+      "max_abs_error": {
+        "action": 0.0,
+        "applied_target": 0.0,
+        "observation": 0.0,
+        "observer_next": 0.0,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "sent_target": 0.0,
+        "state_in": 0.0,
+        "state_out": 0.0,
+        "target_pre": 0.0
+      },
+      "native_resolution": {
+        "first_raw_goal_mismatch": null,
+        "logical_target_error_by_joint_rad": {
+          "head_pitch": 0.0,
+          "head_roll": 0.0,
+          "head_yaw": 0.0,
+          "left_ankle": 0.0,
+          "left_hip_pitch": 0.0,
+          "left_hip_roll": 0.0,
+          "left_hip_yaw": 0.0,
+          "left_knee": 0.0,
+          "neck_pitch": 0.0,
+          "right_ankle": 0.0,
+          "right_hip_pitch": 0.0,
+          "right_hip_roll": 0.0,
+          "right_hip_yaw": 0.0,
+          "right_knee": 0.0
+        },
+        "maximum_logical_target_error_rad": 0.0,
+        "maximum_p30_observer_error_rad": 0.0,
+        "maximum_raw_goal_absolute_count_difference": 0,
+        "maximum_target_error_sts_counts": 0.0,
+        "p30_observer_error_by_joint_rad": {
+          "head_pitch": 0.0,
+          "head_roll": 0.0,
+          "head_yaw": 0.0,
+          "left_ankle": 0.0,
+          "left_hip_pitch": 0.0,
+          "left_hip_roll": 0.0,
+          "left_hip_yaw": 0.0,
+          "left_knee": 0.0,
+          "neck_pitch": 0.0,
+          "right_ankle": 0.0,
+          "right_hip_pitch": 0.0,
+          "right_hip_roll": 0.0,
+          "right_hip_yaw": 0.0,
+          "right_knee": 0.0
+        },
+        "raw_goal_error_by_joint_counts": {
+          "head_pitch": 0,
+          "head_roll": 0,
+          "head_yaw": 0,
+          "left_ankle": 0,
+          "left_hip_pitch": 0,
+          "left_hip_roll": 0,
+          "left_hip_yaw": 0,
+          "left_knee": 0,
+          "neck_pitch": 0,
+          "right_ankle": 0,
+          "right_hip_pitch": 0,
+          "right_hip_roll": 0,
+          "right_hip_yaw": 0,
+          "right_knee": 0
+        },
+        "raw_goal_in_signed_multiturn_range": true,
+        "raw_goal_mismatch_count": 0,
+        "sts_half_lsb_rad": 0.0007669903939428206,
+        "sts_position_lsb_rad": 0.0015339807878856412
+      },
+      "policy": "T2_EQUAL_512000.onnx",
+      "policy_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "classifications": {
+        "external_5p24_limiter_identity": true,
+        "golden_rate_or_envelope_excess_any": false,
+        "golden_saturation_any": false,
+        "rate_and_envelope_unchanged": true,
+        "runtime_rate_or_envelope_excess_any": false,
+        "runtime_saturation_any": false,
+        "saturation_unchanged": true
+      },
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_512000_x0.080.npz",
+      "golden_pack_sha256": "0cfd9e99bf499028b5b7f285fa1964f65248795592cf9d072c4bc5aa1a56fb1c",
+      "max_abs_error": {
+        "action": 2.384185791015625e-06,
+        "applied_target": 5.602507320290329e-07,
+        "observation": 2.384185791015625e-06,
+        "observer_next": 5.602507320290329e-07,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "sent_target": 5.960464477539062e-07,
+        "state_in": 2.384185791015625e-06,
+        "state_out": 2.384185791015625e-06,
+        "target_pre": 5.960464477539062e-07
+      },
+      "native_resolution": {
+        "first_raw_goal_mismatch": null,
+        "logical_target_error_by_joint_rad": {
+          "head_pitch": 1.4901161193847656e-07,
+          "head_roll": 1.5273690223693848e-07,
+          "head_yaw": 1.4901161193847656e-07,
+          "left_ankle": 5.960464477539062e-07,
+          "left_hip_pitch": 2.384185791015625e-07,
+          "left_hip_roll": 2.086162567138672e-07,
+          "left_hip_yaw": 2.7194619178771973e-07,
+          "left_knee": 3.5762786865234375e-07,
+          "neck_pitch": 1.280568540096283e-07,
+          "right_ankle": 4.172325134277344e-07,
+          "right_hip_pitch": 1.1920928955078125e-07,
+          "right_hip_roll": 1.4901161193847656e-07,
+          "right_hip_yaw": 2.3469328880310059e-07,
+          "right_knee": 2.384185791015625e-07
+        },
+        "maximum_logical_target_error_rad": 5.960464477539062e-07,
+        "maximum_p30_observer_error_rad": 5.602507320290329e-07,
+        "maximum_raw_goal_absolute_count_difference": 0,
+        "maximum_target_error_sts_counts": 0.00038856187278294763,
+        "p30_observer_error_by_joint_rad": {
+          "head_pitch": 1.4901161193847656e-07,
+          "head_roll": 1.5273690223693848e-07,
+          "head_yaw": 1.4901161193847656e-07,
+          "left_ankle": 5.602507320290329e-07,
+          "left_hip_pitch": 2.1653295889656476e-07,
+          "left_hip_roll": 2.086162567138672e-07,
+          "left_hip_yaw": 2.7194619178771973e-07,
+          "left_knee": 3.239979085023492e-07,
+          "neck_pitch": 1.280568540096283e-07,
+          "right_ankle": 4.097066108599279e-07,
+          "right_hip_pitch": 1.4410280713139656e-07,
+          "right_hip_roll": 1.4901161193847656e-07,
+          "right_hip_yaw": 2.3469328880310059e-07,
+          "right_knee": 2.7699385918289465e-07
+        },
+        "raw_goal_error_by_joint_counts": {
+          "head_pitch": 0,
+          "head_roll": 0,
+          "head_yaw": 0,
+          "left_ankle": 0,
+          "left_hip_pitch": 0,
+          "left_hip_roll": 0,
+          "left_hip_yaw": 0,
+          "left_knee": 0,
+          "neck_pitch": 0,
+          "right_ankle": 0,
+          "right_hip_pitch": 0,
+          "right_hip_roll": 0,
+          "right_hip_yaw": 0,
+          "right_knee": 0
+        },
+        "raw_goal_in_signed_multiturn_range": true,
+        "raw_goal_mismatch_count": 0,
+        "sts_half_lsb_rad": 0.0007669903939428206,
+        "sts_position_lsb_rad": 0.0015339807878856412
+      },
+      "policy": "T2_EQUAL_512000.onnx",
+      "policy_sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "classifications": {
+        "external_5p24_limiter_identity": true,
+        "golden_rate_or_envelope_excess_any": false,
+        "golden_saturation_any": false,
+        "rate_and_envelope_unchanged": true,
+        "runtime_rate_or_envelope_excess_any": false,
+        "runtime_saturation_any": false,
+        "saturation_unchanged": true
+      },
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_1024000_x0.000.npz",
+      "golden_pack_sha256": "cd5cdd047b0afa94d9d51052b714395978229318f6419290c4f3fabd681f7dd1",
+      "max_abs_error": {
+        "action": 0.0,
+        "applied_target": 0.0,
+        "observation": 0.0,
+        "observer_next": 0.0,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "sent_target": 0.0,
+        "state_in": 0.0,
+        "state_out": 0.0,
+        "target_pre": 0.0
+      },
+      "native_resolution": {
+        "first_raw_goal_mismatch": null,
+        "logical_target_error_by_joint_rad": {
+          "head_pitch": 0.0,
+          "head_roll": 0.0,
+          "head_yaw": 0.0,
+          "left_ankle": 0.0,
+          "left_hip_pitch": 0.0,
+          "left_hip_roll": 0.0,
+          "left_hip_yaw": 0.0,
+          "left_knee": 0.0,
+          "neck_pitch": 0.0,
+          "right_ankle": 0.0,
+          "right_hip_pitch": 0.0,
+          "right_hip_roll": 0.0,
+          "right_hip_yaw": 0.0,
+          "right_knee": 0.0
+        },
+        "maximum_logical_target_error_rad": 0.0,
+        "maximum_p30_observer_error_rad": 0.0,
+        "maximum_raw_goal_absolute_count_difference": 0,
+        "maximum_target_error_sts_counts": 0.0,
+        "p30_observer_error_by_joint_rad": {
+          "head_pitch": 0.0,
+          "head_roll": 0.0,
+          "head_yaw": 0.0,
+          "left_ankle": 0.0,
+          "left_hip_pitch": 0.0,
+          "left_hip_roll": 0.0,
+          "left_hip_yaw": 0.0,
+          "left_knee": 0.0,
+          "neck_pitch": 0.0,
+          "right_ankle": 0.0,
+          "right_hip_pitch": 0.0,
+          "right_hip_roll": 0.0,
+          "right_hip_yaw": 0.0,
+          "right_knee": 0.0
+        },
+        "raw_goal_error_by_joint_counts": {
+          "head_pitch": 0,
+          "head_roll": 0,
+          "head_yaw": 0,
+          "left_ankle": 0,
+          "left_hip_pitch": 0,
+          "left_hip_roll": 0,
+          "left_hip_yaw": 0,
+          "left_knee": 0,
+          "neck_pitch": 0,
+          "right_ankle": 0,
+          "right_hip_pitch": 0,
+          "right_hip_roll": 0,
+          "right_hip_yaw": 0,
+          "right_knee": 0
+        },
+        "raw_goal_in_signed_multiturn_range": true,
+        "raw_goal_mismatch_count": 0,
+        "sts_half_lsb_rad": 0.0007669903939428206,
+        "sts_position_lsb_rad": 0.0015339807878856412
+      },
+      "policy": "T2_EQUAL_1024000.onnx",
+      "policy_sha256": "0dfc24bde5d839e4d346dd8c08d9a7d0222a3847764ec6738bfc7f8d947f4ece",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    },
+    {
+      "classifications": {
+        "external_5p24_limiter_identity": true,
+        "golden_rate_or_envelope_excess_any": false,
+        "golden_saturation_any": false,
+        "rate_and_envelope_unchanged": true,
+        "runtime_rate_or_envelope_excess_any": false,
+        "runtime_saturation_any": false,
+        "saturation_unchanged": true
+      },
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_1024000_x0.080.npz",
+      "golden_pack_sha256": "642bdb1b047d7c52b73c604ef8d5d29f6011480dc6285f13bb937a8c70ab2cc2",
+      "max_abs_error": {
+        "action": 3.814697265625e-06,
+        "applied_target": 9.581599748065273e-07,
+        "observation": 3.814697265625e-06,
+        "observer_next": 9.581599748065273e-07,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "sent_target": 9.5367431640625e-07,
+        "state_in": 3.814697265625e-06,
+        "state_out": 3.814697265625e-06,
+        "target_pre": 9.5367431640625e-07
+      },
+      "native_resolution": {
+        "first_raw_goal_mismatch": null,
+        "logical_target_error_by_joint_rad": {
+          "head_pitch": 1.6391277313232422e-07,
+          "head_roll": 3.0174851417541504e-07,
+          "head_yaw": 1.6391277313232422e-07,
+          "left_ankle": 9.5367431640625e-07,
+          "left_hip_pitch": 4.172325134277344e-07,
+          "left_hip_roll": 3.0547380447387695e-07,
+          "left_hip_yaw": 4.237517714500427e-07,
+          "left_knee": 3.5762786865234375e-07,
+          "neck_pitch": 2.7939677238464355e-07,
+          "right_ankle": 8.344650268554688e-07,
+          "right_hip_pitch": 2.384185791015625e-07,
+          "right_hip_roll": 2.980232238769531e-07,
+          "right_hip_yaw": 3.46451997756958e-07,
+          "right_knee": 4.76837158203125e-07
+        },
+        "maximum_logical_target_error_rad": 9.5367431640625e-07,
+        "maximum_p30_observer_error_rad": 9.581599748065273e-07,
+        "maximum_raw_goal_absolute_count_difference": 0,
+        "maximum_target_error_sts_counts": 0.0006216989964527162,
+        "p30_observer_error_by_joint_rad": {
+          "head_pitch": 1.6391277313232422e-07,
+          "head_roll": 3.0174851417541504e-07,
+          "head_yaw": 1.6391277313232422e-07,
+          "left_ankle": 9.581599748065273e-07,
+          "left_hip_pitch": 4.023972707267731e-07,
+          "left_hip_roll": 3.0547380447387695e-07,
+          "left_hip_yaw": 4.237517714500427e-07,
+          "left_knee": 3.9266493634393385e-07,
+          "neck_pitch": 2.7939677238464355e-07,
+          "right_ankle": 8.069249185505001e-07,
+          "right_hip_pitch": 2.6562428723231335e-07,
+          "right_hip_roll": 2.980232238769531e-07,
+          "right_hip_yaw": 3.46451997756958e-07,
+          "right_knee": 5.334994588324093e-07
+        },
+        "raw_goal_error_by_joint_counts": {
+          "head_pitch": 0,
+          "head_roll": 0,
+          "head_yaw": 0,
+          "left_ankle": 0,
+          "left_hip_pitch": 0,
+          "left_hip_roll": 0,
+          "left_hip_yaw": 0,
+          "left_knee": 0,
+          "neck_pitch": 0,
+          "right_ankle": 0,
+          "right_hip_pitch": 0,
+          "right_hip_roll": 0,
+          "right_hip_yaw": 0,
+          "right_knee": 0
+        },
+        "raw_goal_in_signed_multiturn_range": true,
+        "raw_goal_mismatch_count": 0,
+        "sts_half_lsb_rad": 0.0007669903939428206,
+        "sts_position_lsb_rad": 0.0015339807878856412
+      },
+      "policy": "T2_EQUAL_1024000.onnx",
+      "policy_sha256": "0dfc24bde5d839e4d346dd8c08d9a7d0222a3847764ec6738bfc7f8d947f4ece",
+      "ticks": 600,
+      "x0_action_and_state_bit_exact_zero": true
+    }
+  ],
+  "recursive_runtime_max_abs_error": 3.814697265625e-06,
+  "recursive_x0_action_state_target_observer_bit_exact": true,
+  "remaining_blockers": [
+    "completed powered-off direct-reaction torso COM packet",
+    "policy-side robot_clearance=true decision",
+    "reviewed frozen runtime/policy/config asset set",
+    "X5 CPU-only replay under this same frozen native-resolution metric"
+  ],
+  "runtime_identity": {
+    "constants_source_sha256": "80ff38cd4a4436b445754051f1de608797f051f1886b142a29bf4f5f8b2f2ca3",
+    "soft_offset_snapshot_sha256": "298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff",
+    "soft_offsets_rad": [
+      0.0844,
+      0.0721,
+      -0.089,
+      0.0371,
+      -0.0767,
+      0.0245,
+      0.0,
+      -0.089,
+      -0.0399,
+      0.0951,
+      -0.0476,
+      0.066,
+      0.0798,
+      0.1887
+    ],
+    "sts3215_source_sha256": "a52b5a1551dce7940aadbd1b6446b91a796d279875d77ee247e4ef1cd43b4aa8"
+  },
+  "schema_version": "open_duck_x5.winner_v2_offline_verification.v2",
+  "selected_policy": {
+    "checkpoint_step": 512000,
+    "selection_evidence_commit": "e0badd7aa79ff791212b8d3822f9eefdc4c162e0",
+    "selection_result_sha256": "38b7fc13522844fc3fe7be848f50d68d5cb26064ddb391dbf5e17ff6f31d284f",
+    "sha256": "99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de"
+  },
+  "selected_recursive_runtime_max_abs_error": 2.384185791015625e-06,
+  "semantic_cells": [
+    {
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_512000_x0.000.npz",
+      "golden_pack_sha256": "aa84f0cbd4e885f9dcc36c553c43e17030f32d0304dff2a7bf06f1f41c4cbe2e",
+      "max_abs_error": {
+        "applied_target": 0.0,
+        "observation": 0.0,
+        "observer_next": 0.0,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "previous_action_contract": 0.0,
+        "sent_target": 0.0,
+        "target_pre": 0.0
+      },
+      "ticks": 600
+    },
+    {
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_512000_x0.080.npz",
+      "golden_pack_sha256": "0cfd9e99bf499028b5b7f285fa1964f65248795592cf9d072c4bc5aa1a56fb1c",
+      "max_abs_error": {
+        "applied_target": 5.957647131182853e-08,
+        "observation": 0.0,
+        "observer_next": 5.957647131182853e-08,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "previous_action_contract": 0.0,
+        "sent_target": 0.0,
+        "target_pre": 0.0
+      },
+      "ticks": 600
+    },
+    {
+      "command_x": 0.0,
+      "golden_pack": "T2_EQUAL_1024000_x0.000.npz",
+      "golden_pack_sha256": "cd5cdd047b0afa94d9d51052b714395978229318f6419290c4f3fabd681f7dd1",
+      "max_abs_error": {
+        "applied_target": 0.0,
+        "observation": 0.0,
+        "observer_next": 0.0,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "previous_action_contract": 0.0,
+        "sent_target": 0.0,
+        "target_pre": 0.0
+      },
+      "ticks": 600
+    },
+    {
+      "command_x": 0.07999999821186066,
+      "golden_pack": "T2_EQUAL_1024000_x0.080.npz",
+      "golden_pack_sha256": "642bdb1b047d7c52b73c604ef8d5d29f6011480dc6285f13bb937a8c70ab2cc2",
+      "max_abs_error": {
+        "applied_target": 5.949468695476412e-08,
+        "observation": 0.0,
+        "observer_next": 5.949468695476412e-08,
+        "phase_after": 2.086162567138672e-07,
+        "phase_before": 0.0,
+        "previous_action_contract": 0.0,
+        "sent_target": 0.0,
+        "target_pre": 0.0
+      },
+      "ticks": 600
+    }
+  ],
+  "semantic_max_abs_error": 2.086162567138672e-07,
+  "status": "PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE",
+  "ticks": 2400,
+  "tolerance": 1e-06
+}

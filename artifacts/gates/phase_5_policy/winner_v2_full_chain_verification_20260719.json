@@ -1,0 +1,57 @@
+{
+  "cells": [
+    {
+      "command_x": 0.0,
+      "max_action_error": 0.0,
+      "max_applied_observer_error_rad": 0.0,
+      "max_incoming_chain_error": 0.0,
+      "max_observer_next_error_rad": 0.0,
+      "max_observer_obs_83_97_error_rad": 0.0,
+      "max_recurrent_output_error": 0.0,
+      "max_target_equation_error_rad": 0.0,
+      "step": 512000
+    },
+    {
+      "command_x": 0.08,
+      "max_action_error": 4.76837158203125e-07,
+      "max_applied_observer_error_rad": 0.0,
+      "max_incoming_chain_error": 4.76837158203125e-07,
+      "max_observer_next_error_rad": 0.0,
+      "max_observer_obs_83_97_error_rad": 0.0,
+      "max_recurrent_output_error": 4.76837158203125e-07,
+      "max_target_equation_error_rad": 1.1920928955078125e-07,
+      "step": 512000
+    },
+    {
+      "command_x": 0.0,
+      "max_action_error": 0.0,
+      "max_applied_observer_error_rad": 0.0,
+      "max_incoming_chain_error": 0.0,
+      "max_observer_next_error_rad": 0.0,
+      "max_observer_obs_83_97_error_rad": 0.0,
+      "max_recurrent_output_error": 0.0,
+      "max_target_equation_error_rad": 0.0,
+      "step": 1024000
+    },
+    {
+      "command_x": 0.08,
+      "max_action_error": 4.76837158203125e-07,
+      "max_applied_observer_error_rad": 0.0,
+      "max_incoming_chain_error": 4.76837158203125e-07,
+      "max_observer_next_error_rad": 0.0,
+      "max_observer_obs_83_97_error_rad": 0.0,
+      "max_recurrent_output_error": 4.76837158203125e-07,
+      "max_target_equation_error_rad": 1.1920928955078125e-07,
+      "step": 1024000
+    }
+  ],
+  "execution_provider": "CPUExecutionProvider",
+  "external_5p24_limiter_identity_all_ticks": true,
+  "phase_formula_max_error": 2.086162567138672e-07,
+  "policy_commit": "ad1cd8e9b9fdacd26a5453318411dafe423588b4",
+  "schema_version": "open_duck_x5.policy_handoff_full_chain_check.v1",
+  "status": "PASS_FULL_2400_TICK_CPU_REPLAY",
+  "ticks": 2400,
+  "tolerance": 1e-06,
+  "x0_action_and_state_bit_exact_zero": true
+}

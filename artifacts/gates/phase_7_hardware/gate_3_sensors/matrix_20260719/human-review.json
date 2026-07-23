@@ -1,0 +1,121 @@
+{
+  "checks": {
+    "all_labels_250_samples": true,
+    "all_labels_zero_contacts_stale": true,
+    "all_labels_zero_imu_stale": true,
+    "all_nine_labels_present": true,
+    "contact_patterns_exact": true,
+    "no_servo_torque_goal_or_policy_activity": true,
+    "nose_labels_are_opposed_on_x": true,
+    "operator_confirmed_each_physical_label": true,
+    "side_labels_are_opposed_on_y": true,
+    "upright_gravity_is_positive_z": true
+  },
+  "gate3_passed": true,
+  "labels": {
+    "both_contacts": {
+      "acceleration_mean_m_s2": [0.3697200000000004, 0.8512400000000003, 9.789479999999987],
+      "acceleration_mean_norm_m_s2": 9.833372823522952,
+      "contact_mean": [1.0, 1.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "121b0cdea9903e3d5268bdba537e8119a1418af34c72794fa94cf1ebfbee6ff8",
+      "samples": 250,
+      "summary_sha256": "73d86db18c5b4688490ec0e81b6319460ef7ace1bd06007f11e1cdca12b487c5"
+    },
+    "left_contact": {
+      "acceleration_mean_m_s2": [0.36584000000000005, 0.8692399999999999, 9.789799999999982],
+      "acceleration_mean_norm_m_s2": 9.835120798607388,
+      "contact_mean": [1.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "3215514fc67034d70e4508881aebbe3eb92e5aef08206dbc8e24b4fe4d49e15a",
+      "samples": 250,
+      "summary_sha256": "da0cc5f12471df71925daf7a89f718c342d78859fd96a61e89d2d58cdce4018a"
+    },
+    "left_tilt": {
+      "acceleration_mean_m_s2": [0.09447999999999998, -7.883880000000014, 5.844839999999993],
+      "acceleration_mean_norm_m_s2": 9.814613846219327,
+      "contact_mean": [0.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "f10051fddcc1d2fdeed9ad7a1dffc07f1a83d0787d2613ac79508f0f8549b1e1",
+      "samples": 250,
+      "summary_sha256": "e5b28d712b53812c29af9a69c2ae097e5a13c01dd53d342d3ddec12de72733a6"
+    },
+    "no_contacts": {
+      "acceleration_mean_m_s2": [0.37384000000000017, 0.8821999999999988, 9.785879999999981],
+      "acceleration_mean_norm_m_s2": 9.832674130672673,
+      "contact_mean": [0.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "3e184171d1aca748af1051864e7ece88f911c2e06fe595db6cbe87d0ba4543f2",
+      "samples": 250,
+      "summary_sha256": "45d7a919ab9d6ca1c8b8bf25fb707b1ac68c6163fe7fcadf622b371b311937f1"
+    },
+    "nose_back": {
+      "acceleration_mean_m_s2": [6.855599999999994, 0.6408800000000006, 6.674919999999988],
+      "acceleration_mean_norm_m_s2": 9.589814155696645,
+      "contact_mean": [0.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "adf2ce54c17c80c51bd444b34919a376d243a63a998b59ea5658733c5549b498",
+      "samples": 250,
+      "summary_sha256": "3921b9777a2aa53e1a49ccb79599b9b056d50d9ccc9c7c756168d942fdbc3f3d"
+    },
+    "nose_forward": {
+      "acceleration_mean_m_s2": [-5.000639999999998, 0.7092399999999993, 8.423440000000006],
+      "acceleration_mean_norm_m_s2": 9.821596775514665,
+      "contact_mean": [0.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "0a4b20e63668413c3c0387d4abef1993e089e60bcbc0668b20b4ba1083010ac3",
+      "samples": 250,
+      "summary_sha256": "f25061de044dee1f63bd53aeba55a275a99119923128643f2c421f4ebe6dfd49"
+    },
+    "right_contact": {
+      "acceleration_mean_m_s2": [0.3661600000000003, 0.8699999999999999, 9.788519999999982],
+      "acceleration_mean_norm_m_s2": 9.833925815054721,
+      "contact_mean": [0.0, 1.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "3f8b1c6e97434ba1d3c6354946968bee46625bf81efabaa0808390b40cab5968",
+      "samples": 250,
+      "summary_sha256": "f717f05ade277a70fe9695099bc5b49e6de7439b617296b6783929b4981ba335"
+    },
+    "right_tilt": {
+      "acceleration_mean_m_s2": [0.4684399999999998, 7.208600000000009, 6.387440000000014],
+      "acceleration_mean_norm_m_s2": 9.64275581704734,
+      "contact_mean": [0.0, 0.0],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "e437b0d7d3bbce26fcd4de929435f2d5bfd528ad09a3d84a01a0e15aba663d95",
+      "samples": 250,
+      "summary_sha256": "3f696f9ee411e7767ccae734de38b5651f20958d829cd36fbfdb31dcbb5856a0"
+    },
+    "upright": {
+      "acceleration_mean_m_s2": [0.3847599999999998, 0.9170399999999999, 9.793600000000003],
+      "acceleration_mean_norm_m_s2": 9.843962798548157,
+      "contact_mean": [0.016, 0.016],
+      "contacts_stale_count": 0,
+      "imu_stale_count": 0,
+      "jsonl_sha256": "77861e4321f240364aea5c6f5eef83be8d31f6de2b5a8d837fb2dc222c56cd81",
+      "samples": 250,
+      "summary_sha256": "de9e4df38504e422146db6dfc276dafa51cf213fd04f50d0d37e639adc6174b3"
+    }
+  },
+  "orientation_deltas_m_s2": {
+    "nose_back_minus_forward_x": 11.856239999999993,
+    "right_minus_left_tilt_y": 15.092480000000023
+  },
+  "provenance": {
+    "board_gate3_review_sha256": "a76587b03fe866224efaf988cd596559e821c6635906a1a18180783e2495d457",
+    "board_sha256sums_sha256": "bde587fa93bffb1c81f1e0042ed4f944bf385d58b1dbeb41b1a6ee0886e94671",
+    "independent_current_validator_sha256": "f4198d91c0c3d0244e3a67802e728c33b05980c2677516b0187dc89f3a965e0a",
+    "runner_metadata_sha256": "978f90b22d2f81a9932c51f2e45edb3f819319a5a556cd2ad1916c5b9aa88ea2"
+  },
+  "raw_board_checksum_entries": 67,
+  "raw_board_checksum_failures": [],
+  "schema_version": "open_duck_x5.gate3_human_review.v1",
+  "status": "PASS_REVIEWED"
+}

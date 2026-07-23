@@ -1,0 +1,42 @@
+{
+  "authority": {
+    "gate5": false,
+    "robot_clearance": false,
+    "runtime_deployment": false
+  },
+  "checks": {
+    "all_manifest_hashes_and_sizes_match": true,
+    "disposition_requires_reviewed_115_v2": true,
+    "no_posthoc_single_checkpoint_selection": true,
+    "robot_clearance_false": true
+  },
+  "execution_provider": "CPUExecutionProvider",
+  "failures": [],
+  "manifest_sha256": "ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7",
+  "policies": [
+    {
+      "max_action_error": 8.940696716308594e-08,
+      "max_chain_error": 8.940696716308594e-08,
+      "max_state_error": 8.940696716308594e-08,
+      "nan_rejected": true,
+      "policy": "policies/T2_EQUAL_512000.onnx"
+    },
+    {
+      "max_action_error": 2.9802322387695312e-08,
+      "max_chain_error": 2.9802322387695312e-08,
+      "max_state_error": 2.9802322387695312e-08,
+      "nan_rejected": true,
+      "policy": "policies/T2_EQUAL_1024000.onnx"
+    }
+  ],
+  "policy_commit": "ad1cd8e9b9fdacd26a5453318411dafe423588b4",
+  "python": "3.12.10",
+  "runtime_versions": {
+    "numpy": "2.5.1",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.27.0"
+  },
+  "schema_version": "open_duck_x5.policy_handoff_package_check.v1",
+  "status": "PASS_CPU_HANDOFF_INSPECTION_BLOCKED_FOR_RUNTIME_REVIEW",
+  "tolerance": 1e-06
+}
