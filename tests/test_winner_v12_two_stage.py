@@ -81,6 +81,7 @@ class FakeSession:
         stage: str,
         providers: list[str] | None = None,
         hidden_step: float = 0.002,
+        action_increment: float | None = None,
         divergent_action_state: bool = False,
         nonfinite_call: int | None = None,
     ) -> None:
@@ -88,6 +89,9 @@ class FakeSession:
         self.stage = stage
         self.providers = providers or ["CPUExecutionProvider"]
         self.hidden_step = np.float32(hidden_step)
+        self.action_increment = (
+            None if action_increment is None else np.float32(action_increment)
+        )
         self.divergent_action_state = divergent_action_state
         self.nonfinite_call = nonfinite_call
         self.binding = FakeBinding()
@@ -114,7 +118,11 @@ class FakeSession:
         action = binding.outputs[self.spec.action.name]
         previous_out = binding.outputs[self.spec.previous_action_out.name]
         hidden_out = binding.outputs[self.spec.hidden_out.name]
-        increment = np.float32(0.001 if self.stage == "calibration" else 0.01)
+        increment = (
+            self.action_increment
+            if self.action_increment is not None
+            else np.float32(0.001 if self.stage == "calibration" else 0.01)
+        )
         np.add(previous, increment, out=action)
         np.copyto(previous_out, action)
         np.add(hidden, self.hidden_step, out=hidden_out)
@@ -229,6 +237,8 @@ def test_host_is_default_disabled_and_uses_only_prebound_cpu_sessions(
         monkeypatch, tmp_path, enabled=False, warmup_runs=1
     )
     assert host.enabled is False
+    assert calibrator.calls == 0
+    assert locomotion.calls == 0
     with pytest.raises(WinnerV12StateError, match="disabled"):
         host.stage_calibration(_observation())
     assert calibrator.requested_providers == ["CPUExecutionProvider"]
@@ -250,6 +260,13 @@ def test_host_is_default_disabled_and_uses_only_prebound_cpu_sessions(
         "previous_action_out",
         "h_out",
     }
+
+    enabled_host, enabled_calibrator, enabled_locomotion = _make_host(
+        monkeypatch, tmp_path / "explicitly-enabled", enabled=True, warmup_runs=1
+    )
+    assert enabled_host.enabled is True
+    assert enabled_calibrator.calls == 1
+    assert enabled_locomotion.calls == 1
 
 
 def test_two_stage_host_is_not_imported_by_production_or_hardware_modules() -> None:
@@ -519,6 +536,33 @@ def test_nonfinite_stage_output_and_out_of_range_context_never_arm_locomotion(
     assert second.handoff_complete is False
     with pytest.raises(WinnerV12StateError, match="faulted closed"):
         second.stage_locomotion(_observation())
+
+
+def test_graph_actions_are_never_deadbanded_or_clipped_by_the_host(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    host, _, _ = _make_host(monkeypatch, tmp_path / "delegated")
+    action = host.stage_calibration(_observation())
+    np.testing.assert_array_equal(
+        action, np.full(ACTION_DIM, 0.001, dtype=np.float32)
+    )
+    host.discard_calibration()
+
+    cal_spec = _calibrator_spec()
+    out_of_range = FakeSession(
+        cal_spec,
+        stage="calibration",
+        action_increment=1.5,
+    )
+    rejected, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "out-of-range-action",
+        calibrator_session=out_of_range,
+    )
+    with pytest.raises(WinnerV12ContractError, match=r"action is outside \[-1, 1\]"):
+        rejected.stage_calibration(_observation())
+    assert rejected.faulted is True
+    assert rejected.confirmed_calibration_ticks == 0
 
 
 def test_divergent_action_state_and_ambiguous_locomotion_commit_fail_closed(

@@ -475,11 +475,12 @@ class WinnerV12TwoStageHost:
         if type(enabled) is not bool:
             raise WinnerV12ContractError("enabled must be a literal bool")
         self._enabled = enabled
+        effective_warmup_runs = warmup_runs if enabled else 0
         self._calibrator = _BoundGraphSession(
-            calibrator, stage="calibration", warmup_runs=warmup_runs
+            calibrator, stage="calibration", warmup_runs=effective_warmup_runs
         )
         self._locomotion = _BoundGraphSession(
-            locomotion, stage="locomotion", warmup_runs=warmup_runs
+            locomotion, stage="locomotion", warmup_runs=effective_warmup_runs
         )
         self._calibration_context = np.zeros(CONTEXT_DIM, dtype=np.float32)
         self._confirmed_calibration_ticks = 0
