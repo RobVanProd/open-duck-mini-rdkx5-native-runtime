@@ -44,6 +44,9 @@ ALLOWED_WINNER_V2_CONSUMERS = {
     "winner_v2_cpu_preflight.py",
     "winner_v2_completion_audit.py",
 }
+ISOLATED_VERSIONED_CONSUMERS = {
+    "winner_v13_state_coherent.py": "WinnerV13StateCoherentTransaction",
+}
 FORBIDDEN_HARDWARE_IMPORT_ROOTS = {
     "gpiod",
     "serial",
@@ -89,6 +92,92 @@ def _import_target(node: ast.ImportFrom) -> str:
     return prefix + (node.module or "")
 
 
+def _has_false_keyword_default(
+    tree: ast.AST,
+    *,
+    class_name: str,
+    keyword: str,
+) -> bool:
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ClassDef) or node.name != class_name:
+            continue
+        for item in node.body:
+            if not isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if item.name != "__init__":
+                continue
+            for argument, default in zip(
+                item.args.kwonlyargs,
+                item.args.kw_defaults,
+                strict=True,
+            ):
+                if argument.arg == keyword:
+                    return isinstance(default, ast.Constant) and default.value is False
+    return False
+
+
+def _audit_isolated_versioned_consumers(source_root: Path) -> None:
+    for filename, class_name in ISOLATED_VERSIONED_CONSUMERS.items():
+        isolated_path = source_root / filename
+        if not isolated_path.is_file():
+            continue
+        try:
+            tree = ast.parse(
+                isolated_path.read_text(encoding="utf-8"),
+                filename=str(isolated_path),
+            )
+        except (OSError, SyntaxError) as exc:
+            raise WinnerV2CompletionAuditError(
+                f"could not parse isolated versioned host {filename}: {exc}"
+            ) from exc
+        _require(
+            _has_false_keyword_default(
+                tree,
+                class_name=class_name,
+                keyword="enabled",
+            ),
+            f"isolated versioned host {filename} is not default-disabled",
+        )
+        imported_roots: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported_roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                target = _import_target(node).lstrip(".")
+                if target:
+                    imported_roots.add(target.split(".", 1)[0])
+        forbidden = sorted(imported_roots & FORBIDDEN_HARDWARE_IMPORT_ROOTS)
+        _require(
+            not forbidden,
+            f"isolated versioned host {filename} imports hardware modules: {forbidden}",
+        )
+
+        consumers: list[str] = []
+        for path in sorted(source_root.rglob("*.py")):
+            if path == isolated_path:
+                continue
+            consumer_tree = ast.parse(
+                path.read_text(encoding="utf-8"),
+                filename=str(path),
+            )
+            for node in ast.walk(consumer_tree):
+                if isinstance(node, ast.Import) and any(
+                    alias.name == "open_duck_x5.winner_v13_state_coherent" for alias in node.names
+                ):
+                    consumers.append(path.name)
+                    break
+                if isinstance(node, ast.ImportFrom) and _import_target(node) in {
+                    ".winner_v13_state_coherent",
+                    "open_duck_x5.winner_v13_state_coherent",
+                }:
+                    consumers.append(path.name)
+                    break
+        _require(
+            consumers == [],
+            f"production modules import isolated versioned host {filename}: {consumers}",
+        )
+
+
 def _audit_default_disabled(root: Path) -> dict[str, Any]:
     source_root = root / "src/open_duck_x5"
     winner_path = source_root / "winner_v2.py"
@@ -112,6 +201,8 @@ def _audit_default_disabled(root: Path) -> dict[str, Any]:
     )
     _require(not forbidden_tokens, f"winner-v2 contains forbidden transforms: {forbidden_tokens}")
 
+    _audit_isolated_versioned_consumers(source_root)
+
     consumers: list[str] = []
     for path in sorted(source_root.rglob("*.py")):
         try:
@@ -131,6 +222,8 @@ def _audit_default_disabled(root: Path) -> dict[str, Any]:
                     "open_duck_x5.winner_v2",
                 }
         if imports_winner:
+            if path.name in ISOLATED_VERSIONED_CONSUMERS:
+                continue
             consumers.append(path.name)
             _require(
                 path.name in ALLOWED_WINNER_V2_CONSUMERS,
@@ -161,23 +254,19 @@ def audit_winner_v2_completion(*, repo_root: Path) -> dict[str, Any]:
         identities[relative_path] = actual
 
     runtime = _load_object(
-        root
-        / "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json",
+        root / "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json",
         "winner-v2 runtime verification",
     )
     full_chain = _load_object(
-        root
-        / "artifacts/gates/phase_5_policy/winner_v2_full_chain_verification_20260719.json",
+        root / "artifacts/gates/phase_5_policy/winner_v2_full_chain_verification_20260719.json",
         "winner-v2 full-chain verification",
     )
     freeze = _load_object(
-        root
-        / "artifacts/gates/phase_5_policy/winner_v2_final_asset_freeze_closure_20260719.json",
+        root / "artifacts/gates/phase_5_policy/winner_v2_final_asset_freeze_closure_20260719.json",
         "winner-v2 asset freeze closure",
     )
     hold = _load_object(
-        root
-        / "artifacts/gates/phase_5_policy/winner_v2_variable_configuration_hold_20260719.json",
+        root / "artifacts/gates/phase_5_policy/winner_v2_variable_configuration_hold_20260719.json",
         "winner-v2 configuration hold",
     )
 
@@ -192,8 +281,7 @@ def audit_winner_v2_completion(*, repo_root: Path) -> dict[str, Any]:
         "recursive numeric closure failed",
     )
     _require(
-        runtime.get("selected_policy", {}).get("sha256")
-        == WINNER_V2_SELECTED_POLICY_SHA256,
+        runtime.get("selected_policy", {}).get("sha256") == WINNER_V2_SELECTED_POLICY_SHA256,
         "selected policy identity changed",
     )
     faults = runtime.get("fault_injection")

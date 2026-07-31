@@ -42,10 +42,9 @@ def test_completion_audit_separates_offline_pass_from_pending_campaign() -> None
 
 def test_checked_in_completion_audit_matches_current_evidence() -> None:
     expected = json.loads(
-        Path(
-            "artifacts/gates/phase_5_policy/"
-            "winner_v2_completion_audit_20260719.json"
-        ).read_text(encoding="utf-8")
+        Path("artifacts/gates/phase_5_policy/winner_v2_completion_audit_20260719.json").read_text(
+            encoding="utf-8"
+        )
     )
 
     assert expected == audit_winner_v2_completion(repo_root=Path.cwd())
@@ -65,8 +64,7 @@ def test_completion_audit_rejects_coherently_unreviewed_artifact_change(
 ) -> None:
     root = _copy_inputs(tmp_path)
     result_path = (
-        root
-        / "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json"
+        root / "artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json"
     )
     result_path.write_bytes(result_path.read_bytes() + b" ")
 
@@ -82,4 +80,44 @@ def test_completion_audit_rejects_production_runtime_import(tmp_path: Path) -> N
     )
 
     with pytest.raises(WinnerV2CompletionAuditError, match="enables winner-v2"):
+        audit_winner_v2_completion(repo_root=root)
+
+
+def test_completion_audit_rejects_versioned_host_production_import(
+    tmp_path: Path,
+) -> None:
+    root = _copy_inputs(tmp_path)
+    source_root = root / "src/open_duck_x5"
+    shutil.copyfile(
+        "src/open_duck_x5/winner_v13_state_coherent.py",
+        source_root / "winner_v13_state_coherent.py",
+    )
+    (source_root / "runtime.py").write_text(
+        "from .winner_v13_state_coherent import WinnerV13StateCoherentTransaction\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(
+        WinnerV2CompletionAuditError,
+        match="production modules import isolated versioned host",
+    ):
+        audit_winner_v2_completion(repo_root=root)
+
+
+def test_completion_audit_rejects_versioned_host_default_enable(
+    tmp_path: Path,
+) -> None:
+    root = _copy_inputs(tmp_path)
+    source = Path("src/open_duck_x5/winner_v13_state_coherent.py").read_text(encoding="utf-8")
+    changed = source.replace("enabled: bool = False", "enabled: bool = True", 1)
+    assert changed != source
+    (root / "src/open_duck_x5/winner_v13_state_coherent.py").write_text(
+        changed,
+        encoding="utf-8",
+    )
+
+    with pytest.raises(
+        WinnerV2CompletionAuditError,
+        match="not default-disabled",
+    ):
         audit_winner_v2_completion(repo_root=root)
