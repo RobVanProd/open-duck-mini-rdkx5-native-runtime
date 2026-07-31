@@ -15,6 +15,10 @@ PREREGISTRATION = Path(
 )
 RUNNER = Path("tools/run_winner_v13_x5_compute_attribution.py")
 LAUNCHER = Path("setup/run_winner_v13_x5_compute_attribution.sh")
+REVIEW = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251a_x5_compute_attribution_review_20260731.json"
+)
 
 
 def load_runner_module() -> object:
@@ -140,3 +144,29 @@ def test_t251a_launcher_restores_governor_and_exposes_no_robot_path() -> None:
     assert 'taskset -c "$rt_cpu" chrt -f "$rt_priority"' in source
     assert "/dev/tty" not in source
     assert "enable-torque" not in source
+
+
+def test_t251a_review_attributes_both_failures_without_advancing() -> None:
+    assert hashlib.sha256(REVIEW.read_bytes()).hexdigest() == (
+        "7f63a03450474464b69a2298d5e3e0266f7877b3773fe0a7a368d64fd9c35959"
+    )
+    value = json.loads(REVIEW.read_text(encoding="utf-8"))
+    assert value["status"] == "PASS_T251A_X5_COMPUTE_ATTRIBUTION_REVIEW"
+    assert value["source_result"]["canonical_sha256"] == (
+        "8f6e6307bf082a33bc50774a1225a6c40f61259e6726ac604f3ff175293a90ce"
+    )
+    assert value["tail_attribution"]["status"] == (
+        "ATTRIBUTED_LINUX_RT_BANDWIDTH_THROTTLING"
+    )
+    assert value["steady_attribution"]["status"] == (
+        "ATTRIBUTED_PYTHON_HOST_OVERHEAD_WITH_GRAPH_FLOOR_GREEN"
+    )
+    assert value["decision"] == {
+        "next": "EARN_DEFAULT_OFF_BIT_EXACT_HOST_OPTIMIZATION_AND_PACED_CPU_SCREEN",
+        "threshold_change": False,
+        "t251_pass_claim": False,
+        "blind_t251_rerun": False,
+        "policy_training_earned": False,
+        "production_integration_earned": False,
+        "gate5_earned": False,
+    }

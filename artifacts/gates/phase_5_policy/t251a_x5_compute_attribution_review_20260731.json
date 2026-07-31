@@ -1,0 +1,145 @@
+{
+  "schema_version": "open_duck_x5.t251a_x5_compute_attribution_review.v1",
+  "status": "PASS_T251A_X5_COMPUTE_ATTRIBUTION_REVIEW",
+  "date": "2026-07-31",
+  "source_result": {
+    "status": "COMPLETE_T251A_X5_COMPUTE_ATTRIBUTION",
+    "checks_passed": 14,
+    "checks": 14,
+    "canonical_sha256": "8f6e6307bf082a33bc50774a1225a6c40f61259e6726ac604f3ff175293a90ce",
+    "file_sha256": "4d85c4091672f7f056908d4ea1fd15326ba08a72f465037e4b3d47dbbd061152",
+    "raw_ticks_bytes": 539897,
+    "raw_ticks_sha256": "882b268700f3b1f3fd3883238cad373fb6b0209de5a0cb45d795005e415628cb",
+    "board_source_commit": "eaec31060ef787a99431277ad0dbdaffd3b72b1a"
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "p30_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "semantic_checks": {
+    "full_host_gc_action_trace_sha256": "2696c4a5fd4a6653c0763ef24597875b017a8a9c409fe9f4bfd97a0500316888",
+    "gc_enabled_and_disabled_action_traces_byte_identical": true,
+    "exact_full_host_tick_chains": true,
+    "zero_measured_rate_excess": true,
+    "no_robot_modules": true,
+    "no_robot_device_descriptors": true,
+    "governor_restored_to_schedutil": true
+  },
+  "arm_stage_locomotion_ms": {
+    "full_host_gc_enabled": {
+      "p50": 2.957921,
+      "p95": 3.034963,
+      "p99": 3.1726745800000007,
+      "p99_9": 54.67347745800001,
+      "max": 54.903373,
+      "over_5ms": 32,
+      "involuntary_context_switches": 48,
+      "gc_collections": [0, 0, 0]
+    },
+    "full_host_gc_disabled": {
+      "p50": 2.9366505,
+      "p95": 3.00071205,
+      "p99": 3.0984730000000003,
+      "p99_9": 54.63024041600001,
+      "max": 54.744246,
+      "over_5ms": 29,
+      "involuntary_context_switches": 46,
+      "gc_collections": [0, 0, 0]
+    },
+    "graph_only_gc_disabled": {
+      "p50": 1.511961,
+      "p95": 1.56525505,
+      "p99": 1.61121475,
+      "p99_9": 53.163668374000004,
+      "max": 53.270952,
+      "over_5ms": 16,
+      "involuntary_context_switches": 25,
+      "gc_collections": [0, 0, 0]
+    },
+    "component_profile_gc_disabled": {
+      "p50": 3.028046,
+      "p95": 3.0913359000000002,
+      "p99": 3.2313500199999994,
+      "p99_9": 54.74825962500001,
+      "max": 54.807204,
+      "over_5ms": 7,
+      "involuntary_context_switches": 10,
+      "gc_collections": [0, 0, 0]
+    }
+  },
+  "component_profile_ms": {
+    "observation": {
+      "p50": 0.6681885000000001,
+      "p95": 0.6946344499999999,
+      "p99": 0.70705003
+    },
+    "onnx": {
+      "p50": 1.5756895000000002,
+      "p95": 1.6310563,
+      "p99": 1.69019251
+    },
+    "target_pipeline": {
+      "p50": 0.377376,
+      "p95": 0.39342819999999995,
+      "p99": 0.4120850099999999
+    },
+    "observer": {
+      "p50": 0.3061465,
+      "p95": 0.317208,
+      "p99": 0.33961077
+    },
+    "residual_host": {
+      "p50": 0.097792,
+      "p95": 0.102736,
+      "p99": 0.12660679
+    }
+  },
+  "tail_attribution": {
+    "status": "ATTRIBUTED_LINUX_RT_BANDWIDTH_THROTTLING",
+    "evidence": {
+      "kernel_sched_rt_runtime_us": 950000,
+      "kernel_sched_rt_period_us": 1000000,
+      "runner_was_unpaced": true,
+      "gc_collections_in_all_arms": 0,
+      "stall_duration_range_ms": [43.18977, 54.903373],
+      "graph_only_event_spacing_s_typical": [0.935080136, 0.956415],
+      "full_host_event_spacing_s_typical": [0.953923802, 0.977318],
+      "spacing_occurs_at_one_second_period_or_integer_multiples": true,
+      "over_5ms_events_track_involuntary_context_switches": true
+    },
+    "interpretation": "The back-to-back SCHED_FIFO diagnostic exhausted Linux's 950 ms per 1 s RT runtime budget and was throttled for the reserved non-RT interval. A real 50 Hz loop does not consume that budget continuously. The corrected runner must preserve 20 ms pacing; no latency limit changes."
+  },
+  "steady_attribution": {
+    "status": "ATTRIBUTED_PYTHON_HOST_OVERHEAD_WITH_GRAPH_FLOOR_GREEN",
+    "evidence": {
+      "graph_only_p99_ms": 1.61121475,
+      "full_host_gc_disabled_p99_ms": 3.0984730000000003,
+      "t251_p99_limit_ms": 2.0,
+      "host_component_p50_sum_ms": 1.449503,
+      "onnx_component_p50_ms": 1.5756895000000002
+    },
+    "interpretation": "The exact T247 ONNX graph is below the frozen 2 ms p99 limit by itself. Observation assembly, the target pipeline, and the P30 observer must be optimized without changing any numeric state or ABI before a corrected gate is earned."
+  },
+  "decision": {
+    "next": "EARN_DEFAULT_OFF_BIT_EXACT_HOST_OPTIMIZATION_AND_PACED_CPU_SCREEN",
+    "threshold_change": false,
+    "t251_pass_claim": false,
+    "blind_t251_rerun": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "policy_deployed": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

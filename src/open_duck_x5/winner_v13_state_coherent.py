@@ -389,11 +389,72 @@ class _StateCoherentGraphSession:
             OBSERVATION_DIM,
             f"{self.stage_name} observation",
         )
+        return self.stage_prevalidated(observation)
+
+    def stage_prevalidated(self, observation: np.ndarray) -> np.ndarray:
+        """Stage a caller-validated exact observation without a second finite scan."""
+
+        if self._pending:
+            raise WinnerV13StateError(f"{self.stage_name} graph already has staged state")
+        if not isinstance(observation, np.ndarray):
+            raise WinnerV13ContractError(
+                f"{self.stage_name} prevalidated observation must be a numpy.ndarray"
+            )
+        if observation.shape != (OBSERVATION_DIM,) or observation.dtype != np.dtype(np.float32):
+            raise WinnerV13ContractError(
+                f"{self.stage_name} prevalidated observation must be float32 shape "
+                f"({OBSERVATION_DIM},), got {observation.dtype} {observation.shape}"
+            )
         np.copyto(self._observation[0], observation)
         self._scrub_staged()
         try:
             self.session.run_with_iobinding(self._binding)
             self._validate_staged_outputs(f"{self.stage_name} inference")
+        except Exception:
+            self._scrub_staged()
+            self._pending = False
+            raise
+        self._pending = True
+        return self._staged_action_view
+
+    def stage_prevalidated_fast(self, observation: np.ndarray) -> np.ndarray:
+        """Stage an exact trusted observation with the minimal equivalent checks."""
+
+        if self._pending:
+            raise WinnerV13StateError(f"{self.stage_name} graph already has staged state")
+        if (
+            not isinstance(observation, np.ndarray)
+            or observation.shape != (OBSERVATION_DIM,)
+            or observation.dtype != np.dtype(np.float32)
+        ):
+            raise WinnerV13ContractError(
+                f"{self.stage_name} trusted observation must be float32 shape "
+                f"({OBSERVATION_DIM},)"
+            )
+        np.copyto(self._observation[0], observation)
+        self._scrub_staged()
+        try:
+            self.session.run_with_iobinding(self._binding)
+            if not bool(np.array_equal(self._action, self._previous_action_out)):
+                error = float(np.max(np.abs(self._action - self._previous_action_out)))
+                raise WinnerV13ContractError(
+                    f"{self.stage_name} inference action/previous-action chain "
+                    f"diverged by {error}"
+                )
+            np.isfinite(self._action, out=self._action_finite)
+            np.isfinite(self._hidden_out, out=self._hidden_out_finite)
+            if not bool(self._action_finite.all()) or not bool(self._hidden_out_finite.all()):
+                raise WinnerV13ContractError(
+                    f"{self.stage_name} inference produced a non-finite output"
+                )
+            np.less(self._action, -1.0, out=self._action_range_bad)
+            below = bool(self._action_range_bad.any())
+            np.greater(self._action, 1.0, out=self._action_range_bad)
+            if below or bool(self._action_range_bad.any()):
+                raise WinnerV13ContractError(
+                    f"{self.stage_name} inference action is outside [-1, 1]: "
+                    f"min={float(np.min(self._action))}, max={float(np.max(self._action))}"
+                )
         except Exception:
             self._scrub_staged()
             self._pending = False

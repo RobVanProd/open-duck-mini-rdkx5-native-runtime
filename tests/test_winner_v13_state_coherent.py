@@ -19,12 +19,19 @@ from open_duck_x5.winner_v13_state_coherent import (
     GraphAsset,
     GraphSpec,
     P30FitAsset,
+    StateCoherentP30Observer,
+    StateCoherentTargetPipeline,
     TensorSpec,
     WinnerV13ContractError,
     WinnerV13SendError,
     WinnerV13StateCoherentTransaction,
     WinnerV13StateError,
     exact_allowlist,
+)
+from tools.winner_v14_optimized import (
+    WinnerV14X5OptimizedTransaction,
+    X5OptimizedP30Observer,
+    X5OptimizedTargetPipeline,
 )
 
 FROZEN_SOURCE_SHA256 = {
@@ -169,7 +176,9 @@ def _make_host(
     tmp_path: Path,
     *,
     enabled: bool = True,
+    host_type: type[WinnerV13StateCoherentTransaction] = WinnerV13StateCoherentTransaction,
 ) -> tuple[WinnerV13StateCoherentTransaction, FakeSession, FakeSession]:
+    tmp_path.mkdir(parents=True, exist_ok=True)
     cal_spec = _calibrator_spec()
     loco_spec = _locomotion_spec()
     cal_session = FakeSession(cal_spec, stage="calibration")
@@ -186,7 +195,7 @@ def _make_host(
         },
     )
     fit = _fit(tmp_path)
-    host = WinnerV13StateCoherentTransaction(
+    host = host_type(
         calibrator=GraphAsset(
             calibrator_path,
             cal_spec,
@@ -452,3 +461,102 @@ def test_home_return_is_structurally_absent() -> None:
     assert HOME_RETURN_TICKS == 0
     assert not hasattr(WinnerV13StateCoherentTransaction, "stage_home_return")
     assert not hasattr(WinnerV13StateCoherentTransaction, "commit_home_return")
+
+
+def test_x5_optimized_transaction_is_bit_exact_to_winner_v13(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    baseline, _, _ = _make_host(monkeypatch, tmp_path / "baseline")
+    optimized, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "optimized",
+        host_type=WinnerV14X5OptimizedTransaction,
+    )
+    for tick in range(CALIBRATION_TICKS):
+        baseline_target = _stage(baseline, tick)
+        optimized_target = _stage(optimized, tick)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+        np.testing.assert_array_equal(optimized.observer.value_view, baseline.observer.value_view)
+    baseline.confirm_calibration_handoff(True)
+    optimized.confirm_calibration_handoff(True)
+    np.testing.assert_array_equal(optimized.calibration_context, baseline.calibration_context)
+    for local_tick in range(50):
+        tick = CALIBRATION_TICKS + local_tick
+        baseline_target = _stage(baseline, tick, 0.074)
+        optimized_target = _stage(optimized, tick, 0.074)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+        np.testing.assert_array_equal(optimized.observer.value_view, baseline.observer.value_view)
+
+
+def test_x5_optimized_p30_is_bit_exact_for_mixed_delay_tau_and_velocity(
+    tmp_path: Path,
+) -> None:
+    joints: dict[str, object] = {}
+    for index, name in enumerate(winner_v2.JOINT_NAMES):
+        joints[name] = {
+            "combined": {
+                "delay_ticks": index % 4,
+                "tau_s": 0.0 if index % 3 == 0 else 0.025 + index * 0.001,
+                "velocity_limit_rad_s": 1.0 + index * 0.25,
+            }
+        }
+    path = tmp_path / "mixed-p30.json"
+    path.write_text(json.dumps({"primary": {"joints": joints}}), encoding="utf-8")
+    asset = P30FitAsset(path, frozenset({_sha256(path)}))
+    baseline = StateCoherentP30Observer(asset)
+    optimized = X5OptimizedP30Observer(asset)
+    rng = np.random.default_rng(251)
+    for tick in range(2000):
+        target = (
+            winner_v2.WINNER_V2_HOME_RAD
+            + rng.uniform(-0.2, 0.2, ACTION_DIM).astype(np.float32)
+        )
+        baseline.stage_confirmed_target(target)
+        optimized.stage_confirmed_target(target)
+        if tick % 17 == 0:
+            baseline.discard_staged()
+            optimized.discard_staged()
+        else:
+            baseline.commit_staged()
+            optimized.commit_staged()
+            np.testing.assert_array_equal(optimized.value_view, baseline.value_view)
+
+
+def test_x5_optimized_target_pipeline_is_bit_exact() -> None:
+    baseline = StateCoherentTargetPipeline()
+    optimized = X5OptimizedTargetPipeline()
+    rng = np.random.default_rng(252)
+    offsets = np.linspace(-0.001, 0.001, ACTION_DIM, dtype=np.float64)
+    for tick in range(2000):
+        action = rng.uniform(-1.0, 1.0, ACTION_DIM).astype(np.float32)
+        baseline_target = baseline.stage(action, offsets, mode="calibration")
+        optimized_target = optimized.stage(action, offsets, mode="calibration")
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        np.testing.assert_array_equal(
+            optimized.sent_logical_target_rad,
+            baseline.sent_logical_target_rad,
+        )
+        np.testing.assert_array_equal(
+            optimized.graph_rate_excess_rad_s,
+            baseline.graph_rate_excess_rad_s,
+        )
+        if tick % 19 == 0:
+            baseline.discard_staged()
+            optimized.discard_staged()
+        else:
+            baseline.commit_staged()
+            optimized.commit_staged()
