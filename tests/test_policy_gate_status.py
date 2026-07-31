@@ -11,7 +11,7 @@ def _status() -> dict[str, object]:
     return json.loads(STATUS.read_text(encoding="utf-8"))
 
 
-def test_policy_gate_status_is_fail_closed_while_t237_is_partial() -> None:
+def test_policy_gate_status_is_fail_closed_after_t237_failure() -> None:
     status = _status()
     t237 = status["gates"]["t237_full_r2"]
     authority = status["authority"]
@@ -19,13 +19,17 @@ def test_policy_gate_status_is_fail_closed_while_t237_is_partial() -> None:
     assert status["schema_version"] == (
         "open_duck.runtime_policy_gate_status.v1"
     )
-    assert status["status"] == "T237_FULL_R2_IN_PROGRESS"
-    assert t237["status"] == "IN_PROGRESS"
-    assert t237["completed_conditions"] == 10
+    assert status["status"] == "T237_FULL_R2_FAILED"
+    assert t237["status"] == "FAIL"
+    assert t237["completed_conditions"] == 17
     assert t237["expected_conditions"] == 20
-    assert t237["green_completed_cells"] == 160
-    assert t237["completed_cells"] == 160
+    assert t237["green_completed_cells"] == 256
+    assert t237["completed_cells"] == 272
     assert t237["maximum_cells"] == 320
+    assert t237["first_failed_condition"] == "HOME_JOINT_OFFSET_NEG"
+    assert t237["decision"] == (
+        "CLOSE_EXACT_LOW_COMMAND_HEAD_ROUTE_AT_FIRST_FAILED_R2_CONDITION"
+    )
     assert status["gates"]["t238_deployment_contract_audit"] == (
         "NOT_PREREGISTERED"
     )
@@ -66,5 +70,5 @@ def test_policy_gate_status_points_to_the_evidence_archive() -> None:
         "https://github.com/RobVanProd/open-duck-mini-rdkx5"
     )
     assert evidence["branch"] == "codex/winner-v4-response-contract"
-    assert evidence["branch_head"] == "0058ac51"
+    assert evidence["branch_head"] == "bdb35e21"
     assert evidence["local_remote_divergence_after_push"] == [0, 0]

@@ -6,9 +6,9 @@ preserved in
 
 ## Current decision
 
-Status: `T237_FULL_R2_IN_PROGRESS - GATE_5_BLOCKED`
+Status: `T237_FULL_R2_FAILED - CANDIDATE_CLOSED - GATE_5_BLOCKED`
 
-The selected offline candidate is the T234B exact low-command route. It keeps
+The evaluated offline candidate was the T234B exact low-command route. It keeps
 each checkpoint's own policy head at `x=0.0`, `0.077`, and `0.080`, and uses
 the paired final checkpoint's head only at the exact float32 command
 `x=0.074`. This is a uniform deterministic graph transform, not checkpoint
@@ -19,13 +19,14 @@ Evidence already green:
 - T234B ONNX/ABI and bit-exact route contract;
 - T235 fresh nominal matrix: `16/16`;
 - T236 fresh former-blocker upper-Z matrix: `16/16`; and
-- T237 full R2 restart: `10/20` complete conditions, `160/160` completed cells
-  green as of 2026-07-30.
+- T237 conditions 1-16: `256/256` cells green; and
+- T237 condition 17, `HOME_JOINT_OFFSET_NEG`: `0/16`, terminal failure.
 
-The complete T237 decision still requires all `20 x 16 = 320` cells. Both
-checkpoints, both measured actuator fits, and commands
-`0.0/0.074/0.077/0.080` remain mandatory. The sequence stops at the first
-complete failed condition. No retry is allowed.
+Condition 17 shifted the modeled home joint positions by `-0.03 rad`. Every
+`x=0` cell held for the full duration, while every moving-command cell fell
+across both checkpoints and both measured actuator fits. Saturation and rate
+excess remained zero. T237 stopped at that first failed condition as
+preregistered; the exact low-command route is closed with no retry.
 
 ## Candidate ABI
 
@@ -55,10 +56,12 @@ been selected or copied into this repository.
 
 ## Next decision sequence
 
-1. Complete T237 sequential full R2.
-2. If and only if T237 passes all 20 conditions, preregister and run T238
-   offline deployment-contract audit.
-3. If and only if T238 passes, produce the minimal runtime-v2 handoff packet:
+1. Diagnose the home/calibration-alignment failure using the frozen T237
+   traces and CPU-only counterfactuals.
+2. Preregister a successor only if that diagnosis identifies a falsifiable
+   mechanism; do not retrain or rerun T237.
+3. Only after a successor passes the full offline gate may it proceed to a
+   deployment-contract audit and produce the minimal runtime-v2 handoff:
    graph receipts, ABI manifest, state/reset semantics, command-route contract,
    frozen observation golden vectors, and rollback information.
 4. Gate 5 remains separately authorized hardware work.

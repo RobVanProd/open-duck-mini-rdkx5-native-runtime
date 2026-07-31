@@ -1,17 +1,17 @@
 # Policy Deployment Status
 
-Status date: 2026-07-30
+Status date: 2026-07-31
 
 ## Executive status
 
-`CANDIDATE_EVALUATION_IN_PROGRESS - ROBOT_CLEARANCE_FALSE - GATE_5_NOT_RUN`
+`CANDIDATE_CLOSED - ROBOT_CLEARANCE_FALSE - GATE_5_NOT_RUN`
 
-The T234B exact low-command route is the active candidate. It is the first
-candidate in this workstream to pass its exact graph contract, a fresh nominal
-matrix, the former upper-Z blocker, and the first ten conditions of a fresh
-full R2 restart without hosted training.
+The T234B exact low-command route passed its exact graph contract, a fresh
+nominal matrix, the former upper-Z blocker, and the first 16 conditions of a
+fresh full R2 restart without hosted training. It then failed condition 17,
+the `-0.03 rad` home-joint-offset condition, in all 16 cells.
 
-This is encouraging but not a deployment decision.
+The route is closed and cannot advance to the deployment-contract audit.
 
 ## Evidence summary
 
@@ -20,7 +20,7 @@ This is encouraging but not a deployment decision.
 | T234B exact route contract | `PASS` |
 | T235 nominal matrix | `16/16 PASS` |
 | T236 upper-Z blocker matrix | `16/16 PASS` |
-| T237 sequential full R2 | `10/20 conditions; 160/160 completed cells green` |
+| T237 sequential full R2 | `FAIL at condition 17; 256/272 cells green` |
 | T238 deployment-contract audit | `NOT_PREREGISTERED` |
 | RDK-X5 CPU preflight for this candidate | `NOT_RUN` |
 | Gate 5 | `NOT_RUN` |
@@ -28,10 +28,10 @@ This is encouraging but not a deployment decision.
 T237 contract SHA-256:
 `b26a4e5471992f5a2252a9c37cafdf802d5df7d5f8a3c9c1946a3f7cec9fe56b`
 
-T237 progress artifact SHA-256 after condition 10:
-`18b334b1e09ff564763b96ae73753e85b4c1ae10a14a10160561a035d5922601`
+T237 terminal result SHA-256:
+`119e2d3fbfd63c096f4db44509bc9329b1ba1f441c122e81ce514c810956943b`
 
-Completed conditions:
+Green conditions:
 
 1. floor friction `0.5`;
 2. floor friction `1.0`;
@@ -41,12 +41,24 @@ Completed conditions:
 6. armature scale `1.05x`;
 7. torso center of mass X offset `-0.05 m`;
 8. torso center of mass X offset `+0.05 m`;
-9. torso center of mass Y offset `-0.05 m`; and
-10. torso center of mass Y offset `+0.05 m`.
+9. torso center of mass Y offset `-0.05 m`;
+10. torso center of mass Y offset `+0.05 m`;
+11. torso center of mass Z offset `-0.05 m`;
+12. torso center of mass Z offset `+0.05 m`;
+13. all-link mass scale `0.9x`;
+14. all-link mass scale `1.1x`;
+15. torso mass addition `-0.1 kg`; and
+16. torso mass addition `+0.1 kg`.
 
 Each condition contains both checkpoints, both measured actuator fits, and all
-four commands. All 160 completed cells passed duration, gait, tracking, rate,
-saturation, and protection rules.
+four commands. All 256 cells in conditions 1-16 passed duration, gait,
+tracking, rate, saturation, and protection rules.
+
+Condition 17 applied a uniform `-0.03 rad` modeled home-joint offset. In all
+four checkpoint/actuator-fit blocks, `x=0` held for the full 12 seconds while
+the three moving commands fell. The failures had zero action saturation and
+zero rate-limit excess. This localizes the blocker to home/calibration
+alignment rather than an overly aggressive command or one actuator fit.
 
 ## Why GitHub previously looked idle
 
@@ -64,7 +76,6 @@ surface. See [`REPOSITORY_BOUNDARIES.md`](REPOSITORY_BOUNDARIES.md).
 
 ## Advance rule
 
-No deployment work advances from partial T237 evidence. All 20 conditions must
-pass, then T238 must be preregistered and pass. Only then may a runtime-v2
-policy handoff be called deployment-ready. Gate 5 still requires its own
-explicit hardware authorization.
+T237 stopped at its first failed condition as preregistered. T238 is not
+preregistered, the RDK-X5 CPU preflight is not run, and Gate 5 remains closed.
+A successor policy mechanism must first earn and pass a new offline contract.
