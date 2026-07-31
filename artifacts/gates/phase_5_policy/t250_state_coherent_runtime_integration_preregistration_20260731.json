@@ -1,0 +1,125 @@
+{
+  "schema_version": "open_duck_x5.t250_state_coherent_runtime_integration_preregistration.v1",
+  "status": "PREREGISTERED_OFFLINE_RUNTIME_INTEGRATION",
+  "date": "2026-07-31",
+  "question": "Can a default-disabled versioned 115-D runtime transaction reproduce T250's exact two-stage calibration handoff without changing the frozen 101-D path?",
+  "upstream": {
+    "repository": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
+    "branch": "codex/winner-v4-response-contract",
+    "commit": "0e30abde836293e696b80c15522c2881b6b9d29b",
+    "t250_status": "PASS_T250_OFFLINE_DEPLOYMENT_CONTRACT_AUDIT",
+    "t250_decision": "EARN_VERSIONED_RDKX5_STATE_COHERENT_INTEGRATION_PREREGISTRATION_ONLY",
+    "t250_result_sha256": "4f6608dc03d86f50877ab925fd4ab19df43fa9d2b1a8026d2c109ff592a47fed",
+    "t250_result_file_sha256": "9a908be4b36d8252c9c6ecd3683d38467c5125eae4aade9b4ab83cdac90929a1",
+    "handoff_sha256": "2193553f414efd143426e1c2201fadbb790083df14762b163ff39567f92b2dac",
+    "handoff_file_sha256": "a72ce945eba873d1f8562547892f335986265bef88c03ca20081df69eaaedff9",
+    "full_r2": {
+      "conditions": 20,
+      "green_cells": 320,
+      "cells": 320,
+      "checkpoints": 2,
+      "measured_actuator_fits": 2,
+      "commands_x_m_s": [0.0, 0.074, 0.077, 0.08]
+    }
+  },
+  "assets": {
+    "deployment_policy": {
+      "role": "terminal checkpoint selected by frozen step rule",
+      "step": 2007040,
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "persistence_witness": {
+      "step": 1003520,
+      "bytes": 993875,
+      "sha256": "21c714b0cbe30e43233f6a29d6ccfa058c550f28fab3dd836a73a6015b73f8f2"
+    },
+    "calibrator": {
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    },
+    "p31_34_fit_role": "robustness evidence only; never switches the runtime observer"
+  },
+  "frozen_existing_sources": {
+    "src/open_duck_x5/winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
+    "src/open_duck_x5/winner_v12_two_stage.py": "231d76ed15611447a9215b22252a3e8754dc8a378cc3166f870f81b5d7dca25d",
+    "tests/test_winner_v2.py": "c174785969050eb6006166d6896219ace369695db1d2196a25f315d45faf3874",
+    "tests/test_winner_v12_two_stage.py": "d4f6e89c1afb64a088aeb5a4b04c4b7dd6d373066cdebe44e9510361b254b045"
+  },
+  "implementation_contract": {
+    "new_module": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "new_tests": "tests/test_winner_v13_state_coherent.py",
+    "enabled_default": false,
+    "production_cli_import": false,
+    "hardware_import": false,
+    "serial_gpio_i2c_or_torque_access": false,
+    "observation_dim": 115,
+    "action_dim": 14,
+    "calibration_ticks": 250,
+    "home_return_ticks": 0,
+    "calibration_observation": {
+      "command_6_13": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "phase_99_101": [1.0, 0.0],
+      "reference_101_115": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    },
+    "handoff": {
+      "physical_sensor_and_joint_state": "preserved",
+      "p30_observer_state": "preserved",
+      "first_observation_action_history": "final three calibrator actions",
+      "locomotion_previous_action": "final calibrator previous_action_out",
+      "locomotion_hidden": "exact zero",
+      "calibration_context": "final calibrator h_out, immutable",
+      "locomotion_phase": [1.0, 0.0]
+    },
+    "target_pipeline": {
+      "calibration": "apply inherited 5.24 rad/s absolute-target slew exactly",
+      "locomotion": "require inherited slew to be identity and enforce graph measured-rate envelope",
+      "observer_input": "confirmed post-slew logical target",
+      "soft_offsets": "apply only after logical target and observer update"
+    },
+    "transaction": "graph state, target history, action history, observer, and phase commit only after literal True send confirmation",
+    "stale_input": "reject the tick before inference",
+    "ambiguous_send": "discard staged state and fault closed"
+  },
+  "pass_rule": {
+    "frozen_sources_unchanged": true,
+    "new_path_not_imported_by_production_runtime": true,
+    "exact_graph_abis_and_hash_allowlists": true,
+    "250_tick_calibration_and_zero_tick_home_return": true,
+    "first_two_locomotion_observations_match_boundary semantics": true,
+    "discard_and_fault_paths_preserve_committed_state": true,
+    "stale_samples_never_reach_inference": true,
+    "cpu_only_fake_and_real_onnx_chain_tests": true,
+    "full_repository_tests_green": true
+  },
+  "decision_rule": {
+    "pass": "EARN_NO_MOTION_X5_CPU_PREFLIGHT_PREREGISTRATION_ONLY",
+    "fail": "HOLD_VERSIONED_RUNTIME_INTEGRATION",
+    "gate5_on_pass": false,
+    "policy_staging_on_pass": false,
+    "robot_on_pass": false
+  },
+  "execution_now": {
+    "policy_binaries_copied": 0,
+    "simulator_steps": 0,
+    "optimizer_steps": 0,
+    "hosted_compute_units": 0,
+    "rdkx5_or_robot_access": 0
+  },
+  "authority": {
+    "offline_implementation_and_tests": true,
+    "policy_binary_staging": false,
+    "x5_execution": false,
+    "gate5": false,
+    "robot_motion": false,
+    "grounded_replay": false
+  }
+}
