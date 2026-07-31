@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_PREREGISTERED",
+  "status": "T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_HOLD_P99",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -143,7 +143,20 @@
       "result_sha256": "7b4b4b015f2bb69323bb2cf1d794d94817a3e977a09306f11c91cc59fa313595",
       "artifact_file_sha256": "c33906f75cceb746b46e2b331fe13a71d4fc246fafcaa0b5e72d871d32ccfb27",
       "x5_screen_preregistration_sha256": "ac4b05540c51cafd669d14d380d2a6c432fbbf5dc093feec2fb1208e0e7710d8",
-      "x5_screen_status": "PREREGISTERED_NOT_RUN",
+      "x5_screen_status": "HOLD_P99",
+      "x5_screen_checks_passed": 17,
+      "x5_screen_checks": 18,
+      "x5_screen_failed_checks": [
+        "stage_p99_within_reserve"
+      ],
+      "x5_stage_latency_ms": {
+        "p99": 2.03906,
+        "p99_9": 2.4417013490000015,
+        "max": 2.517046
+      },
+      "x5_screen_result_sha256": "3fdc034f7bb23c689332e7f5f020191fcae993f06a20f39f33574420638056d3",
+      "x5_screen_artifact_file_sha256": "556790fcf338003e05787a9a5c9bc1164c537999fe2f5f1fd8b8901dc8cd91e1",
+      "next_measured_component": "target",
       "t251b_earned": false
     },
     "opt_in_production_integration": "NOT_PREREGISTERED",
@@ -152,11 +165,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 441
+      "passed": 443
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 182
+      "entries": 184
     }
   },
   "authority": {

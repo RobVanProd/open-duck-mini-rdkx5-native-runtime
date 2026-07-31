@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A4_X5_RESERVED_SCREEN_PREREGISTERED - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A4_X5_RESERVED_SCREEN_HOLD_P99 - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -78,12 +78,21 @@ a confirmed send and before state commit. The real-asset CPU contract is green
 for all `2,298` ticks, one exact handoff, and zero rate excess; the frozen T247
 policy and every observation/action/target semantic are unchanged.
 
-One no-device X5 screen is now preregistered. It first compares predecessor and
-corrected hosts byte-for-byte with zero timing selection weight, then times only
-the corrected host at 20 ms releases against the unchanged `1.8/2.5/4.0 ms`
-reserve. There is no rerun and no threshold adjustment. Passing earns only a
-T251B preregistration; production integration, policy staging, Hardware Gate 5,
-torque, and motion remain unearned and unrun.
+The one no-device T251A4 X5 screen completed without a rerun. Its semantic arm
+passed every `2,298` tick byte comparison, reproduced the exact frozen action
+trace, showed zero rate excess, and opened no robot interface. The corrected
+single host passed p99.9 at `2.441701 ms` and max at `2.517046 ms`, but p99
+`2.039060 ms` missed the unchanged `1.8 ms` reserve. The graph-host correction
+is therefore closed and T251B remains unearned.
 
-Local validation at this handoff is green: `441` tests pass and the `182`-entry
+The correction was still material: versus T251A3, p50 fell by `0.140313 ms`
+and p99 by `0.287740 ms`. With immutable ONNX and the closed graph-host work
+excluded, the next largest unchanged measured component is target construction
+at `0.211167 ms` median. The only earned next work is a local CPU contract for
+one target-only, default-disabled correction. It cannot run on the X5 until
+that contract independently passes. Thresholds remain frozen; production
+integration, policy staging, Hardware Gate 5, torque, and motion remain
+unearned and unrun.
+
+Local validation at this handoff is green: `443` tests pass and the `184`-entry
 reviewed-artifact manifest verifies.

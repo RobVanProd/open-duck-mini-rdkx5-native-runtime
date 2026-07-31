@@ -13,6 +13,14 @@ PREREGISTRATION = Path(
 )
 RUNNER = Path("tools/run_winner_v15_x5_reserved_screen.py")
 LAUNCHER = Path("setup/run_winner_v15_x5_reserved_screen.sh")
+RESULT = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251a4_x5_graph_host_reserved_screen_result_20260731.json"
+)
+REVIEW = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251a4_x5_graph_host_reserved_screen_review_20260731.json"
+)
 
 
 def test_t251a4_x5_screen_is_exactly_preregistered_and_cannot_deploy() -> None:
@@ -118,3 +126,55 @@ def test_t251a4_x5_launcher_restores_governor_and_exposes_no_robot_path() -> Non
     assert "--hardware-authorized" not in source
     assert "--suspended-or-benched" not in source
     assert "enable-torque" not in source
+
+
+def test_t251a4_x5_result_is_exact_hold_with_only_p99_failed() -> None:
+    assert hashlib.sha256(RESULT.read_bytes()).hexdigest() == (
+        "556790fcf338003e05787a9a5c9bc1164c537999fe2f5f1fd8b8901dc8cd91e1"
+    )
+    value = json.loads(RESULT.read_text(encoding="utf-8"))
+    assert value["status"] == "HOLD_T251A4_X5_GRAPH_HOST_RESERVED_SCREEN"
+    assert value["result_sha256"] == (
+        "3fdc034f7bb23c689332e7f5f020191fcae993f06a20f39f33574420638056d3"
+    )
+    assert value["failed_checks"] == ["stage_p99_within_reserve"]
+    assert sum(value["checks"].values()) == 17
+    assert value["semantic_passed"] is True
+    assert value["reference_reserve_passed"] is False
+    semantic = value["semantic_arm"]
+    assert semantic["mismatch"] is None
+    assert semantic["predecessor_action_trace_sha256"] == semantic[
+        "corrected_action_trace_sha256"
+    ]
+    assert semantic["maximum_rate_excess_rad_s"] == 0.0
+    timing = value["timing_arm"]["stage_locomotion"]
+    assert timing["p99_ms"] == 2.03906
+    assert timing["p99_9_ms"] == 2.4417013490000015
+    assert timing["max_ms"] == 2.517046
+    assert value["decision"] == "CLOSE_GRAPH_HOST_CORRECTION_WITHOUT_T251B"
+    assert value["authority"]["t251b_earned"] is False
+    assert value["authority"]["policy_deployed"] is False
+    assert value["authority"]["torque"] is False
+    assert value["authority"]["motion"] is False
+    assert value["authority"]["gate5"] is False
+
+
+def test_t251a4_review_closes_graph_host_and_selects_only_target_next() -> None:
+    assert hashlib.sha256(REVIEW.read_bytes()).hexdigest() == (
+        "e856ccce28a051d96b4fd4b2879ff2fec5ce8f6b7b40984418fe336ae79b6b10"
+    )
+    value = json.loads(REVIEW.read_text(encoding="utf-8"))
+    assert value["status"] == (
+        "HOLD_T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_REVIEWED"
+    )
+    assert value["source_result"]["file_sha256"] == (
+        "556790fcf338003e05787a9a5c9bc1164c537999fe2f5f1fd8b8901dc8cd91e1"
+    )
+    assert value["semantic_result"]["all_2298_ticks_byte_exact"] is True
+    assert value["measured_effect"]["correction_materially_reduced_host_time"] is True
+    assert value["measured_effect"]["correction_clears_frozen_reserve"] is False
+    assert value["next_measured_component"]["name"] == "target"
+    assert value["decision"]["graph_host_correction"] == "CLOSED_WITHOUT_T251B"
+    assert value["decision"]["t251b_earned"] is False
+    assert value["authority"]["x5_execution"] is False
+    assert value["authority"]["motion"] is False
