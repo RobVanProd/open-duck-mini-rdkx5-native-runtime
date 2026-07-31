@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A5_X5_TARGET_SCREEN_PREREGISTERED - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A5_X5_TARGET_SCREEN_HOLD_P99 - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -95,11 +95,21 @@ bound offset array immutable. A balanced `20,000`-sample local microbenchmark
 measured a corrected/predecessor median ratio of `0.641026`, clearing the
 preregistered `<= 0.75` requirement.
 
-That result earned exactly one no-device X5 target screen, now preregistered at
-the unchanged `1.8/2.5/4.0 ms` p99/p99.9/max reserve with no rerun or threshold
-change. It uses the unchanged T247 policy SHA and cannot open serial, sensor,
-controller, GPIO, I2C, servo, torque, or motion paths. Passing it earns only a
-T251B preregistration; it does not itself deploy a policy or authorize Gate 5.
+That result earned exactly one no-device X5 target screen at the unchanged
+`1.8/2.5/4.0 ms` p99/p99.9/max reserve. It ran once without any robot interface.
+All `2,298` semantic ticks remained byte-exact, the T247 trace was unchanged,
+offset/target invariants passed, and p99.9 `2.396691 ms` plus max `2.701923 ms`
+passed. Only p99 `2.011089 ms` missed the frozen `1.8 ms` reserve, so the target
+correction is closed without a rerun and T251B remains unearned. The board CPU
+governor restored exactly to `schedutil`.
 
-Local validation at this handoff is green: `458` tests pass and the `187`-entry
+After excluding immutable ONNX and the closed graph-host and target components,
+the next largest unchanged measured host component is observation assembly at
+`0.179042 ms` median. The only earned next work is a local CPU contract for one
+observation-only, default-disabled correction. It cannot run on the X5 until
+that contract independently passes. Thresholds, T247 weights, production
+integration, policy staging, Hardware Gate 5, torque, and motion remain
+unchanged and unearned.
+
+Local validation at this handoff is green: `460` tests pass and the `189`-entry
 reviewed-artifact manifest verifies.

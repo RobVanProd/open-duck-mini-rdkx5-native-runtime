@@ -18,7 +18,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
     assert status["status"] == (
-        "T251A5_X5_TARGET_RESERVED_SCREEN_PREREGISTERED"
+        "T251A5_X5_TARGET_RESERVED_SCREEN_HOLD_P99"
     )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
@@ -75,7 +75,11 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert t251a5["locomotion_desired_sent_buffer_alias"] is True
     assert t251a5["local_target_microbenchmark_samples"] == 20_000
     assert t251a5["corrected_to_predecessor_median_ratio"] <= 0.75
-    assert t251a5["x5_screen_status"] == "PREREGISTERED_NOT_RUN"
+    assert t251a5["x5_screen_status"] == "HOLD_P99"
+    assert t251a5["x5_screen_checks_passed"] == 21
+    assert t251a5["x5_screen_checks"] == 22
+    assert t251a5["x5_screen_failed_checks"] == ["stage_p99_within_reserve"]
+    assert t251a5["next_measured_component"] == "observation"
     assert t251a5["t251b_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
@@ -120,10 +124,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 458}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 460}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 187,
+        "entries": 189,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

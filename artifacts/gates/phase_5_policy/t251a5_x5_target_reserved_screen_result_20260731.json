@@ -1,0 +1,204 @@
+{
+  "schema_version": "open_duck_x5.t251a5_x5_target_reserved_screen_result.v1",
+  "status": "HOLD_T251A5_X5_TARGET_RESERVED_SCREEN",
+  "date": "2026-07-31",
+  "preregistration": {
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/artifacts/gates/phase_5_policy/t251a5_x5_target_reserved_screen_preregistration_20260731.json",
+    "bytes": 4469,
+    "sha256": "37888047ab8b508463835e024706490dcf6aaceec4352a6801fd44c2de67a8c3"
+  },
+  "git": {
+    "commit": "a0431e300043a44f1fbd0a67636ec0db7fae7a58",
+    "tracked_clean": true
+  },
+  "source_receipts": {
+    "transaction": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/src/open_duck_x5/winner_v13_state_coherent.py",
+      "bytes": 42895,
+      "sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7"
+    },
+    "optimized_host": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/tools/winner_v14_optimized.py",
+      "bytes": 13681,
+      "sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+    },
+    "predecessor_host": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/tools/winner_v15_graph_host_optimized.py",
+      "bytes": 1685,
+      "sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707"
+    },
+    "corrected_host": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/tools/winner_v16_target_optimized.py",
+      "bytes": 6053,
+      "sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+    },
+    "screen_helper": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/tools/run_winner_v14_x5_paced_screen.py",
+      "bytes": 22256,
+      "sha256": "82238fafe6d805dd8ee092429c1d99d4861099c59e9a632fec6c10160a7c8e3d"
+    },
+    "predecessor_screen": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/source/tools/run_winner_v15_x5_reserved_screen.py",
+      "bytes": 18432,
+      "sha256": "b3f989bf963aacc2e336806755dbe85713cf392bd60cbe9ef8338b7f3c109da4"
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/assets/calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "deployment_policy": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/assets/policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/assets/p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a5/assets/reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "platform": {
+    "machine": "aarch64",
+    "scheduler": 1,
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "governor": "performance",
+    "gc_disabled_during_arms": true
+  },
+  "semantic_arm": {
+    "id": "separated_semantic_equivalence",
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "mismatch": null,
+    "predecessor_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "corrected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "maximum_rate_excess_rad_s": 0.0,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true,
+    "release_lateness": {
+      "samples": 2298,
+      "min_ms": 0.01625,
+      "mean_ms": 0.056280738903394266,
+      "p50_ms": 0.0418075,
+      "p95_ms": 0.045962,
+      "p99_ms": 0.04767898000000001,
+      "p99_9_ms": 0.05409142700000031,
+      "max_ms": 26.204393
+    },
+    "selection_weight": 0
+  },
+  "timing_arm": {
+    "id": "single_corrected_reserved_timing",
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "stage_locomotion": {
+      "samples": 2048,
+      "min_ms": 1.60842,
+      "mean_ms": 1.7876484750976562,
+      "p50_ms": 1.794629,
+      "p95_ms": 1.8732126500000001,
+      "p99_ms": 2.01108949,
+      "p99_9_ms": 2.396690901000009,
+      "max_ms": 2.701923
+    },
+    "commit_all": {
+      "samples": 2298,
+      "min_ms": 0.525334,
+      "mean_ms": 0.6445412519582245,
+      "p50_ms": 0.656627,
+      "p95_ms": 0.6725081500000001,
+      "p99_ms": 0.6829650100000001,
+      "p99_9_ms": 0.7593377760000046,
+      "max_ms": 0.803169
+    },
+    "release_lateness": {
+      "samples": 2298,
+      "min_ms": 0.016333,
+      "mean_ms": 0.03677742167101828,
+      "p50_ms": 0.037531499999999995,
+      "p95_ms": 0.04277645,
+      "p99_ms": 0.04434008000000001,
+      "p99_9_ms": 0.046678335000000404,
+      "max_ms": 0.050489
+    },
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "maximum_rate_excess_rad_s": 0.0,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true
+  },
+  "reference_reserve_limits_ms": {
+    "p99_ms": 1.8,
+    "p99_9_ms": 2.5,
+    "max_ms": 4.0,
+    "provenance": "unchanged T251A2/T251A3 reference-only reserve; no threshold adjustment"
+  },
+  "semantic_passed": true,
+  "reference_reserve_passed": false,
+  "checks": {
+    "source_hashes_exact": true,
+    "asset_hashes_exact": true,
+    "sched_fifo": true,
+    "priority_80": true,
+    "affinity_cpu7_only": true,
+    "performance_governor": true,
+    "semantic_all_ticks_byte_exact": true,
+    "semantic_exact_tick_counts": true,
+    "semantic_exact_one_handoff": true,
+    "semantic_trace_exact": true,
+    "semantic_offsets_immutable_identity_bound": true,
+    "semantic_locomotion_target_alias": true,
+    "timing_exact_tick_counts": true,
+    "timing_trace_exact": true,
+    "timing_offsets_immutable_identity_bound": true,
+    "timing_locomotion_target_alias": true,
+    "zero_rate_excess": true,
+    "no_robot_descriptors": true,
+    "no_robot_modules": true,
+    "stage_p99_within_reserve": false,
+    "stage_p99_9_within_reserve": true,
+    "stage_max_within_reserve": true
+  },
+  "failed_checks": [
+    "stage_p99_within_reserve"
+  ],
+  "decision": "CLOSE_TARGET_CORRECTION_WITHOUT_T251B",
+  "device_evidence": {
+    "robot_descriptors_before": {},
+    "robot_descriptors_after": {},
+    "robot_modules_before": [],
+    "robot_modules_after": [],
+    "external_send_implementation": false,
+    "serial_gpio_i2c_controller_or_torque_access": false
+  },
+  "raw_output": {
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a5/evidence/raw-ticks.npz",
+    "sha256": "13f293b99455f3fa2cb5f3b179b187dae7ad8a5d8ab3114730ad2f6d5baef4d1"
+  },
+  "authority": {
+    "t251b_earned": false,
+    "t251b_executed": false,
+    "threshold_changed": false,
+    "policy_training": false,
+    "production_integration": false,
+    "policy_deployed": false,
+    "serial_bus": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false
+  },
+  "result_sha256": "1f304fd1ad3b86693cbb4b7ee2ec9717b6a66dc6e158bc29186551f8941c3270"
+}
