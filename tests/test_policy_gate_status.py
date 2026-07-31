@@ -17,7 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T251_X5_NO_MOTION_CPU_PREFLIGHT_NOT_RUN"
+    assert status["status"] == "T251_X5_NO_MOTION_CPU_PREFLIGHT_HOLD_TIMING"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -30,7 +30,15 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert gates["t250_native_runtime_integration"]["status"] == "PASS"
     assert gates["t250_native_runtime_integration"]["passing_checks"] == 25
     assert gates["t250_native_runtime_integration"]["maximum_numeric_delta"] == 0.0
-    assert gates["t251_x5_no_motion_cpu_preflight"]["status"] == "NOT_RUN"
+    t251 = gates["t251_x5_no_motion_cpu_preflight"]
+    assert t251["status"] == "HOLD"
+    assert t251["passing_checks"] == 15
+    assert t251["checks"] == 18
+    assert t251["failed_checks"] == [
+        "stage_latency_max",
+        "stage_latency_p99",
+        "stage_latency_p99_9",
+    ]
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -74,10 +82,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 402}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 408}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 170,
+        "entries": 172,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

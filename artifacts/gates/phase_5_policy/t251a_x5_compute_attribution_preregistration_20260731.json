@@ -1,0 +1,117 @@
+{
+  "schema_version": "open_duck_x5.t251a_x5_compute_attribution_preregistration.v1",
+  "status": "PREREGISTERED_T251A_X5_COMPUTE_ATTRIBUTION",
+  "date": "2026-07-31",
+  "question": "Which measured component causes the T251 steady-state and tail latency failures: exact T247 graph inference, Python host work, cyclic garbage collection, or residual CPU-7 kernel work?",
+  "earned_by": {
+    "status": "HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT",
+    "decision": "HOLD_T250_X5_INTEGRATION_AND_ATTRIBUTE_WITHOUT_CHANGING_THRESHOLDS",
+    "result_sha256": "3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c",
+    "result_file_sha256": "db5a038d3a0eee1155740276abef5e14a8044ac106a16b44198532b3f17bc01c",
+    "source_commit": "df314e36919a8ea6fc0b0966356351cad786c3de"
+  },
+  "unchanged_contract": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "provider": "CPUExecutionProvider only",
+    "scheduler": "SCHED_FIFO priority 80",
+    "affinity": "CPU 7 only",
+    "governor": "performance",
+    "warmup_runs_per_graph": 10,
+    "t251_limits_ms": {
+      "p99": 2.0,
+      "p99_9": 3.0,
+      "max": 5.0
+    }
+  },
+  "arms_in_fixed_order": [
+    {
+      "id": "full_host_gc_enabled",
+      "calibration_ticks": 250,
+      "locomotion_ticks": 10000,
+      "gc": "enabled",
+      "instrumentation": "clean outer stage/commit timing only"
+    },
+    {
+      "id": "full_host_gc_disabled",
+      "calibration_ticks": 250,
+      "locomotion_ticks": 10000,
+      "gc": "disabled after one pre-arm collection",
+      "instrumentation": "clean outer stage/commit timing only"
+    },
+    {
+      "id": "graph_only_gc_disabled",
+      "calibration_ticks": 0,
+      "locomotion_ticks": 10000,
+      "gc": "disabled after one pre-arm collection",
+      "instrumentation": "exact locomotion ONNX session stage/commit timing only"
+    },
+    {
+      "id": "component_profile_gc_disabled",
+      "calibration_ticks": 250,
+      "locomotion_ticks": 2048,
+      "gc": "disabled after one pre-arm collection",
+      "instrumentation": "method-boundary timing for observation, ONNX, target pipeline, observer, residual host, and commit"
+    }
+  ],
+  "measurement": {
+    "clock": "time.perf_counter_ns",
+    "hot_loop_storage": "preallocated numpy arrays; all JSON/NPZ serialization after each arm",
+    "raw_output": "one compressed NPZ outside the repository plus its SHA-256 receipt",
+    "compact_output": "one reviewed JSON result with summaries and the 64 worst ticks per arm",
+    "system_snapshots": [
+      "process voluntary and involuntary context switches",
+      "CPU-7 interrupt and softirq counters",
+      "CPU thermal temperature",
+      "CPU frequency",
+      "Python GC generation statistics"
+    ],
+    "semantic_canaries": [
+      "full-host GC enabled and disabled action traces are byte-identical",
+      "exact 250/0/10000 state chain in both full-host arms",
+      "all values finite",
+      "zero measured target-rate excess",
+      "no robot module import",
+      "no robot device descriptor before or after"
+    ]
+  },
+  "classification_rule": {
+    "steady_graph_floor": "If graph-only p99 exceeds 2.0 ms, the unchanged exact ONNX graph is itself above the T251 steady limit; Python-only host optimization cannot earn a rerun.",
+    "steady_host_overhead": "If graph-only p99 is at most 2.0 ms but GC-disabled full-host p99 exceeds 2.0 ms, optimize only the measured host components before a corrected run.",
+    "gc_tail": "If disabling GC removes the over-5-ms tail from the full host while graph-only also remains at most 5.0 ms, register hot-loop GC suppression plus off-loop collection.",
+    "kernel_or_graph_tail": "If graph-only retains over-5-ms events with GC disabled, use context-switch/interrupt deltas and worst-tick spacing to distinguish residual kernel work from graph execution; do not guess.",
+    "mixed": "If more than one mechanism remains, correct every evidenced contributor before any new gate run."
+  },
+  "decision_rule": {
+    "diagnostic_complete": "File the compact result and raw receipt, then preregister exactly one evidence-selected implementation correction.",
+    "no_threshold_change": true,
+    "no_t251_pass_claim": true,
+    "no_blind_rerun": true,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "staging_boundary": {
+    "isolated_directory": "/home/sunrise/open_duck_x5_preflight/t251a",
+    "production_runtime_tree_modified": false,
+    "production_config_modified": false,
+    "system_service_modified": false,
+    "serial_gpio_i2c_controller_or_torque_access": false,
+    "policy_execution_drives_targets": false
+  },
+  "authority": {
+    "x5_ssh_and_isolated_file_transfer": true,
+    "offline_cpu_execution_on_x5": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

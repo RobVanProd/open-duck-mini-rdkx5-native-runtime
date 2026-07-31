@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T250_RUNTIME_INTEGRATION_PASS - T251_X5_CPU_PREFLIGHT_NOT_RUN - GATE_5_BLOCKED`
+Status: `T250_RUNTIME_INTEGRATION_PASS - T251_X5_CPU_PREFLIGHT_HOLD_TIMING - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -51,15 +51,17 @@ the handoff; policy `previous_action` receives the calibrator's final
 
 ## Current next step
 
-T251 is frozen and ready: an isolated, no-motion X5 CPU preflight with 250
-calibration ticks plus 10,000 synthetic locomotion host ticks under verified
-single-CPU `SCHED_FIFO` and the `performance` governor. Its compute-only limits
-are p99 <= 2.0 ms, p99.9 <= 3.0 ms, and max <= 5.0 ms.
+T251 ran once on the X5 against the exact T247 terminal policy and T250 host.
+All 15 non-timing checks passed, but all three frozen compute gates failed:
+p99 `3.459200 ms`, p99.9 `54.642409 ms`, and max `55.288782 ms` against
+`2/3/5 ms`. The result is `HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT`; its canonical
+SHA-256 is `3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c`.
 
-The X5 at `192.168.1.50` was unreachable when execution was attempted, so T251
-is honestly `NOT_RUN`. A T251 pass earns only opt-in production-integration
-preregistration. Production integration, policy staging, Hardware Gate 5,
+The next earned work is attribution without a threshold change or blind
+rerun. A separately frozen correction must explain both the approximately
+`2.93 ms` steady locomotion cost and the approximately `55 ms` tail before new
+X5 evidence is run. Production integration, policy staging, Hardware Gate 5,
 torque, and motion remain unearned and unrun.
 
-Local validation at the current handoff is green: `402` tests pass and the
-`170`-entry artifact manifest verifies.
+Local validation at the current handoff is green: `408` tests pass and the
+`172`-entry artifact manifest verifies.

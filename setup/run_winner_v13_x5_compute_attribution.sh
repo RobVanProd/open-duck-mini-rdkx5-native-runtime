@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-readonly staging_root_expected="/home/sunrise/open_duck_x5_preflight/t251"
+readonly staging_root_expected="/home/sunrise/open_duck_x5_preflight/t251a"
 readonly rt_cpu=7
 readonly rt_priority=80
 readonly governor_policy="/sys/devices/system/cpu/cpufreq/policy0"
@@ -22,15 +22,13 @@ evidence_dir=""
 
 usage() {
   cat <<'EOF'
-Usage: sudo bash setup/run_winner_v13_x5_cpu_preflight.sh \
-  --staging-root /home/sunrise/open_duck_x5_preflight/t251 \
-  --python /home/sunrise/open_duck_x5_preflight/t251/venv/bin/python \
-  --x5-cpu-preflight-authorized --no-robot-device-access
+Usage: sudo bash setup/run_winner_v13_x5_compute_attribution.sh \
+  --staging-root /home/sunrise/open_duck_x5_preflight/t251a \
+  --python /home/sunrise/open_duck_x5_preflight/t251a/venv/bin/python \
+  --x5-cpu-attribution-authorized --no-robot-device-access
 
-Runs only the preregistered T251 synthetic-state CPU/ONNX preflight. This
-launcher has no serial, sensor, controller, GPIO, I2C, servo, torque, or motion
-argument or code path. It changes policy0 to performance for the run and
-restores the exact prior governor on every exit path.
+Runs only the preregistered T251A synthetic-state CPU attribution. It exposes
+no serial, sensor, controller, GPIO, I2C, servo, torque, or motion path.
 EOF
 }
 
@@ -44,7 +42,7 @@ while (($#)); do
       python_path="${2:-}"
       shift 2
       ;;
-    --x5-cpu-preflight-authorized)
+    --x5-cpu-attribution-authorized)
       cpu_authorized=1
       shift
       ;;
@@ -107,6 +105,7 @@ readonly p30_fit="$assets_root/p30.json"
 readonly reference_table="$assets_root/reference.npz"
 evidence_dir="$staging_root/evidence"
 readonly result_path="$evidence_dir/result.json"
+readonly raw_path="$evidence_dir/raw-ticks.npz"
 
 if [[ ! -d "$source_root/.git" ]]; then
   echo "result=BLOCKED reason=isolated_source_checkout_missing" >&2
@@ -121,10 +120,6 @@ if [[ -n "$(git -C "$source_root" status --porcelain)" ]]; then
   exit 2
 fi
 
-sha256_file() {
-  sha256sum "$1" | awk '{print $1}'
-}
-
 verify_asset() {
   local path="$1"
   local expected="$2"
@@ -134,7 +129,7 @@ verify_asset() {
     exit 2
   fi
   local actual
-  actual="$(sha256_file "$path")"
+  actual="$(sha256sum "$path" | awk '{print $1}')"
   if [[ "$actual" != "$expected" ]]; then
     echo "result=BLOCKED reason=asset_hash_mismatch asset=$label actual=$actual" >&2
     exit 2
@@ -171,19 +166,16 @@ printf '%s\n' "$governor_before" > "$evidence_dir/governor-before.txt"
 cat /sys/devices/system/cpu/isolated > "$evidence_dir/isolated-cpus.txt"
 cat "$governor_policy/related_cpus" > "$evidence_dir/related-cpus.txt"
 git -C "$source_root" rev-parse HEAD > "$evidence_dir/source-commit.txt"
-sha256sum \
-  "$calibrator" "$deployment_policy" "$p30_fit" "$reference_table" \
+sha256sum "$calibrator" "$deployment_policy" "$p30_fit" "$reference_table" \
   > "$evidence_dir/asset-sha256sums.txt"
 
 restore_governor() {
   if ((governor_changed == 1)); then
-    if ! printf '%s\n' "$governor_before" \
-      > "$governor_policy/scaling_governor"; then
+    if ! printf '%s\n' "$governor_before" > "$governor_policy/scaling_governor"; then
       restore_status=1
       return
     fi
-    if [[ "$(tr -d '[:space:]' < "$governor_policy/scaling_governor")" \
-      != "$governor_before" ]]; then
+    if [[ "$(tr -d '[:space:]' < "$governor_policy/scaling_governor")" != "$governor_before" ]]; then
       restore_status=1
       return
     fi
@@ -196,17 +188,13 @@ cleanup() {
   trap - EXIT INT TERM
   restore_governor
   if [[ -n "$evidence_dir" && -d "$evidence_dir" ]]; then
-    if [[ -r "$governor_policy/scaling_governor" ]]; then
-      cat "$governor_policy/scaling_governor" \
-        > "$evidence_dir/governor-after.txt"
-    fi
+    cat "$governor_policy/scaling_governor" > "$evidence_dir/governor-after.txt" || true
     printf '%s\n' "$runner_status" > "$evidence_dir/runner-exit-status.txt"
     printf '%s\n' "$restore_status" > "$evidence_dir/governor-restore-status.txt"
     (
       cd "$evidence_dir"
       find . -maxdepth 1 -type f ! -name sha256sums.txt -printf '%P\0' \
-        | sort -z \
-        | xargs -0 -r sha256sum > sha256sums.txt
+        | sort -z | xargs -0 -r sha256sum > sha256sums.txt
     )
   fi
   if ((incoming_status != 0)); then
@@ -222,8 +210,7 @@ trap 'exit 143' TERM
 
 printf '%s\n' performance > "$governor_policy/scaling_governor"
 governor_changed=1
-if [[ "$(tr -d '[:space:]' < "$governor_policy/scaling_governor")" \
-  != "performance" ]]; then
+if [[ "$(tr -d '[:space:]' < "$governor_policy/scaling_governor")" != "performance" ]]; then
   echo "result=BLOCKED reason=performance_governor_verification_failed" >&2
   exit 2
 fi
@@ -234,20 +221,21 @@ set +e
   cd "$source_root"
   exec taskset -c "$rt_cpu" chrt -f "$rt_priority" \
     env "PYTHONPATH=$source_root/src" "$python_path" \
-    tools/run_winner_v13_x5_cpu_preflight.py \
+    tools/run_winner_v13_x5_compute_attribution.py \
       --staging-root "$staging_root" \
       --calibrator "$calibrator" \
       --policy "$deployment_policy" \
       --p30-fit "$p30_fit" \
       --reference-table "$reference_table" \
-      --output "$result_path"
-) > "$evidence_dir/preflight-stdout.txt" \
-  2> "$evidence_dir/preflight-stderr.txt"
+      --output "$result_path" \
+      --raw-output "$raw_path"
+) > "$evidence_dir/attribution-stdout.txt" \
+  2> "$evidence_dir/attribution-stderr.txt"
 runner_status=$?
 set -e
 
 if ((runner_status != 0)); then
-  echo "result=HOLD reason=t251_runner_failed evidence=$evidence_dir" >&2
+  echo "result=HOLD reason=t251a_runner_failed evidence=$evidence_dir" >&2
   exit 2
 fi
 echo "result=COMPLETE_REVIEW_REQUIRED evidence=$evidence_dir"

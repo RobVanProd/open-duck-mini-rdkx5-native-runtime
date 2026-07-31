@@ -17,5 +17,11 @@ These are policy-host compute limits, not the 20 ms full-loop timing gate.
 A pass earns only a preregistration for opt-in production integration. Hardware
 Gate 5 remains `NOT_RUN`; no policy is deployed and no motor can be energized.
 
+Execution result: `HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT`. All 15 non-timing
+checks passed, while p99 `3.459200 ms`, p99.9 `54.642409 ms`, and max
+`55.288782 ms` failed the frozen `2/3/5 ms` limits. The result is preserved at
+`artifacts/gates/phase_5_policy/t251_x5_no_motion_cpu_preflight_result_20260731.json`.
+No threshold change or blind rerun is authorized; attribution comes next.
+
 Machine-readable contract:
 `artifacts/gates/phase_5_policy/t251_x5_no_motion_cpu_preflight_preregistration_20260731.json`

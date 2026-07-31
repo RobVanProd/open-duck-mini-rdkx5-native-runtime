@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import subprocess
 import sys
@@ -11,6 +12,10 @@ PREREGISTRATION = Path(
 )
 RUNNER = Path("tools/run_winner_v13_x5_cpu_preflight.py")
 LAUNCHER = Path("setup/run_winner_v13_x5_cpu_preflight.sh")
+RESULT = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251_x5_no_motion_cpu_preflight_result_20260731.json"
+)
 
 
 def test_t251_preregistration_is_exact_and_no_motion() -> None:
@@ -119,3 +124,33 @@ def test_t251_launcher_parses_and_help_is_cpu_only() -> None:
     assert "synthetic-state CPU/ONNX preflight" in completed.stdout
     assert "no serial" in completed.stdout
     assert "torque" in completed.stdout
+
+
+def test_t251_result_is_exact_hold_and_does_not_advance_gate5() -> None:
+    assert hashlib.sha256(RESULT.read_bytes()).hexdigest() == (
+        "db5a038d3a0eee1155740276abef5e14a8044ac106a16b44198532b3f17bc01c"
+    )
+    value = json.loads(RESULT.read_text(encoding="utf-8"))
+    assert value["status"] == "HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT"
+    assert value["decision"] == (
+        "HOLD_T250_X5_INTEGRATION_AND_ATTRIBUTE_WITHOUT_CHANGING_THRESHOLDS"
+    )
+    assert value["result_sha256"] == (
+        "3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c"
+    )
+    assert value["failed_checks"] == [
+        "stage_latency_max",
+        "stage_latency_p99",
+        "stage_latency_p99_9",
+    ]
+    assert sum(value["checks"].values()) == 15
+    timing = value["execution"]["stage_latency_compute_only"]
+    assert timing["samples"] == 10_250
+    assert timing["p99_ms"] == 3.45919992
+    assert timing["p99_9_ms"] == 54.64240899400001
+    assert timing["max_ms"] == 55.288782
+    assert value["authority"]["policy_deployed"] is False
+    assert value["authority"]["servo_reads_or_writes"] is False
+    assert value["authority"]["torque"] is False
+    assert value["authority"]["motion"] is False
+    assert value["authority"]["gate5"] is False
