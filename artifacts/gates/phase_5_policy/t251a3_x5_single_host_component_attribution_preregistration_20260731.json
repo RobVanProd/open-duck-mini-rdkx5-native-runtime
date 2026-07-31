@@ -1,0 +1,105 @@
+{
+  "schema_version": "open_duck_x5.t251a3_x5_single_host_component_attribution_preregistration.v1",
+  "status": "PREREGISTERED_T251A3_X5_SINGLE_HOST_COMPONENT_ATTRIBUTION",
+  "date": "2026-07-31",
+  "question": "Does co-resident baseline-host execution materially inflate T251A2, and which exact optimized-host component sets the remaining p99 reserve miss?",
+  "earned_by": {
+    "status": "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN_REVIEWED",
+    "review_file_sha256": "e73dab1b84a36f39de653ac3e5f26596e440bb1c7a8589690c28f812e85907c9",
+    "source_result_sha256": "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5",
+    "failed_checks": [
+      "optimized_p99_with_reserve",
+      "optimized_p99_9_with_reserve"
+    ]
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "exact_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "d6fe348dbb95d86e4def71338aaf3044ff4a3ac7e4cf1420ba777f0ff831bf86",
+    "optimized_source": "tools/winner_v14_optimized.py",
+    "optimized_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "screen_helper_source": "tools/run_winner_v14_x5_paced_screen.py",
+    "screen_helper_source_sha256": "82238fafe6d805dd8ee092429c1d99d4861099c59e9a632fec6c10160a7c8e3d"
+  },
+  "platform": {
+    "system": "RDK-X5 aarch64 Linux",
+    "provider": "CPUExecutionProvider only",
+    "scheduler": "SCHED_FIFO priority 80",
+    "affinity": "CPU 7 only",
+    "governor": "performance",
+    "release_period_ns": 20000000,
+    "garbage_collection": "disabled only inside each paced arm; restored after each arm",
+    "warmup_runs_per_graph": 10,
+    "robot_interfaces": false
+  },
+  "arms_in_fixed_order": [
+    {
+      "id": "single_optimized_uninstrumented",
+      "calibration_ticks": 250,
+      "home_return_ticks": 0,
+      "locomotion_ticks": 2048,
+      "command_x_m_s": 0.074,
+      "purpose": "measure the production-shaped optimized host without the co-resident baseline semantic oracle",
+      "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3"
+    },
+    {
+      "id": "single_optimized_component_profile",
+      "calibration_ticks": 250,
+      "home_return_ticks": 0,
+      "locomotion_ticks": 512,
+      "command_x_m_s": 0.074,
+      "purpose": "time observation, graph total, ONNX call, graph-host validation, target, observer-stage, transaction residual, and commit",
+      "expected_action_trace_sha256": "96e4345b4420a6b01f7076e14b806df2501fd33a6641ab06f76ed2c10ef752c8"
+    }
+  ],
+  "reference_only_limits_ms": {
+    "p99": 1.8,
+    "p99_9": 2.5,
+    "max": 4.0,
+    "selection_weight": 0,
+    "reason": "reported only to compare with T251A2; this attribution cannot pass a screen or earn T251B"
+  },
+  "required_checks": {
+    "all_asset_and_source_receipts_exact": true,
+    "both_action_traces_match_the_exact_t251a2_prefixes": true,
+    "exact_250_0_arm_chains": true,
+    "zero_measured_rate_excess": true,
+    "component_accounting_nonnegative_and_complete": true,
+    "no_robot_modules_or_device_descriptors": true,
+    "governor_restored": true
+  },
+  "decision_rule": {
+    "if_single_host_clears_reference_reserve": "ATTRIBUTE_T251A2_MISS_TO_PAIRED_ORACLE_COHABITATION_AND_PREREGISTER_A_SEPARATED_SEMANTIC_PLUS_TIMING_SCREEN",
+    "if_single_host_misses_reference_reserve": "SELECT_THE_LARGEST_MEASURED_NON_ONNX_HOST_COMPONENT_AND_CHANGE_ONLY_THAT_COMPONENT",
+    "if_semantics_or_accounting_fail": "HOLD_AND_FIX_THE_ATTRIBUTION_HARNESS_WITHOUT_TIMING_CLAIMS",
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "staging_boundary": {
+    "isolated_directory": "/home/sunrise/open_duck_x5_preflight/t251a3",
+    "production_runtime_tree_modified": false,
+    "serial_gpio_i2c_controller_sensor_or_torque_access": false,
+    "policy_execution_drives_targets": false
+  },
+  "authority": {
+    "x5_ssh_and_isolated_file_transfer": true,
+    "offline_cpu_execution_on_x5": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

@@ -65,7 +65,7 @@ T251A2 result file SHA-256:
 - T251A2's optimized host remained byte-exact to the original host for all
   2,298 paced ticks. It imported and opened no robot interface, restored the
   governor, and had zero measured target-rate excess.
-- Repository validation is green: `419` tests and all `176` reviewed artifact
+- Repository validation is green: `423` tests and all `177` reviewed artifact
   hashes pass.
 
 ## What is not proven

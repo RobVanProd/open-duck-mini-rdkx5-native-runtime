@@ -92,10 +92,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 419}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 423}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 176,
+        "entries": 177,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

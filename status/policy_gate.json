@@ -127,11 +127,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 419
+      "passed": 423
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 176
+      "entries": 177
     }
   },
   "authority": {

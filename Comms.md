@@ -71,5 +71,6 @@ measured component may change. Thresholds remain frozen. Production
 integration, policy staging, Hardware Gate 5, torque, and motion remain
 unearned and unrun.
 
-Local validation at this handoff is green: `419` tests pass and the
-`176`-entry reviewed-artifact manifest verifies.
+T251A3 is now preregistered for that attribution only; it cannot earn T251B by
+itself. Local validation at this handoff is green: `423` tests pass and the
+`177`-entry reviewed-artifact manifest verifies.
