@@ -1,24 +1,22 @@
 # NOT RUN — Hardware Gate 5: Suspended Policy Replay
 
-No policy has been run on the X5 from this repository. The legacy 101-D golden
-vector passes, and the stateful 115-D winner handoff has been independently
-hash-checked and CPU-replayed. That handoff is explicitly not compatible with
-the frozen v1 interface: it requires a versioned v2 assembler, recurrent state,
-P30 observer, projected-reference suffix, and a different phase reset value.
-The 512000-step checkpoint was formally selected and the separate default-off
-v2 implementation passed its frozen 2,400-tick CPU matrix. The prior per-build
-COM-measurement route was rejected: no scale, caliper, static COM entry, or
-component worksheet is required.
+Hardware Gate 5 has not run. No T247 policy binary has been copied into the
+production runtime tree, no policy has opened the servo bus, and no
+policy-driven torque or motion has occurred.
 
-Gate 5 is still blocked because the policy repository has not yet published a
-passed variable-configuration support envelope or `robot_clearance: true`, the
-automatic supported-configuration calibration is physically `NOT_RUN`, the
-winner-v2 code has no reviewed serial/runtime-CLI integration, and the no-servo
-X5 CPU preflight is implemented but remains `NOT_RUN` behind the pending
-envelope sentinel. A frozen Gate 5 launcher does not yet exist and cannot be
-prepared until those prior gates pass.
+The offline policy blocker is cleared: T249B passed all 20 R2 conditions and
+all 320 cells. The offline native-runtime blocker is also cleared: T250 passed
+25/25 exact real-asset integration checks with zero numeric delta. The frozen
+101-D production contract remains unchanged; the candidate uses a separate,
+default-disabled 115-D state-coherent host.
 
-After all of those blockers clear, `x=0` and `x=0.08` require separate authorization,
-600 valid policy ticks under a finite total cap, complete runtime JSONL, control summaries, reviewed hashes,
-and zero telemetry loss. A serial summary is always `REVIEW_REQUIRED`; software
-does not grant robot clearance. Grounded replay remains prohibited.
+The current blocker is T251. Its isolated no-motion RDK-X5 CPU preflight is
+preregistered and implemented, but `192.168.1.50` was unreachable, so the gate
+is honestly `NOT_RUN`. Even a T251 pass earns only preregistration for opt-in
+production integration. The live sensor/bus/safety integration and its
+no-motion timing evidence must pass before Gate 5 can be prepared.
+
+After those blockers clear, suspended x=0 and x=0.08 replays require the
+separately frozen Gate 5 contract, explicit authorization, complete runtime
+JSONL, reviewed hashes, zero telemetry loss, fresh inputs, and the existing
+torque-off/watchdog safety paths. Grounded replay remains prohibited.

@@ -1,70 +1,65 @@
 # Active Runtime <-> Policy Handoff
 
-This file is the short current handoff. The accumulated historical exchange is
-preserved in
+This file is the short current handoff. Historical exchanges remain in
 [`docs/archive/COMMS_HISTORY_THROUGH_20260722.md`](docs/archive/COMMS_HISTORY_THROUGH_20260722.md).
 
 ## Current decision
 
-Status: `T237_FULL_R2_FAILED - CANDIDATE_CLOSED - GATE_5_BLOCKED`
+Status: `T250_RUNTIME_INTEGRATION_PASS - T251_X5_CPU_PREFLIGHT_NOT_RUN - GATE_5_BLOCKED`
 
-The evaluated offline candidate was the T234B exact low-command route. It keeps
-each checkpoint's own policy head at `x=0.0`, `0.077`, and `0.080`, and uses
-the paired final checkpoint's head only at the exact float32 command
-`x=0.074`. This is a uniform deterministic graph transform, not checkpoint
-cherry-picking.
+The selected policy route is now green offline. T249B completed the full
+20-condition R2 matrix with `320/320` passing cells across both checkpoints,
+both measured actuator fits, and x=`0.0/0.074/0.077/0.080`. T250 then selected
+the terminal checkpoint by the frozen maximum-step rule and passed the exact
+deployment-contract audit.
 
-Evidence already green:
+The native-runtime repository now contains a separate, default-disabled 115-D
+state-coherent host. It does not alter the frozen 101-D production contract and
+is not imported by the production runtime. Its real-asset T250 verification
+passed `25/25` checks with zero numeric delta for ONNX recurrence, observation
+fields, P30 observer state, target/offset handling, calibration context,
+boundary action history, phase reset, and measured-rate monitoring.
 
-- T234B ONNX/ABI and bit-exact route contract;
-- T235 fresh nominal matrix: `16/16`;
-- T236 fresh former-blocker upper-Z matrix: `16/16`; and
-- T237 conditions 1-16: `256/256` cells green; and
-- T237 condition 17, `HOME_JOINT_OFFSET_NEG`: `0/16`, terminal failure.
+## Selected assets
 
-Condition 17 shifted the modeled home joint positions by `-0.03 rad`. Every
-`x=0` cell held for the full duration, while every moving-command cell fell
-across both checkpoints and both measured actuator fits. Saturation and rate
-excess remained zero. T237 stopped at that first failed condition as
-preregistered; the exact low-command route is closed with no retry.
+| role | step | bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| persistence witness | 1,003,520 | 993,875 | `21c714b0cbe30e43233f6a29d6ccfa058c550f28fab3dd836a73a6015b73f8f2` |
+| deployment terminal | 2,007,040 | 993,875 | `dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54` |
+| calibrator | n/a | 55,573 | `0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576` |
+| fixed P30 runtime observer | n/a | 18,664 | `a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f` |
+| projected reference table | n/a | 259,604 | `8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212` |
 
-## Candidate ABI
+No policy binary is committed to this repository or copied into the production
+runtime tree.
 
-The candidate is runtime-v2, not the frozen runtime-v1 interface:
+## Exact versioned ABI and handoff
 
 ```text
-inputs:
-  obs[1,115]
-  previous_action[1,14]
-  calibration_context[1,64]
-  h_in[1,64]
-outputs:
-  continuous_actions[1,14]
-  previous_action_out[1,14]
-  h_out[1,64]
+calibrator inputs:  obs[1,115], previous_action[1,14], h_in[1,64]
+calibrator outputs: calibration_actions[1,14], previous_action_out[1,14], h_out[1,64]
+
+policy inputs:  obs[1,115], previous_action[1,14], h_in[1,64], calibration_context[1,64]
+policy outputs: continuous_actions[1,14], previous_action_out[1,14], h_out[1,64]
 ```
 
-Candidate receipts:
+The transition is exactly 250 confirmed calibration ticks and zero home-return
+ticks. Physical/observer state and the final three calibration actions survive
+the handoff; policy `previous_action` receives the calibrator's final
+`previous_action_out`; policy hidden state resets to zero; final calibrator
+`h_out` becomes immutable context; locomotion phase resets to `[1,0]`.
 
-| checkpoint | step | bytes | SHA-256 |
-| --- | ---: | ---: | --- |
-| half | 1,003,520 | 988,264 | `c34cdba0c1e1c1310f16926161ed3b1cefe89e79ea88636ed2b4d5feb535b370` |
-| final | 2,007,040 | 988,264 | `b19b81262aba747871058238c92f0f4bd57ffaa16b8e70ab007c8c9849c02e51` |
+## Current next step
 
-These receipts identify evaluation candidates only. No deployment policy has
-been selected or copied into this repository.
+T251 is frozen and ready: an isolated, no-motion X5 CPU preflight with 250
+calibration ticks plus 10,000 synthetic locomotion host ticks under verified
+single-CPU `SCHED_FIFO` and the `performance` governor. Its compute-only limits
+are p99 <= 2.0 ms, p99.9 <= 3.0 ms, and max <= 5.0 ms.
 
-## Next decision sequence
+The X5 at `192.168.1.50` was unreachable when execution was attempted, so T251
+is honestly `NOT_RUN`. A T251 pass earns only opt-in production-integration
+preregistration. Production integration, policy staging, Hardware Gate 5,
+torque, and motion remain unearned and unrun.
 
-1. Diagnose the home/calibration-alignment failure using the frozen T237
-   traces and CPU-only counterfactuals.
-2. Preregister a successor only if that diagnosis identifies a falsifiable
-   mechanism; do not retrain or rerun T237.
-3. Only after a successor passes the full offline gate may it proceed to a
-   deployment-contract audit and produce the minimal runtime-v2 handoff:
-   graph receipts, ABI manifest, state/reset semantics, command-route contract,
-   frozen observation golden vectors, and rollback information.
-4. Gate 5 remains separately authorized hardware work.
-
-No robot, X5, serial, GPIO/I2C, torque, motion, policy deployment, or Gate 5
-action is authorized by this handoff.
+Local validation at the current handoff is green: `400` tests pass and the
+`170`-entry artifact manifest verifies.

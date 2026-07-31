@@ -11,64 +11,75 @@ def _status() -> dict[str, object]:
     return json.loads(STATUS.read_text(encoding="utf-8"))
 
 
-def test_policy_gate_status_is_fail_closed_after_t237_failure() -> None:
+def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None:
     status = _status()
-    t237 = status["gates"]["t237_full_r2"]
+    gates = status["gates"]
     authority = status["authority"]
 
-    assert status["schema_version"] == (
-        "open_duck.runtime_policy_gate_status.v1"
-    )
-    assert status["status"] == "T237_FULL_R2_FAILED"
-    assert t237["status"] == "FAIL"
-    assert t237["completed_conditions"] == 17
-    assert t237["expected_conditions"] == 20
-    assert t237["green_completed_cells"] == 256
-    assert t237["completed_cells"] == 272
-    assert t237["maximum_cells"] == 320
-    assert t237["first_failed_condition"] == "HOME_JOINT_OFFSET_NEG"
-    assert t237["decision"] == (
-        "CLOSE_EXACT_LOW_COMMAND_HEAD_ROUTE_AT_FIRST_FAILED_R2_CONDITION"
-    )
-    assert status["gates"]["t238_deployment_contract_audit"] == (
-        "NOT_PREREGISTERED"
-    )
-    assert status["gates"]["gate_5"] == "NOT_RUN"
-    assert authority["robot_clearance"] is False
-    assert authority["gate_5_authorized"] is False
-    assert authority["policy_deployment_authorized"] is False
+    assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
+    assert status["status"] == "T251_X5_NO_MOTION_CPU_PREFLIGHT_NOT_RUN"
+    assert status["offline_policy_green"] is True
+    assert status["robot_clearance"] is False
+    assert gates["t249b_full_r2"] == {
+        "status": "PASS",
+        "green_conditions": 20,
+        "conditions": 20,
+        "green_cells": 320,
+        "cells": 320,
+    }
+    assert gates["t250_native_runtime_integration"]["status"] == "PASS"
+    assert gates["t250_native_runtime_integration"]["passing_checks"] == 25
+    assert gates["t250_native_runtime_integration"]["maximum_numeric_delta"] == 0.0
+    assert gates["t251_x5_no_motion_cpu_preflight"]["status"] == "NOT_RUN"
+    assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
+    assert gates["gate_5"] == "NOT_RUN"
+    assert authority["production_runtime_integration_earned"] is False
+    assert authority["gate_5_authorized_by_this_status"] is False
+    assert authority["robot_motion_authorized_by_this_status"] is False
 
 
-def test_policy_gate_status_pins_runtime_v2_abi_and_both_graphs() -> None:
+def test_policy_gate_status_pins_exact_two_stage_abi_and_assets() -> None:
     status = _status()
     abi = status["candidate_abi"]
-    graphs = status["candidate_graphs"]
+    assets = status["selected_assets"]
 
-    assert abi["inputs"] == {
+    assert abi["calibrator_inputs"] == {
         "obs": [1, 115],
         "previous_action": [1, 14],
-        "calibration_context": [1, 64],
         "h_in": [1, 64],
     }
-    assert abi["outputs"] == {
+    assert abi["policy_inputs"] == {
+        "obs": [1, 115],
+        "previous_action": [1, 14],
+        "h_in": [1, 64],
+        "calibration_context": [1, 64],
+    }
+    assert abi["policy_outputs"] == {
         "continuous_actions": [1, 14],
         "previous_action_out": [1, 14],
         "h_out": [1, 64],
     }
-    assert [graph["role"] for graph in graphs] == ["half", "final"]
-    assert [graph["step"] for graph in graphs] == [1003520, 2007040]
-    assert all(graph["bytes"] == 988264 for graph in graphs)
-    assert all(len(graph["sha256"]) == 64 for graph in graphs)
-    assert len({graph["sha256"] for graph in graphs}) == 2
-
-
-def test_policy_gate_status_points_to_the_evidence_archive() -> None:
-    status = _status()
-    evidence = status["evidence_repository"]
-
-    assert evidence["url"] == (
-        "https://github.com/RobVanProd/open-duck-mini-rdkx5"
+    assert assets["persistence_witness"]["step"] == 1_003_520
+    assert assets["deployment_terminal"]["step"] == 2_007_040
+    assert assets["deployment_terminal"]["sha256"] == (
+        "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
     )
-    assert evidence["branch"] == "codex/winner-v4-response-contract"
-    assert evidence["branch_head"] == "bdb35e21"
-    assert evidence["local_remote_divergence_after_push"] == [0, 0]
+    assert assets["calibrator"]["sha256"] == (
+        "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    )
+
+
+def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
+    status = _status()
+    validation = status["validation"]
+    repositories = status["repositories"]
+
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 400}
+    assert validation["reviewed_artifact_manifest"] == {
+        "status": "PASS",
+        "entries": 170,
+    }
+    assert repositories == {
+        "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
+        "native_runtime": ("https://github.com/RobVanProd/open-duck-mini-rdkx5-native-runtime"),
+    }

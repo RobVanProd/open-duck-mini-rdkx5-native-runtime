@@ -1,77 +1,106 @@
 {
-  "schema_version": "open_duck.runtime_policy_gate_status.v1",
+  "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T237_FULL_R2_FAILED",
-  "candidate_id": "T234B_EXACT_LOW_COMMAND_ROUTE",
+  "status": "T251_X5_NO_MOTION_CPU_PREFLIGHT_NOT_RUN",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "offline_policy_green": true,
+  "robot_clearance": false,
   "candidate_abi": {
-    "inputs": {
+    "calibrator_inputs": {
       "obs": [1, 115],
       "previous_action": [1, 14],
-      "calibration_context": [1, 64],
       "h_in": [1, 64]
     },
-    "outputs": {
+    "calibrator_outputs": {
+      "calibration_actions": [1, 14],
+      "previous_action_out": [1, 14],
+      "h_out": [1, 64]
+    },
+    "policy_inputs": {
+      "obs": [1, 115],
+      "previous_action": [1, 14],
+      "h_in": [1, 64],
+      "calibration_context": [1, 64]
+    },
+    "policy_outputs": {
       "continuous_actions": [1, 14],
       "previous_action_out": [1, 14],
       "h_out": [1, 64]
     }
   },
-  "candidate_graphs": [
-    {
-      "role": "half",
+  "selected_assets": {
+    "persistence_witness": {
       "step": 1003520,
-      "bytes": 988264,
-      "sha256": "c34cdba0c1e1c1310f16926161ed3b1cefe89e79ea88636ed2b4d5feb535b370"
+      "bytes": 993875,
+      "sha256": "21c714b0cbe30e43233f6a29d6ccfa058c550f28fab3dd836a73a6015b73f8f2"
     },
-    {
-      "role": "final",
+    "deployment_terminal": {
       "step": 2007040,
-      "bytes": 988264,
-      "sha256": "b19b81262aba747871058238c92f0f4bd57ffaa16b8e70ab007c8c9849c02e51"
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "calibrator": {
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
     }
-  ],
+  },
   "gates": {
-    "t234b_exact_route_contract": "PASS",
-    "t235_nominal_matrix": {
+    "t249b_full_r2": {
       "status": "PASS",
-      "green_cells": 16,
-      "cells": 16,
-      "result_sha256": "64d122e5d8f8e15963ead93e749d69f3ca2d61646ca70d8bbfc0edef418c1ca5"
+      "green_conditions": 20,
+      "conditions": 20,
+      "green_cells": 320,
+      "cells": 320
     },
-    "t236_upper_z_matrix": {
+    "t250_policy_deployment_contract": {
       "status": "PASS",
-      "green_cells": 16,
-      "cells": 16,
-      "result_sha256": "ab70634ac1e5bc37f97d02b46e1f4b77b68a3f74ac1cad22bf0fcbf6a76d9def"
+      "result_sha256": "4f6608dc03d86f50877ab925fd4ab19df43fa9d2b1a8026d2c109ff592a47fed",
+      "handoff_sha256": "2193553f414efd143426e1c2201fadbb790083df14762b163ff39567f92b2dac"
     },
-    "t237_full_r2": {
-      "status": "FAIL",
-      "completed_conditions": 17,
-      "expected_conditions": 20,
-      "green_completed_cells": 256,
-      "completed_cells": 272,
-      "maximum_cells": 320,
-      "first_failed_condition": "HOME_JOINT_OFFSET_NEG",
-      "decision": "CLOSE_EXACT_LOW_COMMAND_HEAD_ROUTE_AT_FIRST_FAILED_R2_CONDITION",
-      "contract_sha256": "b26a4e5471992f5a2252a9c37cafdf802d5df7d5f8a3c9c1946a3f7cec9fe56b",
-      "result_sha256": "119e2d3fbfd63c096f4db44509bc9329b1ba1f441c122e81ce514c810956943b",
-      "artifact_file_sha256": "02d31adbfb143d5d337687792bc3289bd8cde0e429e5027315776e68a33e3681"
+    "t250_native_runtime_integration": {
+      "status": "PASS",
+      "passing_checks": 25,
+      "checks": 25,
+      "maximum_numeric_delta": 0.0,
+      "result_sha256": "09f794ae312a2acc172db0d4d06e6aa7205131276fa030cec9291f51fd6dede9",
+      "artifact_file_sha256": "2261673c26cc8c0ec364967fd20f9437b982796322d54f0beb2b91c44f2abcc0"
     },
-    "t238_deployment_contract_audit": "NOT_PREREGISTERED",
-    "rdkx5_cpu_preflight": "NOT_RUN",
+    "t251_x5_no_motion_cpu_preflight": {
+      "status": "NOT_RUN",
+      "reason": "192.168.1.50 unreachable",
+      "preregistration_file_sha256": "7593cd1a87733fcf469a7c9d68f2aa0361456b32a24fa70c49a5109a3b3ed138"
+    },
+    "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
-  "authority": {
-    "robot_clearance": false,
-    "gate_5_authorized": false,
-    "policy_deployment_authorized": false,
-    "rdkx5_or_robot_access_used": false,
-    "hosted_compute_units_used_for_t234b_t237": 0
+  "validation": {
+    "repository_tests": {
+      "status": "PASS",
+      "passed": 400
+    },
+    "reviewed_artifact_manifest": {
+      "status": "PASS",
+      "entries": 170
+    }
   },
-  "evidence_repository": {
-    "url": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
-    "branch": "codex/winner-v4-response-contract",
-    "branch_head": "bdb35e21",
-    "local_remote_divergence_after_push": [0, 0]
+  "authority": {
+    "policy_training_earned": false,
+    "policy_binary_staged_on_x5": false,
+    "production_runtime_integration_earned": false,
+    "gate_5_authorized_by_this_status": false,
+    "robot_motion_authorized_by_this_status": false,
+    "grounded_replay": false
+  },
+  "repositories": {
+    "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
+    "native_runtime": "https://github.com/RobVanProd/open-duck-mini-rdkx5-native-runtime"
   }
 }

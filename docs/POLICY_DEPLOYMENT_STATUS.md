@@ -4,78 +4,60 @@ Status date: 2026-07-31
 
 ## Executive status
 
-`CANDIDATE_CLOSED - ROBOT_CLEARANCE_FALSE - GATE_5_NOT_RUN`
+`OFFLINE_POLICY_GREEN - RUNTIME_INTEGRATION_GREEN - X5_PREFLIGHT_NOT_RUN - GATE_5_NOT_RUN`
 
-The T234B exact low-command route passed its exact graph contract, a fresh
-nominal matrix, the former upper-Z blocker, and the first 16 conditions of a
-fresh full R2 restart without hosted training. It then failed condition 17,
-the `-0.03 rad` home-joint-offset condition, in all 16 cells.
-
-The route is closed and cannot advance to the deployment-contract audit.
+We are no longer searching for a policy mechanism. The T247 terminal candidate
+passed the complete T249B offline robustness matrix, and T250 proved that the
+new default-disabled RDK host reproduces its exact two-stage state contract.
+The remaining work is deployment engineering and X5 evidence, not another
+training run.
 
 ## Evidence summary
 
 | Gate | Result |
 | --- | --- |
-| T234B exact route contract | `PASS` |
-| T235 nominal matrix | `16/16 PASS` |
-| T236 upper-Z blocker matrix | `16/16 PASS` |
-| T237 sequential full R2 | `FAIL at condition 17; 256/272 cells green` |
-| T238 deployment-contract audit | `NOT_PREREGISTERED` |
-| RDK-X5 CPU preflight for this candidate | `NOT_RUN` |
-| Gate 5 | `NOT_RUN` |
+| T249B full sequential R2 | `20/20 conditions; 320/320 cells PASS` |
+| T250 policy deployment-contract audit | `PASS` |
+| T250 native-runtime real-asset integration | `25/25 PASS; all numeric deltas 0` |
+| T251 no-motion X5 CPU preflight | `PREREGISTERED; NOT_RUN (board unreachable)` |
+| Opt-in production runtime integration | `NOT_PREREGISTERED; waits for T251` |
+| Hardware Gate 5 | `NOT_RUN` |
 
-T237 contract SHA-256:
-`b26a4e5471992f5a2252a9c37cafdf802d5df7d5f8a3c9c1946a3f7cec9fe56b`
+T250 runtime-integration result canonical SHA-256:
+`09f794ae312a2acc172db0d4d06e6aa7205131276fa030cec9291f51fd6dede9`
 
-T237 terminal result SHA-256:
-`119e2d3fbfd63c096f4db44509bc9329b1ba1f441c122e81ce514c810956943b`
+T250 runtime-integration result file SHA-256:
+`2261673c26cc8c0ec364967fd20f9437b982796322d54f0beb2b91c44f2abcc0`
 
-Green conditions:
+T251 preregistration file SHA-256:
+`7593cd1a87733fcf469a7c9d68f2aa0361456b32a24fa70c49a5109a3b3ed138`
 
-1. floor friction `0.5`;
-2. floor friction `1.0`;
-3. joint friction loss `0.9x`;
-4. joint friction loss `1.1x`;
-5. armature scale `1.0x`;
-6. armature scale `1.05x`;
-7. torso center of mass X offset `-0.05 m`;
-8. torso center of mass X offset `+0.05 m`;
-9. torso center of mass Y offset `-0.05 m`;
-10. torso center of mass Y offset `+0.05 m`;
-11. torso center of mass Z offset `-0.05 m`;
-12. torso center of mass Z offset `+0.05 m`;
-13. all-link mass scale `0.9x`;
-14. all-link mass scale `1.1x`;
-15. torso mass addition `-0.1 kg`; and
-16. torso mass addition `+0.1 kg`.
+## What is proven
 
-Each condition contains both checkpoints, both measured actuator fits, and all
-four commands. All 256 cells in conditions 1-16 passed duration, gait,
-tracking, rate, saturation, and protection rules.
+- The policy persists across both frozen checkpoints and both measured
+  actuator fits over all 20 offline conditions.
+- The deployment checkpoint was selected by the frozen terminal-step rule,
+  not by cherry-picking a metric.
+- The exact calibrator/policy ABI, 250/0 handoff, 115 observation fields,
+  P30 observer, action history, phase reset, immutable context, soft offsets,
+  and target-rate monitor agree on CPU.
+- The frozen 101-D runtime remains unchanged and default production behavior
+  does not import or enable the new host.
+- Repository validation is green: `400` tests and all `170` reviewed artifact
+  hashes pass.
 
-Condition 17 applied a uniform `-0.03 rad` modeled home-joint offset. In all
-four checkpoint/actuator-fit blocks, `x=0` held for the full 12 seconds while
-the three moving commands fell. The failures had zero action saturation and
-zero rate-limit excess. This localizes the blocker to home/calibration
-alignment rather than an overly aggressive command or one actuator fit.
+## What is not proven
 
-## Why GitHub previously looked idle
-
-T237 writes non-terminal progress to the local hashed artifact store and writes
-a repository result only when the sequential gate fails or completes. The
-research branch was also 489 commits ahead of GitHub. It was fully pushed on
-2026-07-30 and now has zero local/remote divergence.
-
-## Repository consolidation
-
-The research repository had grown to 14,861 tracked files and approximately
-622 MiB of packed Git history. It is now treated as the immutable evidence
-archive. This native-runtime repository is the compact active deployment
-surface. See [`REPOSITORY_BOUNDARIES.md`](REPOSITORY_BOUNDARIES.md).
+- The exact graphs have not yet completed their isolated CPU preflight on the
+  RDK-X5.
+- The new host is not connected to the live sensor/bus/safety loop.
+- No policy asset has been staged in the production runtime tree.
+- No Gate 5 policy replay, torque-enabled policy execution, or grounded replay
+  has occurred.
 
 ## Advance rule
 
-T237 stopped at its first failed condition as preregistered. T238 is not
-preregistered, the RDK-X5 CPU preflight is not run, and Gate 5 remains closed.
-A successor policy mechanism must first earn and pass a new offline contract.
+Run T251 exactly as frozen when the board is reachable. Only a T251 pass may
+earn the preregistration for default-off production integration. That
+integration must then pass no-motion/mock safety and full-loop timing evidence
+before a separately authorized suspended Gate 5 replay can be prepared.
