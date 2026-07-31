@@ -4,6 +4,11 @@ Ground-up, measurement-first runtime for Open Duck Mini on the D-Robotics RDK-X5
 
 The governing success metric is bounded 50 Hz loop timing, not an empty error counter. The known legacy baseline is 1.07% read errors at `x=0.0`, 2.68% at `x=0.08`, and a 26 ms maximum tick with read bursts. A prior retry patch reached zero reported errors while motion remained behaviorally funky; retries can hide faults while worsening timing.
 
+Repository roles are now explicit: this repository is the compact active
+runtime/deployment surface, while `open-duck-mini-rdkx5` is the immutable
+research/evidence archive. See
+[`docs/REPOSITORY_BOUNDARIES.md`](docs/REPOSITORY_BOUNDARIES.md).
+
 ## Status
 
 | Area | Status |
@@ -18,6 +23,7 @@ The governing success metric is bounded 50 Hz loop timing, not an empty error co
 | IMU / contacts / policy host | BNO055 calibration/mapping and active-low contacts pass the reviewed nine-label matrix; all 2,250 rows were fresh with zero worker errors |
 | Winner-v2 runtime-v2 | Machine-audited separate/default-disabled 115-D implementation passes all 12 offline requirements and 2,400 golden ticks while the 101-D v1 remains pinned; the candidate is held pending a variable-configuration envelope; the no-servo X5 CPU preflight, locked launcher, independent full-evidence reviewer, and deterministic envelope-closure checker are ready but physically `NOT_RUN` behind the same pending-envelope sentinel |
 | Automatic configuration support | Guarded mock/serial collector, trace-to-profile identification, timing gates, 73-metric fail-closed envelope validator, and no-write two-launcher closure checker pass offline fault tests; v4 profiles are reproduced from SHA-bound trace, metadata, exact config, and a policy envelope frozen before physical collection; mock is permanently informational; manual mass/COM/inertia inputs are rejected; physical run is `NOT_RUN`. The policy-side proposal to consume those 73 metrics passes the exact runtime field-map review but remains held because signed-X non-collapse and one explicit calibration support mode are not yet proven. |
+| Active policy candidate | T234B exact low-command route; T234B/T235/T236 pass and T237 is 5/20 conditions with 80/80 completed cells green; T238 is not preregistered, robot clearance is false, and Gate 5 remains blocked |
 | Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; Gate 5 is `NOT_RUN`, policy-side robot clearance is false, and no policy replay is authorized |
 | Grounded replay | Out of scope |
 
@@ -69,6 +75,8 @@ and `start_paused=true`.
 Read these before any X5 work:
 
 - [Runtime/policy Codex handoff](Comms.md)
+- [Current policy deployment status](docs/POLICY_DEPLOYMENT_STATUS.md)
+- [Repository boundaries and consolidation](docs/REPOSITORY_BOUNDARIES.md)
 - [Winner-v2 policy handoff review](docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md)
 - [Winner-v2 runtime-v2 offline review](docs/WINNER_V2_RUNTIME_V2_OFFLINE_REVIEW_20260719.md)
 - [Variable-configuration policy robustness request](docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md)

@@ -1,0 +1,75 @@
+{
+  "schema_version": "open_duck.runtime_policy_gate_status.v1",
+  "status_date": "2026-07-30",
+  "status": "T237_FULL_R2_IN_PROGRESS",
+  "candidate_id": "T234B_EXACT_LOW_COMMAND_ROUTE",
+  "candidate_abi": {
+    "inputs": {
+      "obs": [1, 115],
+      "previous_action": [1, 14],
+      "calibration_context": [1, 64],
+      "h_in": [1, 64]
+    },
+    "outputs": {
+      "continuous_actions": [1, 14],
+      "previous_action_out": [1, 14],
+      "h_out": [1, 64]
+    }
+  },
+  "candidate_graphs": [
+    {
+      "role": "half",
+      "step": 1003520,
+      "bytes": 988264,
+      "sha256": "c34cdba0c1e1c1310f16926161ed3b1cefe89e79ea88636ed2b4d5feb535b370"
+    },
+    {
+      "role": "final",
+      "step": 2007040,
+      "bytes": 988264,
+      "sha256": "b19b81262aba747871058238c92f0f4bd57ffaa16b8e70ab007c8c9849c02e51"
+    }
+  ],
+  "gates": {
+    "t234b_exact_route_contract": "PASS",
+    "t235_nominal_matrix": {
+      "status": "PASS",
+      "green_cells": 16,
+      "cells": 16,
+      "result_sha256": "64d122e5d8f8e15963ead93e749d69f3ca2d61646ca70d8bbfc0edef418c1ca5"
+    },
+    "t236_upper_z_matrix": {
+      "status": "PASS",
+      "green_cells": 16,
+      "cells": 16,
+      "result_sha256": "ab70634ac1e5bc37f97d02b46e1f4b77b68a3f74ac1cad22bf0fcbf6a76d9def"
+    },
+    "t237_full_r2": {
+      "status": "IN_PROGRESS",
+      "completed_conditions": 5,
+      "expected_conditions": 20,
+      "green_completed_cells": 80,
+      "completed_cells": 80,
+      "maximum_cells": 320,
+      "contract_sha256": "b26a4e5471992f5a2252a9c37cafdf802d5df7d5f8a3c9c1946a3f7cec9fe56b",
+      "progress_sha256": "cdc71a35699ecc93623e57577cb0e66939a9a16751817365d4b52f25d3d84499"
+    },
+    "t238_deployment_contract_audit": "NOT_PREREGISTERED",
+    "rdkx5_cpu_preflight": "NOT_RUN",
+    "gate_5": "NOT_RUN"
+  },
+  "authority": {
+    "robot_clearance": false,
+    "gate_5_authorized": false,
+    "policy_deployment_authorized": false,
+    "rdkx5_or_robot_access_used": false,
+    "hosted_compute_units_used_for_t234b_t237": 0
+  },
+  "evidence_repository": {
+    "url": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
+    "branch": "codex/winner-v4-response-contract",
+    "branch_head": "0058ac51",
+    "local_remote_divergence_after_push": [0, 0]
+  }
+}
+
