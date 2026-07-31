@@ -1,4 +1,4 @@
-# Active Runtime ↔ Policy Handoff
+# Active Runtime <-> Policy Handoff
 
 This file is the short current handoff. The accumulated historical exchange is
 preserved in
@@ -6,7 +6,7 @@ preserved in
 
 ## Current decision
 
-Status: `T237_FULL_R2_IN_PROGRESS — GATE_5_BLOCKED`
+Status: `T237_FULL_R2_IN_PROGRESS - GATE_5_BLOCKED`
 
 The selected offline candidate is the T234B exact low-command route. It keeps
 each checkpoint's own policy head at `x=0.0`, `0.077`, and `0.080`, and uses
@@ -19,10 +19,10 @@ Evidence already green:
 - T234B ONNX/ABI and bit-exact route contract;
 - T235 fresh nominal matrix: `16/16`;
 - T236 fresh former-blocker upper-Z matrix: `16/16`; and
-- T237 full R2 restart: `5/20` complete conditions, `80/80` completed cells
+- T237 full R2 restart: `10/20` complete conditions, `160/160` completed cells
   green as of 2026-07-30.
 
-The complete T237 decision still requires all `20 × 16 = 320` cells. Both
+The complete T237 decision still requires all `20 x 16 = 320` cells. Both
 checkpoints, both measured actuator fits, and commands
 `0.0/0.074/0.077/0.080` remain mandatory. The sequence stops at the first
 complete failed condition. No retry is allowed.

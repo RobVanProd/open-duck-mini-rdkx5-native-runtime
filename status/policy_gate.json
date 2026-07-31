@@ -46,13 +46,13 @@
     },
     "t237_full_r2": {
       "status": "IN_PROGRESS",
-      "completed_conditions": 5,
+      "completed_conditions": 10,
       "expected_conditions": 20,
-      "green_completed_cells": 80,
-      "completed_cells": 80,
+      "green_completed_cells": 160,
+      "completed_cells": 160,
       "maximum_cells": 320,
       "contract_sha256": "b26a4e5471992f5a2252a9c37cafdf802d5df7d5f8a3c9c1946a3f7cec9fe56b",
-      "progress_sha256": "cdc71a35699ecc93623e57577cb0e66939a9a16751817365d4b52f25d3d84499"
+      "progress_sha256": "18b334b1e09ff564763b96ae73753e85b4c1ae10a14a10160561a035d5922601"
     },
     "t238_deployment_contract_audit": "NOT_PREREGISTERED",
     "rdkx5_cpu_preflight": "NOT_RUN",
@@ -72,4 +72,3 @@
     "local_remote_divergence_after_push": [0, 0]
   }
 }
-
