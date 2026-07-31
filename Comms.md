@@ -61,5 +61,5 @@ is honestly `NOT_RUN`. A T251 pass earns only opt-in production-integration
 preregistration. Production integration, policy staging, Hardware Gate 5,
 torque, and motion remain unearned and unrun.
 
-Local validation at the current handoff is green: `400` tests pass and the
+Local validation at the current handoff is green: `402` tests pass and the
 `170`-entry artifact manifest verifies.

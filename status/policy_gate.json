@@ -84,7 +84,7 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 400
+      "passed": 402
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",

@@ -43,7 +43,7 @@ T251 preregistration file SHA-256:
   and target-rate monitor agree on CPU.
 - The frozen 101-D runtime remains unchanged and default production behavior
   does not import or enable the new host.
-- Repository validation is green: `400` tests and all `170` reviewed artifact
+- Repository validation is green: `402` tests and all `170` reviewed artifact
   hashes pass.
 
 ## What is not proven
