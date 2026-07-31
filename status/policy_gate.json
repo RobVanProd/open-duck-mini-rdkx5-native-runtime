@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251_X5_NO_MOTION_CPU_PREFLIGHT_HOLD_TIMING",
+  "status": "T251A2_X5_OPTIMIZED_PACED_SCREEN_HOLD_RESERVE",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -91,17 +91,47 @@
       "result_sha256": "3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c",
       "artifact_file_sha256": "db5a038d3a0eee1155740276abef5e14a8044ac106a16b44198532b3f17bc01c"
     },
+    "t251a_compute_attribution": {
+      "status": "PASS_REVIEW",
+      "tail_attribution": "LINUX_RT_BANDWIDTH_THROTTLING_FROM_UNPACED_RUNNER",
+      "steady_attribution": "PYTHON_HOST_OVERHEAD_WITH_GRAPH_FLOOR_GREEN",
+      "review_file_sha256": "7f63a03450474464b69a2298d5e3e0266f7877b3773fe0a7a368d64fd9c35959"
+    },
+    "t251a2_optimized_paced_screen": {
+      "status": "HOLD",
+      "passing_checks": 13,
+      "checks": 15,
+      "byte_exact_ticks": 2298,
+      "failed_checks": [
+        "optimized_p99_9_with_reserve",
+        "optimized_p99_with_reserve"
+      ],
+      "stage_latency_ms": {
+        "p99": 2.17971376,
+        "p99_9": 2.5456359740000014,
+        "max": 2.620463
+      },
+      "screen_limits_ms": {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0
+      },
+      "preregistration_file_sha256": "cd9e71c724087f1ecffa4e4d6f0c462df3780b64a6723d094bcfab60692b1ebc",
+      "result_sha256": "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5",
+      "artifact_file_sha256": "dcc1472d5a98127b5c8434363e14eb1e879af6d63c40a8933e08d0c7ed1f7fc8",
+      "t251b_earned": false
+    },
     "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 408
+      "passed": 419
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 172
+      "entries": 176
     }
   },
   "authority": {

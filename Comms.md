@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T250_RUNTIME_INTEGRATION_PASS - T251_X5_CPU_PREFLIGHT_HOLD_TIMING - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A2_X5_PACED_SCREEN_HOLD_RESERVE - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -51,17 +51,25 @@ the handoff; policy `previous_action` receives the calibrator's final
 
 ## Current next step
 
-T251 ran once on the X5 against the exact T247 terminal policy and T250 host.
-All 15 non-timing checks passed, but all three frozen compute gates failed:
-p99 `3.459200 ms`, p99.9 `54.642409 ms`, and max `55.288782 ms` against
-`2/3/5 ms`. The result is `HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT`; its canonical
-SHA-256 is `3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c`.
+T251A proved that T251's approximately `55 ms` tail was Linux RT-bandwidth
+throttling caused by an unpaced diagnostic, not the policy, Python GC, or the
+real 20 ms loop. It also isolated the steady miss to Python host work while the
+exact ONNX graph remained below the frozen p99 limit.
 
-The next earned work is attribution without a threshold change or blind
-rerun. A separately frozen correction must explain both the approximately
-`2.93 ms` steady locomotion cost and the approximately `55 ms` tail before new
-X5 evidence is run. Production integration, policy staging, Hardware Gate 5,
-torque, and motion remain unearned and unrun.
+T251A2 then ran the default-off optimized host at real 20 ms releases. All
+2,298 ticks were byte-exact to the T250 host with zero rate excess and no robot
+interfaces. Its max passed the reserved screen, but p99 `2.179714 ms` and
+p99.9 `2.545636 ms` missed the preregistered `1.8/2.5/4.0 ms` reserve limits.
+The canonical result SHA-256 is
+`291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5`.
+Therefore T251B is not earned.
 
-Local validation at the current handoff is green: `408` tests pass and the
-`172`-entry artifact manifest verifies.
+The next earned work is one preregistered single-optimized-host/component
+attribution run. It must determine whether paired semantic-oracle cache
+pressure or a specific remaining host component sets the miss; only that
+measured component may change. Thresholds remain frozen. Production
+integration, policy staging, Hardware Gate 5, torque, and motion remain
+unearned and unrun.
+
+Local validation at this handoff is green: `419` tests pass and the
+`176`-entry reviewed-artifact manifest verifies.

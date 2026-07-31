@@ -10,13 +10,14 @@ all 320 cells. The offline native-runtime blocker is also cleared: T250 passed
 101-D production contract remains unchanged; the candidate uses a separate,
 default-disabled 115-D state-coherent host.
 
-The current blocker is T251. Its isolated no-motion RDK-X5 CPU preflight ran
-once and is held on all three frozen compute-tail limits (p99 `3.459200 ms`,
-p99.9 `54.642409 ms`, max `55.288782 ms`). The result requires attribution
-without changing thresholds. Even a later passing correction would earn only
-preregistration for opt-in production integration. The live sensor/bus/safety
-integration and its no-motion timing evidence must pass before Gate 5 can be
-prepared.
+T251A attributed T251's approximately 55 ms tail to RT throttling from the
+unpaced diagnostic and its steady miss to Python host overhead. T251A2 then
+proved the optimized paced host byte-exact for all 2,298 ticks, but p99
+`2.179714 ms` and p99.9 `2.545636 ms` missed its stricter `1.8/2.5/4.0 ms`
+reserved screen. T251B is not earned. A single-host/component attribution and
+a later passing reserved screen are required before the 10,000-tick correction
+can even be preregistered. The live sensor/bus/safety integration and its
+no-motion timing evidence must then pass before Gate 5 can be prepared.
 
 After those blockers clear, suspended x=0 and x=0.08 replays require the
 separately frozen Gate 5 contract, explicit authorization, complete runtime

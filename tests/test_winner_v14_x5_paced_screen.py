@@ -17,6 +17,14 @@ PREREGISTRATION = Path(
 )
 RUNNER = Path("tools/run_winner_v14_x5_paced_screen.py")
 LAUNCHER = Path("setup/run_winner_v14_x5_paced_screen.sh")
+RESULT = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251a2_x5_optimized_paced_screen_result_20260731.json"
+)
+REVIEW = Path(
+    "artifacts/gates/phase_5_policy/"
+    "t251a2_x5_optimized_paced_screen_review_20260731.json"
+)
 
 
 def load_runner_module() -> object:
@@ -147,3 +155,45 @@ def test_winner_v14_optimization_is_default_disabled_and_not_in_production() -> 
     production_sources = Path("src/open_duck_x5").glob("*.py")
     for path in production_sources:
         assert "winner_v14_optimized" not in path.read_text(encoding="utf-8")
+
+
+def test_t251a2_result_is_exact_hold_and_does_not_earn_t251b() -> None:
+    assert hashlib.sha256(RESULT.read_bytes()).hexdigest() == (
+        "dcc1472d5a98127b5c8434363e14eb1e879af6d63c40a8933e08d0c7ed1f7fc8"
+    )
+    value = json.loads(RESULT.read_text(encoding="utf-8"))
+    assert value["status"] == "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN"
+    assert value["result_sha256"] == (
+        "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5"
+    )
+    assert value["failed_checks"] == [
+        "optimized_p99_9_with_reserve",
+        "optimized_p99_with_reserve",
+    ]
+    assert sum(value["checks"].values()) == 13
+    assert value["checks"]["byte_exact_every_tick"] is True
+    assert value["execution"]["mismatch"] is None
+    assert value["execution"]["locomotion_ticks"] == 2_048
+    assert value["execution"]["optimized_stage_locomotion"]["p99_ms"] == 2.17971376
+    assert value["authority"]["policy_deployed"] is False
+    assert value["authority"]["servo_reads_or_writes"] is False
+    assert value["authority"]["motion"] is False
+    assert value["authority"]["gate5"] is False
+
+
+def test_t251a2_review_keeps_thresholds_and_gate5_frozen() -> None:
+    assert hashlib.sha256(REVIEW.read_bytes()).hexdigest() == (
+        "e73dab1b84a36f39de653ac3e5f26596e440bb1c7a8589690c28f812e85907c9"
+    )
+    value = json.loads(REVIEW.read_text(encoding="utf-8"))
+    assert value["status"] == "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN_REVIEWED"
+    assert value["source_result"]["canonical_sha256"] == (
+        "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5"
+    )
+    assert value["semantic_result"]["byte_exact_ticks"] == 2_298
+    assert value["semantic_result"]["mismatch"] is None
+    assert value["decision"]["t251b_earned"] is False
+    assert value["decision"]["threshold_change"] is False
+    assert value["decision"]["blind_rerun"] is False
+    assert value["decision"]["production_integration_earned"] is False
+    assert value["decision"]["gate5_earned"] is False
