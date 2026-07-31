@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A4_X5_RESERVED_SCREEN_HOLD_P99 - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A5_X5_TARGET_SCREEN_PREREGISTERED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -88,11 +88,18 @@ is therefore closed and T251B remains unearned.
 The correction was still material: versus T251A3, p50 fell by `0.140313 ms`
 and p99 by `0.287740 ms`. With immutable ONNX and the closed graph-host work
 excluded, the next largest unchanged measured component is target construction
-at `0.211167 ms` median. The only earned next work is a local CPU contract for
-one target-only, default-disabled correction. It cannot run on the X5 until
-that contract independently passes. Thresholds remain frozen; production
-integration, policy staging, Hardware Gate 5, torque, and motion remain
-unearned and unrun.
+at `0.211167 ms` median. T251A5 changed only that target boundary in a separate,
+default-disabled host. Its real-asset CPU contract is byte-exact for all
+`2,298` ticks, preserves one exact handoff and zero rate excess, and makes the
+bound offset array immutable. A balanced `20,000`-sample local microbenchmark
+measured a corrected/predecessor median ratio of `0.641026`, clearing the
+preregistered `<= 0.75` requirement.
 
-Local validation at this handoff is green: `443` tests pass and the `184`-entry
+That result earned exactly one no-device X5 target screen, now preregistered at
+the unchanged `1.8/2.5/4.0 ms` p99/p99.9/max reserve with no rerun or threshold
+change. It uses the unchanged T247 policy SHA and cannot open serial, sensor,
+controller, GPIO, I2C, servo, torque, or motion paths. Passing it earns only a
+T251B preregistration; it does not itself deploy a policy or authorize Gate 5.
+
+Local validation at this handoff is green: `458` tests pass and the `187`-entry
 reviewed-artifact manifest verifies.

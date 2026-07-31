@@ -36,6 +36,10 @@ from tools.winner_v14_optimized import (
 from tools.winner_v15_graph_host_optimized import (
     WinnerV15GraphHostOptimizedTransaction,
 )
+from tools.winner_v16_target_optimized import (
+    WinnerV16TargetOptimizedTransaction,
+    X5TrustedOffsetTargetPipeline,
+)
 
 FROZEN_SOURCE_SHA256 = {
     "winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
@@ -254,6 +258,21 @@ def _stage(host: WinnerV13StateCoherentTransaction, tick: int, command: float = 
         imu_sample_tick_index=tick,
         contacts_sample_tick_index=tick,
         **_samples(command),
+    )
+
+
+def _stage_samples(
+    host: WinnerV13StateCoherentTransaction,
+    tick: int,
+    sample: dict[str, object],
+) -> np.ndarray:
+    return host.stage_tick(
+        tick_index=tick,
+        logical_period_ns=CONTROL_PERIOD_NS,
+        servo_sample_tick_index=tick,
+        imu_sample_tick_index=tick,
+        contacts_sample_tick_index=tick,
+        **sample,
     )
 
 
@@ -654,6 +673,145 @@ def test_graph_host_optimized_discard_does_not_advance_graph_or_host_state(
     assert host.confirmed_calibration_ticks == 0
     np.testing.assert_array_equal(host._calibrator.committed_previous_action, initial_action)
     np.testing.assert_array_equal(host._calibrator.committed_hidden, initial_hidden)
+
+
+def test_target_optimized_transaction_is_byte_exact_across_handoff(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    baseline, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "baseline-v15",
+        host_type=WinnerV15GraphHostOptimizedTransaction,
+    )
+    optimized, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "optimized-v16",
+        host_type=WinnerV16TargetOptimizedTransaction,
+    )
+    sample = _samples(0.074)
+    offsets = sample["soft_offsets_rad"]
+    assert isinstance(offsets, np.ndarray)
+    optimized.bind_soft_offsets(offsets)
+    assert not offsets.flags.writeable
+
+    for tick in range(CALIBRATION_TICKS):
+        baseline_target = _stage_samples(baseline, tick, sample)
+        optimized_target = _stage_samples(optimized, tick, sample)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+    baseline.confirm_calibration_handoff(True)
+    optimized.confirm_calibration_handoff(True)
+    assert (
+        optimized.target_pipeline.sent_logical_target_rad
+        is optimized.target_pipeline.desired_logical_target_rad
+    )
+
+    for local_tick in range(50):
+        tick = CALIBRATION_TICKS + local_tick
+        baseline_target = _stage_samples(baseline, tick, sample)
+        optimized_target = _stage_samples(optimized, tick, sample)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized.logical_target_view, baseline.logical_target_view)
+        np.testing.assert_array_equal(
+            optimized.target_pipeline.implied_velocity_rad_s,
+            baseline.target_pipeline.implied_velocity_rad_s,
+        )
+        np.testing.assert_array_equal(
+            optimized.target_pipeline.graph_rate_excess_rad_s,
+            baseline.target_pipeline.graph_rate_excess_rad_s,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+
+
+@pytest.mark.parametrize(
+    "offsets",
+    [
+        np.zeros(ACTION_DIM, dtype=np.float32),
+        np.zeros(ACTION_DIM - 1, dtype=np.float64),
+        np.concatenate(
+            [np.zeros(ACTION_DIM - 1, dtype=np.float64), np.asarray([np.nan])]
+        ),
+    ],
+)
+def test_target_optimized_offset_binding_rejects_invalid_values(
+    offsets: np.ndarray,
+) -> None:
+    pipeline = X5TrustedOffsetTargetPipeline()
+    with pytest.raises(WinnerV13ContractError, match="bound soft offsets"):
+        pipeline.bind_soft_offsets(offsets)
+
+
+def test_target_optimized_offsets_are_immutable_and_identity_bound() -> None:
+    pipeline = X5TrustedOffsetTargetPipeline()
+    offsets = np.zeros(ACTION_DIM, dtype=np.float64)
+    pipeline.bind_soft_offsets(offsets)
+    assert not offsets.flags.writeable
+    with pytest.raises(ValueError, match="read-only"):
+        offsets[0] = 1.0
+    pipeline.enter_locomotion_identity()
+    with pytest.raises(WinnerV13ContractError, match="exact trusted"):
+        pipeline.stage(
+            np.zeros(ACTION_DIM, dtype=np.float32),
+            offsets.copy(),
+            mode="locomotion",
+        )
+
+
+def test_target_optimized_valid_and_violating_rate_vectors_match_predecessor() -> None:
+    baseline = X5OptimizedTargetPipeline()
+    optimized = X5TrustedOffsetTargetPipeline()
+    offsets = np.linspace(-0.001, 0.001, ACTION_DIM, dtype=np.float64)
+    optimized.bind_soft_offsets(offsets)
+    optimized.enter_locomotion_identity()
+    action = np.zeros(ACTION_DIM, dtype=np.float32)
+    rng = np.random.default_rng(2515)
+    normalized_step = winner_v2.WINNER_V2_RATE_LIMITS_RAD_S * np.float32(0.04)
+    for _ in range(1_000):
+        action += rng.uniform(-1.0, 1.0, ACTION_DIM).astype(np.float32) * normalized_step
+        baseline_target = baseline.stage(action, offsets, mode="locomotion")
+        optimized_target = optimized.stage(action, offsets, mode="locomotion")
+        np.testing.assert_array_equal(
+            optimized.desired_logical_target_rad,
+            baseline.desired_logical_target_rad,
+        )
+        np.testing.assert_array_equal(
+            optimized.sent_logical_target_rad,
+            baseline.sent_logical_target_rad,
+        )
+        np.testing.assert_array_equal(
+            optimized.implied_velocity_rad_s,
+            baseline.implied_velocity_rad_s,
+        )
+        np.testing.assert_array_equal(
+            optimized.graph_rate_excess_rad_s,
+            baseline.graph_rate_excess_rad_s,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.commit_staged()
+        optimized.commit_staged()
+
+    violating = action.copy()
+    violating[0] += np.float32(1.0)
+    with pytest.raises(WinnerV13ContractError, match="measured-rate envelope"):
+        baseline.stage(violating, offsets, mode="locomotion")
+    with pytest.raises(WinnerV13ContractError, match="measured-rate envelope"):
+        optimized.stage(violating, offsets, mode="locomotion")
+    np.testing.assert_array_equal(
+        optimized.graph_rate_excess_rad_s,
+        baseline.graph_rate_excess_rad_s,
+    )
 
 
 def test_x5_optimized_p30_is_bit_exact_for_mixed_delay_tau_and_velocity(

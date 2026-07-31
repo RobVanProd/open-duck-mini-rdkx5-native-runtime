@@ -1,0 +1,79 @@
+{
+  "schema_version": "open_duck_x5.t251a5_target_correction_preregistration.v1",
+  "status": "PREREGISTERED_T251A5_TARGET_ONLY_CORRECTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "HOLD_T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_REVIEWED",
+    "review_file_sha256": "e856ccce28a051d96b4fd4b2879ff2fec5ce8f6b7b40984418fe336ae79b6b10",
+    "source_result_sha256": "3fdc034f7bb23c689332e7f5f020191fcae993f06a20f39f33574420638056d3",
+    "selected_component": "target",
+    "selected_component_p50_ms": 0.211167,
+    "selection_basis": "largest unchanged eligible T251A3 component after immutable ONNX and the closed graph_host correction"
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "current_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7",
+    "predecessor_optimized_source": "tools/winner_v14_optimized.py",
+    "predecessor_optimized_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "predecessor_graph_host_source": "tools/winner_v15_graph_host_optimized.py",
+    "predecessor_graph_host_source_sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707"
+  },
+  "correction": {
+    "new_default_off_host": "tools/winner_v16_target_optimized.py",
+    "allowed_changes": [
+      "add a cold-path finite float64 shape-(14,) soft-offset binding, make the exact bound array read-only, and require object identity on every target stage",
+      "leave all 250 calibration target stages on the predecessor implementation",
+      "after the exact successful calibration handoff, alias desired and sent logical target buffers because the inherited 5.24-rad/s limiter is already proven identity in locomotion",
+      "on the valid locomotion path, collapse the already-computed per-joint excess vector to its maximum once and fill the exposed excess vector with exact zeros when maximum <= 1e-5",
+      "on a violating locomotion path, reconstruct the predecessor clipped/tolerance excess vector exactly before raising the unchanged measured-envelope fault",
+      "retain exact sent target, implied velocity, physical target, offset, pending, commit, discard, and fault semantics"
+    ],
+    "forbidden_changes": [
+      "policy, calibrator, ONNX, ABI, observation, graph_host, P30, phase, history, action, home, offset values, rate limits, or production behavior",
+      "skipping rate-excess validation, accepting mutable or non-finite offsets, or moving any validation after external send",
+      "native extension, threshold change, graph modification, or allocation in the valid locomotion hot path"
+    ]
+  },
+  "cpu_contract": {
+    "calibration_250_ticks_byte_exact_to_v15": true,
+    "successful_handoff_switches_to_one_trusted_immutable_offset_and_locomotion_identity_path": true,
+    "wrong_offset_object_dtype_shape_or_finiteness_fails_closed_and_bound_offsets_become_immutable": true,
+    "valid_and_boundary_rate_vectors_match_predecessor_target_velocity_excess_and_physical_output_exactly": true,
+    "violating_rate_vectors_raise_before_send_with_predecessor_excess_values": true,
+    "discard_and_failed_send_paths_do_not_advance_target_or_graph_state": true,
+    "real_asset_250_0_2048_v15_vs_v16_byte_exact_every_tick": true,
+    "local_20000_sample_target_microbenchmark_median_at_most_75_percent_of_predecessor": true,
+    "default_disabled_and_no_production_consumer": true,
+    "all_repository_tests_and_artifact_hashes_green": true
+  },
+  "decision_rule": {
+    "contract_and_local_microbenchmark_pass": "EARN_ONE_T251A5_SEPARATED_SEMANTIC_PLUS_SINGLE_HOST_RESERVED_SCREEN_PREREGISTRATION",
+    "semantic_or_safety_contract_fail": "CLOSE_TARGET_CORRECTION_WITHOUT_X5_EXECUTION",
+    "local_microbenchmark_fail": "CLOSE_TARGET_CORRECTION_AS_TOO_SMALL_WITHOUT_X5_EXECUTION",
+    "x5_execution": false,
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

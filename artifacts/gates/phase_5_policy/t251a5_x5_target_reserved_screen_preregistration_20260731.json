@@ -1,0 +1,102 @@
+{
+  "schema_version": "open_duck_x5.t251a5_x5_target_reserved_screen_preregistration.v1",
+  "status": "PREREGISTERED_T251A5_X5_TARGET_RESERVED_SCREEN",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "PASS_T251A5_TARGET_CPU_CONTRACT",
+    "result_file_sha256": "ed6f02f883f56358beca7d7d879443a30044058019b40f0950fd46c096bdca17",
+    "result_sha256": "a8b0a71b83956fd72a21690c62c201b3d0f7e06722c310c53f8063e6945255b6",
+    "all_2298_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "local_target_median_ratio": 0.641025641025641,
+    "required_maximum_target_median_ratio": 0.75
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "exact_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7",
+    "optimized_host_source": "tools/winner_v14_optimized.py",
+    "optimized_host_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "predecessor_host_source": "tools/winner_v15_graph_host_optimized.py",
+    "predecessor_host_source_sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707",
+    "corrected_host_source": "tools/winner_v16_target_optimized.py",
+    "corrected_host_source_sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af",
+    "screen_helper_source": "tools/run_winner_v14_x5_paced_screen.py",
+    "screen_helper_source_sha256": "82238fafe6d805dd8ee092429c1d99d4861099c59e9a632fec6c10160a7c8e3d",
+    "predecessor_screen_source": "tools/run_winner_v15_x5_reserved_screen.py",
+    "predecessor_screen_source_sha256": "b3f989bf963aacc2e336806755dbe85713cf392bd60cbe9ef8338b7f3c109da4"
+  },
+  "platform": {
+    "required_os": "Linux",
+    "required_machine": "aarch64",
+    "isolated_cpu": 7,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "governor": "performance",
+    "release_period_ns": 20000000,
+    "gc_disabled_during_arms": true,
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t251a5"
+  },
+  "screen": {
+    "command_x_m_s": 0.074,
+    "calibration_ticks": 250,
+    "home_return_ticks": 0,
+    "locomotion_ticks": 2048,
+    "warmup_runs_per_graph": 3,
+    "release_period_ns": 20000000,
+    "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3"
+  },
+  "arms_in_fixed_order": [
+    {
+      "id": "separated_semantic_equivalence",
+      "hosts": [
+        "WinnerV15GraphHostOptimizedTransaction",
+        "WinnerV16TargetOptimizedTransaction"
+      ],
+      "paced": true,
+      "timing_selection_weight": 0,
+      "required": "every staged and committed graph, observation, target, offset, implied-velocity, rate-excess, and recurrent field is byte-exact for all 2298 ticks; exactly one confirmed handoff"
+    },
+    {
+      "id": "single_corrected_reserved_timing",
+      "host": "WinnerV16TargetOptimizedTransaction",
+      "paced": true,
+      "timing_selection_weight": 1,
+      "required": "unchanged action trace, zero rate excess, immutable identity-bound offsets, locomotion desired/sent alias, and all three frozen reserve limits pass"
+    }
+  ],
+  "reference_reserve_limits_ms": {
+    "p99_ms": 1.8,
+    "p99_9_ms": 2.5,
+    "max_ms": 4.0,
+    "provenance": "unchanged T251A2/T251A3 reference-only reserve; no threshold adjustment"
+  },
+  "decision_rule": {
+    "all_semantic_and_reserve_checks_pass": "EARN_T251B_PREREGISTRATION_ONLY",
+    "any_check_fails": "CLOSE_TARGET_CORRECTION_WITHOUT_T251B",
+    "rerun": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "t251b_executed": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "single_x5_cpu_execution": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "controller": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}
