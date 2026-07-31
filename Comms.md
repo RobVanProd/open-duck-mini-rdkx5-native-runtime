@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A2_X5_PACED_SCREEN_HOLD_RESERVE - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A4_X5_RESERVED_SCREEN_PREREGISTERED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -64,13 +64,26 @@ The canonical result SHA-256 is
 `291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5`.
 Therefore T251B is not earned.
 
-The next earned work is one preregistered single-optimized-host/component
-attribution run. It must determine whether paired semantic-oracle cache
-pressure or a specific remaining host component sets the miss; only that
-measured component may change. Thresholds remain frozen. Production
-integration, policy staging, Hardware Gate 5, torque, and motion remain
-unearned and unrun.
+T251A3 completed on the X5 and separated the immutable ONNX call from Python
+host work. The single-host action trace remained exact, the governor restored,
+and no robot interface was opened. The largest eligible non-ONNX component was
+the graph host at `0.232334 ms` median. Its uninstrumented stage remained over
+the reference reserve at p99 `2.326800 ms` and p99.9 `2.718311 ms`.
 
-T251A3 is now preregistered for that attribution only; it cannot earn T251B by
-itself. Local validation at this handoff is green: `423` tests pass and the
-`177`-entry reviewed-artifact manifest verifies.
+T251A4 therefore changed only that measured boundary in a separate,
+default-disabled host: the assembler writes into the active graph's already
+bound observation input, current action remains validated before target
+generation, and the full action/recurrent-state chain remains validated after
+a confirmed send and before state commit. The real-asset CPU contract is green
+for all `2,298` ticks, one exact handoff, and zero rate excess; the frozen T247
+policy and every observation/action/target semantic are unchanged.
+
+One no-device X5 screen is now preregistered. It first compares predecessor and
+corrected hosts byte-for-byte with zero timing selection weight, then times only
+the corrected host at 20 ms releases against the unchanged `1.8/2.5/4.0 ms`
+reserve. There is no rerun and no threshold adjustment. Passing earns only a
+T251B preregistration; production integration, policy staging, Hardware Gate 5,
+torque, and motion remain unearned and unrun.
+
+Local validation at this handoff is green: `441` tests pass and the `182`-entry
+reviewed-artifact manifest verifies.

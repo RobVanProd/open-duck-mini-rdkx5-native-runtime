@@ -1,0 +1,296 @@
+{
+  "arms": {
+    "single_optimized_component_profile": {
+      "action_trace_sha256": "96e4345b4420a6b01f7076e14b806df2501fd33a6641ab06f76ed2c10ef752c8",
+      "calibration_ticks": 250,
+      "commit_all": {
+        "max_ms": 0.854919,
+        "mean_ms": 0.5986657624671916,
+        "min_ms": 0.521709,
+        "p50_ms": 0.6181464999999999,
+        "p95_ms": 0.6351513,
+        "p99_9_ms": 0.7911213260000027,
+        "p99_ms": 0.66251474,
+        "samples": 762
+      },
+      "components_locomotion": {
+        "graph_host": {
+          "max_ms": 0.526834,
+          "mean_ms": 0.235428884765625,
+          "min_ms": 0.217458,
+          "p50_ms": 0.232334,
+          "p95_ms": 0.25744039999999996,
+          "p99_9_ms": 0.4742863370000034,
+          "p99_ms": 0.31823076999999966,
+          "samples": 512
+        },
+        "graph_total": {
+          "max_ms": 2.063754,
+          "mean_ms": 1.4887311015625,
+          "min_ms": 1.419002,
+          "p50_ms": 1.4785235,
+          "p95_ms": 1.5469697,
+          "p99_9_ms": 2.0110995380000034,
+          "p99_ms": 1.7300250099999999,
+          "samples": 512
+        },
+        "observation": {
+          "max_ms": 0.398625,
+          "mean_ms": 0.1816892890625,
+          "min_ms": 0.168,
+          "p50_ms": 0.179042,
+          "p95_ms": 0.18766334999999998,
+          "p99_9_ms": 0.3954527120000002,
+          "p99_ms": 0.24326861999999982,
+          "samples": 512
+        },
+        "observer_stage": {
+          "max_ms": 0.074459,
+          "mean_ms": 0.045627462890625,
+          "min_ms": 0.041708,
+          "p50_ms": 0.045501,
+          "p95_ms": 0.04841645,
+          "p99_9_ms": 0.0681777880000004,
+          "p99_ms": 0.05198412999999997,
+          "samples": 512
+        },
+        "onnx": {
+          "max_ms": 1.53692,
+          "mean_ms": 1.253302216796875,
+          "min_ms": 1.189293,
+          "p50_ms": 1.24569,
+          "p95_ms": 1.3129004,
+          "p99_9_ms": 1.536813201,
+          "p99_ms": 1.46770387,
+          "samples": 512
+        },
+        "target": {
+          "max_ms": 0.349084,
+          "mean_ms": 0.212230517578125,
+          "min_ms": 0.199667,
+          "p50_ms": 0.211167,
+          "p95_ms": 0.22007049999999997,
+          "p99_9_ms": 0.318083163000002,
+          "p99_ms": 0.2449684999999999,
+          "samples": 512
+        },
+        "transaction_residual": {
+          "max_ms": 0.185376,
+          "mean_ms": 0.089462068359375,
+          "min_ms": 0.082042,
+          "p50_ms": 0.087543,
+          "p95_ms": 0.10238924999999999,
+          "p99_9_ms": 0.17783823900000048,
+          "p99_ms": 0.12825158999999986,
+          "samples": 512
+        }
+      },
+      "expected_action_trace_sha256": "96e4345b4420a6b01f7076e14b806df2501fd33a6641ab06f76ed2c10ef752c8",
+      "home_return_ticks": 0,
+      "id": "single_optimized_component_profile",
+      "locomotion_ticks": 512,
+      "maximum_rate_excess_rad_s": 0.0,
+      "release_lateness": {
+        "max_ms": 0.050401,
+        "mean_ms": 0.031988787401574806,
+        "min_ms": 0.020746,
+        "p50_ms": 0.033410999999999996,
+        "p95_ms": 0.0384378,
+        "p99_9_ms": 0.04874658600000007,
+        "p99_ms": 0.04075748999999999,
+        "samples": 762
+      },
+      "stage_all": {
+        "max_ms": 2.904964,
+        "mean_ms": 1.641294347769029,
+        "min_ms": 0.822793,
+        "p50_ms": 1.9841495,
+        "p95_ms": 2.0664929499999998,
+        "p99_9_ms": 2.894595375,
+        "p99_ms": 2.32221149,
+        "samples": 762
+      },
+      "stage_locomotion": {
+        "max_ms": 2.904964,
+        "mean_ms": 2.0177404394531253,
+        "min_ms": 1.937211,
+        "p50_ms": 2.0020865,
+        "p95_ms": 2.0881816,
+        "p99_9_ms": 2.8980016250000005,
+        "p99_ms": 2.405982129999999,
+        "samples": 512
+      }
+    },
+    "single_optimized_uninstrumented": {
+      "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+      "calibration_ticks": 250,
+      "commit_all": {
+        "max_ms": 0.862751,
+        "mean_ms": 0.6191883250652741,
+        "min_ms": 0.541293,
+        "p50_ms": 0.619876,
+        "p95_ms": 0.6527573,
+        "p99_9_ms": 0.7801927030000048,
+        "p99_ms": 0.68100475,
+        "samples": 2298
+      },
+      "components_locomotion": {},
+      "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+      "home_return_ticks": 0,
+      "id": "single_optimized_uninstrumented",
+      "locomotion_ticks": 2048,
+      "maximum_rate_excess_rad_s": 0.0,
+      "release_lateness": {
+        "max_ms": 0.051165,
+        "mean_ms": 0.03501978590078329,
+        "min_ms": 0.020547,
+        "p50_ms": 0.035731,
+        "p95_ms": 0.040359700000000005,
+        "p99_9_ms": 0.049453042000000176,
+        "p99_ms": 0.04214440000000001,
+        "samples": 2298
+      },
+      "stage_all": {
+        "max_ms": 2.905088,
+        "mean_ms": 1.8146700300261098,
+        "min_ms": 0.773543,
+        "p50_ms": 1.910607,
+        "p95_ms": 2.0583869000000004,
+        "p99_9_ms": 2.7011025990000297,
+        "p99_ms": 2.2767122600000063,
+        "samples": 2298
+      },
+      "stage_locomotion": {
+        "max_ms": 2.905088,
+        "mean_ms": 1.9353467919921874,
+        "min_ms": 1.823087,
+        "p50_ms": 1.9147325,
+        "p95_ms": 2.0779869,
+        "p99_9_ms": 2.718310849000014,
+        "p99_ms": 2.32679973,
+        "samples": 2048
+      }
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "bytes": 55573,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/assets/calibrator.onnx",
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "deployment_policy": {
+      "bytes": 993875,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/assets/policy.onnx",
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/assets/p30.json",
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/assets/reference.npz",
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "attribution": {
+    "largest_non_onnx_host_component_by_p50": "graph_host",
+    "non_onnx_host_component_p50_ms": {
+      "graph_host": 0.232334,
+      "observation": 0.179042,
+      "observer_stage": 0.045501,
+      "target": 0.211167,
+      "transaction_residual": 0.087543
+    },
+    "reference_reserve_selection_weight": 0,
+    "single_host_clears_reference_reserve": false
+  },
+  "authority": {
+    "gate5": false,
+    "grounded_replay": false,
+    "motion": false,
+    "policy_deployed": false,
+    "production_runtime_modified": false,
+    "sensors": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "t251_rerun": false,
+    "t251b_earned": false,
+    "threshold_changed": false,
+    "torque": false
+  },
+  "checks": {
+    "aarch64_linux": true,
+    "asset_receipts_exact": true,
+    "component_accounting_nonnegative_and_complete": true,
+    "exact_250_0_arm_chains": true,
+    "exact_action_trace_prefixes": true,
+    "implementation_sources_exact": true,
+    "no_robot_descriptors": true,
+    "no_robot_modules": true,
+    "performance_governor": true,
+    "sched_fifo_priority_80": true,
+    "single_cpu7_affinity": true,
+    "tracked_source_clean": true,
+    "zero_measured_rate_excess": true
+  },
+  "date": "2026-07-31",
+  "decision": "CHANGE_ONLY_MEASURED_HOST_COMPONENT:graph_host",
+  "failed_checks": [],
+  "git": {
+    "branch": "codex/policy-deployment-consolidation",
+    "commit": "c65b4bcfe55fa67913a9981ccc54440b3988ac6d"
+  },
+  "isolation_evidence": {
+    "external_send_implementation": false,
+    "robot_descriptors_after": {},
+    "robot_descriptors_before": {},
+    "robot_modules_after": [],
+    "robot_modules_before": [],
+    "serial_gpio_i2c_controller_or_torque_access": false
+  },
+  "platform": {
+    "affinity": [
+      7
+    ],
+    "governor": "performance",
+    "machine": "aarch64",
+    "numpy": "2.2.6",
+    "python": "3.10.12",
+    "release": "6.1.83",
+    "scheduler": "SCHED_FIFO",
+    "scheduler_priority": 80,
+    "system": "Linux"
+  },
+  "preregistration": {
+    "bytes": 4772,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a3/source/artifacts/gates/phase_5_policy/t251a3_x5_single_host_component_attribution_preregistration_20260731.json",
+    "sha256": "3e2fb876070901eaa9167c5402f6017d5b653702971065df25515469cbbd6b8f"
+  },
+  "raw_output": {
+    "bytes": 93802,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a3/evidence/raw-ticks.npz",
+    "sha256": "0503447eb7b36effdc57ed5445e89a60884c19c27d609ebbf66274dbe6b4903a"
+  },
+  "result_sha256": "0b8d7dbbf8669d9dd23ef8bef7e50ee5a7d9a0d66fb4254a9661be89591f73cf",
+  "schema_version": "open_duck_x5.t251a3_x5_component_attribution_result.v1",
+  "source_receipts": {
+    "optimized": {
+      "bytes": 13681,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/source/tools/winner_v14_optimized.py",
+      "sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+    },
+    "screen_helper": {
+      "bytes": 22256,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/source/tools/run_winner_v14_x5_paced_screen.py",
+      "sha256": "82238fafe6d805dd8ee092429c1d99d4861099c59e9a632fec6c10160a7c8e3d"
+    },
+    "transaction": {
+      "bytes": 40452,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a3/source/src/open_duck_x5/winner_v13_state_coherent.py",
+      "sha256": "d6fe348dbb95d86e4def71338aaf3044ff4a3ac7e4cf1420ba777f0ff831bf86"
+    }
+  },
+  "status": "COMPLETE_T251A3_X5_SINGLE_HOST_COMPONENT_ATTRIBUTION"
+}

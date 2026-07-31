@@ -17,7 +17,9 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T251A2_X5_OPTIMIZED_PACED_SCREEN_HOLD_RESERVE"
+    assert status["status"] == (
+        "T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_PREREGISTERED"
+    )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -49,6 +51,17 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
         "optimized_p99_with_reserve",
     ]
     assert t251a2["t251b_earned"] is False
+    t251a3 = gates["t251a3_single_host_component_attribution"]
+    assert t251a3["status"] == "PASS_REVIEW"
+    assert t251a3["selected_component"] == "graph_host"
+    assert t251a3["t251b_earned"] is False
+    t251a4 = gates["t251a4_graph_host_cpu_contract"]
+    assert t251a4["status"] == "PASS"
+    assert t251a4["byte_exact_ticks"] == 2_298
+    assert t251a4["handoff_switches"] == 1
+    assert t251a4["maximum_rate_excess_rad_s"] == 0.0
+    assert t251a4["x5_screen_status"] == "PREREGISTERED_NOT_RUN"
+    assert t251a4["t251b_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -92,10 +105,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 423}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 441}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 177,
+        "entries": 182,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

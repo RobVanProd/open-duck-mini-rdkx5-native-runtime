@@ -33,6 +33,9 @@ from tools.winner_v14_optimized import (
     X5OptimizedP30Observer,
     X5OptimizedTargetPipeline,
 )
+from tools.winner_v15_graph_host_optimized import (
+    WinnerV15GraphHostOptimizedTransaction,
+)
 
 FROZEN_SOURCE_SHA256 = {
     "winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
@@ -92,6 +95,9 @@ class FakeSession:
         self.stage = stage
         self.binding = FakeBinding()
         self.calls = 0
+        self.action_override: float | None = None
+        self.previous_action_out_delta = np.float32(0.0)
+        self.hidden_out_override: float | None = None
 
     def get_inputs(self) -> list[FakeNode]:
         return [FakeNode(tensor) for tensor in self.spec.inputs]
@@ -116,6 +122,12 @@ class FakeSession:
         np.add(previous, increment, out=action)
         np.copyto(previous_out, action)
         np.add(hidden, np.float32(0.002), out=hidden_out)
+        if self.action_override is not None:
+            action[0, 0] = np.float32(self.action_override)
+            previous_out[0, 0] = action[0, 0]
+        previous_out[0, 0] += self.previous_action_out_delta
+        if self.hidden_out_override is not None:
+            hidden_out[0, 0] = np.float32(self.hidden_out_override)
 
 
 def _install_fake_ort(monkeypatch: pytest.MonkeyPatch, sessions: dict[str, FakeSession]) -> None:
@@ -500,6 +512,148 @@ def test_x5_optimized_transaction_is_bit_exact_to_winner_v13(
         baseline.complete_send(write_succeeded=True)
         optimized.complete_send(write_succeeded=True)
         np.testing.assert_array_equal(optimized.observer.value_view, baseline.observer.value_view)
+
+
+def test_graph_host_optimized_transaction_is_bit_exact_and_switches_bound_input(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    baseline, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "baseline-v14",
+        host_type=WinnerV14X5OptimizedTransaction,
+    )
+    optimized, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "optimized-v15",
+        host_type=WinnerV15GraphHostOptimizedTransaction,
+    )
+    assert (
+        optimized.assembler.observation
+        is optimized._calibrator._trusted_bound_observation
+    )
+    assert np.shares_memory(
+        optimized.assembler.observation,
+        optimized._calibrator._observation,
+    )
+    assert not np.shares_memory(
+        optimized.assembler.observation,
+        optimized._locomotion._observation,
+    )
+
+    for tick in range(CALIBRATION_TICKS):
+        baseline_target = _stage(baseline, tick)
+        optimized_target = _stage(optimized, tick)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+
+    baseline.confirm_calibration_handoff(True)
+    optimized.confirm_calibration_handoff(True)
+    assert (
+        optimized.assembler.observation
+        is optimized._locomotion._trusted_bound_observation
+    )
+    assert np.shares_memory(
+        optimized.assembler.observation,
+        optimized._locomotion._observation,
+    )
+    assert not np.shares_memory(
+        optimized.assembler.observation,
+        optimized._calibrator._observation,
+    )
+    np.testing.assert_array_equal(optimized.calibration_context, baseline.calibration_context)
+
+    for local_tick in range(50):
+        tick = CALIBRATION_TICKS + local_tick
+        baseline_target = _stage(baseline, tick, 0.074)
+        optimized_target = _stage(optimized, tick, 0.074)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+
+
+@pytest.mark.parametrize("invalid_action", [float("nan"), 1.01, -1.01])
+def test_graph_host_optimized_rejects_invalid_current_action_before_target_stage(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    invalid_action: float,
+) -> None:
+    host, calibrator, _ = _make_host(
+        monkeypatch,
+        tmp_path,
+        host_type=WinnerV15GraphHostOptimizedTransaction,
+    )
+    initial_target = host.target_pipeline.previous_sent_logical_target_view.copy()
+    calibrator.action_override = invalid_action
+    with pytest.raises(WinnerV13ContractError, match="non-finite or outside"):
+        _stage(host, 0)
+    assert host.faulted
+    assert not host.target_pipeline.pending
+    assert host.confirmed_calibration_ticks == 0
+    np.testing.assert_array_equal(
+        host.target_pipeline.previous_sent_logical_target_view,
+        initial_target,
+    )
+
+
+@pytest.mark.parametrize(
+    ("corruption", "expected"),
+    [("previous_action", "chain diverged"), ("hidden", "non-finite h_out")],
+)
+def test_graph_host_optimized_validates_next_state_after_send_before_commit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    corruption: str,
+    expected: str,
+) -> None:
+    host, calibrator, _ = _make_host(
+        monkeypatch,
+        tmp_path,
+        host_type=WinnerV15GraphHostOptimizedTransaction,
+    )
+    initial_action = host._calibrator.committed_previous_action.copy()
+    initial_hidden = host._calibrator.committed_hidden.copy()
+    if corruption == "previous_action":
+        calibrator.previous_action_out_delta = np.float32(0.01)
+    else:
+        calibrator.hidden_out_override = float("nan")
+
+    _stage(host, 0)
+    assert host.pending
+    with pytest.raises(WinnerV13ContractError, match=expected):
+        host.complete_send(write_succeeded=True)
+    assert host.faulted
+    assert host.confirmed_calibration_ticks == 0
+    np.testing.assert_array_equal(host._calibrator.committed_previous_action, initial_action)
+    np.testing.assert_array_equal(host._calibrator.committed_hidden, initial_hidden)
+
+
+def test_graph_host_optimized_discard_does_not_advance_graph_or_host_state(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    host, _, _ = _make_host(
+        monkeypatch,
+        tmp_path,
+        host_type=WinnerV15GraphHostOptimizedTransaction,
+    )
+    initial_action = host._calibrator.committed_previous_action.copy()
+    initial_hidden = host._calibrator.committed_hidden.copy()
+    _stage(host, 0)
+    host.discard_staged()
+    assert not host.pending
+    assert host.confirmed_calibration_ticks == 0
+    np.testing.assert_array_equal(host._calibrator.committed_previous_action, initial_action)
+    np.testing.assert_array_equal(host._calibrator.committed_hidden, initial_hidden)
 
 
 def test_x5_optimized_p30_is_bit_exact_for_mixed_delay_tau_and_velocity(

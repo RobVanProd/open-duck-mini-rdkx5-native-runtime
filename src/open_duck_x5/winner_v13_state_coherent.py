@@ -12,6 +12,7 @@ caller confirms a successful external send with the literal bool ``True``.
 from __future__ import annotations
 
 import json
+import math
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -304,6 +305,7 @@ class _StateCoherentGraphSession:
         self._staged_action_view.setflags(write=False)
         self._pending = False
         self._handoff_initialized = False
+        self._trusted_bound_observation: np.ndarray | None = None
 
         self._binding = self.session.io_binding()
         self._ort_values: list[object] = []
@@ -348,6 +350,33 @@ class _StateCoherentGraphSession:
         self._action.fill(0.0)
         self._previous_action_out.fill(0.0)
         self._hidden_out.fill(0.0)
+
+    def bind_trusted_observation(self, observation: np.ndarray) -> None:
+        """Cold-path bind of an assembler view to this graph's ONNX input."""
+
+        if self._pending:
+            raise WinnerV13StateError(
+                f"cannot bind {self.stage_name} observation with staged state"
+            )
+        if (
+            not isinstance(observation, np.ndarray)
+            or observation.shape != (OBSERVATION_DIM,)
+            or observation.dtype != np.dtype(np.float32)
+        ):
+            raise WinnerV13ContractError(
+                f"{self.stage_name} bound observation must be float32 shape "
+                f"({OBSERVATION_DIM},)"
+            )
+        expected = self._observation[0]
+        if (
+            not np.shares_memory(observation, expected)
+            or observation.ctypes.data != expected.ctypes.data
+            or observation.strides != expected.strides
+        ):
+            raise WinnerV13ContractError(
+                f"{self.stage_name} bound observation does not alias its ONNX input"
+            )
+        self._trusted_bound_observation = observation
 
     def _validate_staged_outputs(self, operation: str) -> None:
         arrays = (
@@ -454,6 +483,37 @@ class _StateCoherentGraphSession:
                 raise WinnerV13ContractError(
                     f"{self.stage_name} inference action is outside [-1, 1]: "
                     f"min={float(np.min(self._action))}, max={float(np.max(self._action))}"
+                )
+        except Exception:
+            self._scrub_staged()
+            self._pending = False
+            raise
+        self._pending = True
+        return self._staged_action_view
+
+    def stage_bound_action_validated(self, observation: np.ndarray) -> np.ndarray:
+        """Run a trusted bound input and validate the send-authoritative action."""
+
+        if self._pending:
+            raise WinnerV13StateError(f"{self.stage_name} graph already has staged state")
+        if observation is not self._trusted_bound_observation:
+            raise WinnerV13ContractError(
+                f"{self.stage_name} observation is not its trusted bound input"
+            )
+        self._scrub_staged()
+        try:
+            self.session.run_with_iobinding(self._binding)
+            minimum = float(self._action.min())
+            maximum = float(self._action.max())
+            if (
+                not math.isfinite(minimum)
+                or not math.isfinite(maximum)
+                or minimum < -1.0
+                or maximum > 1.0
+            ):
+                raise WinnerV13ContractError(
+                    f"{self.stage_name} inference action is non-finite or outside "
+                    f"[-1, 1]: min={minimum}, max={maximum}"
                 )
         except Exception:
             self._scrub_staged()

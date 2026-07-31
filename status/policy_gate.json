@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251A2_X5_OPTIMIZED_PACED_SCREEN_HOLD_RESERVE",
+  "status": "T251A4_X5_GRAPH_HOST_RESERVED_SCREEN_PREREGISTERED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -121,17 +121,42 @@
       "artifact_file_sha256": "dcc1472d5a98127b5c8434363e14eb1e879af6d63c40a8933e08d0c7ed1f7fc8",
       "t251b_earned": false
     },
+    "t251a3_single_host_component_attribution": {
+      "status": "PASS_REVIEW",
+      "selected_component": "graph_host",
+      "selected_component_p50_ms": 0.232334,
+      "single_host_stage_latency_ms": {
+        "p99": 2.32679973,
+        "p99_9": 2.718310849000014,
+        "max": 2.905088
+      },
+      "result_sha256": "0b8d7dbbf8669d9dd23ef8bef7e50ee5a7d9a0d66fb4254a9661be89591f73cf",
+      "artifact_file_sha256": "9a1d8abd970dca73622914b11272572747a3c81ecfcd81df73e9abe6456af23a",
+      "review_file_sha256": "cc4e8cf6c1af2cc461c6d6c5f30235b9b068aa32555e3799ab4c8d97510e44f5",
+      "t251b_earned": false
+    },
+    "t251a4_graph_host_cpu_contract": {
+      "status": "PASS",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "result_sha256": "7b4b4b015f2bb69323bb2cf1d794d94817a3e977a09306f11c91cc59fa313595",
+      "artifact_file_sha256": "c33906f75cceb746b46e2b331fe13a71d4fc246fafcaa0b5e72d871d32ccfb27",
+      "x5_screen_preregistration_sha256": "ac4b05540c51cafd669d14d380d2a6c432fbbf5dc093feec2fb1208e0e7710d8",
+      "x5_screen_status": "PREREGISTERED_NOT_RUN",
+      "t251b_earned": false
+    },
     "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 423
+      "passed": 441
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 177
+      "entries": 182
     }
   },
   "authority": {
