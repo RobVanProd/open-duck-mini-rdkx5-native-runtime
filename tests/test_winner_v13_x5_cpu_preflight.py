@@ -10,6 +10,7 @@ PREREGISTRATION = Path(
     "artifacts/gates/phase_5_policy/t251_x5_no_motion_cpu_preflight_preregistration_20260731.json"
 )
 RUNNER = Path("tools/run_winner_v13_x5_cpu_preflight.py")
+LAUNCHER = Path("setup/run_winner_v13_x5_cpu_preflight.sh")
 
 
 def test_t251_preregistration_is_exact_and_no_motion() -> None:
@@ -88,3 +89,33 @@ def test_t251_runner_help_requires_isolated_staging_and_assets() -> None:
         "--output",
     ):
         assert flag in completed.stdout
+
+
+def test_t251_launcher_restores_governor_and_exposes_no_robot_path() -> None:
+    source = LAUNCHER.read_text(encoding="utf-8")
+    assert 'staging_root_expected="/home/sunrise/open_duck_x5_preflight/t251"' in source
+    assert "readonly rt_cpu=7" in source
+    assert "readonly rt_priority=80" in source
+    assert "restore_governor" in source
+    assert "trap cleanup EXIT" in source
+    assert "trap 'exit 130' INT" in source
+    assert 'taskset -c "$rt_cpu" chrt -f "$rt_priority"' in source
+    assert "--x5-cpu-preflight-authorized" in source
+    assert "--no-robot-device-access" in source
+    assert "/dev/tty" not in source
+    assert "--hardware-authorized" not in source
+    assert "--suspended-or-benched" not in source
+    assert "enable-torque" not in source
+
+
+def test_t251_launcher_parses_and_help_is_cpu_only() -> None:
+    subprocess.run(["bash", "-n", str(LAUNCHER)], check=True)
+    completed = subprocess.run(
+        ["bash", str(LAUNCHER), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "synthetic-state CPU/ONNX preflight" in completed.stdout
+    assert "no serial" in completed.stdout
+    assert "torque" in completed.stdout
