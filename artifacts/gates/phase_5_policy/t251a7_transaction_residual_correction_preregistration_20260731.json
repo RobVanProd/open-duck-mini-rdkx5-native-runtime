@@ -1,0 +1,78 @@
+{
+  "schema_version": "open_duck_x5.t251a7_transaction_residual_correction_preregistration.v1",
+  "status": "PREREGISTERED_T251A7_TRANSACTION_RESIDUAL_ONLY_CORRECTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "CLOSED_T251A6_OBSERVATION_CORRECTION_AS_TOO_SMALL",
+    "review_file_sha256": "a5e1058c79012bc52b7a48a3d0550310d4c74fcd227ea03c83408890389c534e",
+    "source_result_sha256": "a368645581264f5836e848cae7be7f5d83d18ca3f58f8ca5e1b339f5605e31d3",
+    "selected_component": "transaction_residual",
+    "selected_component_p50_ms": 0.087543,
+    "selection_basis": "largest unchanged eligible T251A3 component after immutable ONNX and the closed graph_host, target, and observation corrections"
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "current_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7",
+    "optimized_source": "tools/winner_v14_optimized.py",
+    "optimized_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "graph_host_source": "tools/winner_v15_graph_host_optimized.py",
+    "graph_host_source_sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707",
+    "predecessor_source": "tools/winner_v16_target_optimized.py",
+    "predecessor_source_sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+  },
+  "correction": {
+    "new_default_off_host": "tools/winner_v18_transaction_optimized.py",
+    "allowed_changes": [
+      "add a cold-path transaction binding for the exact stable runtime gyro, acceleration, command, position, velocity, contact, servo-staleness, and already trusted immutable soft-offset arrays",
+      "retain the predecessor stage_tick path for all 250 calibration ticks and add one positional locomotion-only stage_bound_tick entry point after the exact handoff",
+      "make the 20 ms logical period implicit because it is frozen, while still receiving and checking the servo, IMU, and contact sample tick indices independently",
+      "inline only the valid locomotion transaction shell; route every invalid active, pending, tick-type, contiguity, mixed-age, or handoff state through the predecessor implementation for exact diagnostics",
+      "retain the exact assembler, graph host, target, observer, first-locomotion history overlay, staged action copy, fault boundary, pending state, commit, and discard semantics"
+    ],
+    "forbidden_changes": [
+      "using the closed T251A6 observation implementation or changing any component counted as observation, ONNX, graph_host, target, or observer_stage",
+      "policy, calibrator, ONNX, ABI, observation, P30, phase, history, action, target, home, offset values, rate limits, transaction commit order, or production behavior",
+      "collapsing the three independent sample epochs, accepting stale/non-finite data, skipping a fault, native extension, threshold change, or robot-device access"
+    ]
+  },
+  "cpu_contract": {
+    "calibration_uses_predecessor_path_and_full_2298_tick_chain_is_byte_exact_to_v16": true,
+    "bound_source_identity_dtype_shape_and_offset_identity_fail_closed": true,
+    "all_invalid_tick_active_pending_handoff_and_mixed_age_cases_match_predecessor": true,
+    "stale_nonfinite_command_graph_target_observer_and_send_faults_match_predecessor": true,
+    "discard_failed_send_commit_phase_history_and_recurrence_match_predecessor": true,
+    "local_20000_sample_transaction_shell_microbenchmark_median_at_most_75_percent_of_predecessor": true,
+    "default_disabled_and_no_production_consumer": true,
+    "all_repository_tests_and_artifact_hashes_green": true
+  },
+  "decision_rule": {
+    "contract_and_local_microbenchmark_pass": "EARN_ONE_T251A7_SEPARATED_SEMANTIC_PLUS_SINGLE_HOST_RESERVED_SCREEN_PREREGISTRATION",
+    "semantic_or_safety_contract_fail": "CLOSE_TRANSACTION_RESIDUAL_CORRECTION_WITHOUT_X5_EXECUTION",
+    "local_microbenchmark_fail": "CLOSE_TRANSACTION_RESIDUAL_CORRECTION_AS_TOO_SMALL_WITHOUT_X5_EXECUTION",
+    "x5_execution": false,
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

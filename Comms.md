@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A6_OBSERVATION_CORRECTION_CLOSED - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A8_COMPONENT_LOCAL_OPTIMIZATION_EXHAUSTED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -112,11 +112,31 @@ microbenchmark measured `1.027778x` the predecessor median rather than the
 required `<= 0.75x`. The observation correction is therefore closed as too
 small, and no X5 execution was earned or performed.
 
-The next and now largest unchanged eligible component is transaction residual
-at `0.087543 ms` median. The only earned next work is a local CPU contract for
-one transaction-residual-only, default-disabled correction. Thresholds, T247
-weights, production integration, policy staging, Hardware Gate 5, torque, and
-motion remain unchanged and unearned.
+The next measured component, transaction residual at `0.087543 ms` median,
+was tested in T251A7 with one preregistered default-disabled correction. Its
+full real-asset chain remained byte-exact for all `2,298` ticks, including one
+handoff, zero rate excess, seven exact fallback-diagnostic cases, and six exact
+fault-boundary cases. The balanced `20,000`-sample transaction-shell benchmark
+improved from `0.0042 ms` to `0.0034 ms` median, but the `0.809524x` ratio did
+not meet the unchanged `<= 0.75x` materiality requirement. The correction is
+therefore closed as too small, and no X5 execution was earned or performed.
 
-Local validation at this handoff is green: `471` tests pass and the `192`-entry
+The final independently measured eligible component, observer staging at
+`0.045501 ms` median, was tested in T251A8. Its full real-asset chain remained
+byte-exact for all `2,298` ticks with exact calibration/handoff/P30 state and
+zero rate excess. Its stage-only median improved from `0.0027 ms` to `0.0021
+ms`, but the `0.777778x` ratio missed the unchanged `<= 0.75x` materiality bar.
+Stage-plus-commit remained inside its non-regression bound at `1.037267x`.
+The correction is closed, and no X5 execution was earned or performed.
+
+All independently measured Python host components have now been either
+materially corrected and screened or falsified locally. The latest whole-host
+X5 screen remains T251A5: p99/p99.9/max `2.011089/2.396691/2.701923 ms`
+against the frozen `1.8/2.5/4.0 ms` reserve. The next work is a read-only
+host-architecture audit using existing evidence, followed by a mechanically
+distinct preregistered falsifier. Threshold changes, T247 changes, blind X5
+reruns, T251B, production integration, Hardware Gate 5, torque, and motion
+remain unearned.
+
+Local validation at this handoff is green: `481` tests pass and the `198`-entry
 reviewed-artifact manifest verifies.

@@ -1,0 +1,367 @@
+{
+  "schema_version": "open_duck_x5.t251a7_transaction_cpu_contract_result.v1",
+  "status": "FAIL_T251A7_TRANSACTION_CPU_CONTRACT",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "preregistration": {
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t251a7_transaction_residual_correction_preregistration_20260731.json",
+    "bytes": 5035,
+    "sha256": "7bd6f29f4487b37729f4360c0d5de564279e69c8e689c47d3cda9e298c09b044"
+  },
+  "source_receipts": {
+    "transaction": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v13_state_coherent.py",
+      "bytes": 42895,
+      "sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7"
+    },
+    "predecessor_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v16_target_optimized.py",
+      "bytes": 6053,
+      "sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+    },
+    "corrected_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v18_transaction_optimized.py",
+      "bytes": 7599,
+      "sha256": "80f2907406f0693da54ffe17983ff90a3794bb2f5bb5c8e04e81aaa78d519bb7"
+    },
+    "verifier": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\verify_winner_v18_transaction_optimized.py",
+      "bytes": 25781,
+      "sha256": "b6f91fe61098f4e01da20ca4604d5e243e46b2fae2f212c7bed61383c8c2b8d5"
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "policy": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "p30_fit": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "reference_table": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "semantic_contract": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "bound_live_sources_remain_writeable": true,
+    "bound_offsets_are_immutable": true,
+    "mismatch": null,
+    "predecessor_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "corrected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "binding_contract": {
+    "untrusted_offset_rejected": true,
+    "wrong_dtype_rejected": true,
+    "duplicate_binding_rejected": true,
+    "live_inputs_remain_writeable": true,
+    "offset_identity_exact": true,
+    "offsets_immutable": true
+  },
+  "fallback_contract": {
+    "cases": {
+      "handoff_required": {
+        "expected": {
+          "type": "WinnerV13StateError",
+          "message": "250 calibration ticks are complete; explicit state-coherent handoff required",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13StateError",
+          "message": "250 calibration ticks are complete; explicit state-coherent handoff required",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "exact": true
+      },
+      "tick_type": {
+        "expected": {
+          "type": "WinnerV13ContractError",
+          "message": "tick index must be an integer",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13ContractError",
+          "message": "tick index must be an integer",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "exact": true
+      },
+      "non_contiguous": {
+        "expected": {
+          "type": "WinnerV13ContractError",
+          "message": "non-contiguous Winner-v13 tick: expected 250, got 251",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13ContractError",
+          "message": "non-contiguous Winner-v13 tick: expected 250, got 251",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "exact": true
+      },
+      "mixed_epochs": {
+        "expected": {
+          "type": "WinnerV13ContractError",
+          "message": "ambiguous/mixed sample epochs for tick 250: (249, 250, 250)",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13ContractError",
+          "message": "ambiguous/mixed sample epochs for tick 250: (249, 250, 250)",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "exact": true
+      },
+      "inactive": {
+        "expected": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 state-coherent host is disabled",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 state-coherent host is disabled",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false
+        },
+        "exact": true
+      },
+      "faulted": {
+        "expected": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 state-coherent host is faulted closed: injected prior fault",
+          "faulted": true,
+          "fault_reason": "injected prior fault",
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 state-coherent host is faulted closed: injected prior fault",
+          "faulted": true,
+          "fault_reason": "injected prior fault",
+          "pending": false
+        },
+        "exact": true
+      },
+      "pending": {
+        "expected": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 transaction already has a staged tick",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": true
+        },
+        "actual": {
+          "type": "WinnerV13StateError",
+          "message": "Winner-v13 transaction already has a staged tick",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": true
+        },
+        "exact": true
+      }
+    },
+    "all_exact": true,
+    "post_discard_mismatch": null
+  },
+  "fault_contract": {
+    "cases": {
+      "stale": {
+        "expected": {
+          "type": "WinnerV2ContractError",
+          "message": "required winner-v2 sample is stale; refusing mixed-age observation",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: required winner-v2 sample is stale; refusing mixed-age observation",
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV2ContractError",
+          "message": "required winner-v2 sample is stale; refusing mixed-age observation",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: required winner-v2 sample is stale; refusing mixed-age observation",
+          "pending": false
+        },
+        "exact": true
+      },
+      "nonfinite": {
+        "expected": {
+          "type": "WinnerV2ContractError",
+          "message": "commands contains non-finite values at indices [0]",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: commands contains non-finite values at indices [0]",
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV2ContractError",
+          "message": "commands contains non-finite values at indices [0]",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: commands contains non-finite values at indices [0]",
+          "pending": false
+        },
+        "exact": true
+      },
+      "graph": {
+        "expected": {
+          "type": "RuntimeError",
+          "message": "injected graph failure",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected graph failure",
+          "pending": false
+        },
+        "actual": {
+          "type": "RuntimeError",
+          "message": "injected graph failure",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected graph failure",
+          "pending": false
+        },
+        "exact": true
+      },
+      "target": {
+        "expected": {
+          "type": "RuntimeError",
+          "message": "injected target failure in locomotion",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected target failure in locomotion",
+          "pending": false
+        },
+        "actual": {
+          "type": "RuntimeError",
+          "message": "injected target failure in locomotion",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected target failure in locomotion",
+          "pending": false
+        },
+        "exact": true
+      },
+      "observer": {
+        "expected": {
+          "type": "RuntimeError",
+          "message": "injected observer failure",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected observer failure",
+          "pending": false
+        },
+        "actual": {
+          "type": "RuntimeError",
+          "message": "injected observer failure",
+          "faulted": true,
+          "fault_reason": "locomotion stage failed: injected observer failure",
+          "pending": false
+        },
+        "exact": true
+      },
+      "send": {
+        "expected": {
+          "type": "WinnerV13SendError",
+          "message": "Winner-v13 target send for tick 250 requires literal bool True",
+          "faulted": true,
+          "fault_reason": "Winner-v13 target send for tick 250 requires literal bool True",
+          "pending": false
+        },
+        "actual": {
+          "type": "WinnerV13SendError",
+          "message": "Winner-v13 target send for tick 250 requires literal bool True",
+          "faulted": true,
+          "fault_reason": "Winner-v13 target send for tick 250 requires literal bool True",
+          "pending": false
+        },
+        "exact": true
+      }
+    },
+    "all_exact": true
+  },
+  "local_transaction_microbenchmark": {
+    "samples": 20000,
+    "alternated_order": true,
+    "component_methods_replaced_by_identical_preallocated_stubs": true,
+    "mismatch_tick": null,
+    "predecessor": {
+      "samples": 20000,
+      "min_ms": 0.0039,
+      "mean_ms": 0.00433975,
+      "p50_ms": 0.0042,
+      "p95_ms": 0.0046,
+      "p99_ms": 0.0079,
+      "p99_9_ms": 0.0108,
+      "max_ms": 0.0392,
+      "selection_weight": 0
+    },
+    "corrected": {
+      "samples": 20000,
+      "min_ms": 0.0031,
+      "mean_ms": 0.0034526749999999992,
+      "p50_ms": 0.0034,
+      "p95_ms": 0.0036,
+      "p99_ms": 0.0062,
+      "p99_9_ms": 0.010000100000000385,
+      "max_ms": 0.0582,
+      "selection_weight": 0
+    },
+    "corrected_to_predecessor_median_ratio": 0.8095238095238095,
+    "required_maximum_median_ratio": 0.75,
+    "selection_weight": 1
+  },
+  "checks": {
+    "asset_hashes_exact": true,
+    "pinned_predecessor_sources_exact": true,
+    "all_ticks_byte_exact": true,
+    "exact_tick_counts": true,
+    "exact_one_handoff": true,
+    "live_sources_remain_writeable": true,
+    "offsets_immutable": true,
+    "action_traces_identical": true,
+    "zero_rate_excess": true,
+    "binding_contract_exact": true,
+    "fallback_diagnostics_exact": true,
+    "fault_boundaries_exact": true,
+    "microbenchmark_outputs_exact": true,
+    "microbenchmark_median_improves_at_least_25_percent": false
+  },
+  "failed_checks": [
+    "microbenchmark_median_improves_at_least_25_percent"
+  ],
+  "decision": "CLOSE_T251A7_WITHOUT_X5_EXECUTION",
+  "authority": {
+    "x5_execution": false,
+    "robot_device_access": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "t251b_earned": false,
+    "gate5": false
+  },
+  "result_sha256": "54fc59dabea7ce725cbd5bcfaca3698660ced114834c0f22a325c4903e7ed69a"
+}

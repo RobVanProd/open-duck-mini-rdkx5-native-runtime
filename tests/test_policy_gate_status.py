@@ -17,9 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == (
-        "T251A6_OBSERVATION_CORRECTION_CLOSED_TOO_SMALL"
-    )
+    assert status["status"] == "T251A8_COMPONENT_LOCAL_OPTIMIZATION_EXHAUSTED"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -91,6 +89,33 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert t251a6["x5_screen_status"] == "NOT_EARNED"
     assert t251a6["next_measured_component"] == "transaction_residual"
     assert t251a6["t251b_earned"] is False
+    t251a7 = gates["t251a7_transaction_residual_cpu_contract"]
+    assert t251a7["status"] == "CLOSED_TOO_SMALL"
+    assert t251a7["byte_exact_ticks"] == 2_298
+    assert t251a7["handoff_switches"] == 1
+    assert t251a7["maximum_rate_excess_rad_s"] == 0.0
+    assert t251a7["fallback_diagnostic_cases_exact"] == 7
+    assert t251a7["fault_boundary_cases_exact"] == 6
+    assert t251a7["local_transaction_microbenchmark_samples"] == 20_000
+    assert t251a7["corrected_to_predecessor_median_ratio"] > 0.75
+    assert t251a7["x5_screen_status"] == "NOT_EARNED"
+    assert t251a7["next_measured_component"] == "observer_stage"
+    assert t251a7["t251b_earned"] is False
+    t251a8 = gates["t251a8_observer_stage_cpu_contract"]
+    assert t251a8["status"] == "CLOSED_TOO_SMALL"
+    assert t251a8["byte_exact_ticks"] == 2_298
+    assert t251a8["handoff_switches"] == 1
+    assert t251a8["maximum_rate_excess_rad_s"] == 0.0
+    assert t251a8["boundary_contract_exact"] is True
+    assert t251a8["local_observer_stage_microbenchmark_samples"] == 20_000
+    assert t251a8["corrected_to_predecessor_stage_median_ratio"] > 0.75
+    assert (
+        t251a8["corrected_to_predecessor_stage_plus_commit_median_ratio"]
+        <= 1.1
+    )
+    assert t251a8["x5_screen_status"] == "NOT_EARNED"
+    assert t251a8["component_local_optimization"] == "EXHAUSTED"
+    assert t251a8["t251b_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -134,10 +159,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 471}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 481}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 192,
+        "entries": 198,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

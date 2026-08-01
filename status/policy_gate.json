@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251A6_OBSERVATION_CORRECTION_CLOSED_TOO_SMALL",
+  "status": "T251A8_COMPONENT_LOCAL_OPTIMIZATION_EXHAUSTED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -207,17 +207,58 @@
       "next_measured_component": "transaction_residual",
       "t251b_earned": false
     },
+    "t251a7_transaction_residual_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "fallback_diagnostic_cases_exact": 7,
+      "fault_boundary_cases_exact": 6,
+      "local_transaction_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_median_ratio": 0.8095238095238095,
+      "required_maximum_median_ratio": 0.75,
+      "failed_checks": [
+        "microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "54fc59dabea7ce725cbd5bcfaca3698660ced114834c0f22a325c4903e7ed69a",
+      "artifact_file_sha256": "1a179ff8f23b23a19e2e296287a351d5096dcf363b3a1ab6bbcd646091b7e577",
+      "review_file_sha256": "1d1733d993ed3f72b50867dc54dd9694da4c1bdb73e8224f25a87d53f9580607",
+      "x5_screen_status": "NOT_EARNED",
+      "next_measured_component": "observer_stage",
+      "t251b_earned": false
+    },
+    "t251a8_observer_stage_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "boundary_contract_exact": true,
+      "local_observer_stage_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_stage_median_ratio": 0.7777777777777777,
+      "required_maximum_stage_median_ratio": 0.75,
+      "corrected_to_predecessor_stage_plus_commit_median_ratio": 1.0372670807453417,
+      "required_maximum_stage_plus_commit_median_ratio": 1.1,
+      "failed_checks": [
+        "stage_microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "fc4884e3d367fbab67517ea4ba38b7083b2afa381fbd3f9e64a126d72057af8a",
+      "artifact_file_sha256": "6dd88f528c2b91e92448dcc74bf81a01083032d26b8f3c53c8c7629185103867",
+      "review_file_sha256": "5deb6fa14ceb70dff7cda0a89460b5974e5f72366d7a5962375b5813923286e6",
+      "x5_screen_status": "NOT_EARNED",
+      "component_local_optimization": "EXHAUSTED",
+      "t251b_earned": false
+    },
     "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 471
+      "passed": 481
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 192
+      "entries": 198
     }
   },
   "authority": {

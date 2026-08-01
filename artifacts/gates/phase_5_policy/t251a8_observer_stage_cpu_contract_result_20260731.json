@@ -1,0 +1,232 @@
+{
+  "schema_version": "open_duck_x5.t251a8_observer_stage_cpu_contract_result.v1",
+  "status": "FAIL_T251A8_OBSERVER_STAGE_CPU_CONTRACT",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "preregistration": {
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t251a8_observer_stage_correction_preregistration_20260731.json",
+    "bytes": 4684,
+    "sha256": "78994328c3bebc6f70392d06d39212bbc7cc5adcd0f8008d4e02f8f54e959ece"
+  },
+  "source_receipts": {
+    "observer": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v14_optimized.py",
+      "bytes": 13681,
+      "sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+    },
+    "predecessor_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v16_target_optimized.py",
+      "bytes": 6053,
+      "sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+    },
+    "corrected_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v19_observer_stage_optimized.py",
+      "bytes": 3775,
+      "sha256": "e078531f4089428e774a51aa224eedc12b9554336d7db0909b7af86c83716dc5"
+    },
+    "verifier": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\verify_winner_v19_observer_stage_optimized.py",
+      "bytes": 21705,
+      "sha256": "8dcd2011162d1e21ed660576d299843969de2e27172e11d5470832e497bf56ba"
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "policy": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "p30_fit": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "reference_table": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "semantic_contract": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "calibration_used_predecessor_observer_path": true,
+    "post_handoff_target_identity_bound": true,
+    "private_staged_buffer_restored_after_commit": true,
+    "mismatch": null,
+    "predecessor_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "corrected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "boundary_contract": {
+    "cases": {
+      "substituted_source_slow_path": {
+        "mismatch": null,
+        "corrected_used_private_buffer": true
+      },
+      "pending": {
+        "expected": {
+          "type": "WinnerV2ContractError",
+          "message": "P30 observer already has a staged target",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false,
+          "observer_pending": true
+        },
+        "actual": {
+          "type": "WinnerV2ContractError",
+          "message": "P30 observer already has a staged target",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false,
+          "observer_pending": true
+        },
+        "exact": true
+      },
+      "discard": {
+        "mismatch": null,
+        "corrected_private_buffer_restored": true
+      },
+      "nonfinite": {
+        "expected": {
+          "type": "WinnerV2ContractError",
+          "message": "sent_logical_target_rad contains a non-finite value",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false,
+          "observer_pending": false
+        },
+        "actual": {
+          "type": "WinnerV2ContractError",
+          "message": "sent_logical_target_rad contains a non-finite value",
+          "faulted": false,
+          "fault_reason": null,
+          "pending": false,
+          "observer_pending": false
+        },
+        "exact": true
+      },
+      "failed_send": {
+        "expected": {
+          "type": "WinnerV13SendError",
+          "message": "Winner-v13 target send for tick 250 requires literal bool True",
+          "faulted": true,
+          "fault_reason": "Winner-v13 target send for tick 250 requires literal bool True",
+          "pending": false,
+          "observer_pending": false
+        },
+        "actual": {
+          "type": "WinnerV13SendError",
+          "message": "Winner-v13 target send for tick 250 requires literal bool True",
+          "faulted": true,
+          "fault_reason": "Winner-v13 target send for tick 250 requires literal bool True",
+          "pending": false,
+          "observer_pending": false
+        },
+        "exact": true,
+        "corrected_private_buffer_restored": true
+      }
+    },
+    "all_exact": true
+  },
+  "local_observer_microbenchmarks": {
+    "stage_only": {
+      "samples": 20000,
+      "alternated_order": true,
+      "mutated_trusted_target_in_place": true,
+      "mismatch_tick": null,
+      "predecessor": {
+        "samples": 20000,
+        "min_ms": 0.0025,
+        "mean_ms": 0.002885195,
+        "p50_ms": 0.0027,
+        "p95_ms": 0.0038,
+        "p99_ms": 0.0063,
+        "p99_9_ms": 0.02690430000001652,
+        "max_ms": 0.1118,
+        "selection_weight": 0
+      },
+      "corrected": {
+        "samples": 20000,
+        "min_ms": 0.002,
+        "mean_ms": 0.00228012,
+        "p50_ms": 0.0021,
+        "p95_ms": 0.0027049999999999275,
+        "p99_ms": 0.0048,
+        "p99_9_ms": 0.01740050000000192,
+        "max_ms": 0.1185,
+        "selection_weight": 0
+      },
+      "corrected_to_predecessor_median_ratio": 0.7777777777777777,
+      "required_maximum_median_ratio": 0.75,
+      "selection_weight": 1
+    },
+    "stage_plus_commit": {
+      "samples": 20000,
+      "alternated_order": true,
+      "mismatch_tick": null,
+      "predecessor": {
+        "samples": 20000,
+        "min_ms": 0.0155,
+        "mean_ms": 0.017378204999999997,
+        "p50_ms": 0.0161,
+        "p95_ms": 0.026,
+        "p99_ms": 0.0357,
+        "p99_9_ms": 0.07490040000000153,
+        "max_ms": 0.235,
+        "selection_weight": 0
+      },
+      "corrected": {
+        "samples": 20000,
+        "min_ms": 0.016,
+        "mean_ms": 0.018046915,
+        "p50_ms": 0.0167,
+        "p95_ms": 0.0268,
+        "p99_ms": 0.0372,
+        "p99_9_ms": 0.07860040000000154,
+        "max_ms": 0.2299,
+        "selection_weight": 0
+      },
+      "corrected_to_predecessor_median_ratio": 1.0372670807453417,
+      "required_maximum_median_ratio": 1.1,
+      "selection_weight": 1
+    }
+  },
+  "checks": {
+    "asset_hashes_exact": true,
+    "pinned_predecessor_sources_exact": true,
+    "all_ticks_byte_exact": true,
+    "exact_tick_counts": true,
+    "exact_one_handoff": true,
+    "calibration_slow_path_exact": true,
+    "post_handoff_target_identity_exact": true,
+    "private_buffer_restored": true,
+    "action_traces_identical": true,
+    "zero_rate_excess": true,
+    "boundary_contract_exact": true,
+    "stage_microbenchmark_outputs_exact": true,
+    "stage_microbenchmark_median_improves_at_least_25_percent": false,
+    "stage_plus_commit_outputs_exact": true,
+    "stage_plus_commit_median_does_not_regress": true
+  },
+  "failed_checks": [
+    "stage_microbenchmark_median_improves_at_least_25_percent"
+  ],
+  "decision": "CLOSE_T251A8_WITHOUT_X5_EXECUTION",
+  "authority": {
+    "x5_execution": false,
+    "robot_device_access": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "t251b_earned": false,
+    "gate5": false
+  },
+  "result_sha256": "fc4884e3d367fbab67517ea4ba38b7083b2afa381fbd3f9e64a126d72057af8a"
+}
