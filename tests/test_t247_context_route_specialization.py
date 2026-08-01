@@ -16,6 +16,12 @@ X5_PREREGISTRATION = (
 X5_PACKAGE = (
     GATES / "t247_deployment_x5_context_route_execution_package_20260731.json"
 )
+INVALID_X5_REVIEW = (
+    GATES / "t247_deployment_x5_context_route_invalid_execution_review_20260731.json"
+)
+CORRECTED_X5_PREREGISTRATION = (
+    GATES / "t247_deployment_x5_context_route_corrected_screen_preregistration_20260731.json"
+)
 POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 
 
@@ -70,6 +76,8 @@ def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> N
     review = _read(REVIEW)
     x5 = _read(X5_PREREGISTRATION)
     package = _read(X5_PACKAGE)
+    invalid = _read(INVALID_X5_REVIEW)
+    corrected = _read(CORRECTED_X5_PREREGISTRATION)
 
     assert review["decision"]["cpu_contract"] == "PASS"
     assert review["decision"]["x5_screen_executed"] is False
@@ -93,6 +101,21 @@ def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> N
     )
     assert package["scope"]["policy"] == "unchanged T247"
     assert package["scope"]["robot_devices"] is False
+    assert invalid["status"] == (
+        "INVALID_T247_X5_CONTEXT_ROUTE_EXECUTION_NOT_A_MECHANISM_FALSIFICATION"
+    )
+    assert invalid["admissible_semantic_evidence"]["all_2298_ticks_byte_exact"] is True
+    assert invalid["validity_decision"]["mechanism_closed"] is False
+    assert invalid["validity_decision"]["old_contract_retry"] is False
+    assert corrected["status"] == (
+        "PREREGISTERED_ONE_CORRECTED_T247_X5_CONTEXT_ROUTE_SCREEN"
+    )
+    assert corrected["screen"]["reference_reserve_limits_ms"] == {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0,
+    }
+    assert corrected["decision_rule"]["valid_execution_retry"] is False
 
 
 def test_specialization_tools_do_not_import_robot_interfaces_or_commit_onnx() -> None:
