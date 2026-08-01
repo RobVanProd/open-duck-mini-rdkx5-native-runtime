@@ -125,8 +125,17 @@ def test_specialization_tools_do_not_import_robot_interfaces_or_commit_onnx() ->
             "tools/derive_t247_context_route_variants.py",
             "tools/verify_t247_context_route_specialization.py",
             "tools/run_t247_x5_context_route_reserved_screen.py",
+            "tools/run_t247_x5_context_route_corrected_screen.py",
         )
     )
     for forbidden in ("import serial", "import smbus2", "import pygame", "open_duck_x5.runtime"):
         assert forbidden not in sources
     assert not list((ROOT / "artifacts").rglob("*.onnx"))
+
+    corrected = (
+        ROOT / "tools/run_t247_x5_context_route_corrected_screen.py"
+    ).read_text(encoding="utf-8")
+    assert corrected.index("preflight_values, preflight_checks = platform_preflight") < (
+        corrected.index("router = base.router_session")
+    )
+    assert "if not all(preflight_checks.values()):" in corrected
