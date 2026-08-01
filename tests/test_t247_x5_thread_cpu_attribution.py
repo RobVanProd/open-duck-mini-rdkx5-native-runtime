@@ -1,12 +1,27 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
+import sys
+import types
 
 import numpy as np
 
+# The attribution tests exercise pure bookkeeping and classification helpers.  The
+# runner imports the optional policy stack for its board-only entry point, but CI
+# intentionally installs only ``.[dev]``.  Provide a collection-time placeholder
+# when ONNX Runtime is absent, then remove it immediately so tests that genuinely
+# require the optional dependency can still skip normally.
+_ORT_STUBBED = importlib.util.find_spec("onnxruntime") is None
+if _ORT_STUBBED:
+    sys.modules["onnxruntime"] = types.ModuleType("onnxruntime")
+
 from tools import run_t247_x5_thread_cpu_attribution as attribution
+
+if _ORT_STUBBED:
+    del sys.modules["onnxruntime"]
 
 ROOT = Path(__file__).resolve().parents[1]
 GATES = ROOT / "artifacts" / "gates" / "phase_5_policy"
