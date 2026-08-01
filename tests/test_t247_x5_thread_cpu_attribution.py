@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import importlib.util
 import json
-from pathlib import Path
 import sys
 import types
+from pathlib import Path
 
 import numpy as np
 
@@ -18,7 +19,7 @@ _ORT_STUBBED = importlib.util.find_spec("onnxruntime") is None
 if _ORT_STUBBED:
     sys.modules["onnxruntime"] = types.ModuleType("onnxruntime")
 
-from tools import run_t247_x5_thread_cpu_attribution as attribution
+attribution = importlib.import_module("tools.run_t247_x5_thread_cpu_attribution")
 
 if _ORT_STUBBED:
     del sys.modules["onnxruntime"]
