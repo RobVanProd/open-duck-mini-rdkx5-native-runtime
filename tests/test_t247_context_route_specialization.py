@@ -91,6 +91,7 @@ def test_specialization_tools_do_not_import_robot_interfaces_or_commit_onnx() ->
         for path in (
             "tools/derive_t247_context_route_variants.py",
             "tools/verify_t247_context_route_specialization.py",
+            "tools/run_t247_x5_context_route_reserved_screen.py",
         )
     )
     for forbidden in ("import serial", "import smbus2", "import pygame", "open_duck_x5.runtime"):
