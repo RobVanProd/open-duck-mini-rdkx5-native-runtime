@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - X5_THREAD_CPU_ATTRIBUTION_PREREGISTERED - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - X5_THREAD_CPU_ATTRIBUTION_RUNNER_IMPLEMENTED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -162,6 +162,6 @@ by interrupts, softirqs, or preemption. It cannot reopen context-route
 specialization, rescore the reserve, or change a threshold. Training,
 production integration, Hardware Gate 5, torque, and motion remain unearned.
 
-Local validation at this handoff is green: `485` tests pass and the `210`-entry
+Local validation at this handoff is green: `491` tests pass and the `210`-entry
 reviewed-artifact manifest verifies. The required Windows mock probe completed
 as informational-only evidence and made no hardware claim.
