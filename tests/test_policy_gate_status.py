@@ -18,7 +18,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
     assert status["status"] == (
-        "T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN_PREREGISTERED"
+        "T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN_SEALED"
     )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
@@ -129,7 +129,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["worst_local_p50_ratio"] <= 0.88
     assert specialization["worst_local_p99_ratio"] <= 0.88
     assert specialization["x5_screen_status"] == (
-        "INVALID_EXECUTION_CORRECTED_SCREEN_PREREGISTERED"
+        "INVALID_EXECUTION_CORRECTED_SCREEN_SEALED"
     )
     assert specialization["x5_execution_package_file_sha256"] == (
         "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521"
@@ -137,6 +137,9 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["x5_semantics_status"] == "PASS_BYTE_EXACT"
     assert specialization["x5_timing_status"] == (
         "NOT_MEASURED_UNDER_REQUIRED_PRECONDITIONS"
+    )
+    assert specialization["corrected_x5_execution_package_file_sha256"] == (
+        "7e9030183e492c15a69104ffdb0c789966d9c0a09a0500ecb31e1f9777ee5b6c"
     )
     assert specialization["policy_training_earned"] is False
     assert specialization["production_integration_earned"] is False
@@ -187,7 +190,7 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     assert validation["repository_tests"] == {"status": "PASS", "passed": 485}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 206,
+        "entries": 207,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

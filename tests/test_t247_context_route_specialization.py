@@ -22,6 +22,9 @@ INVALID_X5_REVIEW = (
 CORRECTED_X5_PREREGISTRATION = (
     GATES / "t247_deployment_x5_context_route_corrected_screen_preregistration_20260731.json"
 )
+CORRECTED_X5_PACKAGE = (
+    GATES / "t247_deployment_x5_context_route_corrected_execution_package_20260731.json"
+)
 POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 
 
@@ -78,6 +81,7 @@ def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> N
     package = _read(X5_PACKAGE)
     invalid = _read(INVALID_X5_REVIEW)
     corrected = _read(CORRECTED_X5_PREREGISTRATION)
+    corrected_package = _read(CORRECTED_X5_PACKAGE)
 
     assert review["decision"]["cpu_contract"] == "PASS"
     assert review["decision"]["x5_screen_executed"] is False
@@ -116,6 +120,11 @@ def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> N
         "max": 4.0,
     }
     assert corrected["decision_rule"]["valid_execution_retry"] is False
+    assert corrected_package["status"] == (
+        "SEALED_T247_X5_CONTEXT_ROUTE_CORRECTED_EXECUTION_PACKAGE"
+    )
+    assert corrected_package["scope"]["policy"] == "unchanged T247"
+    assert corrected_package["scope"]["motion"] is False
 
 
 def test_specialization_tools_do_not_import_robot_interfaces_or_commit_onnx() -> None:
