@@ -17,7 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T247_X5_CONTEXT_ROUTE_SCREEN_PREREGISTERED"
+    assert status["status"] == "T247_X5_CONTEXT_ROUTE_SCREEN_SEALED"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -126,7 +126,10 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["cpu_contract_checks"] == 14
     assert specialization["worst_local_p50_ratio"] <= 0.88
     assert specialization["worst_local_p99_ratio"] <= 0.88
-    assert specialization["x5_screen_status"] == "PREREGISTERED_NOT_RUN"
+    assert specialization["x5_screen_status"] == "SEALED_READY_TO_RUN"
+    assert specialization["x5_execution_package_file_sha256"] == (
+        "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521"
+    )
     assert specialization["policy_training_earned"] is False
     assert specialization["production_integration_earned"] is False
     assert specialization["gate5_earned"] is False
@@ -176,7 +179,7 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     assert validation["repository_tests"] == {"status": "PASS", "passed": 485}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 203,
+        "entries": 204,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

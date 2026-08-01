@@ -13,6 +13,9 @@ REVIEW = GATES / "t247_deployment_context_route_specialization_review_20260731.j
 X5_PREREGISTRATION = (
     GATES / "t247_deployment_x5_context_route_reserved_screen_preregistration_20260731.json"
 )
+X5_PACKAGE = (
+    GATES / "t247_deployment_x5_context_route_execution_package_20260731.json"
+)
 POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 
 
@@ -66,6 +69,7 @@ def test_context_route_cpu_result_passes_exact_semantics_and_materiality() -> No
 def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> None:
     review = _read(REVIEW)
     x5 = _read(X5_PREREGISTRATION)
+    package = _read(X5_PACKAGE)
 
     assert review["decision"]["cpu_contract"] == "PASS"
     assert review["decision"]["x5_screen_executed"] is False
@@ -83,6 +87,12 @@ def test_review_earns_only_a_separately_preregistered_no_motion_x5_screen() -> N
     assert x5["safety_and_scope"]["torque"] is False
     assert x5["safety_and_scope"]["motion"] is False
     assert x5["decision_rule"]["retry"] is False
+    assert package["status"] == "SEALED_T247_X5_CONTEXT_ROUTE_EXECUTION_PACKAGE"
+    assert package["preregistration_file_sha256"] == (
+        "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05"
+    )
+    assert package["scope"]["policy"] == "unchanged T247"
+    assert package["scope"]["robot_devices"] is False
 
 
 def test_specialization_tools_do_not_import_robot_interfaces_or_commit_onnx() -> None:

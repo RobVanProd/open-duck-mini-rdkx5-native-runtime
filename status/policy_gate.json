@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T247_X5_CONTEXT_ROUTE_SCREEN_PREREGISTERED",
+  "status": "T247_X5_CONTEXT_ROUTE_SCREEN_SEALED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -264,8 +264,10 @@
       "cpu_contract_review_file_sha256": "ae6d7d4b7ada216f808240e009c1daad2f869fe821abeec42482171732ddad7e",
       "worst_local_p50_ratio": 0.8061674008810572,
       "worst_local_p99_ratio": 0.8421147763217338,
-      "x5_screen_status": "PREREGISTERED_NOT_RUN",
+      "x5_screen_status": "SEALED_READY_TO_RUN",
       "x5_screen_preregistration_file_sha256": "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05",
+      "x5_execution_package_file_sha256": "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521",
+      "x5_runner_source_commit": "ee6c23e8e97257b97f007caf9a3bd9b1fefcb54a",
       "policy_training_earned": false,
       "production_integration_earned": false,
       "gate5_earned": false
@@ -280,7 +282,7 @@
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 203
+      "entries": 204
     }
   },
   "authority": {

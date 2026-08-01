@@ -1,0 +1,89 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_context_route_execution_package.v1",
+  "status": "SEALED_T247_X5_CONTEXT_ROUTE_EXECUTION_PACKAGE",
+  "date": "2026-07-31",
+  "runner_source_commit": "ee6c23e8e97257b97f007caf9a3bd9b1fefcb54a",
+  "preregistration": "artifacts/gates/phase_5_policy/t247_deployment_x5_context_route_reserved_screen_preregistration_20260731.json",
+  "preregistration_file_sha256": "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05",
+  "source_sha256": {
+    "tools/run_t247_x5_context_route_reserved_screen.py": "f58e6fd930adcdf26c5a21cb1e77eb94dccc442f55b6570ff6991496fb1d808e",
+    "tools/run_winner_v14_x5_paced_screen.py": "82238fafe6d805dd8ee092429c1d99d4861099c59e9a632fec6c10160a7c8e3d",
+    "tools/winner_v14_optimized.py": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "tools/winner_v15_graph_host_optimized.py": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707",
+    "tools/winner_v16_target_optimized.py": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af",
+    "tools/derive_t247_context_route_variants.py": "1e2481b9a3203d0537aee321c3e6c765a7ec78224b3b4de8329bfdae941577af",
+    "tools/verify_t247_context_route_specialization.py": "9f488417d338c157bed69f0d096f4592450d113a64b502b4b3914cf5d74da749",
+    "src/open_duck_x5/__init__.py": "c25ebaafaed45b2737d76f4a7ad3ba9f4d075153099136f83acc66986d7e5a31",
+    "src/open_duck_x5/constants.py": "80ff38cd4a4436b445754051f1de608797f051f1886b142a29bf4f5f8b2f2ca3",
+    "src/open_duck_x5/winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
+    "src/open_duck_x5/winner_v13_state_coherent.py": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7"
+  },
+  "asset_sha256": {
+    "assets/calibrator.onnx": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "assets/policy.onnx": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "assets/p30.json": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "assets/reference.npz": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "derived/policy.context-router.onnx": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "derived/policy.lower-cond0.onnx": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+    "derived/policy.lower-cond1.onnx": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+    "derived/policy.positive-cond0.onnx": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+    "derived/policy.positive-cond1.onnx": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+    "derived/policy.tail-cond0.onnx": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+    "derived/policy.tail-cond1.onnx": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c"
+  },
+  "staging_root": "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1",
+  "exact_invocation": [
+    "/home/sunrise/open_duck_x5_preflight/venv/bin/python",
+    "tools/run_t247_x5_context_route_reserved_screen.py",
+    "--staging-root",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1",
+    "--execution-package",
+    "artifacts/gates/phase_5_policy/t247_deployment_x5_context_route_execution_package_20260731.json",
+    "--calibrator",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/assets/calibrator.onnx",
+    "--policy",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/assets/policy.onnx",
+    "--router",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/derived/policy.context-router.onnx",
+    "--variant-root",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/derived",
+    "--p30-fit",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/assets/p30.json",
+    "--reference-table",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/assets/reference.npz",
+    "--output",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/evidence/result.json",
+    "--raw-output",
+    "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1/evidence/raw-ticks.npz"
+  ],
+  "launch_wrapper": {
+    "affinity": [7],
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil",
+    "environment": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    }
+  },
+  "screen_limits_ms": {
+    "p99": 1.8,
+    "p99_9": 2.5,
+    "max": 4.0
+  },
+  "scope": {
+    "policy": "unchanged T247",
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "production_runtime": false,
+    "gate5": false
+  }
+}
