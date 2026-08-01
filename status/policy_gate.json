@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN_SEALED",
+  "status": "T247_X5_CONTEXT_ROUTE_SPECIALIZATION_CLOSED_P99",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -249,7 +249,7 @@
       "t251b_earned": false
     },
     "t247_deployment_context_route_specialization": {
-      "status": "PASS_CPU_CONTRACT_X5_SCREEN_PREREGISTERED",
+      "status": "CLOSED_AFTER_VALID_X5_P99_MISS",
       "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
       "policy_weights_unchanged": true,
       "architecture_audit_file_sha256": "edaffcb68257a4f49965efc0cfed076c7a133befe669001917076551714b7980",
@@ -264,17 +264,36 @@
       "cpu_contract_review_file_sha256": "ae6d7d4b7ada216f808240e009c1daad2f869fe821abeec42482171732ddad7e",
       "worst_local_p50_ratio": 0.8061674008810572,
       "worst_local_p99_ratio": 0.8421147763217338,
-      "x5_screen_status": "INVALID_EXECUTION_CORRECTED_SCREEN_SEALED",
+      "x5_screen_status": "VALID_CORRECTED_EXECUTION_REVIEWED_CLOSED_P99",
       "x5_screen_preregistration_file_sha256": "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05",
       "x5_execution_package_file_sha256": "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521",
       "x5_runner_source_commit": "ee6c23e8e97257b97f007caf9a3bd9b1fefcb54a",
       "invalid_x5_execution_review_file_sha256": "1484050b0bec73a6205476bd77e52fa31b3a0a1dd407b1cc7d6f24da31e2e1d7",
       "x5_semantics_status": "PASS_BYTE_EXACT",
       "x5_architecture_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
-      "x5_timing_status": "NOT_MEASURED_UNDER_REQUIRED_PRECONDITIONS",
+      "x5_timing_status": "FAIL_P99_ONLY",
       "corrected_x5_screen_preregistration_file_sha256": "428a71cb16cf57b0bc85c826f700f3dc7102d9616114778551f79830d7ea080f",
       "corrected_x5_execution_package_file_sha256": "7e9030183e492c15a69104ffdb0c789966d9c0a09a0500ecb31e1f9777ee5b6c",
       "corrected_x5_runner_source_commit": "baf3aa665d8630c2f4a6a4a5283192c2ed81edc9",
+      "corrected_x5_result_status": "HOLD_T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN",
+      "corrected_x5_checks_passed": 27,
+      "corrected_x5_checks": 28,
+      "corrected_x5_failed_checks": [
+        "stage_p99_within_reserve"
+      ],
+      "corrected_x5_stage_latency_ms": {
+        "p50": 1.6024825,
+        "p95": 1.7034178999999996,
+        "p99": 2.0972155199999998,
+        "p99_9": 2.2679420730000057,
+        "max": 2.285213
+      },
+      "corrected_x5_result_sha256": "48a23f5afc7b4fbb26ef859fc97eed60e6810fb48348c6117fee9f71f8704766",
+      "corrected_x5_artifact_file_sha256": "9f272fe0d2aa34ae08d0aec129c59d3305d20cb2631df388ce319d5e12783d47",
+      "corrected_x5_raw_ticks_sha256": "b91b4d05e7a4361ef520ac76302dc20901f6b0a22feb40895d610753c60af1e5",
+      "corrected_x5_review_file_sha256": "4c3620563b8b0137067689895ec6450b02c49043a6bdfa67c18dd2e273dadc3e",
+      "closure": "NO_RETRY_NO_THRESHOLD_CHANGE",
+      "next": "READ_ONLY_PERIODIC_HOST_OR_KERNEL_ATTRIBUTION",
       "policy_training_earned": false,
       "production_integration_earned": false,
       "gate5_earned": false
@@ -289,7 +308,7 @@
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 207
+      "entries": 208
     }
   },
   "authority": {

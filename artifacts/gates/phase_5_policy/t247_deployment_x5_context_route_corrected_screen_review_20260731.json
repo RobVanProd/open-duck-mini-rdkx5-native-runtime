@@ -1,0 +1,125 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_context_route_corrected_screen_review.v1",
+  "status": "HOLD_T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN_REVIEWED",
+  "date": "2026-07-31",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "board_result": {
+    "external_path": "D:\\CodexArtifacts\\t247-x5-context-route-corrected-screen\\board-evidence\\result.json",
+    "file_sha256": "9f272fe0d2aa34ae08d0aec129c59d3305d20cb2631df388ce319d5e12783d47",
+    "canonical_sha256": "48a23f5afc7b4fbb26ef859fc97eed60e6810fb48348c6117fee9f71f8704766",
+    "reported_status": "HOLD_T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN",
+    "runner_exit_status": 1,
+    "checks_passed": 27,
+    "checks_total": 28,
+    "failed_checks": [
+      "stage_p99_within_reserve"
+    ],
+    "raw_ticks_external_path": "D:\\CodexArtifacts\\t247-x5-context-route-corrected-screen\\board-evidence\\raw-ticks.npz",
+    "raw_ticks_sha256": "b91b4d05e7a4361ef520ac76302dc20901f6b0a22feb40895d610753c60af1e5"
+  },
+  "platform_preconditions": {
+    "passed_before_graph_initialization": true,
+    "linux_aarch64": true,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "cpu7_isolated": true,
+    "governor_during": "performance",
+    "governor_before": "schedutil",
+    "governor_after": "schedutil",
+    "governor_before_sha256": "370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140",
+    "governor_during_sha256": "4cab62e134aeb01974c0134f6d31d72fc01a21c863ab2e3022c64178df3b763a",
+    "governor_after_sha256": "370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140"
+  },
+  "semantic_result": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "selected_route": "lower-cond0",
+    "context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "original_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "specialized_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "all_2298_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "exact_one_handoff": true,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true
+  },
+  "timing_result_ms": {
+    "limits": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "stage_locomotion": {
+      "samples": 2048,
+      "p50": 1.6024825,
+      "p95": 1.7034178999999996,
+      "p99": 2.0972155199999998,
+      "p99_9": 2.2679420730000057,
+      "max": 2.285213
+    },
+    "p99_miss": 0.29721551999999973,
+    "p99_9_margin": 0.23205792699999428,
+    "max_margin": 1.7147869999999998,
+    "ticks_above_p99_limit": 53,
+    "ticks_above_p99_9_limit": 0,
+    "ticks_above_max_limit": 0
+  },
+  "raw_pattern_audit": {
+    "selection_weight": 0,
+    "recurring_over_limit_indices_zero_based_locomotion": [
+      232,
+      482,
+      733,
+      984,
+      1234,
+      1485,
+      1736,
+      1986
+    ],
+    "recurring_spacing_ticks": [
+      250,
+      251,
+      251,
+      250,
+      251,
+      251,
+      250
+    ],
+    "recurring_ticks_all_above_1_8_ms": true,
+    "cluster_window_zero_based_locomotion": [
+      1261,
+      1304
+    ],
+    "cluster_ticks": 44,
+    "cluster_ticks_above_1_8_ms": 35,
+    "remaining_ticks_above_1_8_ms_outside_recurring_and_cluster_sets": 10,
+    "interpretation": "The valid miss is concentrated rather than a broad steady-state deficit: the median and p95 clear the reserve, while a repeatable approximately 250-tick event and one 44-tick cluster set p99. The raw evidence selects attribution of periodic host or kernel work before any new mechanism; it does not authorize a rerun or threshold change."
+  },
+  "decision": {
+    "context_route_semantics": "PASS_ON_X5",
+    "context_route_timing": "FAIL_P99",
+    "context_route_specialization": "CLOSED_WITHOUT_RETRY",
+    "policy_t247": "UNCHANGED_AND_STILL_OFFLINE_GREEN",
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false,
+    "threshold_change": false,
+    "next": "READ_ONLY_PERIODIC_HOST_OR_KERNEL_ATTRIBUTION_THEN_PREREGISTER_ONLY_A_MECHANICALLY_DISTINCT_FALSIFIER"
+  },
+  "authority": {
+    "read_only_execution_review": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

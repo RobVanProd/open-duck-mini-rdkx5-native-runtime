@@ -17,9 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == (
-        "T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN_SEALED"
-    )
+    assert status["status"] == "T247_X5_CONTEXT_ROUTE_SPECIALIZATION_CLOSED_P99"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -119,7 +117,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert t251a8["component_local_optimization"] == "EXHAUSTED"
     assert t251a8["t251b_earned"] is False
     specialization = gates["t247_deployment_context_route_specialization"]
-    assert specialization["status"] == "PASS_CPU_CONTRACT_X5_SCREEN_PREREGISTERED"
+    assert specialization["status"] == "CLOSED_AFTER_VALID_X5_P99_MISS"
     assert specialization["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
     assert specialization["policy_weights_unchanged"] is True
     assert specialization["complete_routes"] == 6
@@ -129,18 +127,29 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["worst_local_p50_ratio"] <= 0.88
     assert specialization["worst_local_p99_ratio"] <= 0.88
     assert specialization["x5_screen_status"] == (
-        "INVALID_EXECUTION_CORRECTED_SCREEN_SEALED"
+        "VALID_CORRECTED_EXECUTION_REVIEWED_CLOSED_P99"
     )
     assert specialization["x5_execution_package_file_sha256"] == (
         "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521"
     )
     assert specialization["x5_semantics_status"] == "PASS_BYTE_EXACT"
-    assert specialization["x5_timing_status"] == (
-        "NOT_MEASURED_UNDER_REQUIRED_PRECONDITIONS"
-    )
+    assert specialization["x5_timing_status"] == "FAIL_P99_ONLY"
     assert specialization["corrected_x5_execution_package_file_sha256"] == (
         "7e9030183e492c15a69104ffdb0c789966d9c0a09a0500ecb31e1f9777ee5b6c"
     )
+    assert specialization["corrected_x5_checks_passed"] == 27
+    assert specialization["corrected_x5_checks"] == 28
+    assert specialization["corrected_x5_failed_checks"] == [
+        "stage_p99_within_reserve"
+    ]
+    assert specialization["corrected_x5_stage_latency_ms"] == {
+        "p50": 1.6024825,
+        "p95": 1.7034178999999996,
+        "p99": 2.0972155199999998,
+        "p99_9": 2.2679420730000057,
+        "max": 2.285213,
+    }
+    assert specialization["closure"] == "NO_RETRY_NO_THRESHOLD_CHANGE"
     assert specialization["policy_training_earned"] is False
     assert specialization["production_integration_earned"] is False
     assert specialization["gate5_earned"] is False
@@ -190,7 +199,7 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     assert validation["repository_tests"] == {"status": "PASS", "passed": 485}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 207,
+        "entries": 208,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

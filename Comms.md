@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A8_COMPONENT_LOCAL_OPTIMIZATION_EXHAUSTED - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - CONTEXT_ROUTE_SPECIALIZATION_CLOSED_ON_X5_P99 - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -129,14 +129,32 @@ ms`, but the `0.777778x` ratio missed the unchanged `<= 0.75x` materiality bar.
 Stage-plus-commit remained inside its non-regression bound at `1.037267x`.
 The correction is closed, and no X5 execution was earned or performed.
 
-All independently measured Python host components have now been either
-materially corrected and screened or falsified locally. The latest whole-host
-X5 screen remains T251A5: p99/p99.9/max `2.011089/2.396691/2.701923 ms`
-against the frozen `1.8/2.5/4.0 ms` reserve. The next work is a read-only
-host-architecture audit using existing evidence, followed by a mechanically
-distinct preregistered falsifier. Threshold changes, T247 changes, blind X5
-reruns, T251B, production integration, Hardware Gate 5, torque, and motion
-remain unearned.
+All independently measured Python host components were therefore either
+materially corrected and screened or falsified locally. A read-only graph
+audit then selected exact post-calibration context-route specialization: the
+64-D context is immutable after handoff, so six complete route-specific graph
+closures can be derived without changing T247 weights, numerics, recurrence,
+or ABI. The local CPU contract passed `14/14` checks across all six routes,
+including threshold neighborhoods, `3,072` one-step cases, and the complete
+`2,298`-tick chain.
 
-Local validation at this handoff is green: `481` tests pass and the `198`-entry
-reviewed-artifact manifest verifies.
+The corrected no-device X5 screen ran under verified `SCHED_FIFO` 80 on
+isolated CPU 7 with the performance governor. T247 and the selected
+`lower-cond0` specialized graph were byte-exact for all `2,298` ticks, the
+action trace remained `6af1f952...20bd3`, rate excess was zero, and no robot
+interface opened. Stage p50/p95/p99/p99.9/max were
+`1.602483/1.703418/2.097216/2.267942/2.285213 ms`. Thus p99 alone missed the
+unchanged `1.8/2.5/4.0 ms` reserve. Per preregistration, context-route
+specialization is closed with no retry and no threshold change; T247 itself
+remains the frozen offline-green policy.
+
+The preserved raw population has `53/2,048` ticks over `1.8 ms`: eight recur
+at roughly 250/251-tick spacing, 35 lie in one 44-tick cluster, and ten are
+elsewhere. The next work is read-only attribution of that periodic host/kernel
+pattern, followed only by a mechanically distinct preregistered falsifier.
+Training, production integration, Hardware Gate 5, torque, and motion remain
+unearned.
+
+Local validation at this handoff is green: `485` tests pass and the `208`-entry
+reviewed-artifact manifest verifies. The required Windows mock probe completed
+as informational-only evidence and made no hardware claim.
