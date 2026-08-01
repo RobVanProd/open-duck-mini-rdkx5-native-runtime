@@ -17,7 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T247_X5_CONTEXT_ROUTE_SPECIALIZATION_CLOSED_P99"
+    assert status["status"] == "T247_X5_THREAD_CPU_ATTRIBUTION_PREREGISTERED"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -153,6 +153,22 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["policy_training_earned"] is False
     assert specialization["production_integration_earned"] is False
     assert specialization["gate5_earned"] is False
+    attribution = gates["t247_deployment_x5_thread_cpu_attribution"]
+    assert attribution["status"] == "PREREGISTERED_NOT_RUN"
+    assert attribution["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
+    assert attribution["policy_weights_unchanged"] is True
+    assert attribution["source_context_route_specialization"] == (
+        "CLOSED_WITHOUT_RETRY"
+    )
+    assert attribution["selected_falsifier"] == (
+        "PAIRED_STAGE_WALL_AND_THREAD_CPU_TIME_ATTRIBUTION"
+    )
+    assert attribution["selection_weight"] == 0
+    assert attribution["x5_execution"] == "NOT_RUN"
+    assert attribution["boot_change"] is False
+    assert attribution["policy_training_earned"] is False
+    assert attribution["production_integration_earned"] is False
+    assert attribution["gate5_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -199,7 +215,7 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     assert validation["repository_tests"] == {"status": "PASS", "passed": 485}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 208,
+        "entries": 210,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

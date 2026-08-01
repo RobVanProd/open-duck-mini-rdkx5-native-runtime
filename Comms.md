@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - CONTEXT_ROUTE_SPECIALIZATION_CLOSED_ON_X5_P99 - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - X5_THREAD_CPU_ATTRIBUTION_PREREGISTERED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -150,11 +150,18 @@ remains the frozen offline-green policy.
 
 The preserved raw population has `53/2,048` ticks over `1.8 ms`: eight recur
 at roughly 250/251-tick spacing, 35 lie in one 44-tick cluster, and ten are
-elsewhere. The next work is read-only attribution of that periodic host/kernel
-pattern, followed only by a mechanically distinct preregistered falsifier.
-Training, production integration, Hardware Gate 5, torque, and motion remain
-unearned.
+elsewhere. A read-only board audit found that CPU 7 is excluded with
+`isolcpus=7`, but this kernel has no `CONFIG_NO_HZ_FULL`; CPU 7 still records
+timer/RCU work and has local kernel workers. Existing evidence does not align
+that work to individual slow ticks.
 
-Local validation at this handoff is green: `485` tests pass and the `208`-entry
+One zero-selection-weight diagnostic is now preregistered: pair wall time with
+`CLOCK_THREAD_CPUTIME_ID` around the exact T247 stage call over one paced
+250+2,048 chain. This can distinguish scheduled policy compute from time stolen
+by interrupts, softirqs, or preemption. It cannot reopen context-route
+specialization, rescore the reserve, or change a threshold. Training,
+production integration, Hardware Gate 5, torque, and motion remain unearned.
+
+Local validation at this handoff is green: `485` tests pass and the `210`-entry
 reviewed-artifact manifest verifies. The required Windows mock probe completed
 as informational-only evidence and made no hardware claim.

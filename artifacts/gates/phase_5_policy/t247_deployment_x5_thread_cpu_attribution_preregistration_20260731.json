@@ -1,0 +1,133 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_thread_cpu_attribution_preregistration.v1",
+  "status": "PREREGISTERED_ONE_T247_X5_THREAD_CPU_ATTRIBUTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "audit": "artifacts/gates/phase_5_policy/t247_deployment_x5_periodic_latency_attribution_audit_20260731.json",
+    "audit_file_sha256": "a3707eada67133751d15805c6676daba69c5868eda6652be17ab0bbc4f8d244c",
+    "source_result_canonical_sha256": "48a23f5afc7b4fbb26ef859fc97eed60e6810fb48348c6117fee9f71f8704766",
+    "source_raw_ticks_sha256": "b91b4d05e7a4361ef520ac76302dc20901f6b0a22feb40895d610753c60af1e5",
+    "reason": "The valid screen's p50 and p95 clear reserve while 53 ticks set a p99 miss; eight slow events recur at 250/251-tick spacing and 35 fall in one cluster. Current X5 isolation still permits CPU7 timer, RCU, and kernel-worker work, but the old raw stream lacks thread CPU time and cannot attribute the slow ticks."
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "new_policy_model": false,
+    "description": "This is a zero-selection-weight T247 deployment timing diagnostic, not a T248/T250/T251 policy."
+  },
+  "unchanged_assets": {
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "lower_cond0_variant_sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825"
+  },
+  "architecture_specific_witness": {
+    "platform": "aarch64 Linux / RDK-X5 / CPUExecutionProvider",
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "calibration_context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "expected_route": "lower-cond0"
+  },
+  "platform_contract": {
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t247-thread-cpu-attribution-v1",
+    "operating_system": "Linux",
+    "machine": "aarch64",
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "isolated_cpus_sysfs": "7",
+    "governor": "performance",
+    "onnx_provider": "CPUExecutionProvider",
+    "onnx_execution_mode": "ORT_SEQUENTIAL",
+    "onnx_graph_optimization": "ORT_ENABLE_ALL",
+    "intra_and_inter_op_threads": 1,
+    "spinning": false,
+    "io_binding": true,
+    "gc_disabled_during_population": true,
+    "CLOCK_THREAD_CPUTIME_ID_required": true,
+    "RUSAGE_THREAD_required": true,
+    "preflight_before_graph_initialization": true
+  },
+  "screen": {
+    "command_x_m_s": 0.074,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "period_ms": 20.0,
+    "expected_handoff_switches": 1,
+    "host": "unchanged calibrated T247 host with already-derived lower-cond0 route variant",
+    "timing_population": "locomotion stage calls at absolute ticks 250:2297",
+    "paired_clock_order": "thread_cpu_start, wall_start, stage, wall_end, thread_cpu_end",
+    "stage_wall_ns": "wall_end minus wall_start",
+    "stage_thread_cpu_ns": "thread_cpu_end minus thread_cpu_start; includes only the current thread's scheduled CPU time plus paired clock-call overhead",
+    "stage_stolen_ns": "max(0, stage_wall_ns minus stage_thread_cpu_ns)",
+    "rusage_population": "RUSAGE_THREAD sampled immediately outside the paired clock bracket",
+    "system_counter_population": "CPU7 /proc/softirqs and /proc/interrupts snapshots immediately before and after the paced chain",
+    "slow_tick_reference_ms": 1.8,
+    "slow_tick_reference_provenance": "unchanged deployment-host reserve, used only to define an attribution subset; this diagnostic cannot pass the reserve",
+    "selection_weight": 0
+  },
+  "classification_rule": {
+    "wall_slow_tick": "stage_wall_ms > 1.8",
+    "thread_slow_tick": "stage_thread_cpu_ms > 1.8",
+    "kernel_or_scheduler_dominant": "stage wall p99 > 1.8 ms, stage thread CPU p99 <= 1.8 ms, and at least 80 percent of wall-slow ticks are not thread-slow",
+    "scheduled_compute_dominant": "stage thread CPU p99 > 1.8 ms and at least 80 percent of wall-slow ticks are also thread-slow",
+    "mixed": "neither dominance rule holds while at least one wall-slow tick exists",
+    "no_current_slow_population": "no wall-slow tick exists; report but do not reopen the closed reserve screen",
+    "context_switch_and_fault_counters": "secondary attribution only; they cannot override the paired-clock classification",
+    "minimum_wall_slow_ticks_for_fraction_rule": 1
+  },
+  "decision_rule": {
+    "any_platform_asset_trace_route_or_safety_check_fails": "INVALID_DIAGNOSTIC_NO_MECHANISM_SELECTED",
+    "kernel_or_scheduler_dominant": "SELECT_READ_ONLY_KERNEL_HOUSEKEEPING_OPTIONS_AUDIT; NO_BOOT_OR_RUNTIME_CHANGE_YET",
+    "scheduled_compute_dominant": "SELECT_READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT",
+    "mixed": "SELECT_COMPONENT_TIMELINE_INSTRUMENTATION_WITHOUT_POLICY_OR_THRESHOLD_CHANGE",
+    "no_current_slow_population": "FILE_THE_RESULT_AS_INCONCLUSIVE; DO_NOT_RERUN_OR_REOPEN_CONTEXT_ROUTE_SPECIALIZATION",
+    "valid_execution_retry": false,
+    "context_route_specialization_reopened": false,
+    "reserve_pass_claim": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "implementation_contract": {
+    "runner": "tools/run_t247_x5_thread_cpu_attribution.py",
+    "sealed_execution_package_required_after_implementation_before_run": true,
+    "source_and_asset_hashes_required": true,
+    "output_overwrite_forbidden": true,
+    "raw_per_tick_arrays_external_only": true,
+    "tracked_result_must_be_a_review_summary_with_external_hashes": true,
+    "forbidden_changes": [
+      "T247, calibrator, route variant, policy ABI, observation, action, recurrence, phase, P30, target, offsets, or rate checks",
+      "boot parameters, IRQ affinity, workqueue affinity, kernel tunables, or governor except the existing temporary performance wrapper",
+      "serial, GPIO, I2C, controllers, sensors, servos, torque, or motion",
+      "a second attribution execution, a reserve re-score, or any threshold change"
+    ]
+  },
+  "launch_contract": {
+    "governor_path": "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor",
+    "required_temporary_governor": "performance",
+    "required_restore_governor": "schedutil",
+    "runner_launch": "sudo -n env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 taskset -c 7 chrt -f 80 <sealed invocation>",
+    "abort_unless_governor_readback_before": "performance",
+    "verify_governor_readback_after": "schedutil"
+  },
+  "safety_and_authority": {
+    "one_no_motion_x5_cpu_diagnostic": true,
+    "robot_descriptors_forbidden": true,
+    "robot_modules_forbidden": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}
