@@ -1,0 +1,80 @@
+{
+  "schema_version": "open_duck_x5.t251a6_observation_correction_preregistration.v1",
+  "status": "PREREGISTERED_T251A6_OBSERVATION_ONLY_CORRECTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "HOLD_T251A5_X5_TARGET_RESERVED_SCREEN_REVIEWED",
+    "review_file_sha256": "d1dc9e6fcbd649b0db4233f8ae44487dc0737c5b6753776fd9933163af3b2b35",
+    "source_result_sha256": "1f304fd1ad3b86693cbb4b7ee2ec9717b6a66dc6e158bc29186551f8941c3270",
+    "selected_component": "observation",
+    "selected_component_p50_ms": 0.179042,
+    "selection_basis": "largest unchanged eligible T251A3 component after immutable ONNX and the closed graph_host and target corrections"
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "current_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7",
+    "optimized_source": "tools/winner_v14_optimized.py",
+    "optimized_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "graph_host_source": "tools/winner_v15_graph_host_optimized.py",
+    "graph_host_source_sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707",
+    "predecessor_source": "tools/winner_v16_target_optimized.py",
+    "predecessor_source_sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+  },
+  "correction": {
+    "new_default_off_host": "tools/winner_v17_observation_optimized.py",
+    "allowed_changes": [
+      "add a cold-path binding for the exact stable runtime sample arrays and require object identity at every observation build",
+      "accept only the frozen float64 sensor/command arrays and bool servo-staleness array with their exact shapes; keep the arrays mutable so live samples can update in place",
+      "trust only the transaction-owned observer target, calibration command and phase, and locomotion phase objects alongside the bound external sources",
+      "write position error and velocity scaling directly into their frozen float32 observation slices only if golden vectors prove byte identity",
+      "store the existing visible action-history vectors contiguously so the same three 14-value slots copy into obs[41:83] in one operation",
+      "retain the one complete 115-value finite scan, field-specific cold-fault diagnostics, stale rejection, command validation, reference cache, phase index, calibration overlays, history ordering, and commit semantics"
+    ],
+    "forbidden_changes": [
+      "policy, calibrator, ONNX, ABI, any observation value/order/scale, P30, phase, history meaning, action, target, home, offsets, rate limits, or production behavior",
+      "accepting a substituted source object, stale or non-finite sample, invalid command, wrong phase object, or wrong dtype/shape",
+      "native extension, threshold change, graph modification, source-array immutability, or robot-device access"
+    ]
+  },
+  "cpu_contract": {
+    "calibration_handoff_and_locomotion_2298_ticks_byte_exact_to_v16": true,
+    "bound_source_identity_dtype_and_shape_fail_closed": true,
+    "bound_live_source_values_remain_mutable_and_are_observed_each_tick": true,
+    "nonfinite_stale_and_invalid_command_faults_match_predecessor_before_graph_or_send": true,
+    "position_error_velocity_scale_action_history_reference_and_phase_slots_byte_exact_on_random_and_boundary_vectors": true,
+    "discard_failed_send_and_commit_paths_preserve_predecessor_state": true,
+    "local_20000_sample_observation_microbenchmark_median_at_most_75_percent_of_predecessor": true,
+    "default_disabled_and_no_production_consumer": true,
+    "all_repository_tests_and_artifact_hashes_green": true
+  },
+  "decision_rule": {
+    "contract_and_local_microbenchmark_pass": "EARN_ONE_T251A6_SEPARATED_SEMANTIC_PLUS_SINGLE_HOST_RESERVED_SCREEN_PREREGISTRATION",
+    "semantic_or_safety_contract_fail": "CLOSE_OBSERVATION_CORRECTION_WITHOUT_X5_EXECUTION",
+    "local_microbenchmark_fail": "CLOSE_OBSERVATION_CORRECTION_AS_TOO_SMALL_WITHOUT_X5_EXECUTION",
+    "x5_execution": false,
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

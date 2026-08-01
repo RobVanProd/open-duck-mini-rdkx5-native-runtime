@@ -40,6 +40,9 @@ from tools.winner_v16_target_optimized import (
     WinnerV16TargetOptimizedTransaction,
     X5TrustedOffsetTargetPipeline,
 )
+from tools.winner_v17_observation_optimized import (
+    WinnerV17ObservationOptimizedTransaction,
+)
 
 FROZEN_SOURCE_SHA256 = {
     "winner_v2.py": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b",
@@ -273,6 +276,21 @@ def _stage_samples(
         imu_sample_tick_index=tick,
         contacts_sample_tick_index=tick,
         **sample,
+    )
+
+
+def _bind_observation_sources(
+    host: WinnerV17ObservationOptimizedTransaction,
+    sample: dict[str, object],
+) -> None:
+    host.bind_observation_sources(
+        gyro_rad_s=sample["gyro_rad_s"],
+        acceleration_m_s2=sample["acceleration_m_s2"],
+        commands=sample["commands"],
+        positions_rad=sample["positions_rad"],
+        velocities_rad_s=sample["velocities_rad_s"],
+        foot_contacts=sample["foot_contacts"],
+        servo_stale=sample["servo_stale"],
     )
 
 
@@ -812,6 +830,141 @@ def test_target_optimized_valid_and_violating_rate_vectors_match_predecessor() -
         optimized.graph_rate_excess_rad_s,
         baseline.graph_rate_excess_rad_s,
     )
+
+
+def test_observation_optimized_transaction_is_byte_exact_across_handoff(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    baseline, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "baseline-v16",
+        host_type=WinnerV16TargetOptimizedTransaction,
+    )
+    optimized, _, _ = _make_host(
+        monkeypatch,
+        tmp_path / "optimized-v17",
+        host_type=WinnerV17ObservationOptimizedTransaction,
+    )
+    sample = _samples(0.074)
+    offsets = sample["soft_offsets_rad"]
+    assert isinstance(offsets, np.ndarray)
+    baseline.bind_soft_offsets(offsets)
+    optimized.bind_soft_offsets(offsets)
+    _bind_observation_sources(optimized, sample)
+
+    for tick in range(CALIBRATION_TICKS):
+        baseline_target = _stage_samples(baseline, tick, sample)
+        optimized_target = _stage_samples(optimized, tick, sample)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+    baseline.confirm_calibration_handoff(True)
+    optimized.confirm_calibration_handoff(True)
+
+    for local_tick in range(50):
+        tick = CALIBRATION_TICKS + local_tick
+        sample["gyro_rad_s"][0] = local_tick * 1.0e-4
+        sample["positions_rad"][1] += 1.0e-6
+        sample["velocities_rad_s"][2] = local_tick * -1.0e-4
+        baseline_target = _stage_samples(baseline, tick, sample)
+        optimized_target = _stage_samples(optimized, tick, sample)
+        np.testing.assert_array_equal(optimized.observation_view, baseline.observation_view)
+        np.testing.assert_array_equal(
+            optimized.normalized_action_view,
+            baseline.normalized_action_view,
+        )
+        np.testing.assert_array_equal(optimized_target, baseline_target)
+        baseline.complete_send(write_succeeded=True)
+        optimized.complete_send(write_succeeded=True)
+
+
+def test_observation_optimized_binding_rejects_wrong_dtype(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    host, _, _ = _make_host(
+        monkeypatch,
+        tmp_path,
+        host_type=WinnerV17ObservationOptimizedTransaction,
+    )
+    sample = _samples(0.074)
+    sample["gyro_rad_s"] = np.zeros(3, dtype=np.float32)
+    with pytest.raises(WinnerV13ContractError, match="bound gyro"):
+        _bind_observation_sources(host, sample)
+
+
+def test_observation_optimized_rejects_substituted_source_before_graph(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    host, calibrator, _ = _make_host(
+        monkeypatch,
+        tmp_path,
+        host_type=WinnerV17ObservationOptimizedTransaction,
+    )
+    sample = _samples(0.074)
+    host.bind_soft_offsets(sample["soft_offsets_rad"])
+    _bind_observation_sources(host, sample)
+    substitute = dict(sample)
+    substitute["gyro_rad_s"] = sample["gyro_rad_s"].copy()
+    runs_before = calibrator.calls
+    with pytest.raises(WinnerV2ContractError, match="exact cold-bound"):
+        _stage_samples(host, 0, substitute)
+    assert calibrator.calls == runs_before
+
+
+@pytest.mark.parametrize("fault", ["nonfinite", "stale", "command"])
+def test_observation_optimized_fault_matches_predecessor_before_graph(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    fault: str,
+) -> None:
+    baseline, baseline_calibrator, baseline_locomotion = _make_host(
+        monkeypatch,
+        tmp_path / "baseline",
+        host_type=WinnerV16TargetOptimizedTransaction,
+    )
+    optimized, optimized_calibrator, optimized_locomotion = _make_host(
+        monkeypatch,
+        tmp_path / "optimized",
+        host_type=WinnerV17ObservationOptimizedTransaction,
+    )
+    sample = _samples(0.074)
+    baseline.bind_soft_offsets(sample["soft_offsets_rad"])
+    optimized.bind_soft_offsets(sample["soft_offsets_rad"])
+    _bind_observation_sources(optimized, sample)
+    tick = 0
+    baseline_graph = baseline_calibrator
+    optimized_graph = optimized_calibrator
+    if fault == "command":
+        for calibration_tick in range(CALIBRATION_TICKS):
+            _stage_samples(baseline, calibration_tick, sample)
+            _stage_samples(optimized, calibration_tick, sample)
+            baseline.complete_send(write_succeeded=True)
+            optimized.complete_send(write_succeeded=True)
+        baseline.confirm_calibration_handoff(True)
+        optimized.confirm_calibration_handoff(True)
+        sample["commands"][1] = 0.1
+        tick = CALIBRATION_TICKS
+        baseline_graph = baseline_locomotion
+        optimized_graph = optimized_locomotion
+    elif fault == "nonfinite":
+        sample["gyro_rad_s"][1] = np.nan
+    else:
+        sample["servo_stale"][3] = True
+
+    baseline_runs = baseline_graph.calls
+    optimized_runs = optimized_graph.calls
+    with pytest.raises(WinnerV2ContractError) as baseline_error:
+        _stage_samples(baseline, tick, sample)
+    with pytest.raises(WinnerV2ContractError) as optimized_error:
+        _stage_samples(optimized, tick, sample)
+    assert str(optimized_error.value) == str(baseline_error.value)
+    assert baseline_graph.calls == baseline_runs
+    assert optimized_graph.calls == optimized_runs
 
 
 def test_x5_optimized_p30_is_bit_exact_for_mixed_delay_tau_and_velocity(

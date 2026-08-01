@@ -1,0 +1,122 @@
+{
+  "schema_version": "open_duck_x5.t251a6_observation_cpu_contract_result.v1",
+  "status": "FAIL_T251A6_OBSERVATION_CPU_CONTRACT",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "preregistration": {
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t251a6_observation_correction_preregistration_20260731.json",
+    "bytes": 5020,
+    "sha256": "92477c9322e719bae9968500b6dff3e8749374f092e7e3f6f7e7a6a7647a48f7"
+  },
+  "source_receipts": {
+    "transaction": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v13_state_coherent.py",
+      "bytes": 42895,
+      "sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7"
+    },
+    "predecessor_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v16_target_optimized.py",
+      "bytes": 6053,
+      "sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+    },
+    "corrected_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v17_observation_optimized.py",
+      "bytes": 10811,
+      "sha256": "b821b56c08299eef656b86d9dc3239d09bb4fff1da8e51b05a20193d3c03c487"
+    },
+    "verifier": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\verify_winner_v17_observation_optimized.py",
+      "bytes": 13840,
+      "sha256": "007c7af59022c17cd8ce6c99d112961e5efc09dad33a31b2980302b6bcfc01a8"
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "policy": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "p30_fit": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "reference_table": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "semantic_contract": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "bound_live_sources_remain_writeable": true,
+    "mismatch": null,
+    "predecessor_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "corrected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "local_observation_microbenchmark": {
+    "samples": 20000,
+    "alternated_order": true,
+    "mutated_bound_sources_in_place": true,
+    "mismatch_tick": null,
+    "predecessor": {
+      "samples": 20000,
+      "min_ms": 0.0104,
+      "mean_ms": 0.011624299999999999,
+      "p50_ms": 0.0108,
+      "p95_ms": 0.018,
+      "p99_ms": 0.0247,
+      "p99_9_ms": 0.03990180000000691,
+      "max_ms": 0.107,
+      "selection_weight": 0
+    },
+    "corrected": {
+      "samples": 20000,
+      "min_ms": 0.0106,
+      "mean_ms": 0.01187543,
+      "p50_ms": 0.0111,
+      "p95_ms": 0.0184,
+      "p99_ms": 0.02600099999999984,
+      "p99_9_ms": 0.04080010000000039,
+      "max_ms": 0.2102,
+      "selection_weight": 0
+    },
+    "corrected_to_predecessor_median_ratio": 1.0277777777777777,
+    "required_maximum_median_ratio": 0.75,
+    "selection_weight": 1
+  },
+  "checks": {
+    "asset_hashes_exact": true,
+    "all_ticks_byte_exact": true,
+    "exact_tick_counts": true,
+    "exact_one_handoff": true,
+    "live_sources_remain_writeable": true,
+    "action_traces_identical": true,
+    "zero_rate_excess": true,
+    "microbenchmark_outputs_exact": true,
+    "microbenchmark_mutates_live_sources": true,
+    "microbenchmark_median_improves_at_least_25_percent": false
+  },
+  "failed_checks": [
+    "microbenchmark_median_improves_at_least_25_percent"
+  ],
+  "decision": "CLOSE_T251A6_WITHOUT_X5_EXECUTION",
+  "authority": {
+    "x5_execution": false,
+    "robot_device_access": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "t251b_earned": false,
+    "gate5": false
+  },
+  "result_sha256": "a368645581264f5836e848cae7be7f5d83d18ca3f58f8ca5e1b339f5605e31d3"
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251A5_X5_TARGET_RESERVED_SCREEN_HOLD_P99",
+  "status": "T251A6_OBSERVATION_CORRECTION_CLOSED_TOO_SMALL",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -189,17 +189,35 @@
       "next_measured_component": "observation",
       "t251b_earned": false
     },
+    "t251a6_observation_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "local_observation_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_median_ratio": 1.0277777777777777,
+      "required_maximum_median_ratio": 0.75,
+      "failed_checks": [
+        "microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "a368645581264f5836e848cae7be7f5d83d18ca3f58f8ca5e1b339f5605e31d3",
+      "artifact_file_sha256": "1351d09308d36588053de7e6cf8f0c5f540ec62246d3ee0135f45e82948b7114",
+      "review_file_sha256": "a5e1058c79012bc52b7a48a3d0550310d4c74fcd227ea03c83408890389c534e",
+      "x5_screen_status": "NOT_EARNED",
+      "next_measured_component": "transaction_residual",
+      "t251b_earned": false
+    },
     "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 460
+      "passed": 471
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 189
+      "entries": 192
     }
   },
   "authority": {

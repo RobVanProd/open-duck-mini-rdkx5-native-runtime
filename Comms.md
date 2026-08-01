@@ -5,7 +5,7 @@ This file is the short current handoff. Historical exchanges remain in
 
 ## Current decision
 
-Status: `T247_OFFLINE_GREEN - T251A5_X5_TARGET_SCREEN_HOLD_P99 - GATE_5_BLOCKED`
+Status: `T247_OFFLINE_GREEN - T251A6_OBSERVATION_CORRECTION_CLOSED - GATE_5_BLOCKED`
 
 The selected policy route is now green offline. T249B completed the full
 20-condition R2 matrix with `320/320` passing cells across both checkpoints,
@@ -105,11 +105,18 @@ governor restored exactly to `schedutil`.
 
 After excluding immutable ONNX and the closed graph-host and target components,
 the next largest unchanged measured host component is observation assembly at
-`0.179042 ms` median. The only earned next work is a local CPU contract for one
-observation-only, default-disabled correction. It cannot run on the X5 until
-that contract independently passes. Thresholds, T247 weights, production
-integration, policy staging, Hardware Gate 5, torque, and motion remain
-unchanged and unearned.
+`0.179042 ms` median. T251A6 tested one preregistered observation-only correction
+locally. It preserved every value and the complete `2,298`-tick recurrent trace,
+including mutated in-place sensor sources, but its balanced `20,000`-sample
+microbenchmark measured `1.027778x` the predecessor median rather than the
+required `<= 0.75x`. The observation correction is therefore closed as too
+small, and no X5 execution was earned or performed.
 
-Local validation at this handoff is green: `460` tests pass and the `189`-entry
+The next and now largest unchanged eligible component is transaction residual
+at `0.087543 ms` median. The only earned next work is a local CPU contract for
+one transaction-residual-only, default-disabled correction. Thresholds, T247
+weights, production integration, policy staging, Hardware Gate 5, torque, and
+motion remain unchanged and unearned.
+
+Local validation at this handoff is green: `471` tests pass and the `192`-entry
 reviewed-artifact manifest verifies.

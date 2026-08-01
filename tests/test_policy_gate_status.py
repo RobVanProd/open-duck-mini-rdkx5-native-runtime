@@ -18,7 +18,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
     assert status["status"] == (
-        "T251A5_X5_TARGET_RESERVED_SCREEN_HOLD_P99"
+        "T251A6_OBSERVATION_CORRECTION_CLOSED_TOO_SMALL"
     )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
@@ -81,6 +81,16 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert t251a5["x5_screen_failed_checks"] == ["stage_p99_within_reserve"]
     assert t251a5["next_measured_component"] == "observation"
     assert t251a5["t251b_earned"] is False
+    t251a6 = gates["t251a6_observation_cpu_contract"]
+    assert t251a6["status"] == "CLOSED_TOO_SMALL"
+    assert t251a6["byte_exact_ticks"] == 2_298
+    assert t251a6["handoff_switches"] == 1
+    assert t251a6["maximum_rate_excess_rad_s"] == 0.0
+    assert t251a6["local_observation_microbenchmark_samples"] == 20_000
+    assert t251a6["corrected_to_predecessor_median_ratio"] > 0.75
+    assert t251a6["x5_screen_status"] == "NOT_EARNED"
+    assert t251a6["next_measured_component"] == "transaction_residual"
+    assert t251a6["t251b_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -124,10 +134,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 460}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 471}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 189,
+        "entries": 192,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
