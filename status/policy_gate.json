@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T251A8_COMPONENT_LOCAL_OPTIMIZATION_EXHAUSTED",
+  "status": "T247_CONTEXT_ROUTE_SPECIALIZATION_PREREGISTERED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -248,6 +248,20 @@
       "component_local_optimization": "EXHAUSTED",
       "t251b_earned": false
     },
+    "t247_deployment_context_route_specialization": {
+      "status": "PREREGISTERED_CPU_CONTRACT",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "architecture_audit_file_sha256": "edaffcb68257a4f49965efc0cfed076c7a133befe669001917076551714b7980",
+      "preregistration_file_sha256": "4a038b0db38703e9a8adbd2439c1c23d82d09805a7119985874cbde48cd5a5ec",
+      "selected_mechanism": "EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION",
+      "complete_routes": 6,
+      "cpu_contract_status": "NOT_RUN",
+      "x5_screen_status": "NOT_EARNED",
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
     "opt_in_production_integration": "NOT_PREREGISTERED",
     "gate_5": "NOT_RUN"
   },
@@ -258,7 +272,7 @@
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 198
+      "entries": 200
     }
   },
   "authority": {
