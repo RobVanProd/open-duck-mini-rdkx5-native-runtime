@@ -17,7 +17,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T247_CONTEXT_ROUTE_SPECIALIZATION_PREREGISTERED"
+    assert status["status"] == "T247_X5_CONTEXT_ROUTE_SCREEN_PREREGISTERED"
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -117,12 +117,16 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert t251a8["component_local_optimization"] == "EXHAUSTED"
     assert t251a8["t251b_earned"] is False
     specialization = gates["t247_deployment_context_route_specialization"]
-    assert specialization["status"] == "PREREGISTERED_CPU_CONTRACT"
+    assert specialization["status"] == "PASS_CPU_CONTRACT_X5_SCREEN_PREREGISTERED"
     assert specialization["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
     assert specialization["policy_weights_unchanged"] is True
     assert specialization["complete_routes"] == 6
-    assert specialization["cpu_contract_status"] == "NOT_RUN"
-    assert specialization["x5_screen_status"] == "NOT_EARNED"
+    assert specialization["cpu_contract_status"] == "PASS"
+    assert specialization["cpu_contract_checks_passed"] == 14
+    assert specialization["cpu_contract_checks"] == 14
+    assert specialization["worst_local_p50_ratio"] <= 0.88
+    assert specialization["worst_local_p99_ratio"] <= 0.88
+    assert specialization["x5_screen_status"] == "PREREGISTERED_NOT_RUN"
     assert specialization["policy_training_earned"] is False
     assert specialization["production_integration_earned"] is False
     assert specialization["gate5_earned"] is False
@@ -169,10 +173,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 481}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 485}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 200,
+        "entries": 203,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

@@ -1,0 +1,113 @@
+{
+  "schema_version": "open_duck_x5.t247_context_route_specialization_review.v1",
+  "status": "PASS_REVIEW_T247_CONTEXT_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+  "date": "2026-07-31",
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "clarification": "The specialization is a deployment execution form of unchanged T247, not a T250/T251 policy."
+  },
+  "source_result": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_context_route_specialization_result_20260731.json",
+    "status": "PASS_T247_CONTEXT_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+    "checks_passed": 14,
+    "checks_total": 14,
+    "failed_checks": [],
+    "canonical_sha256": "d6d8026e8dfdd59ac68942d70da87bc65e6bb5c8952712be4eb17ad9797b25a2",
+    "file_sha256": "f3a185718ab166fa9ac349f63f6261f7589e2602674da335e9fd1a4f11f9482c"
+  },
+  "semantic_review": {
+    "complete_routes": 6,
+    "interior_contexts_per_route": 2,
+    "one_step_cases": 3072,
+    "threshold_neighborhoods": 3,
+    "derive_twice_byte_exact": true,
+    "all_onnx_checker_pass": true,
+    "all_public_abis_exact": true,
+    "all_retained_initializers_exact": true,
+    "all_router_predicates_exact": true,
+    "all_outputs_byte_exact": true,
+    "actual_chain_ticks": 2298,
+    "actual_handoff_switches": 1,
+    "actual_route": "lower-cond0",
+    "actual_context_float32_bytes_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+    "actual_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "local_timing_review": {
+    "warmup_samples_per_route": 2000,
+    "measured_samples_per_route": 20000,
+    "required_maximum_p50_and_p99_ratio": 0.88,
+    "routes": {
+      "lower-cond0": {
+        "p50_ratio": 0.8061674008810572,
+        "p99_ratio": 0.8421147763217338
+      },
+      "lower-cond1": {
+        "p50_ratio": 0.7794508414526129,
+        "p99_ratio": 0.7897262241673348
+      },
+      "positive-cond0": {
+        "p50_ratio": 0.731858407079646,
+        "p99_ratio": 0.7586586716666366
+      },
+      "positive-cond1": {
+        "p50_ratio": 0.7654867256637168,
+        "p99_ratio": 0.7649504632885483
+      },
+      "tail-cond0": {
+        "p50_ratio": 0.8045977011494252,
+        "p99_ratio": 0.8224021673690538
+      },
+      "tail-cond1": {
+        "p50_ratio": 0.8035398230088496,
+        "p99_ratio": 0.8080899028153739
+      }
+    },
+    "worst_p50_ratio": 0.8061674008810572,
+    "worst_p99_ratio": 0.8421147763217338,
+    "all_routes_material": true,
+    "interpretation": "Every automatic route cleared the preregistered 12% local reduction. The observed lower-cond0 route reduced p50 by 19.38% and p99 by 15.79%, which is large enough to earn one X5 falsification of the unchanged 1.8/2.5/4.0 ms reserve."
+  },
+  "decision": {
+    "cpu_contract": "PASS",
+    "earned_next": "ONE_SEPARATELY_PREREGISTERED_T247_X5_NO_MOTION_CONTEXT_SPECIALIZATION_RESERVED_SCREEN",
+    "x5_screen_executed": false,
+    "production_integration_earned": false,
+    "gate5_earned": false,
+    "policy_training_earned": false,
+    "threshold_change": false
+  },
+  "next_screen_constraints": {
+    "same_t247_assets": true,
+    "same_250_plus_2048_tick_chain": true,
+    "same_expected_route": "lower-cond0",
+    "same_expected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "same_frozen_reserve_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "sched_fifo_priority": 80,
+    "isolated_affinity": [7],
+    "governor": "performance",
+    "robot_device_access": false,
+    "policy_binary_is_external_and_hash_pinned": true,
+    "separate_execution_package_hashes_required_before_run": true
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_screen_preregistration_earned": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

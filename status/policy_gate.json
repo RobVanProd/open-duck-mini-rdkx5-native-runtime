@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T247_CONTEXT_ROUTE_SPECIALIZATION_PREREGISTERED",
+  "status": "T247_X5_CONTEXT_ROUTE_SCREEN_PREREGISTERED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -249,15 +249,23 @@
       "t251b_earned": false
     },
     "t247_deployment_context_route_specialization": {
-      "status": "PREREGISTERED_CPU_CONTRACT",
+      "status": "PASS_CPU_CONTRACT_X5_SCREEN_PREREGISTERED",
       "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
       "policy_weights_unchanged": true,
       "architecture_audit_file_sha256": "edaffcb68257a4f49965efc0cfed076c7a133befe669001917076551714b7980",
       "preregistration_file_sha256": "4a038b0db38703e9a8adbd2439c1c23d82d09805a7119985874cbde48cd5a5ec",
       "selected_mechanism": "EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION",
       "complete_routes": 6,
-      "cpu_contract_status": "NOT_RUN",
-      "x5_screen_status": "NOT_EARNED",
+      "cpu_contract_status": "PASS",
+      "cpu_contract_checks_passed": 14,
+      "cpu_contract_checks": 14,
+      "cpu_contract_result_sha256": "d6d8026e8dfdd59ac68942d70da87bc65e6bb5c8952712be4eb17ad9797b25a2",
+      "cpu_contract_artifact_file_sha256": "f3a185718ab166fa9ac349f63f6261f7589e2602674da335e9fd1a4f11f9482c",
+      "cpu_contract_review_file_sha256": "ae6d7d4b7ada216f808240e009c1daad2f869fe821abeec42482171732ddad7e",
+      "worst_local_p50_ratio": 0.8061674008810572,
+      "worst_local_p99_ratio": 0.8421147763217338,
+      "x5_screen_status": "PREREGISTERED_NOT_RUN",
+      "x5_screen_preregistration_file_sha256": "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05",
       "policy_training_earned": false,
       "production_integration_earned": false,
       "gate5_earned": false
@@ -268,11 +276,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 481
+      "passed": 485
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 200
+      "entries": 203
     }
   },
   "authority": {
