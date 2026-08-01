@@ -14,6 +14,9 @@ AUDIT = GATES / "t247_deployment_x5_periodic_latency_attribution_audit_20260731.
 PREREGISTRATION = (
     GATES / "t247_deployment_x5_thread_cpu_attribution_preregistration_20260731.json"
 )
+PACKAGE = (
+    GATES / "t247_deployment_x5_thread_cpu_attribution_execution_package_20260731.json"
+)
 POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 
 
@@ -47,6 +50,30 @@ def test_thread_cpu_attribution_is_preregistered_for_unchanged_t247_only() -> No
     assert preregistration["safety_and_authority"]["servo_reads_or_writes"] is False
     assert preregistration["safety_and_authority"]["torque"] is False
     assert preregistration["safety_and_authority"]["motion"] is False
+
+
+def test_thread_cpu_attribution_execution_package_pins_implementation() -> None:
+    package = _read(PACKAGE)
+
+    assert package["status"] == (
+        "SEALED_T247_X5_THREAD_CPU_ATTRIBUTION_EXECUTION_PACKAGE"
+    )
+    assert package["preregistration_file_sha256"] == (
+        attribution.PREREGISTRATION_SHA256
+    )
+    assert package["source_sha256"][
+        "tools/run_t247_x5_thread_cpu_attribution.py"
+    ] == hashlib.sha256(
+        (ROOT / "tools/run_t247_x5_thread_cpu_attribution.py").read_bytes()
+    ).hexdigest()
+    assert package["classification"]["selection_weight"] == 0
+    assert package["classification"]["reserve_pass_claim"] is False
+    assert package["classification"]["retry"] is False
+    assert package["scope"]["policy"] == "unchanged T247"
+    assert package["scope"]["robot_devices"] is False
+    assert package["scope"]["torque"] is False
+    assert package["scope"]["motion"] is False
+    assert package["scope"]["boot_change"] is False
 
 
 def test_classification_identifies_kernel_or_scheduler_dominance() -> None:

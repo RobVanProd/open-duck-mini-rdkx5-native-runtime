@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-07-31",
-  "status": "T247_X5_THREAD_CPU_ATTRIBUTION_RUNNER_IMPLEMENTED",
+  "status": "T247_X5_THREAD_CPU_ATTRIBUTION_PACKAGE_SEALED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -299,7 +299,7 @@
       "gate5_earned": false
     },
     "t247_deployment_x5_thread_cpu_attribution": {
-      "status": "RUNNER_IMPLEMENTED_PACKAGE_NOT_SEALED",
+      "status": "PACKAGE_SEALED_NOT_RUN",
       "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
       "policy_weights_unchanged": true,
       "source_context_route_specialization": "CLOSED_WITHOUT_RETRY",
@@ -309,7 +309,9 @@
       "selection_weight": 0,
       "runner_source_sha256": "48622bf5fe75f18462c6e4cfdd7ad35d552be554aeed7dd8db91623c58364c10",
       "runner_unit_checks": "PASS",
-      "execution_package": "NOT_SEALED",
+      "execution_package": "SEALED",
+      "execution_package_file_sha256": "5701d632810c33e4c9d970d327331dfb508b7b8f3777576279742dfa6eb3080e",
+      "runner_source_commit": "01191c9e2ee1921d63724edf0ec9dc2aee2cf0b2",
       "x5_execution": "NOT_RUN",
       "boot_change": false,
       "policy_training_earned": false,
@@ -322,11 +324,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 491
+      "passed": 492
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 210
+      "entries": 211
     }
   },
   "authority": {
