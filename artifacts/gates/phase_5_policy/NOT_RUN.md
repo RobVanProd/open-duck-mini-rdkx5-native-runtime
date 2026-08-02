@@ -1,18 +1,12 @@
-# NOT RUN — Suspended Policy Gate
+# NOT RUN — Physical Policy Replay
 
-No policy has been deployed or replayed from this repository. Grounded replay is outside authority.
+Policy-side work is green, but no physical policy replay has run from this
+repository. T247 remains the unchanged candidate. Its full offline matrix,
+exact X5 command-route compute screen, opt-in production host wiring, and
+independent summary contract are reviewed green.
 
-Runtime startup provenance, tick/event schemas, and the independent control-run
-summarizer are implemented offline. The preserved-runtime v1 golden vector
-passes. The policy handoff at commit
-`ad1cd8e9b9fdacd26a5453318411dafe423588b4` was independently hash-checked and
-CPU-replayed. The 512000-step graph was subsequently selected, and the separate
-default-off 115-D runtime-v2 implementation passed the complete 2,400-tick
-offline matrix. It remains deliberately incompatible with the 101-D v1 path.
-
-The T247 candidate is green offline and the T250 state-coherent integration is
-exact, but deployment remains held. T251A2 proved 2,298 optimized paced ticks
-byte-exact with no robot interfaces; its p99 `2.179714 ms` and p99.9
-`2.545636 ms` missed the preregistered reserve screen. T251B and production
-integration are not earned. No policy has been deployed or replayed, and no
-serial policy summary exists.
+The distinct 115-D T247 path is explicit and default-disabled; the frozen 101-D
+v1 behavior is unchanged. The next step is not training. It is a separately
+authorized suspended Hardware Gate 5 x=0 replay using the frozen single-arm
+launcher. The x=.08 arm remains blocked on a reviewed green x=0 result and a
+second authorization. Grounded replay remains outside authority.

@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
   "status_date": "2026-08-01",
-  "status": "T247_X5_COMMAND_ROUTE_EXECUTION_PACKAGE_SEALED",
+  "status": "T247_GATE5_X0_READY_EXPLICIT_AUTHORIZATION_NOT_RUN",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -400,31 +400,74 @@
       "cpu_result_sha256": "82e9267f5277d7bd67521b7ba0fba079ffcdb53f0830ee340be3b8e2c3651320",
       "cpu_result_file_sha256": "a1679e52dd43685fd6359d5f093402dc4775c80054ef1904406d27fc2ebd3a98",
       "cpu_review_file_sha256": "f6e466a6ec9edd427d4e4c0d8b7e15874bff99b2169ff69a1f6df6de51ec4929",
-      "x5_screen_status": "PACKAGE_SEALED_NOT_RUN",
+      "x5_screen_status": "PASS_REVIEWED_35_OF_35",
+      "x5_screen_checks_passed": 35,
+      "x5_screen_checks": 35,
+      "x5_screen_failed_checks": [],
+      "x5_x000_p99_ms": 0.7864462400000001,
+      "x5_x000_p99_9_ms": 1.1788540000000056,
+      "x5_x000_max_ms": 1.409879,
+      "x5_x080_p99_ms": 1.6063589999999999,
+      "x5_x080_p99_9_ms": 1.937126099,
+      "x5_x080_max_ms": 1.944338,
+      "x5_timing_limits_ms": {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0
+      },
+      "x5_result_file_sha256": "9a0215f96dc2067cbac957976db6b4b9f7ca0f6fc3b434c7504459c71ef33c36",
+      "x5_result_canonical_sha256": "ac712baaea271577ce81180b9bf57e6856a402f4e5e682a0b19339c3896ef996",
+      "x5_raw_ticks_sha256": "db1df1377f37775e74b4f37d94224fdc08ed06a93bdf2f9a1511702020873896",
       "x5_screen_preregistration_file_sha256": "cdda6d2a277b70942f253dacbc799acf279bbe24443f187f09602bbf3d38479b",
       "x5_execution_package_file_sha256": "a46b159fbb482565eaf3863e142f0d40eb2a72c711fbf7f29c1a6decea850881",
       "x5_runner_source_commit": "b3de662f0dc381d2bcc45fe61aa8f11555a7432e",
       "policy_training_earned": false,
-      "production_integration_earned": false,
+      "production_integration_earned": true,
+      "gate5_readiness_earned": true,
       "gate5_earned": false
     },
-    "opt_in_production_integration": "NOT_PREREGISTERED",
-    "gate_5": "NOT_RUN"
+    "opt_in_production_integration": {
+      "status": "PASS_REVIEWED",
+      "runtime_wiring_checks_passed": 18,
+      "runtime_wiring_checks": 18,
+      "runtime_wiring_failed_checks": [],
+      "runtime_wiring_result_file_sha256": "a8b04d7bafdbf596801fe17c01b607d02f0cea76b5e60fb134e2238e97f9949a",
+      "runtime_wiring_result_canonical_sha256": "2e904712495d97f6ee44bbd28b6fa110d6d066fdecff87132c23e357ab017e0a",
+      "control_summary_status": "PASS_REVIEWED",
+      "t247_runtime_contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+      "serial_active_ticks": 850,
+      "serial_calibration_ticks": 250,
+      "serial_locomotion_ticks": 600,
+      "legacy_v1_unchanged": true,
+      "mock_timing_selection_weight": 0
+    },
+    "t247_gate5_readiness": {
+      "status": "READY_FOR_EXPLICIT_SUSPENDED_X0_AUTHORIZATION",
+      "launcher_preregistered": true,
+      "launcher_frozen": true,
+      "one_arm_per_invocation": true,
+      "x008_requires_reviewed_x0_and_separate_authorization": true,
+      "policy_binary_staged_on_x5": false,
+      "x0_run": "NOT_RUN",
+      "x008_run": "NOT_RUN",
+      "grounded_replay": false
+    },
+    "gate_5": "READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 497
+      "passed": 532
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 218
+      "entries": 232
     }
   },
   "authority": {
     "policy_training_earned": false,
     "policy_binary_staged_on_x5": false,
-    "production_runtime_integration_earned": false,
+    "production_runtime_integration_earned": true,
     "gate_5_authorized_by_this_status": false,
     "robot_motion_authorized_by_this_status": false,
     "grounded_replay": false

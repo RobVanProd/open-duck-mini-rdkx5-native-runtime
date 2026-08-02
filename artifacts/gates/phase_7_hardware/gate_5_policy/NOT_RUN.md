@@ -1,25 +1,24 @@
-# NOT RUN — Hardware Gate 5: Suspended Policy Replay
+# NOT RUN — Hardware Gate 5: Suspended T247 Policy Replay
 
-Hardware Gate 5 has not run. No T247 policy binary has been copied into the
-production runtime tree, no policy has opened the servo bus, and no
+Hardware Gate 5 has not run. No T247 policy binary has been copied to the X5
+production staging path, no T247 policy has opened the live servo bus, and no
 policy-driven torque or motion has occurred.
 
-The offline policy blocker is cleared: T249B passed all 20 R2 conditions and
-all 320 cells. The offline native-runtime blocker is also cleared: T250 passed
-25/25 exact real-asset integration checks with zero numeric delta. The frozen
-101-D production contract remains unchanged; the candidate uses a separate,
-default-disabled 115-D state-coherent host.
+The prior blockers are now closed:
 
-T251A attributed T251's approximately 55 ms tail to RT throttling from the
-unpaced diagnostic and its steady miss to Python host overhead. T251A2 then
-proved the optimized paced host byte-exact for all 2,298 ticks, but p99
-`2.179714 ms` and p99.9 `2.545636 ms` missed its stricter `1.8/2.5/4.0 ms`
-reserved screen. T251B is not earned. A single-host/component attribution and
-a later passing reserved screen are required before the 10,000-tick correction
-can even be preregistered. The live sensor/bus/safety integration and its
-no-motion timing evidence must then pass before Gate 5 can be prepared.
+- T249B offline behavior: 20/20 conditions and 320/320 cells pass.
+- Exact command-routed X5 compute: 35/35 checks pass for x=0 and x=.08.
+- Opt-in production runtime wiring: 18/18 mock real-asset checks pass.
+- Independent T247 control-summary contract: reviewed green.
+- Hardware Gates 1-4: `PASS_REVIEWED`.
+- Single-arm Gate 5 launcher: preregistered, implemented, and fail-closed.
 
-After those blockers clear, suspended x=0 and x=0.08 replays require the
-separately frozen Gate 5 contract, explicit authorization, complete runtime
-JSONL, reviewed hashes, zero telemetry loss, fresh inputs, and the existing
-torque-off/watchdog safety paths. Grounded replay remains prohibited.
+The current state is `READY_FOR_EXPLICIT_SUSPENDED_T247_GATE5_X0_AUTHORIZATION`.
+Readiness is not authorization. The exact next hardware action is one x=0 arm:
+250 active calibration ticks followed by 600 active replay ticks. It requires
+the robot to be securely supported, the Xbox controller connected, hands clear,
+and Rob's explicit authorization for that invocation.
+
+The x=.08 arm cannot run automatically. It requires a separately reviewed green
+x=0 receipt, the receipt's exact SHA-256, and separate explicit authorization.
+Grounded replay remains prohibited.

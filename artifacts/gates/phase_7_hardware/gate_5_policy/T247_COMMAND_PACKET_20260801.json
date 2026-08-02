@@ -1,0 +1,96 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_command_packet.v1",
+  "status": "SEALED_NOT_RUN_T247_GATE5_X0_COMMAND_PACKET",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source": {
+    "repository": "https://github.com/RobVanProd/open-duck-mini-rdkx5-native-runtime.git",
+    "branch": "codex/policy-deployment-consolidation",
+    "runnable_commit": "b864cc2d234eb91d78ed1b46a8717b70e14bbc48",
+    "source_tree": "5b39ed62fb0eff71196a2ae90cbd36861cc54d31",
+    "schema_tree": "9e8adbd8973973e43a8fc6c80a2d953d090fa2ab",
+    "launcher_path": "setup/run_t247_gate5_single_arm.sh",
+    "launcher_sha256": "24aedd96dc42aae7b65cf247b9434d9af288ecdbe08f63d3edee50f25f4be80b"
+  },
+  "x5_paths": {
+    "source_root": "/home/sunrise/open-duck-x5-gate5-t247",
+    "asset_root": "/home/sunrise/open-duck-x5-gate5-t247-assets",
+    "config": "/home/sunrise/duck_config.json",
+    "imu_calibration": "/home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json",
+    "x0_output": "/home/sunrise/duck-evidence/gate5-t247-x0-20260801"
+  },
+  "asset_layout": {
+    "policy": "policy.onnx",
+    "calibrator": "calibrator.onnx",
+    "p30_fit": "p30.json",
+    "reference_table": "reference.npz",
+    "context_routes": "context-routes",
+    "command_routes": "command-routes",
+    "command_manifest": "command-routes/manifest.json"
+  },
+  "external_asset_bundle": {
+    "path": "D:\\CodexArtifacts\\t247-gate5-deployment-assets-20260801.tar.gz",
+    "bytes": 22870529,
+    "sha256": "6824bb56261fbb55afc23b548d44231a373275b1e3fbc04b685cbefb862f30f7",
+    "archive_root_directory": "t247-gate5-deployment-assets-20260801",
+    "extract_with_strip_components": 1,
+    "staged_on_x5": false
+  },
+  "asset_hashes": {
+    "policy.onnx": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator.onnx": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "p30.json": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference.npz": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "context-routes/manifest.json": "61c54d755c2846bd811775786c6599606a7be70fbaa7c9266cd3fb613d64a536",
+    "context-routes/policy.context-router.onnx": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "command-routes/manifest.json": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd"
+  },
+  "x0_launcher_argv": [
+    "sudo",
+    "setup/run_t247_gate5_single_arm.sh",
+    "--source-root", "/home/sunrise/open-duck-x5-gate5-t247",
+    "--asset-root", "/home/sunrise/open-duck-x5-gate5-t247-assets",
+    "--config", "/home/sunrise/duck_config.json",
+    "--imu-calibration", "/home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json",
+    "--output-dir", "/home/sunrise/duck-evidence/gate5-t247-x0-20260801",
+    "--fixed-command-x", "0",
+    "--hardware-authorized",
+    "--suspended-or-benched",
+    "--gate5-moving-authorized"
+  ],
+  "bundle_smoke": {
+    "backend": "mock",
+    "active_ticks": 258,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 8,
+    "run_status": "COMPLETE",
+    "stage_sequence_exact": true,
+    "route_sequence_exact": true,
+    "torque_off_confirmed": true,
+    "telemetry_sha256": "096488be50f43d69f02eb875dc4ef4c3b6701291df1d051cc3656798cd5d474d",
+    "summary_sha256": "15ce4998ad1ff01324513ddc1284da8f0ff6251832d541e3832e0c5f566d6245",
+    "mock_timing_selection_weight": 0
+  },
+  "x008_packet_status": "BLOCKED_UNTIL_X0_REVIEW_AND_SEPARATE_AUTHORIZATION",
+  "x008_additional_required_arguments": [
+    "--x0-review <reviewed-x0.json>",
+    "--x0-review-sha256 <exact-lowercase-sha256>"
+  ],
+  "operator_sequence": [
+    "Do not invoke without exact x=0 Gate 5 authorization and a physically supported robot.",
+    "Connect the Xbox controller before invocation.",
+    "The runtime enters home over five seconds, then remains paused.",
+    "Visually verify home and press the preserved A-edge pause toggle once to start active calibration and replay.",
+    "Stop immediately on unexpected motion, wrong joint/side/sign, bus alarms, controller loss, or abnormal sound.",
+    "Do not run x=0.08 from this invocation or before the x=0 evidence is independently reviewed."
+  ],
+  "authority": {
+    "packet_only": true,
+    "staged_on_x5": false,
+    "executed": false,
+    "torque": false,
+    "motion": false,
+    "gate5_authorized": false,
+    "grounded_replay": false
+  }
+}

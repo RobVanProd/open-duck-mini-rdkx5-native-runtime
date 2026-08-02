@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
+
+ROOT = Path(__file__).parents[1]
 
 
 def _script() -> str:
     return (
-        Path(__file__).parents[1] / "setup" / "run_t247_gate5_single_arm.sh"
+        ROOT / "setup" / "run_t247_gate5_single_arm.sh"
     ).read_text(encoding="utf-8")
 
 
@@ -102,3 +106,39 @@ def test_gate5_runner_checks_hashes_before_device_or_governor_action() -> None:
         'performance > "${governor_policy}/scaling_governor"'
     )
     assert hash_check < device_check < governor_change
+
+
+def test_gate5_command_packet_pins_launcher_and_remains_not_run() -> None:
+    runner = ROOT / "setup" / "run_t247_gate5_single_arm.sh"
+    packet = json.loads(
+        (
+            ROOT
+            / "artifacts/gates/phase_7_hardware/gate_5_policy"
+            / "T247_COMMAND_PACKET_20260801.json"
+        ).read_text(encoding="utf-8")
+    )
+    readiness = json.loads(
+        (
+            ROOT
+            / "artifacts/gates/phase_7_hardware/gate_5_policy"
+            / "T247_READINESS_20260801.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert packet["status"] == "SEALED_NOT_RUN_T247_GATE5_X0_COMMAND_PACKET"
+    assert packet["source"]["launcher_sha256"] == hashlib.sha256(
+        runner.read_bytes()
+    ).hexdigest()
+    assert packet["source"]["runnable_commit"] == (
+        "b864cc2d234eb91d78ed1b46a8717b70e14bbc48"
+    )
+    assert packet["x0_launcher_argv"].count("--fixed-command-x") == 1
+    assert packet["x0_launcher_argv"][-1] == "--gate5-moving-authorized"
+    assert packet["x008_packet_status"] == (
+        "BLOCKED_UNTIL_X0_REVIEW_AND_SEPARATE_AUTHORIZATION"
+    )
+    assert readiness["status"] == (
+        "READY_FOR_EXPLICIT_SUSPENDED_T247_GATE5_X0_AUTHORIZATION"
+    )
+    assert readiness["gate5_executed"] is False
+    assert readiness["robot_clearance"] is False

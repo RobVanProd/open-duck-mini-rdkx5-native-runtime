@@ -18,7 +18,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
     assert status["status"] == (
-        "T247_X5_COMMAND_ROUTE_EXECUTION_PACKAGE_SEALED"
+        "T247_GATE5_X0_READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
     )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
@@ -216,13 +216,39 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert command_route["maximum_rate_excess_rad_s"] == 0.0
     assert command_route["worst_local_p50_ratio"] <= 0.88
     assert command_route["worst_local_p99_ratio"] <= 0.88
-    assert command_route["x5_screen_status"] == "PACKAGE_SEALED_NOT_RUN"
+    assert command_route["x5_screen_status"] == "PASS_REVIEWED_35_OF_35"
+    assert command_route["x5_screen_checks_passed"] == 35
+    assert command_route["x5_screen_checks"] == 35
+    assert command_route["x5_screen_failed_checks"] == []
+    assert command_route["x5_x000_p99_ms"] <= 1.8
+    assert command_route["x5_x000_p99_9_ms"] <= 2.5
+    assert command_route["x5_x080_p99_ms"] <= 1.8
+    assert command_route["x5_x080_p99_9_ms"] <= 2.5
+    assert command_route["x5_x080_max_ms"] <= 4.0
     assert command_route["policy_training_earned"] is False
-    assert command_route["production_integration_earned"] is False
+    assert command_route["production_integration_earned"] is True
+    assert command_route["gate5_readiness_earned"] is True
     assert command_route["gate5_earned"] is False
-    assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
-    assert gates["gate_5"] == "NOT_RUN"
-    assert authority["production_runtime_integration_earned"] is False
+    integration = gates["opt_in_production_integration"]
+    assert integration["status"] == "PASS_REVIEWED"
+    assert integration["runtime_wiring_checks_passed"] == 18
+    assert integration["runtime_wiring_checks"] == 18
+    assert integration["runtime_wiring_failed_checks"] == []
+    assert integration["control_summary_status"] == "PASS_REVIEWED"
+    assert integration["serial_active_ticks"] == 850
+    assert integration["serial_calibration_ticks"] == 250
+    assert integration["serial_locomotion_ticks"] == 600
+    assert integration["legacy_v1_unchanged"] is True
+    readiness = gates["t247_gate5_readiness"]
+    assert readiness["status"] == "READY_FOR_EXPLICIT_SUSPENDED_X0_AUTHORIZATION"
+    assert readiness["launcher_frozen"] is True
+    assert readiness["one_arm_per_invocation"] is True
+    assert readiness["x008_requires_reviewed_x0_and_separate_authorization"] is True
+    assert readiness["policy_binary_staged_on_x5"] is False
+    assert readiness["x0_run"] == "NOT_RUN"
+    assert readiness["x008_run"] == "NOT_RUN"
+    assert gates["gate_5"] == "READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
+    assert authority["production_runtime_integration_earned"] is True
     assert authority["gate_5_authorized_by_this_status"] is False
     assert authority["robot_motion_authorized_by_this_status"] is False
 
@@ -263,10 +289,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 497}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 532}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 218,
+        "entries": 232,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

@@ -1,0 +1,74 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_readiness.v1",
+  "status": "READY_FOR_EXPLICIT_SUSPENDED_T247_GATE5_X0_AUTHORIZATION",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "gate5_executed": false,
+  "robot_clearance": false,
+  "readiness_checks": {
+    "offline_policy_20_of_20_conditions_320_of_320_cells": true,
+    "native_runtime_contract_exact": true,
+    "x5_command_route_screen_35_of_35": true,
+    "x5_x0_and_x008_compute_reserve_green": true,
+    "opt_in_runtime_wiring_18_of_18": true,
+    "independent_t247_summary_contract_green": true,
+    "gate1_pass_reviewed": true,
+    "gate2_pass_reviewed": true,
+    "gate3_pass_reviewed": true,
+    "gate4_pass_reviewed": true,
+    "exact_single_arm_launcher_frozen": true,
+    "external_asset_bundle_built_and_mock_smoked": true,
+    "x008_auto_advance_impossible": true,
+    "policy_binary_staged_on_x5": false,
+    "gate5_x0_run_complete": false,
+    "gate5_x008_run_complete": false
+  },
+  "review_receipts": {
+    "x5_command_route_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_reserved_screen_review_20260801.json",
+    "runtime_wiring_review": "artifacts/gates/phase_5_policy/t247_deployment_runtime_opt_in_wiring_review_20260801.json",
+    "summary_extension_review": "artifacts/gates/phase_5_policy/t247_deployment_control_summary_extension_review_20260801.json",
+    "launcher_preregistration": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_LAUNCHER_PREREGISTRATION_20260801.json"
+  },
+  "gate_hardware_receipts": {
+    "gate1_result_sha256": "7e63be92aa2992d636f6844a10d8348f744d2b505516b43aa27dce52e11c4e3a",
+    "gate2_result_sha256": "7c59cd580074cf57a13c5e5e4e8416a85a25eb6495ec6e2a1e492aa75fa07d50",
+    "gate3_result_sha256": "bf8acb68076c895f350ee10a26c3b4afcfd7293475ca1c37a710b366ed9a7db1",
+    "gate4_result_sha256": "f22519afa42a69f0bd65add4dd73c3c694114aa0fb2e8650140e5c7a21f378b4"
+  },
+  "frozen_gate5_scope": {
+    "order": ["x0", "independent_review", "separate_x008_authorization", "x008", "independent_review"],
+    "calibration_ticks_per_arm": 250,
+    "locomotion_ticks_per_arm": 600,
+    "active_ticks_per_arm": 850,
+    "maximum_total_ticks_per_arm": 3850,
+    "x0_fixed_command_m_s": 0.0,
+    "x008_fixed_command_m_s": 0.08,
+    "lateral_yaw_and_head_commands": 0.0,
+    "phase_factor": 1.0,
+    "suspended_or_benched_only": true,
+    "grounded_replay": false
+  },
+  "remaining_before_x0_execution": [
+    "Obtain explicit authorization for the exact suspended T247 x=0 Gate 5 invocation.",
+    "Stage the hash-frozen source and policy assets on the X5 without running them.",
+    "Confirm the Xbox controller is connected and the robot is securely supported with hands clear.",
+    "Run only the single-arm launcher for x=0."
+  ],
+  "external_asset_bundle": {
+    "path": "D:\\CodexArtifacts\\t247-gate5-deployment-assets-20260801.tar.gz",
+    "bytes": 22870529,
+    "sha256": "6824bb56261fbb55afc23b548d44231a373275b1e3fbc04b685cbefb862f30f7",
+    "mock_smoke_summary_sha256": "15ce4998ad1ff01324513ddc1284da8f0ff6251832d541e3832e0c5f566d6245",
+    "staged_on_x5": false
+  },
+  "advance_rule": "A reviewed green x=0 result may earn a separately authorized x=0.08 invocation; it can never start it automatically.",
+  "authority": {
+    "readiness_only": true,
+    "robot_access": false,
+    "policy_staging": false,
+    "torque": false,
+    "motion": false,
+    "gate5_authorized": false,
+    "grounded_replay": false
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "open_duck_x5.t247_runtime_opt_in_wiring_review.v1",
+  "status": "PASS_T247_RUNTIME_OPT_IN_WIRING_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit_at_execution": "bf4c610f91b8ad5fd52c523bb85c725908a75efc",
+  "preregistration": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_runtime_opt_in_wiring_replacement_preregistration_20260801.json",
+    "sha256": "075f06df4ae1e7ef9ac73ee8126702a7db8a839b61bd813d7cc42d6eaf5fb622"
+  },
+  "external_result": {
+    "path": "D:\\CodexArtifacts\\t247-runtime-opt-in-wiring\\final-result.json",
+    "file_sha256": "a8b04d7bafdbf596801fe17c01b607d02f0cea76b5e60fb134e2238e97f9949a",
+    "canonical_sha256": "2e904712495d97f6ee44bbd28b6fa110d6d066fdecff87132c23e357ab017e0a",
+    "reported_status": "PASS_T247_RUNTIME_OPT_IN_WIRING",
+    "checks_passed": 18,
+    "checks_total": 18,
+    "failed_checks": []
+  },
+  "successful_path": {
+    "active_ticks": 258,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 8,
+    "committed_ticks": 258,
+    "selected_context_route": "lower-cond1",
+    "selected_command_route": "x080",
+    "maximum_rate_excess_rad_s": 0.0,
+    "telemetry_external_path": "D:\\CodexArtifacts\\t247-runtime-opt-in-wiring\\success-control.jsonl",
+    "telemetry_sha256": "a8b0cae10cd4c283012b0c8d1089a8946b12ee2f3ab2eb529e51ee4062aa9a54"
+  },
+  "safety_paths": {
+    "start_paused_ticks": 3,
+    "start_paused_committed_ticks": 0,
+    "start_paused_telemetry_sha256": "2046189794db1441323e0cf6b7768dc6667c8ccd2687113f5dbdda6c11086e51",
+    "injected_first_policy_write_failure_committed_ticks": 0,
+    "injected_first_policy_write_failure_faulted": true,
+    "injected_first_policy_write_failure_torque_off": true,
+    "injected_first_policy_write_failure_telemetry_sha256": "4dee92d212fb853fbf92ea7632a4404fa6d39e1f3389a256edc75a8451b10c9c"
+  },
+  "reviewed_source_hashes": {
+    "src/open_duck_x5/runtime.py": "ae90cb80c2968529c0c22b939c68eed734592fc872b7f48c399b1400e4617254",
+    "src/open_duck_x5/t247_command_routes.py": "20388418e6636f9abbed857a9a0ae08d3735f9a3090329777dabc054035fb4eb",
+    "tools/verify_t247_runtime_opt_in_wiring.py": "d21f07ef1c34e8e9d8b98faf94b7beff94ae462176430efa694879933d208ad9"
+  },
+  "review_findings": {
+    "t247_contract_is_distinct_and_default_off": true,
+    "legacy_101x14_path_unchanged": true,
+    "all_30_route_assets_verified_before_first_tick": true,
+    "every_t247_observation_has_115_fields": true,
+    "write_owned_recurrent_state": true,
+    "failed_write_cannot_commit_state": true,
+    "torque_off_on_success_and_fault": true,
+    "mock_only": true,
+    "hardware_timing_claim": false
+  },
+  "decision": "EARN_T247_CONTROL_SUMMARY_REVIEW_AND_GATE5_LAUNCHER_CONTRACT",
+  "authority": {
+    "offline_cpu_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false
+  }
+}

@@ -1080,3 +1080,36 @@ Missing, false, uncommitted, mismatched, or unrelated clearance evidence now
 blocks before serial open and before ONNX loading in the X5 CPU preflight. This
 proof does not itself authorize runtime deployment, serial access, torque,
 motion, automatic calibration, or Gate 5; those remain separately gated.
+
+## D068 — Keep T247 and specialize only exact immutable routes
+
+Accepted. T247 remains the unchanged selected policy; T250/T251 are evidence
+labels, not replacement policies. The initial complete context route missed the
+strict X5 p99 compute reserve even though its outputs were exact. A sequence of
+measured host corrections either closed too small or still missed p99. The
+eventual selected mechanism performs exact partial evaluation only after the
+immutable calibration context and exact Gate 5 command are known.
+
+All 24 context/command models preserve the recurrent ABI and frozen outputs,
+with the complete context graph retained for other commands. The reserved X5
+screen passed 35/35: x=0 p99/p99.9/max were
+`0.786446/1.178854/1.409879 ms`; x=.08 were
+`1.606359/1.937126/1.944338 ms`; all were inside `1.8/2.5/4.0 ms` with zero
+rate excess. This earns opt-in host integration, not a policy change or motion.
+
+## D069 — Admit T247 only through a distinct exact-duration Gate 5 path
+
+Accepted. The default 101-D v1 contract remains unchanged. T247 is available
+only through an explicit, default-disabled `t247-command-routed-115` selector
+with runtime contract ID `open-duck-mini.t247-command-routed.115x14.v1`.
+Runtime wiring passed 18/18 real-asset mock checks, including ordered
+calibration/locomotion stages, successful-write-owned recurrent state,
+start-paused behavior, and injected-write torque-off.
+
+Serial T247 requires exactly 850 active ticks: 250 calibration and 600
+locomotion. The frozen launcher runs one command arm per invocation, validates
+all source/config/IMU/model hashes before the governor or UART, and restores the
+governor on every exit. It cannot chain x=0 to x=.08; x=.08 additionally needs
+a hash-verified reviewed x=0 receipt and separate authorization. This decision
+makes x=0 ready for an explicit suspended Gate 5 authorization but does not
+authorize staging, torque, motion, or grounded replay.
