@@ -4,7 +4,7 @@ Status date: 2026-08-01
 
 ## Executive status
 
-`OFFLINE_POLICY_GREEN - RUNTIME_INTEGRATION_GREEN - X5_COMMAND_ROUTE_SCREEN_PREREGISTERED - GATE_5_NOT_RUN`
+`OFFLINE_POLICY_GREEN - RUNTIME_INTEGRATION_GREEN - X5_COMMAND_ROUTE_PACKAGE_SEALED - GATE_5_NOT_RUN`
 
 T247 remains the frozen policy winner. It passed the complete T249B offline
 robustness matrix, and T250 proved that the default-disabled RDK host reproduces
@@ -24,7 +24,7 @@ passed its CPU contract and earned one sealed no-device X5 screen.
 | T247 wall-vs-thread CPU attribution | `24/24; SCHEDULED_COMPUTE_DOMINANT` |
 | Static calibration-context partial evaluation | `exact, but CLOSED_TOO_SMALL; no X5 run earned` |
 | Exact context/command route CPU contract | `15/15 PASS; 24 variants; worst p50/p99 ratio .8735/.8780` |
-| Exact command-route X5 screen | `PREREGISTERED; NOT_RUN` |
+| Exact command-route X5 screen | `EXECUTION PACKAGE SEALED; NOT_RUN` |
 | Opt-in production runtime integration | `NOT_PREREGISTERED` |
 | Hardware Gate 5 | `NOT_RUN` |
 
@@ -95,7 +95,7 @@ and `.878014` against the unchanged `.88` limit.
 - Constant-context folding is exact but too small to earn a board execution.
 - Exact command-route specialization preserves all frozen outputs and fallback
   behavior while clearing the local materiality gate across all 24 variants.
-- Repository validation is green at `497` tests and `217` reviewed artifact
+- Repository validation is green at `497` tests and `218` reviewed artifact
   hashes after this evidence update.
 
 ## What is not proven

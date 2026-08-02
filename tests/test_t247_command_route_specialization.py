@@ -16,6 +16,9 @@ X5_PREREGISTRATION = (
     GATES
     / "t247_deployment_x5_command_route_reserved_screen_preregistration_20260801.json"
 )
+X5_PACKAGE = (
+    GATES / "t247_deployment_x5_command_route_execution_package_20260801.json"
+)
 
 
 def _read(path: Path) -> dict[str, object]:
@@ -49,6 +52,7 @@ def test_command_route_audit_selects_exact_all_route_contract() -> None:
 def test_command_route_cpu_review_earns_only_separate_no_device_x5_screen() -> None:
     review = _read(REVIEW)
     x5 = _read(X5_PREREGISTRATION)
+    package = _read(X5_PACKAGE)
 
     assert hashlib.sha256(REVIEW.read_bytes()).hexdigest() == (
         x5["earned_by"]["review_file_sha256"]
@@ -73,6 +77,18 @@ def test_command_route_cpu_review_earns_only_separate_no_device_x5_screen() -> N
     assert x5["safety_and_authority"]["servo_reads_or_writes"] is False
     assert x5["safety_and_authority"]["torque"] is False
     assert x5["safety_and_authority"]["motion"] is False
+    assert package["status"] == "SEALED_T247_X5_COMMAND_ROUTE_EXECUTION_PACKAGE"
+    assert package["preregistration_file_sha256"] == hashlib.sha256(
+        X5_PREREGISTRATION.read_bytes()
+    ).hexdigest()
+    assert package["source_sha256"][
+        "tools/run_t247_x5_command_route_reserved_screen.py"
+    ] == hashlib.sha256(
+        (ROOT / "tools/run_t247_x5_command_route_reserved_screen.py").read_bytes()
+    ).hexdigest()
+    assert package["scope"]["robot_devices"] is False
+    assert package["scope"]["torque"] is False
+    assert package["scope"]["motion"] is False
 
 
 def test_command_route_tools_are_no_device_and_keep_fallback() -> None:
