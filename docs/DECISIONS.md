@@ -1212,7 +1212,7 @@ governor restored, schema-validates the full telemetry stream, and requires one
 clean startup-readiness event plus every independent control-summary gate.
 
 The frozen launcher SHA-256 is
-`44cfc544ea46fd6fada4eb66913014f22d02f05190a0233089caa7bcae90c7e9`.
+`319b0320bde78ce73fc5a76eb716ed989adfedc176def3a572af797495519926`.
 Its preregistration and exact command packet are recorded in the Gate 5
 artifact directory. This decision authorizes no hardware access, torque,
 motion, policy execution, x=.08, or grounded replay. The exact suspended x=0

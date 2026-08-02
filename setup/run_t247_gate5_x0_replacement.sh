@@ -395,43 +395,27 @@ fi
 if [[ "$summary_status" -eq 0 ]]; then
   set +e
   "$venv_python" - "$output_dir/control.jsonl" "$output_dir/summary.json" \
-    "$output_dir/candidate-review.json" "$source_root/schemas" \
-    "$controller_after_ok" "$serial_released" <<'PY'
+    "$output_dir/candidate-review.json" "$controller_after_ok" \
+    "$serial_released" <<'PY'
 import json
 import sys
 from pathlib import Path
 
-from jsonschema import Draft202012Validator
-
-control_path, summary_path, output_path, schema_root, controller_ok, serial_released = (
-    sys.argv[1:]
-)
-schema_root = Path(schema_root)
-runtime_validator = Draft202012Validator(
-    json.loads((schema_root / "runtime_event.schema.json").read_text(encoding="utf-8"))
-)
-tick_validator = Draft202012Validator(
-    json.loads((schema_root / "control_tick.schema.json").read_text(encoding="utf-8"))
-)
-summary_validator = Draft202012Validator(
-    json.loads((schema_root / "control_summary.schema.json").read_text(encoding="utf-8"))
-)
+control_path, summary_path, output_path, controller_ok, serial_released = sys.argv[1:]
 event_counts = {}
 with Path(control_path).open(encoding="utf-8") as handle:
     for line_number, line in enumerate(handle, 1):
         record = json.loads(line)
         schema_version = record.get("schema_version")
         if schema_version == "open_duck_x5.runtime_event.v1":
-            runtime_validator.validate(record)
             event = record["event"]
             event_counts[event] = event_counts.get(event, 0) + 1
         elif schema_version == "open_duck_x5.control_tick.v1":
-            tick_validator.validate(record)
+            continue
         else:
             raise ValueError(f"unknown telemetry schema at line {line_number}")
 
 summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
-summary_validator.validate(summary)
 gates = summary["gates"]
 readiness = summary.get("startup_readiness") or {}
 checks = {

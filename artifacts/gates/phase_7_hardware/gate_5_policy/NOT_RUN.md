@@ -41,7 +41,7 @@ without an active policy tick until fresh motion authorization is provided.
 
 That replacement is now frozen as
 `setup/run_t247_gate5_x0_replacement.sh`, SHA-256
-`44cfc544ea46fd6fada4eb66913014f22d02f05190a0233089caa7bcae90c7e9`.
+`319b0320bde78ce73fc5a76eb716ed989adfedc176def3a572af797495519926`.
 It has one hardcoded x=0 invocation, requires the accepted no-motion receipt,
 pins the known-good controller before and after, requires the new readiness
 event and every summary gate, and contains no second-command path. It has not

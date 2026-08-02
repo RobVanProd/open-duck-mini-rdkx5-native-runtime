@@ -109,6 +109,7 @@ def test_replacement_runner_pins_controller_and_checks_it_twice() -> None:
 def test_replacement_runner_requires_readiness_and_all_summary_gates() -> None:
     script = _script()
 
+    assert "jsonschema" not in script
     assert 'event_counts.get("startup_readiness") == 1' in script
     assert 'readiness.get("status") == "PASS"' in script
     assert 'readiness.get("policy_committed_ticks") == 0' in script
@@ -173,4 +174,5 @@ def test_replacement_launcher_review_pins_exact_runner_and_command() -> None:
     assert value["run_scope"]["fixed_command_x_m_s"] == 0.0
     assert value["run_scope"]["active_ticks"] == 850
     assert value["run_scope"]["grounded_replay"] is False
+    assert value["offline_review"]["post_run_control_summary_semantic_validation"] is True
     assert value["authority"]["current_motion"] is False
