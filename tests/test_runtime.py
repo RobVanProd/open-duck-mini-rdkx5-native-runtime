@@ -768,6 +768,22 @@ def test_runtime_startup_readiness_preserves_policy_state_and_pause() -> None:
     assert details["policy_committed_ticks"] == 0
     assert details["next_release_monotonic_ns"] == ticker.next_release_ns
     assert details["bus_total_ms"] < 5.0
+    assert details["all_fresh"] is True
+    assert details["per_servo_device_status"] == [0] * 14
+    assert details["extended_device_status"] == 0
+    assert details["imu_stale"] is False
+    assert details["contacts_stale"] is False
+    event_schema = json.loads(
+        (Path(__file__).parents[1] / "schemas/runtime_event.schema.json").read_text()
+    )
+    Draft202012Validator(event_schema).validate(
+        {
+            "schema_version": "open_duck_x5.runtime_event.v1",
+            "timestamp_monotonic_ns": ticker.start_ns + 4_000_000,
+            "event": name,
+            "details": details,
+        }
+    )
     assert runtime._previous_tick_start_ns == ticker.start_ns
 
 

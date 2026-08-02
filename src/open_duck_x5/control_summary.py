@@ -117,6 +117,138 @@ def _require_number(value: object, label: str, *, minimum: float = 0.0) -> float
     return result
 
 
+def _validate_startup_readiness(
+    record: dict[str, object], *, policy_contract: str | None
+) -> dict[str, object]:
+    details = _require_mapping(record.get("details"), "startup_readiness.details")
+    status = details.get("status")
+    if status not in ("PASS", "FAIL"):
+        raise ControlSummaryError("startup_readiness status must be PASS or FAIL")
+    failures = details.get("failures")
+    if not isinstance(failures, list) or any(
+        not isinstance(value, str) or not value for value in failures
+    ):
+        raise ControlSummaryError("startup_readiness failures must be a string array")
+
+    boolean_fields = (
+        "paused",
+        "policy_staged",
+        "all_fresh",
+        "imu_stale",
+        "contacts_stale",
+    )
+    if any(type(details.get(name)) is not bool for name in boolean_fields):
+        raise ControlSummaryError("startup_readiness boolean fields are invalid")
+
+    committed_ticks = details.get("policy_committed_ticks")
+    if committed_ticks is not None and (
+        isinstance(committed_ticks, bool)
+        or not isinstance(committed_ticks, int)
+        or committed_ticks < 0
+    ):
+        raise ControlSummaryError("startup_readiness policy committed count is invalid")
+    if policy_contract == T247_POLICY_CONTRACT and committed_ticks != 0:
+        raise ControlSummaryError("T247 startup_readiness did not precede all policy ticks")
+
+    phase = _require_number(details.get("phase"), "startup_readiness phase")
+    tick_start = details.get("tick_start_monotonic_ns")
+    next_release = details.get("next_release_monotonic_ns")
+    if (
+        not isinstance(tick_start, int)
+        or isinstance(tick_start, bool)
+        or tick_start < 0
+        or not isinstance(next_release, int)
+        or isinstance(next_release, bool)
+        or next_release <= tick_start
+    ):
+        raise ControlSummaryError("startup_readiness ticker timestamps are invalid")
+    tick_work_ms = _require_number(
+        details.get("tick_work_ms"), "startup_readiness tick work"
+    )
+    _require_number(
+        details.get("release_lateness_ms"), "startup_readiness release lateness"
+    )
+    bus_total_ms = _require_number(
+        details.get("bus_total_ms"), "startup_readiness bus total"
+    )
+    group_ms = _require_number(
+        details.get("group_round_trip_ms"), "startup_readiness group RTT"
+    )
+    extended_ms = _require_number(
+        details.get("extended_round_trip_ms"), "startup_readiness extended RTT"
+    )
+    if bus_total_ms + 1e-9 < group_ms + extended_ms:
+        raise ControlSummaryError("startup_readiness bus total is internally inconsistent")
+
+    status_names = set(STATUS_NAMES)
+    write_status = details.get("write_status")
+    extended_status = details.get("extended_status")
+    statuses = details.get("per_servo_status")
+    if write_status not in status_names or extended_status not in status_names:
+        raise ControlSummaryError("startup_readiness transaction status is invalid")
+    if (
+        not isinstance(statuses, list)
+        or len(statuses) != ACTION_DIM
+        or any(value not in status_names for value in statuses)
+    ):
+        raise ControlSummaryError(
+            "startup_readiness per-servo status must contain 14 valid values"
+        )
+    device_statuses = details.get("per_servo_device_status")
+    if (
+        not isinstance(device_statuses, list)
+        or len(device_statuses) != ACTION_DIM
+        or any(
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or not 0 <= value <= 255
+            for value in device_statuses
+        )
+    ):
+        raise ControlSummaryError(
+            "startup_readiness per-servo device status must contain 14 bytes"
+        )
+    extended_device_status = details.get("extended_device_status")
+    if (
+        isinstance(extended_device_status, bool)
+        or not isinstance(extended_device_status, int)
+        or not 0 <= extended_device_status <= 255
+    ):
+        raise ControlSummaryError("startup_readiness extended device status is invalid")
+    partial_bytes = details.get("partial_bytes")
+    unexpected_packets = details.get("unexpected_packets")
+    if any(
+        isinstance(value, bool) or not isinstance(value, int) or value < 0
+        for value in (partial_bytes, unexpected_packets)
+    ):
+        raise ControlSummaryError("startup_readiness structural counters are invalid")
+
+    clean_pass = (
+        not failures
+        and details["paused"] is True
+        and details["policy_staged"] is False
+        and committed_ticks in (None, 0)
+        and math.isclose(phase, 0.0, rel_tol=0.0, abs_tol=1e-12)
+        and details["all_fresh"] is True
+        and details["imu_stale"] is False
+        and details["contacts_stale"] is False
+        and tick_work_ms <= 40.0
+        and bus_total_ms < 5.0
+        and write_status == "ok"
+        and all(value == "ok" for value in statuses)
+        and extended_status == "ok"
+        and all(value == 0 for value in device_statuses)
+        and extended_device_status == 0
+        and partial_bytes == 0
+        and unexpected_packets == 0
+    )
+    if status == "PASS" and not clean_pass:
+        raise ControlSummaryError("startup_readiness PASS record is not clean")
+    if status == "FAIL" and not failures:
+        raise ControlSummaryError("startup_readiness FAIL record has no failure reason")
+    return details
+
+
 def _validate_start(details: dict[str, object]) -> str | None:
     contract_id = details.get("contract_id")
     if contract_id not in {CONTRACT_ID, T247_RUNTIME_CONTRACT_ID}:
@@ -235,9 +367,16 @@ def _validate_start(details: dict[str, object]) -> str | None:
 
 def _read_records(
     path: Path,
-) -> tuple[dict[str, object], dict[str, object] | None, list[dict[str, object]], dict[str, object]]:
+) -> tuple[
+    dict[str, object],
+    dict[str, object] | None,
+    dict[str, object] | None,
+    list[dict[str, object]],
+    dict[str, object],
+]:
     start: dict[str, object] | None = None
     realtime: dict[str, object] | None = None
+    readiness: dict[str, object] | None = None
     halt: dict[str, object] | None = None
     ticks: list[dict[str, object]] = []
     with path.open("r", encoding="utf-8") as handle:
@@ -270,13 +409,19 @@ def _read_records(
                 raise ControlSummaryError(f"unknown schema at line {line_number}: {schema!r}")
             event = record.get("event")
             if event == "runtime_start":
-                if start is not None or ticks or realtime is not None:
+                if start is not None or ticks or realtime is not None or readiness is not None:
                     raise ControlSummaryError("runtime_start is duplicated or out of order")
                 start = record
             elif event == "realtime_verified":
-                if start is None or realtime is not None or ticks:
+                if start is None or realtime is not None or readiness is not None or ticks:
                     raise ControlSummaryError("realtime_verified is duplicated or out of order")
                 realtime = record
+            elif event == "startup_readiness":
+                if start is None or readiness is not None or ticks:
+                    raise ControlSummaryError(
+                        "startup_readiness is duplicated or out of order"
+                    )
+                readiness = record
             elif event == "runtime_halt":
                 if start is None:
                     raise ControlSummaryError("runtime_halt appeared before runtime_start")
@@ -287,14 +432,14 @@ def _read_records(
         raise ControlSummaryError("runtime_start event is missing")
     if halt is None:
         raise ControlSummaryError("runtime_halt event is missing")
-    return start, realtime, ticks, halt
+    return start, realtime, readiness, ticks, halt
 
 
 def summarize_control_run(path: Path) -> dict[str, object]:
     source = path.expanduser().resolve()
     if not source.is_file():
         raise ControlSummaryError(f"control JSONL not found: {source}")
-    start, realtime, ticks, halt = _read_records(source)
+    start, realtime, readiness, ticks, halt = _read_records(source)
     details = _require_mapping(start.get("details"), "runtime_start.details")
     policy_contract = _validate_start(details)
     bus_details = _require_mapping(details["bus"], "runtime_start.bus")
@@ -304,6 +449,11 @@ def summarize_control_run(path: Path) -> dict[str, object]:
     max_active_ticks = int(details.get("max_active_ticks", 0))
     fixed_command_x = details.get("fixed_command_x")
     policy_present = policy_contract is not None
+    readiness_details = (
+        _validate_startup_readiness(readiness, policy_contract=policy_contract)
+        if readiness is not None
+        else None
+    )
     realtime_required = details.get("realtime_required") is True
     if realtime_required != (realtime is not None):
         raise ControlSummaryError(
@@ -404,6 +554,22 @@ def summarize_control_run(path: Path) -> dict[str, object]:
             or realtime_timestamp > halt_timestamp
         ):
             raise ControlSummaryError("realtime event timestamp is out of order")
+    if readiness is not None:
+        readiness_timestamp = readiness.get("timestamp_monotonic_ns")
+        readiness_tick_start = int(readiness_details["tick_start_monotonic_ns"])
+        lower_timestamp = (
+            int(realtime["timestamp_monotonic_ns"])
+            if realtime is not None
+            else start_timestamp
+        )
+        if (
+            not isinstance(readiness_timestamp, int)
+            or isinstance(readiness_timestamp, bool)
+            or readiness_timestamp < lower_timestamp
+            or readiness_timestamp < readiness_tick_start
+            or readiness_timestamp > halt_timestamp
+        ):
+            raise ControlSummaryError("startup_readiness event timestamp is out of order")
 
     for index, tick in enumerate(ticks):
         timestamp = tick.get("timestamp_monotonic_ns")
@@ -413,8 +579,28 @@ def summarize_control_run(path: Path) -> dict[str, object]:
             raise ControlSummaryError(f"tick {index} timestamp is outside runtime events")
         period_value = tick.get("tick_period_ms")
         if index == 0:
-            if period_value is not None:
-                raise ControlSummaryError("first control tick period must be null")
+            if readiness_details is None:
+                if period_value is not None:
+                    raise ControlSummaryError("first control tick period must be null")
+            else:
+                period = _require_number(period_value, "tick 0 period")
+                if int(readiness["timestamp_monotonic_ns"]) > timestamp:
+                    raise ControlSummaryError(
+                        "first control tick timestamp precedes startup readiness event"
+                    )
+                expected_period = (
+                    timestamp
+                    - int(readiness_details["tick_start_monotonic_ns"])
+                ) / 1e6
+                if not math.isclose(period, expected_period, rel_tol=0.0, abs_tol=1e-9):
+                    raise ControlSummaryError(
+                        "first control tick period does not match startup readiness"
+                    )
+                if expected_period <= 0:
+                    raise ControlSummaryError(
+                        "first control tick does not follow startup readiness"
+                    )
+                tick_period_ms.append(period)
         else:
             period = _require_number(period_value, f"tick {index} period")
             expected_period = (timestamp - int(previous_timestamp)) / 1e6
@@ -688,6 +874,11 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "normal_exit": normal_exit,
         "torque_off_confirmed": torque_off_confirmed,
         "realtime_verified_when_required": not realtime_required or realtime is not None,
+        "startup_readiness_passed": backend != "serial"
+        or (
+            readiness_details is not None
+            and readiness_details.get("status") == "PASS"
+        ),
         "policy_ticks_present": active_policy_ticks > 0,
         "fixed_command_matches": command_matches,
         "zero_non_x_commands": max_abs_non_x_command <= 1e-7,
@@ -729,6 +920,7 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "telemetry_records_dropped": dropped,
         "provenance": details,
         "realtime": realtime_details,
+        "startup_readiness": readiness_details,
         "safety": {
             "torque_off_attempted": torque_off_attempted,
             "torque_off_status": torque_off_status,

@@ -579,10 +579,17 @@ class Runtime:
             "group_round_trip_ms": self.snapshot.group_round_trip_ns / 1e6,
             "extended_round_trip_ms": self.snapshot.extended_round_trip_ns / 1e6,
             "write_status": self.snapshot.write_status.name.lower(),
+            "all_fresh": not bool(np.any(self.snapshot.stale)),
             "per_servo_status": [
                 ErrorCode(int(code)).name.lower() for code in self.snapshot.status
             ],
+            "per_servo_device_status": [
+                int(value) for value in self.snapshot.device_status
+            ],
             "extended_status": self.snapshot.extended_status.name.lower(),
+            "extended_device_status": int(self.snapshot.extended_device_status),
+            "imu_stale": bool(self.sensors.imu_stale),
+            "contacts_stale": bool(self.sensors.contacts_stale),
             "partial_bytes": self.snapshot.partial_bytes,
             "unexpected_packets": self.snapshot.unexpected_packets,
         }

@@ -1,0 +1,98 @@
+{
+  "schema_version": "open_duck_x5.t247_startup_readiness_revalidation_review.v1",
+  "status": "PASS_REVIEWED_NO_MOTION",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "8ef3a47efc1180d979d1ceb71995e3c7736e371d",
+  "source_tree": "95d7b93fe49b022982dbc22e6156a5aebe53f0d6",
+  "schema_tree": "c32a9095fb6353cf2c4c1962104b8ca1e57e6a7f",
+  "preregistration": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_STARTUP_READINESS_REVALIDATION_PREREGISTRATION_20260802.json",
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller_backend": "LinuxJoystickController",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "startup_readiness_attempts": 1,
+    "measured_ticks": 10000,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "startup_readiness": {
+    "status": "PASS",
+    "all_14_fresh": true,
+    "write_status": "ok",
+    "extended_status": "ok",
+    "bus_total_ms": 4.009592,
+    "tick_work_ms": 4.133509,
+    "next_measured_tick_period_ms": 19.989001,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "device_alarm_replies": 0,
+    "late_accepted_response_markers": 0,
+    "failures": []
+  },
+  "measured_population": {
+    "ticks_requested": 10000,
+    "ticks_completed": 10000,
+    "tick_p99_ms": 20.0026288,
+    "tick_p99_9_ms": 20.009668334,
+    "tick_max_ms": 20.028252,
+    "bus_mean_ms": 3.9009447394000003,
+    "bus_p99_ms": 3.99496992,
+    "bus_p99_9_ms": 4.215181041000001,
+    "bus_max_ms": 4.883761,
+    "overall_bus_max_ms": 4.883761,
+    "group_status_ok": 140000,
+    "write_status_ok": 10000,
+    "extended_status_ok": 10000,
+    "transactions_expected": 160000,
+    "transactions_failed": 0,
+    "transaction_failure_rate": 0.0,
+    "read_bursts": 0,
+    "late_accepted_response_markers": 0,
+    "parser_mode_counts": {
+      "fixed_order_fast_path": 10000
+    }
+  },
+  "independent_review": {
+    "status": "PASS",
+    "archive_member_hashes": true,
+    "source_commit_exact": true,
+    "summary_schema_valid": true,
+    "tick_sequence_exact_0_through_9999": true,
+    "transaction_trace_sequence_exact_0_through_9999": true,
+    "all_tick_periods_measured": true,
+    "percentiles_recomputed": true,
+    "all_outcomes_recomputed": true,
+    "late_markers_recomputed": true,
+    "frozen_validator_all_checks_true": true,
+    "no_motion_scope_confirmed": true
+  },
+  "safety_exit": {
+    "torque_off_confirmed": true,
+    "serial_device_released": true,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil",
+    "controller_identity_unchanged": true
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-startup-readiness-20260802T232500Z",
+    "startup_readiness_json_sha256": "dd100bb72bbfa122b6321ee88ab2429c919b3504497e6939aa7bed5d7b945bb3",
+    "summary_json_sha256": "adb22bf3458af29e0d8c45735a8d0260868de2e14c88434c3f23eb49e0cc8537",
+    "timing_jsonl_sha256": "6e9034f52d7aea2a7f8458437474b0c3678124554a8ecb857eeec64efe66f5fe",
+    "transaction_trace_jsonl_sha256": "6f9699e1c6ad1642c9a3235864ecc730f6895e428b213427041b824e39dac5b8",
+    "validation_json_sha256": "f13eb330626df9c530117f02427c0d4f0c6a38b7c86ac36df35d62568a7d2611",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-startup-readiness-20260802T232500Z.tar.gz",
+    "external_archive_sha256": "adac9560e9b0724f7e8a123dae48410ed884e1304bcdab630924b1dcd9c19f3f"
+  },
+  "authority": {
+    "gate5_policy_run": false,
+    "x0_motion": false,
+    "x008_motion": false,
+    "grounded_replay": false,
+    "robot_clearance": false
+  },
+  "advance": "The controller/startup repair is accepted. Freeze and review a replacement suspended x=0 launcher. Motion still requires fresh exact authorization."
+}

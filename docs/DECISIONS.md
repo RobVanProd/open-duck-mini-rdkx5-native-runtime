@@ -1177,3 +1177,26 @@ every home-entry write, the final hold, and startup readiness. Any failure exits
 the torque guard before policy staging. This decision authorizes no hardware,
 torque, motion, or Gate 5 replay; a newly frozen no-motion revalidation remains
 required.
+
+## D072 — Accept the one-shot startup-readiness revalidation
+
+Accepted as a reviewed no-motion pass. On the supported RDK-X5, the separately
+recorded readiness exchange completed once at 4.009592 ms bus time and
+4.133509 ms total work, with all 14 servo samples fresh, clean extended
+telemetry, zero alarms or structural anomalies, and a 19.989001 ms boundary to
+measured tick 0. It was not retried or removed from the decision.
+
+All 10,000 subsequent measured torque-off ticks completed. Recomputed tick
+p99/p99.9 were 20.0026284/20.009668167 ms, bus p99.9/max were
+4.215181041/4.883761 ms, and all 160,000 transaction outcomes were successful.
+There were zero read bursts, late-response markers, device alarms, or telemetry
+drops. Every measured grouped response used the fixed-order fast path. The
+controller identity stayed exact, torque-off was confirmed, `/dev/ttyS1` was
+released, and `schedutil` was restored.
+
+The raw evidence archive reproduced SHA-256
+`adac9560e9b0724f7e8a123dae48410ed884e1304bcdab630924b1dcd9c19f3f`
+locally, and an independent replay verified every contained file hash, schema,
+tick and trace sequence, percentile, outcome count, and late-byte marker. This
+closes the pre-policy timing repair only. It authorizes preparation of a new x=0
+launcher, not torque, motion, policy execution, x=.08, or grounded replay.

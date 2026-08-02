@@ -41,6 +41,86 @@ def _summary_validator() -> Draft202012Validator:
     return Draft202012Validator(schema)
 
 
+def _realtime_event(start_timestamp: int) -> dict[str, object]:
+    return {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": start_timestamp,
+        "event": "realtime_verified",
+        "details": {
+            "cpu": 5,
+            "scheduler": "SCHED_FIFO",
+            "priority": 80,
+            "isolated": True,
+            "affinity": [5],
+            "initial_affinity": [0, 1, 2, 3, 4, 5],
+            "housekeeping_affinity": [0, 1, 2, 3, 4],
+            "background_threads": [
+                {
+                    "tid": 101,
+                    "affinity": [0, 1, 2, 3, 4],
+                    "scheduler": 0,
+                    "priority": 0,
+                }
+            ],
+        },
+    }
+
+
+def _startup_readiness_event(first_tick_timestamp: int) -> dict[str, object]:
+    tick_start = first_tick_timestamp - 20_000_000
+    return {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": tick_start + 4_000_000,
+        "event": "startup_readiness",
+        "details": {
+            "status": "PASS",
+            "failures": [],
+            "paused": True,
+            "policy_staged": False,
+            "policy_committed_ticks": None,
+            "phase": 0.0,
+            "tick_start_monotonic_ns": tick_start,
+            "tick_work_ms": 4.0,
+            "release_lateness_ms": 0.0,
+            "next_release_monotonic_ns": first_tick_timestamp,
+            "bus_total_ms": 3.9,
+            "group_round_trip_ms": 3.0,
+            "extended_round_trip_ms": 0.5,
+            "write_status": "ok",
+            "all_fresh": True,
+            "per_servo_status": ["ok"] * 14,
+            "per_servo_device_status": [0] * 14,
+            "extended_status": "ok",
+            "extended_device_status": 0,
+            "imu_stale": False,
+            "contacts_stale": False,
+            "partial_bytes": 0,
+            "unexpected_packets": 0,
+        },
+    }
+
+
+def _insert_startup_readiness(records: list[dict[str, object]]) -> None:
+    start = records[0]
+    realtime = next(
+        (record for record in records if record.get("event") == "realtime_verified"),
+        None,
+    )
+    lower_timestamp = int(start["timestamp_monotonic_ns"])
+    if realtime is not None:
+        lower_timestamp = max(lower_timestamp, int(realtime["timestamp_monotonic_ns"]))
+    readiness_tick_start = lower_timestamp + 1_000_000
+    first_tick_timestamp = readiness_tick_start + 20_000_000
+    ticks = [record for record in records if record.get("tick") is not None]
+    for index, tick in enumerate(ticks):
+        tick["timestamp_monotonic_ns"] = first_tick_timestamp + index * 20_000_000
+        tick["tick_period_ms"] = 20.0
+    halt = records[-1]
+    halt["timestamp_monotonic_ns"] = first_tick_timestamp + len(ticks) * 20_000_000
+    insertion_index = 2 if realtime is not None else 1
+    records.insert(insertion_index, _startup_readiness_event(first_tick_timestamp))
+
+
 def _run_paused(
     tmp_path: Path, *, ticks: int = 5, config: Path | None = None
 ) -> Path:
@@ -265,6 +345,11 @@ def test_t247_summary_validates_calibration_locomotion_and_route_sequence(
     tmp_path: Path,
 ) -> None:
     telemetry = _synthetic_t247_telemetry(tmp_path)
+    start = json.loads(telemetry.read_text(encoding="utf-8").splitlines()[0])
+    event_schema = json.loads(
+        (Path(__file__).parents[1] / "schemas/runtime_event.schema.json").read_text()
+    )
+    Draft202012Validator(event_schema).validate(start)
 
     summary = summarize_control_run(telemetry)
 
@@ -403,23 +488,7 @@ def test_synthetic_serial_summary_always_requires_human_review(
     details["gate5_authorized"] = True
     details["hardware_authorized"] = True
     details["suspended_or_benched"] = True
-    realtime_event = {
-        "schema_version": "open_duck_x5.runtime_event.v1",
-        "timestamp_monotonic_ns": start["timestamp_monotonic_ns"],
-        "event": "realtime_verified",
-        "details": {
-            "cpu": 5,
-            "scheduler": "SCHED_FIFO",
-            "priority": 80,
-            "isolated": True,
-            "affinity": [5],
-            "initial_affinity": [0, 1, 2, 3, 4, 5],
-            "housekeeping_affinity": [0, 1, 2, 3, 4],
-            "background_threads": [
-                {"tid": 101, "affinity": [0, 1, 2, 3, 4], "scheduler": 0, "priority": 0}
-            ],
-        },
-    }
+    realtime_event = _realtime_event(int(start["timestamp_monotonic_ns"]))
     records.insert(1, realtime_event)
     telemetry.write_text(
         "\n".join(json.dumps(record) for record in records) + "\n",
@@ -432,6 +501,94 @@ def test_synthetic_serial_summary_always_requires_human_review(
     assert summary["informational_only"] is False
     assert summary["review_status"] == "REVIEW_REQUIRED"
     assert summary["hardware_gate_status"] == "REVIEW_REQUIRED"
+    assert summary["startup_readiness"] is None
+    assert summary["gates"]["startup_readiness_passed"] is False
+    assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
+
+    _insert_startup_readiness(records)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    ready_summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(ready_summary)
+    assert ready_summary["startup_readiness"]["status"] == "PASS"
+    assert ready_summary["gates"]["startup_readiness_passed"] is True
+    assert ready_summary["timing"]["tick_period_ms"]["min"] == 20.0
+
+
+def test_startup_readiness_is_ordered_and_anchors_first_tick_period(
+    tmp_path: Path,
+) -> None:
+    telemetry = _run_paused(tmp_path, ticks=3)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(summary)
+    assert summary["startup_readiness"]["status"] == "PASS"
+    assert summary["timing"]["tick_period_ms"] == {
+        "min": 20.0,
+        "mean": 20.0,
+        "p95": 20.0,
+        "p99": 20.0,
+        "p99_9": 20.0,
+        "max": 20.0,
+    }
+
+
+def test_summary_rejects_duplicate_or_late_startup_readiness(tmp_path: Path) -> None:
+    telemetry = _run_paused(tmp_path, ticks=2)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    duplicate = deepcopy(records)
+    duplicate.insert(2, deepcopy(duplicate[1]))
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in duplicate) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="duplicated or out of order"):
+        summarize_control_run(telemetry)
+
+    readiness = records.pop(1)
+    records.insert(2, readiness)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="duplicated or out of order"):
+        summarize_control_run(telemetry)
+
+
+def test_summary_rejects_dirty_pass_or_null_first_period_after_readiness(
+    tmp_path: Path,
+) -> None:
+    telemetry = _run_paused(tmp_path, ticks=2)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    dirty = deepcopy(records)
+    dirty[1]["details"]["all_fresh"] = False
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in dirty) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="PASS record is not clean"):
+        summarize_control_run(telemetry)
+
+    first_tick = next(record for record in records if record.get("tick") == 0)
+    first_tick["tick_period_ms"] = None
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="tick 0 period must be numeric"):
+        summarize_control_run(telemetry)
 
 
 def test_summary_refuses_to_overwrite_control_jsonl(tmp_path: Path) -> None:

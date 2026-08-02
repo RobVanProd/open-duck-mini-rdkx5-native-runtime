@@ -20,6 +20,7 @@
     "telemetry_records_dropped",
     "provenance",
     "realtime",
+    "startup_readiness",
     "safety",
     "timing",
     "bus",
@@ -54,6 +55,12 @@
     "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
     "provenance": { "type": "object" },
     "realtime": { "type": ["object", "null"] },
+    "startup_readiness": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/startupReadiness" }
+      ]
+    },
     "safety": {
       "type": "object",
       "required": ["torque_off_attempted", "torque_off_status", "torque_off_error", "torque_off_confirmed"],
@@ -173,15 +180,19 @@
         "normal_exit",
         "torque_off_confirmed",
         "realtime_verified_when_required",
+        "startup_readiness_passed",
         "policy_ticks_present",
         "fixed_command_matches",
         "zero_non_x_commands",
+        "t247_stage_sequence_exact",
+        "t247_route_sequence_exact",
         "tick_p99_at_most_21_ms",
         "tick_p99_9_at_most_22_ms",
         "zero_read_bursts",
         "zero_partial_bytes",
         "zero_unexpected_packets",
         "transaction_failure_below_0_1_percent",
+        "zero_device_alarms",
         "bus_max_under_5_ms",
         "zero_stale_servo_samples",
         "gate5_timing_and_bus_candidate"
@@ -191,6 +202,77 @@
   },
   "$defs": {
     "nullableNumber": { "type": ["number", "null"] },
+    "transactionStatus": {
+      "enum": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"]
+    },
+    "deviceStatusByte": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "startupReadiness": {
+      "type": "object",
+      "required": [
+        "status",
+        "failures",
+        "paused",
+        "policy_staged",
+        "policy_committed_ticks",
+        "phase",
+        "tick_start_monotonic_ns",
+        "tick_work_ms",
+        "release_lateness_ms",
+        "next_release_monotonic_ns",
+        "bus_total_ms",
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "write_status",
+        "all_fresh",
+        "per_servo_status",
+        "per_servo_device_status",
+        "extended_status",
+        "extended_device_status",
+        "imu_stale",
+        "contacts_stale",
+        "partial_bytes",
+        "unexpected_packets"
+      ],
+      "properties": {
+        "status": { "enum": ["PASS", "FAIL"] },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "paused": { "type": "boolean" },
+        "policy_staged": { "type": "boolean" },
+        "policy_committed_ticks": { "type": ["integer", "null"], "minimum": 0 },
+        "phase": { "type": "number" },
+        "tick_start_monotonic_ns": { "type": "integer", "minimum": 0 },
+        "tick_work_ms": { "type": "number", "minimum": 0 },
+        "release_lateness_ms": { "type": "number", "minimum": 0 },
+        "next_release_monotonic_ns": { "type": "integer", "minimum": 0 },
+        "bus_total_ms": { "type": "number", "minimum": 0 },
+        "group_round_trip_ms": { "type": "number", "minimum": 0 },
+        "extended_round_trip_ms": { "type": "number", "minimum": 0 },
+        "write_status": { "$ref": "#/$defs/transactionStatus" },
+        "all_fresh": { "type": "boolean" },
+        "per_servo_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/transactionStatus" }
+        },
+        "per_servo_device_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/deviceStatusByte" }
+        },
+        "extended_status": { "$ref": "#/$defs/transactionStatus" },
+        "extended_device_status": { "$ref": "#/$defs/deviceStatusByte" },
+        "imu_stale": { "type": "boolean" },
+        "contacts_stale": { "type": "boolean" },
+        "partial_bytes": { "type": "integer", "minimum": 0 },
+        "unexpected_packets": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
     "stats": {
       "type": "object",
       "required": ["min", "mean", "p95", "p99", "p99_9", "max"],

@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 17.2781,
-    "mean": 15.505856,
-    "min": 11.9866,
-    "p95": 16.092225,
-    "p99": 16.373812,
-    "p99_9": 17.06119610000003
+    "max": 16.56,
+    "mean": 15.4697836,
+    "min": 7.9235,
+    "p95": 16.083624999999998,
+    "p99": 16.282868999999998,
+    "p99_9": 16.528103100000003
   },
   "bus_total_population": {
     "components": [
@@ -46,12 +46,12 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.0145,
-    "mean": 0.0039396,
-    "min": 0.002,
-    "p95": 0.005854999999999998,
-    "p99": 0.010501999999999997,
-    "p99_9": 0.01360360000000012
+    "max": 0.0096,
+    "mean": 0.0045608,
+    "min": 0.0013,
+    "p95": 0.007,
+    "p99": 0.009005999999999993,
+    "p99_9": 0.009550200000000007
   },
   "gates": {
     "authorization_provenance": true,
@@ -73,12 +73,12 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 17.2566,
-    "mean": 15.487876,
-    "min": 11.9652,
-    "p95": 16.06674,
-    "p99": 16.346877,
-    "p99_9": 17.04255960000003
+    "max": 16.5375,
+    "mean": 15.4526488,
+    "min": 7.9004,
+    "p95": 16.055285,
+    "p99": 16.26758,
+    "p99_9": 16.508192700000006
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
@@ -88,30 +88,30 @@
   "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "a47c371b1f3bf40012fdf1277ecceb501e8645813724d15025e987435335c406",
+  "jsonl_sha256": "569d1b7f04564975f494595e4cf3dd1d321c9a478ce5530dcd9a3a5f9830870d",
   "max_read_burst_ticks": 0,
-  "overall_bus_max_ms": 17.2781,
+  "overall_bus_max_ms": 16.56,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 16.1273,
-    "mean": 7.5625396,
+    "max": 15.6019,
+    "mean": 7.5481804,
     "min": 0.0005,
-    "p95": 14.463759999999997,
-    "p99": 15.478229999999998,
-    "p99_9": 15.99410990000002
+    "p95": 14.350909999999999,
+    "p99": 15.200621,
+    "p99_9": 15.526303600000011
   },
   "review_status": "INFORMATIONAL_ONLY",
   "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "startup_readiness": null,
   "tick_period_ms": {
-    "max": 32.3139,
-    "mean": 20.007663855421683,
-    "min": 14.4805,
-    "p95": 31.37966,
-    "p99": 31.845916,
-    "p99_9": 32.20306880000002
+    "max": 32.3677,
+    "mean": 20.055906425702812,
+    "min": 14.5921,
+    "p95": 31.36392,
+    "p99": 31.852236,
+    "p99_9": 32.24665120000002
   },
   "ticks": 250,
   "ticks_requested": 250,
