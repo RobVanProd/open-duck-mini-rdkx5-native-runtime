@@ -1,0 +1,86 @@
+{
+  "schema_version": "open_duck_x5.t247_runtime_opt_in_wiring_preregistration.v1",
+  "status": "PREREGISTERED_DEFAULT_OFF_T247_RUNTIME_OPT_IN_WIRING",
+  "date": "2026-08-01",
+  "earned_by": {
+    "host_review": "artifacts/gates/phase_5_policy/t247_deployment_command_route_host_integration_review_20260801.json",
+    "host_status": "PASS_T247_COMMAND_ROUTE_HOST_INTEGRATION_REVIEWED",
+    "host_checks": "19/19"
+  },
+  "frozen_contracts": {
+    "existing_runtime": "101 observations, 14 actions, unchanged default path",
+    "t247_policy_host": "115 observations, 14 actions, recurrent two-stage command-routed path",
+    "control_period_ms": 20.0,
+    "calibration_confirmed_ticks": 250,
+    "soft_offsets_physical_only": true,
+    "stale_required_sample_invalidates_tick": true,
+    "write_confirmation_owns_recurrent_commit": true,
+    "start_paused_preserved": true,
+    "torque_off_on_every_exit_path": true
+  },
+  "cli_contract": {
+    "new_explicit_selector": "--policy-contract t247-command-routed-115",
+    "default_selector": "v1-101",
+    "required_t247_assets": [
+      "--policy (frozen T247 provenance asset)",
+      "--calibrator",
+      "--context-route-root",
+      "--command-route-root",
+      "--command-route-manifest",
+      "--p30-fit",
+      "--reference-table"
+    ],
+    "all_assets_hash_verified_before_enable": true,
+    "serial_gate5_rejects_v1_101": true,
+    "mock_runtime_supports_both_paths": true
+  },
+  "runtime_sequence": {
+    "paused_ticks": "hold the last safe home/confirmed target and do not advance T247 state",
+    "first_unpaused_ticks": "run and send exactly 250 calibrator transactions",
+    "handoff": "after the 250th successful write, select the immutable context route and initialize all preloaded command sessions",
+    "locomotion": "select an exact command subroute or selected-context fallback before observation assembly",
+    "commit": "advance graph, history, observer, and phase only after write_positions returns OK",
+    "write_failure": "fault T247 closed, torque off through the existing runtime exception path, and halt",
+    "pause_after_progress": "hold the last confirmed physical target without advancing policy state"
+  },
+  "telemetry_contract": {
+    "existing_101d_records_unchanged": true,
+    "record_observation_dimension_selected_at_writer_construction": true,
+    "t247_records_preserve_all_115_fields": true,
+    "policy_stage": "calibration or locomotion recorded per valid tick",
+    "selected_context_and_command_route_recorded": true,
+    "sent_target_implied_velocity_and_rate_excess_preserved": true
+  },
+  "offline_contract": {
+    "all_existing_tests_pass": true,
+    "default_parser_and_v1_behavior_exact": true,
+    "real_asset_mock_runtime": "one home entry, 250 calibration ticks, and at least 8 locomotion ticks at x=.08",
+    "real_asset_mock_runtime_no_hardware": true,
+    "telemetry_has_115_fields_on_every_valid_t247_tick": true,
+    "host_committed_ticks_equal_successful_policy_writes": true,
+    "route_is_lower_cond0_x080_after_handoff": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "failure_injection_proves_no_commit_after_failed_write": true,
+    "gate5_command_packet_generated_but_not_run": true
+  },
+  "decision_rule": {
+    "all_runtime_and_readiness_checks_pass": "READY_FOR_EXPLICIT_SUSPENDED_GATE5_AUTHORIZATION",
+    "any_contract_safety_asset_or_mock_check_fails": "HOLD_RUNTIME_INTEGRATION_AND_FIX_ONLY_THE_DEFECT",
+    "new_x5_policy_timing_run": false,
+    "policy_training": false,
+    "hardware_execution": false,
+    "motion": false
+  },
+  "authority": {
+    "offline_implementation": true,
+    "mock_bus_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "gate5": false
+  }
+}

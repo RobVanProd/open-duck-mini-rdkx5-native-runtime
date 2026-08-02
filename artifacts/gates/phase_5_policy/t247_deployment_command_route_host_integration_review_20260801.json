@@ -1,0 +1,62 @@
+{
+  "schema_version": "open_duck_x5.t247_command_route_host_integration_review.v1",
+  "status": "PASS_T247_COMMAND_ROUTE_HOST_INTEGRATION_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "result": {
+    "external_path": "D:\\CodexArtifacts\\t247-command-route-host-integration\\cpu-contract-result.json",
+    "file_sha256": "4e67a356a46ca600873a667e9b69bf3a1f83cebc51b29db3679ccbe52ca9f7ee",
+    "canonical_sha256": "cd3978a7f1ae93790b9ab22134b194a2196da2078a2c94e99523e4338e6d41a6",
+    "source_commit": "1a4efd04b28afc8ca22ca7cdd7dca58a22a63afc",
+    "checks_passed": 19,
+    "checks_total": 19,
+    "failed_checks": []
+  },
+  "implementation": {
+    "optimized_host_source_sha256": "85880bb88a292b1a9d258bc51d70b07cfe34e91f8c9523d43986227a11f7dbf1",
+    "command_route_source_sha256": "d4987f266a20eb7b53c7c8f65732235eebb1c60a37d0a4ad7c819b84376fd904",
+    "verifier_source_sha256": "13979316379a2d92c1baf3f9c533d376333a5bf6c865d65cb5d7588be308abb0",
+    "unit_test_source_sha256": "705da31d6db9e533ea7e07d63e1a5c88f4c6224d475f9839953690d5549c8e9c",
+    "production_modules_import_tools": false,
+    "production_modules_import_hardware": false,
+    "existing_runtime_changed": false,
+    "default_enabled": false
+  },
+  "evidence": {
+    "verified_external_graph_assets": 30,
+    "context_routes_exact": "6/6",
+    "fixed_command_full_chains": 4,
+    "fixed_command_ticks": 9192,
+    "route_switch_ticks": 7920,
+    "route_switches": 7200,
+    "fallback_ticks": 2160,
+    "all_outputs_and_committed_states_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "default_disabled_fault_closed": true,
+    "discard_and_restage_exact": true,
+    "send_failure_fault_closed": true,
+    "fallback_preserves_all_other_valid_commands": true
+  },
+  "decision": {
+    "host_contract": "PASS",
+    "policy_weights": "UNCHANGED_T247",
+    "policy_training_earned": false,
+    "explicit_runtime_opt_in_wiring_earned": true,
+    "gate5_readiness_audit_earned": true,
+    "gate5_execution_earned": false,
+    "next": "IMPLEMENT_PREREGISTERED_DEFAULT_OFF_RUNTIME_WIRING_AND_RUN_NO_DEVICE_MOCK_CONTRACT"
+  },
+  "authority": {
+    "offline_cpu_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "production_runtime_wiring": false,
+    "gate5": false
+  }
+}
