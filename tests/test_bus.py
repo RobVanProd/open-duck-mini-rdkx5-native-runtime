@@ -35,6 +35,8 @@ class FakeTransport:
         read_chunk_size: int = 23,
         response_order: tuple[int, ...] | None = None,
         omit_ids: tuple[int, ...] = (),
+        corrupt_length_id: int | None = None,
+        corrupt_wire_id: int | None = None,
     ) -> None:
         self.corrupt_id = corrupt_id
         self.partial_id = partial_id
@@ -43,6 +45,8 @@ class FakeTransport:
         self.read_chunk_size = int(read_chunk_size)
         self.response_order = response_order
         self.omit_ids = omit_ids
+        self.corrupt_length_id = corrupt_length_id
+        self.corrupt_wire_id = corrupt_wire_id
         self.rx = bytearray()
         self.writes: list[bytes] = []
         self.sync_read_response_orders: list[tuple[int, ...]] = []
@@ -69,6 +73,10 @@ class FakeTransport:
                 packet = _status_packet(servo_id, parameters, error=self.device_error)
                 if servo_id == self.corrupt_id:
                     packet = packet[:-1] + bytes((packet[-1] ^ 1,))
+                if servo_id == self.corrupt_length_id:
+                    packet = packet[:3] + bytes((packet[3] ^ 1,)) + packet[4:]
+                if servo_id == self.corrupt_wire_id:
+                    packet = packet[:2] + bytes((packet[2] ^ 0x40,)) + packet[3:]
                 if servo_id == self.partial_id:
                     partial = packet[:4]
                 else:
@@ -255,8 +263,36 @@ def test_group_read_routes_a_complete_out_of_order_train_by_servo_id() -> None:
     bus.read_state_into(snapshot)
 
     assert snapshot.all_fresh
-    assert snapshot.trace_group_parser_mode == 2
+    assert snapshot.trace_group_parser_mode == 3
     np.testing.assert_array_less(snapshot.positions_rad[:-1], snapshot.positions_rad[1:])
+
+
+@pytest.mark.parametrize(
+    ("transport_kwargs", "expected"),
+    [
+        ({"corrupt_length_id": SERVO_SYNC_READ_IDS[5]}, ErrorCode.PARTIAL),
+        ({"corrupt_wire_id": SERVO_SYNC_READ_IDS[5]}, ErrorCode.UNEXPECTED_ID),
+    ],
+)
+def test_exact_train_with_one_structural_fault_uses_bounded_slot_recovery(
+    transport_kwargs: dict[str, int],
+    expected: ErrorCode,
+) -> None:
+    failing_id = SERVO_SYNC_READ_IDS[5]
+    transport = FakeTransport(read_chunk_size=140, **transport_kwargs)
+    bus = STS3215Bus(transport=transport, transaction_timeout_s=0.05)
+    snapshot = ServoSnapshot.create()
+    snapshot.instrumentation_enabled = True
+
+    bus.read_state_into(snapshot)
+
+    failing_index = SERVO_IDS.index(failing_id)
+    assert transport.read_calls == 1
+    assert snapshot.trace_group_parser_mode == 3
+    assert snapshot.failed_servo_count == 1
+    assert snapshot.stale[failing_index]
+    assert ErrorCode(int(snapshot.status[failing_index])) is expected
+    assert np.all(np.delete(snapshot.status, failing_index) == int(ErrorCode.OK))
 
 
 def test_group_read_marks_only_an_omitted_id_stale() -> None:

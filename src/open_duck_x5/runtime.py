@@ -328,6 +328,14 @@ class Runtime:
                     cpu=args.rt_cpu,
                     require_isolated=True,
                 )
+            if args.controller == "none":
+                self.controller = NullController()
+            else:
+                self.controller = create_controller(args.controller)
+            # Drain the bounded joydev initialization batch before serial is
+            # opened. Opening a Linux UHID consumer can trigger BlueZ/GATT work;
+            # none of that belongs in the first servo transaction.
+            self._require_controller_ready(reject_toggle=False)
             if args.bus == "serial":
                 self.bus = STS3215Bus(
                     args.device,
@@ -409,10 +417,6 @@ class Runtime:
                     ),
                 )
                 self.t247_host.bind_soft_offsets(self.offsets)
-            if args.controller == "none":
-                self.controller = NullController()
-            else:
-                self.controller = create_controller(args.controller)
             self.writer = AsyncControlWriter(
                 args.telemetry,
                 observation_dim=(
@@ -433,6 +437,7 @@ class Runtime:
         self.stop_requested = True
 
     def _verify_all_servos(self) -> None:
+        self._require_controller_ready(reject_toggle=True)
         self.snapshot.begin_tick()
         self.bus.read_state_into(self.snapshot)
         if not self.snapshot.all_fresh:
@@ -469,6 +474,7 @@ class Runtime:
             tick_start_ns, _ = ticker.wait()
             if self.stop_requested:
                 raise SafetyError("stop requested during home move")
+            self._require_controller_ready(reject_toggle=True)
             fraction = step / steps
             np.multiply(start, 1.0 - fraction, out=target)
             target += HOME_RAD * fraction
@@ -495,13 +501,109 @@ class Runtime:
             )
         high_gains = [30] * ACTION_DIM
         high_gains[5:9] = [8, 8, 8, 8]
+        self._require_controller_ready(reject_toggle=True)
         if self.bus.set_gain_vectors(high_gains) is not ErrorCode.OK:
             raise SafetyError("failed to set operating gains")
         if self.bus.write_positions(self.hold_physical_target) is not ErrorCode.OK:
             raise SafetyError("failed to hold home target")
 
-    def _update_controller(self, tick_start_ns: int) -> None:
+    def _run_startup_readiness(self, ticker: AbsoluteTicker) -> None:
+        """Require one paused-loop-shaped transaction before policy ticks.
+
+        This is a separately recorded AND-conjunct, not a discarded warmup. It
+        is attempted once. Any controller, sensor, serial, alarm, or five-ms
+        bus-budget failure exits the TorqueGuard before a policy transaction can
+        be staged or committed.
+        """
+
+        tick_start_ns, release_lateness_ns = ticker.wait()
+        if self.stop_requested:
+            raise SafetyError("stop requested during startup readiness")
+        self._require_controller_ready(reject_toggle=True)
+        self.snapshot.begin_tick()
+        self.bus.read_state_into(self.snapshot)
+        self.sensor_hub.read_into(self.sensors, clock_ns())
+        write_start_ns = clock_ns()
+        self.snapshot.write_status = self.bus.write_positions(self.hold_physical_target)
+        write_elapsed_ns = clock_ns() - write_start_ns
+        self.bus.read_extended_into(self.snapshot, SERVO_IDS[0])
+        self.snapshot.bus_total_ns = (
+            self.snapshot.group_round_trip_ns
+            + write_elapsed_ns
+            + self.snapshot.extended_round_trip_ns
+        )
+        tick_work_ns = clock_ns() - tick_start_ns
+        failures: list[str] = []
+        failures.extend(
+            f"{servo_id}:{ErrorCode(int(code)).name.lower()}"
+            for servo_id, code in zip(SERVO_IDS, self.snapshot.status, strict=True)
+            if int(code) != int(ErrorCode.OK)
+        )
+        if self.snapshot.write_status is not ErrorCode.OK:
+            failures.append(f"write:{self.snapshot.write_status.name.lower()}")
+        if self.snapshot.extended_status is not ErrorCode.OK:
+            failures.append(
+                f"extended-{self.snapshot.extended_servo_id}:"
+                f"{self.snapshot.extended_status.name.lower()}"
+            )
+        if self.snapshot.partial_bytes:
+            failures.append(f"partial-bytes:{self.snapshot.partial_bytes}")
+        if self.snapshot.unexpected_packets:
+            failures.append(f"unexpected-packets:{self.snapshot.unexpected_packets}")
+        if self.snapshot.any_device_alarm:
+            failures.append("device-alarm:" + _device_alarm_details(self.snapshot))
+        if self.sensors.imu_stale:
+            failures.append("sensor-stale:imu")
+        if self.sensors.contacts_stale:
+            failures.append("sensor-stale:contacts")
+        bus_total_ms = self.snapshot.bus_total_ns / 1e6
+        if bus_total_ms >= 5.0:
+            failures.append(f"bus-total-ms:{bus_total_ms:.6f}")
+        tick_work_ms = tick_work_ns / 1e6
+        if tick_work_ns > self.watchdog.hard_overrun_ns:
+            failures.append(f"tick-work-ms:{tick_work_ms:.6f}")
+        details = {
+            "status": "PASS" if not failures else "FAIL",
+            "failures": failures,
+            "paused": self.paused,
+            "policy_staged": False,
+            "policy_committed_ticks": (
+                self.t247_host.committed_ticks if self.t247_host is not None else None
+            ),
+            "phase": self.phase.value,
+            "tick_start_monotonic_ns": tick_start_ns,
+            "tick_work_ms": tick_work_ms,
+            "release_lateness_ms": release_lateness_ns / 1e6,
+            "next_release_monotonic_ns": ticker.next_release_ns,
+            "bus_total_ms": bus_total_ms,
+            "group_round_trip_ms": self.snapshot.group_round_trip_ns / 1e6,
+            "extended_round_trip_ms": self.snapshot.extended_round_trip_ns / 1e6,
+            "write_status": self.snapshot.write_status.name.lower(),
+            "per_servo_status": [
+                ErrorCode(int(code)).name.lower() for code in self.snapshot.status
+            ],
+            "extended_status": self.snapshot.extended_status.name.lower(),
+            "partial_bytes": self.snapshot.partial_bytes,
+            "unexpected_packets": self.snapshot.unexpected_packets,
+        }
+        self.writer.publish_event("startup_readiness", details=details)
+        if failures:
+            raise SafetyError("startup readiness failed: " + ", ".join(failures))
+        self._previous_tick_start_ns = tick_start_ns
+
+    def _require_controller_ready(self, *, reject_toggle: bool) -> None:
         self.controller.read_into(self.controller_readout)
+        now_ns = clock_ns()
+        if self.args.controller != "none" and (
+            not self.controller_readout.connected
+            or now_ns - self.controller_readout.timestamp_ns > 250_000_000
+        ):
+            raise SafetyError("physical controller state is disconnected or stale")
+        if reject_toggle and self.controller_readout.pause_toggle:
+            raise SafetyError("physical controller toggled during startup readiness")
+
+    def _update_controller(self, tick_start_ns: int) -> None:
+        self._require_controller_ready(reject_toggle=False)
         np.copyto(self.commands, self.controller_readout.commands)
         if self.args.fixed_command_x is not None:
             self.commands[0] = float(self.args.fixed_command_x)
@@ -520,8 +622,7 @@ class Runtime:
             self.commands[0] = float(self.args.fixed_command_x)
             self.controller_readout.phase_frequency_factor = 1.0
         if self.args.controller != "none" and (
-            not self.controller_readout.connected
-            or tick_start_ns - self.controller_readout.timestamp_ns > 250_000_000
+            tick_start_ns - self.controller_readout.timestamp_ns > 250_000_000
         ):
             raise SafetyError("physical controller state is disconnected or stale")
 
@@ -701,6 +802,8 @@ class Runtime:
         with TorqueGuard(self.bus) as guard:
             self._move_home_slowly(guard)
             ticker = AbsoluteTicker()
+            if self.args.bus == "serial" and self.args.gate5_authorized:
+                self._run_startup_readiness(ticker)
             gc.disable()
             tick = 0
             active_tick = 0

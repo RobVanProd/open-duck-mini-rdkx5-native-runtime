@@ -1,0 +1,67 @@
+{
+  "schema_version": "open_duck_x5.t247_controller_present_torque_off_review.v1",
+  "status": "FAIL_BUS_MAX_TICK0_GENERIC_RECOVERY",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "0713a94c08b6044d360396b77129fd04f3ac79f4",
+  "preregistration": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_CONTROLLER_PRESENT_TORQUE_OFF_PREREGISTRATION_20260802.json",
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller_backend": "LinuxJoystickController",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "ticks_requested": 10000,
+    "ticks_completed": 10000,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "result": {
+    "tick_p99_ms": 20.002597,
+    "tick_p99_9_ms": 20.008596168,
+    "tick_max_ms": 20.030972,
+    "bus_mean_ms": 3.8592568667,
+    "bus_p99_ms": 4.14180592,
+    "bus_p99_9_ms": 4.267186167000002,
+    "bus_max_ms": 5.080639,
+    "bus_max_gate_below_ms": 5.0,
+    "read_bursts": 0,
+    "transaction_failures": 2,
+    "transactions_expected": 160000,
+    "transaction_failure_rate": 0.0000125,
+    "late_accepted_response_markers": 0,
+    "torque_off_confirmed": true,
+    "serial_released": true,
+    "governor_restored": true
+  },
+  "maximum_attribution": {
+    "tick": 0,
+    "group_round_trip_ms": 4.102595,
+    "extended_round_trip_ms": 0.481835,
+    "per_servo_failures": {
+      "30": "crc",
+      "31": "timeout"
+    },
+    "parser_mode": "generic_recovery",
+    "group_parse_tail_us": 1429.421,
+    "fixed_order_fast_path_ticks": 9999,
+    "generic_recovery_ticks": 1,
+    "fixed_order_parse_tail_us": {
+      "median": 447.959,
+      "p99_9": 524.7104180000002,
+      "max": 572.752
+    },
+    "bus_max_after_tick0_ms": 4.372012,
+    "classification": "A real measured tick-0 structural anomaly entered the higher-cost generic parser tail. The run remains a frozen FAIL; tick 0 is not discarded and the five-ms limit is not relaxed."
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-controller-torque-off-20260802T080800Z",
+    "summary_json_sha256": "0a95f56586bc6fd69ad2b688f3c706ce38b95408ea2834bd3da6d63dd95b5282",
+    "timing_jsonl_sha256": "54de29d42e48dc3f9369e042b755be2cbcd0b7c3b5ac084c5a8a781d2a60cd62",
+    "transaction_trace_jsonl_sha256": "f73e0a0020fc971d1440e9c33264089e878c650d35c69bef5df876792da76c46",
+    "validation_json_sha256": "1868811dd44edf99e0d85eb42a4df2f0215628788dfdf408920ca3a52636a3c7",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-controller-torque-off-20260802T080800Z.tar.gz",
+    "external_archive_sha256": "f85dfd6abc523923515eab0e6a2160c18484499e71addf9313d0c9491d25734d"
+  },
+  "decision": "HOLD_GATE5. Implement and offline-verify a bounded exact-length recovery parser plus a separately recorded, one-shot startup readiness AND-conjunct. Only a newly preregistered torque-off 10000-tick revalidation may falsify the repair."
+}

@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 24.7549,
-    "mean": 15.417063111111112,
-    "min": 4.1223,
-    "p95": 16.38464,
-    "p99": 19.810191999999994,
-    "p99_9": 24.219674400000024
+    "max": 17.2781,
+    "mean": 15.505856,
+    "min": 11.9866,
+    "p95": 16.092225,
+    "p99": 16.373812,
+    "p99_9": 17.06119610000003
   },
   "bus_total_population": {
     "components": [
@@ -15,7 +15,7 @@
       "extended_read_one_servo"
     ],
     "observation": "complete_tick_sweep",
-    "observations": 225,
+    "observations": 250,
     "statistic": "sample_max_over_completed_ticks"
   },
   "device_alarm_reply_count": 0,
@@ -36,6 +36,8 @@
     "realtime": null,
     "sine_hz": 0.5,
     "sine_joint": "left_hip_yaw",
+    "startup_readiness_exchange": false,
+    "startup_readiness_output": null,
     "suspended_or_benched": false,
     "telemetry_records_dropped": 0,
     "timeout_ms": 4.0,
@@ -44,21 +46,24 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.197,
-    "mean": 0.005194666666666666,
-    "min": 0.0011,
-    "p95": 0.0063799999999999985,
-    "p99": 0.009307999999999992,
-    "p99_9": 0.15535840000000195
+    "max": 0.0145,
+    "mean": 0.0039396,
+    "min": 0.002,
+    "p95": 0.005854999999999998,
+    "p99": 0.010501999999999997,
+    "p99_9": 0.01360360000000012
   },
   "gates": {
     "authorization_provenance": true,
     "bus_max_under_5_ms": false,
-    "complete_record_stream": false,
+    "complete_record_stream": true,
     "gate2_home_hold_candidate": false,
     "gate4_sine_candidate": false,
     "moving_gate_scope": true,
+    "overall_bus_max_under_5_ms": false,
     "realtime_verified_when_required": true,
+    "startup_readiness_passed": true,
+    "startup_readiness_required": false,
     "tick_p99_9_at_most_22_ms": false,
     "tick_p99_at_most_21_ms": false,
     "torque_off_confirmed": true,
@@ -68,54 +73,56 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 24.7379,
-    "mean": 15.397563555555555,
-    "min": 4.1032,
-    "p95": 16.368239999999997,
-    "p99": 19.762727999999992,
-    "p99_9": 24.199919200000025
+    "max": 17.2566,
+    "mean": 15.487876,
+    "min": 11.9652,
+    "p95": 16.06674,
+    "p99": 16.346877,
+    "p99_9": 17.04255960000003
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
-    "observations": 225,
+    "observations": 250,
     "statistic": "sample_max_over_completed_ticks"
   },
-  "halt_reason": "hard tick overrun: 49.329 ms > 40.000 ms",
+  "halt_reason": null,
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "bed812d1b0a0d1066767b6f5f3cb2e15ae4fbde6aabba37d5add8b6b73db7643",
+  "jsonl_sha256": "a47c371b1f3bf40012fdf1277ecceb501e8645813724d15025e987435335c406",
   "max_read_burst_ticks": 0,
+  "overall_bus_max_ms": 17.2781,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 31.6451,
-    "mean": 8.109580888888889,
-    "min": 0.0006,
-    "p95": 15.040099999999997,
-    "p99": 19.74004799999997,
-    "p99_9": 29.601727200000095
+    "max": 16.1273,
+    "mean": 7.5625396,
+    "min": 0.0005,
+    "p95": 14.463759999999997,
+    "p99": 15.478229999999998,
+    "p99_9": 15.99410990000002
   },
   "review_status": "INFORMATIONAL_ONLY",
-  "run_status": "HALTED",
+  "run_status": "COMPLETE",
   "schema_version": "open_duck_x5.timing_summary.v2",
+  "startup_readiness": null,
   "tick_period_ms": {
-    "max": 49.3287,
-    "mean": 20.14124776785714,
-    "min": 8.8042,
-    "p95": 31.785605,
-    "p99": 35.64539800000003,
-    "p99_9": 46.67631570000018
+    "max": 32.3139,
+    "mean": 20.007663855421683,
+    "min": 14.4805,
+    "p95": 31.37966,
+    "p99": 31.845916,
+    "p99_9": 32.20306880000002
   },
-  "ticks": 225,
+  "ticks": 250,
   "ticks_requested": 250,
   "tracking_absolute_error_rad": {
     "max": 0.0034631801101951227,
-    "mean": 0.002201606317794547,
+    "mean": 0.0021663269402231035,
     "min": 0.0,
-    "p95": 0.003450384420371742,
-    "p99": 0.003463180109554849,
-    "p99_9": 0.0034631801100517053,
-    "samples": 225
+    "p95": 0.0034451701886752516,
+    "p99": 0.0034631801095548484,
+    "p99_9": 0.003463180110035699,
+    "samples": 250
   },
   "tracking_joint_index": 0,
   "transaction_failure_counts": {
@@ -133,12 +140,12 @@
     "crc": 0,
     "device": 0,
     "io": 0,
-    "ok": 3600,
+    "ok": 4000,
     "partial": 0,
     "timeout": 0,
     "unexpected_id": 0
   },
-  "transactions_expected": 3600,
+  "transactions_expected": 4000,
   "transactions_failed": 0,
   "unexpected_packet_count": 0,
   "voltage_alarm_reply_count": 0

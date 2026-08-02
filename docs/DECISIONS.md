@@ -1148,3 +1148,32 @@ button maps also matched the inherited Xbox mapping. A second controller
 identity, `0C:35:26:3E:55:F6` (`d0509`), repeatedly failed HID-over-GATT reads
 and is rejected for Gate 5. The remaining no-motion falsifier is the same
 backend inside the 10,000-tick torque-off serial probe.
+
+## D071 — Preserve tick zero and bound startup anomaly handling
+
+Accepted offline only. The controller-present torque-off probe completed all
+10,000 measured ticks but failed its strict bus maximum: tick 0 was 5.080639 ms
+against `<5 ms`. That same tick contained the run's only two failed replies and
+the only generic-recovery parse. The remaining 9,999 fixed-order ticks stayed
+at or below 4.372012 ms. The result remains `FAIL`; tick 0 is not discarded,
+the population is not shortened, and the threshold is not relaxed.
+
+The selected correction is additive and fail-closed. The controller is opened
+and drained before serial open. Under final RT settings, exactly one
+full-transaction startup readiness exchange is recorded separately and tried
+once without retry. It must have every servo fresh, clean extended telemetry,
+no device alarms or structural anomalies, bus total `<5 ms`, and work time at
+or below the existing 40 ms hard-overrun limit. The same absolute ticker then
+advances into measured tick 0, so the measured 10,000-tick population and its
+original gates remain intact. The summary's overall bus maximum is the maximum
+across readiness and measured populations.
+
+For an exact 140-byte response train, the bus parser now handles a complete
+unique out-of-order train or one structurally damaged but position-anchored slot
+with a bounded fixed-slot pass. Ambiguous input still uses the generic recovery
+parser. No read is made fresh unless its own ID, structure, and checksum are
+valid. The runtime also rechecks controller freshness before servo verification,
+every home-entry write, the final hold, and startup readiness. Any failure exits
+the torque guard before policy staging. This decision authorizes no hardware,
+torque, motion, or Gate 5 replay; a newly frozen no-motion revalidation remains
+required.

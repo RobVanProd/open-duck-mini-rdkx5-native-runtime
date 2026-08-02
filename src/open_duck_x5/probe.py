@@ -61,6 +61,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--home-seconds", type=float, default=2.0)
     parser.add_argument("--watchdog-failures", type=int, default=3)
     parser.add_argument("--controller", choices=("none", "xbox", "f710"), default="none")
+    parser.add_argument(
+        "--startup-readiness-exchange",
+        action="store_true",
+        help=(
+            "Require one separately recorded full-shape torque-off exchange before the "
+            "measured ticker population. The exchange is never retried or discarded."
+        ),
+    )
+    parser.add_argument(
+        "--startup-readiness-output",
+        type=Path,
+        help="Dedicated JSON result for --startup-readiness-exchange.",
+    )
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=7)
     parser.add_argument("--rt-priority", type=int, default=80)
@@ -121,6 +134,99 @@ def _verify_servos(
             "servo verification reported device alarm: "
             + _device_alarm_details(bus, snapshot)
         )
+
+
+def _read_controller_or_trip(
+    controller,
+    readout: ControllerReadout,
+    *,
+    reject_toggle: bool,
+) -> None:
+    controller.read_into(readout)
+    now_ns = clock_ns()
+    if not readout.connected or now_ns - readout.timestamp_ns > 250_000_000:
+        raise WatchdogTrip("physical controller state is disconnected or stale")
+    if reject_toggle and readout.pause_toggle:
+        raise WatchdogTrip("physical controller toggled during startup readiness")
+
+
+def _startup_readiness_record(
+    bus,
+    snapshot: ServoSnapshot,
+    *,
+    tick_start_ns: int,
+    tick_work_ns: int,
+    hard_overrun_ns: int,
+    release_lateness_ns: int,
+    next_measured_tick_start_ns: int,
+) -> dict[str, object]:
+    per_servo_status = [ErrorCode(int(code)).name.lower() for code in snapshot.status]
+    failures: list[str] = []
+    if snapshot.write_status is not ErrorCode.OK:
+        failures.append(f"write:{snapshot.write_status.name.lower()}")
+    failures.extend(
+        f"{servo_id}:{status}"
+        for servo_id, status in zip(bus.ids, per_servo_status, strict=True)
+        if status != "ok"
+    )
+    if snapshot.extended_status is not ErrorCode.OK:
+        failures.append(
+            f"extended-{snapshot.extended_servo_id}:"
+            f"{snapshot.extended_status.name.lower()}"
+        )
+    if snapshot.partial_bytes:
+        failures.append(f"partial-bytes:{snapshot.partial_bytes}")
+    if snapshot.unexpected_packets:
+        failures.append(f"unexpected-packets:{snapshot.unexpected_packets}")
+    if snapshot.any_device_alarm:
+        failures.append("device-alarm:" + _device_alarm_details(bus, snapshot))
+    bus_total_ms = snapshot.bus_total_ns / 1e6
+    if bus_total_ms >= 5.0:
+        failures.append(f"bus-total-ms:{bus_total_ms:.6f}")
+    tick_work_ms = tick_work_ns / 1e6
+    if tick_work_ns > hard_overrun_ns:
+        failures.append(f"tick-work-ms:{tick_work_ms:.6f}")
+    next_period_ms = (
+        (next_measured_tick_start_ns - tick_start_ns) / 1e6
+        if next_measured_tick_start_ns > 0
+        else None
+    )
+    return {
+        "schema_version": "open_duck_x5.startup_readiness_exchange.v1",
+        "status": "PASS" if not failures else "FAIL",
+        "failures": failures,
+        "tick_start_monotonic_ns": tick_start_ns,
+        "tick_work_ms": tick_work_ms,
+        "release_lateness_ms": release_lateness_ns / 1e6,
+        "next_measured_tick_period_ms": next_period_ms,
+        "bus_total_ms": bus_total_ms,
+        "group_round_trip_ms": snapshot.group_round_trip_ns / 1e6,
+        "extended_round_trip_ms": snapshot.extended_round_trip_ns / 1e6,
+        "write_status": snapshot.write_status.name.lower(),
+        "per_servo_status": per_servo_status,
+        "per_servo_device_status": snapshot.device_status.tolist(),
+        "extended_status": snapshot.extended_status.name.lower(),
+        "extended_servo_id": snapshot.extended_servo_id,
+        "extended_device_status": snapshot.extended_device_status,
+        "partial_bytes": snapshot.partial_bytes,
+        "unexpected_packets": snapshot.unexpected_packets,
+        "all_fresh": snapshot.all_fresh,
+        "instrumentation": {
+            "bus_start_ns": snapshot.trace_bus_start_ns,
+            "bus_end_ns": snapshot.trace_bus_end_ns,
+            "group_write_end_ns": snapshot.trace_group_write_end_ns,
+            "group_first_rx_ns": snapshot.trace_group_first_rx_ns,
+            "group_last_rx_ns": snapshot.trace_group_last_rx_ns,
+            "group_end_ns": snapshot.trace_group_end_ns,
+            "group_read_calls": snapshot.trace_group_read_calls,
+            "group_parse_calls": snapshot.trace_group_parse_calls,
+            "group_parser_mode": snapshot.trace_group_parser_mode,
+            "extended_write_end_ns": snapshot.trace_extended_write_end_ns,
+            "extended_first_rx_ns": snapshot.trace_extended_first_rx_ns,
+            "extended_last_rx_ns": snapshot.trace_extended_last_rx_ns,
+            "extended_end_ns": snapshot.trace_extended_end_ns,
+        },
+    }
 
 
 def _move_home_slowly(
@@ -208,6 +314,17 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         if args.instrumentation_output is not None
         else None
     )
+    if args.startup_readiness_exchange != (args.startup_readiness_output is not None):
+        raise ValueError(
+            "--startup-readiness-exchange and --startup-readiness-output must be used together"
+        )
+    if args.startup_readiness_exchange and args.enable_torque:
+        raise ValueError("startup readiness exchange is currently torque-off only")
+    readiness_path = (
+        args.startup_readiness_output.expanduser().resolve()
+        if args.startup_readiness_output is not None
+        else None
+    )
     protected_paths: set[Path] = set()
     if args.config is not None:
         protected_paths.add(args.config.expanduser().resolve())
@@ -216,6 +333,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     output_paths = [output_path, summary_path]
     if instrumentation_path is not None:
         output_paths.append(instrumentation_path)
+    if readiness_path is not None:
+        output_paths.append(readiness_path)
     if len(set(output_paths)) != len(output_paths) or any(
         path in protected_paths for path in output_paths
     ):
@@ -252,31 +371,42 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         # Partition before the JSON writer thread is created. It then inherits
         # housekeeping affinity and cannot contend with the control loop.
         realtime_preparation = prepare_realtime(cpu=args.rt_cpu, require_isolated=True)
-    if args.bus == "serial":
-        bus = STS3215Bus(
-            args.device,
-            baudrate=args.baudrate,
-            transaction_timeout_s=args.timeout_ms / 1000.0,
-        )
-        informational_only = False
-        if bus.disable_torque() is not ErrorCode.OK:
-            bus.close()
-            raise RuntimeError("failed to establish torque-off before probe setup")
-    else:
-        bus = MockSTS3215Bus(latency_s=args.mock_latency_ms / 1000.0)
-        informational_only = True
-
     controller = None
     controller_readout = ControllerReadout()
     if args.controller != "none":
         try:
             controller = create_controller(args.controller)
+            # Opening a Linux UHID consumer can trigger BlueZ/GATT setup. Drain
+            # the bounded joydev initialization batch before serial is opened so
+            # that work cannot become part of the first servo transaction.
+            _read_controller_or_trip(
+                controller,
+                controller_readout,
+                reject_toggle=False,
+            )
         except BaseException:
-            try:
-                bus.disable_torque()
-            finally:
-                bus.close()
+            if controller is not None:
+                controller.close()
             raise
+
+    try:
+        if args.bus == "serial":
+            bus = STS3215Bus(
+                args.device,
+                baudrate=args.baudrate,
+                transaction_timeout_s=args.timeout_ms / 1000.0,
+            )
+            informational_only = False
+            if bus.disable_torque() is not ErrorCode.OK:
+                bus.close()
+                raise RuntimeError("failed to establish torque-off before probe setup")
+        else:
+            bus = MockSTS3215Bus(latency_s=args.mock_latency_ms / 1000.0)
+            informational_only = True
+    except BaseException:
+        if controller is not None:
+            controller.close()
+        raise
 
     snapshot = ServoSnapshot.create()
     snapshot.instrumentation_enabled = bool(args.instrument_transactions)
@@ -286,6 +416,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     transaction_trace = (
         TransactionTraceSeries(args.ticks) if args.instrument_transactions else None
     )
+    readiness_snapshot = ServoSnapshot.create()
+    readiness_snapshot.instrumentation_enabled = True
+    readiness_tick_start_ns = 0
+    readiness_tick_work_ns = 0
+    readiness_release_lateness_ns = 0
+    first_measured_tick_start_ns = 0
+    readiness_record: dict[str, object] | None = None
     try:
         writer = AsyncProbeWriter(
             args.output, capacity=min(max(args.ticks, 64), 4096)
@@ -312,6 +449,12 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 preparation=realtime_preparation,
                 priority=args.rt_priority,
             )
+        if controller is not None:
+            _read_controller_or_trip(
+                controller,
+                controller_readout,
+                reject_toggle=True,
+            )
         if args.bus == "serial":
             _verify_servos(
                 bus,
@@ -328,17 +471,45 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 watchdog=watchdog,
             )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
+        if args.startup_readiness_exchange:
+            _raise_if_stop_requested(args)
+            readiness_tick_start_ns, readiness_release_lateness_ns = ticker.wait()
+            _raise_if_stop_requested(args)
+            if controller is not None:
+                _read_controller_or_trip(
+                    controller,
+                    controller_readout,
+                    reject_toggle=True,
+                )
+            bus.exchange_into(targets, readiness_snapshot, 0)
+            readiness_tick_work_ns = clock_ns() - readiness_tick_start_ns
+            readiness_record = _startup_readiness_record(
+                bus,
+                readiness_snapshot,
+                tick_start_ns=readiness_tick_start_ns,
+                tick_work_ns=readiness_tick_work_ns,
+                hard_overrun_ns=watchdog.hard_overrun_ns,
+                release_lateness_ns=readiness_release_lateness_ns,
+                next_measured_tick_start_ns=0,
+            )
+            if readiness_record["status"] != "PASS":
+                raise WatchdogTrip(
+                    "startup readiness exchange failed: "
+                    + ", ".join(str(value) for value in readiness_record["failures"])
+                )
+            previous_tick_start_ns = readiness_tick_start_ns
         for tick in range(args.ticks):
             _raise_if_stop_requested(args)
             tick_start_ns, lateness_ns = ticker.wait()
             _raise_if_stop_requested(args)
+            if tick == 0:
+                first_measured_tick_start_ns = tick_start_ns
             if controller is not None:
-                controller.read_into(controller_readout)
-                if (
-                    not controller_readout.connected
-                    or tick_start_ns - controller_readout.timestamp_ns > 250_000_000
-                ):
-                    raise WatchdogTrip("physical controller state is disconnected or stale")
+                _read_controller_or_trip(
+                    controller,
+                    controller_readout,
+                    reject_toggle=False,
+                )
             phase = 2.0 * math.pi * args.sine_hz * tick / args.frequency_hz
             targets[:] = physical_home
             targets[sine_joint_index] += args.amplitude_rad * math.sin(phase)
@@ -396,6 +567,29 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         except OSError as exc:
             trace_reason = f"transaction trace write failed: {exc}"
             halt_reason = f"{halt_reason}; {trace_reason}" if halt_reason else trace_reason
+    if readiness_record is not None:
+        readiness_record = _startup_readiness_record(
+            bus,
+            readiness_snapshot,
+            tick_start_ns=readiness_tick_start_ns,
+            tick_work_ns=readiness_tick_work_ns,
+            hard_overrun_ns=watchdog.hard_overrun_ns,
+            release_lateness_ns=readiness_release_lateness_ns,
+            next_measured_tick_start_ns=first_measured_tick_start_ns,
+        )
+        if readiness_path is None:
+            raise AssertionError("startup readiness record lacks an output path")
+        try:
+            readiness_path.parent.mkdir(parents=True, exist_ok=True)
+            readiness_path.write_text(
+                json.dumps(readiness_record, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            readiness_reason = f"startup readiness output failed: {exc}"
+            halt_reason = (
+                f"{halt_reason}; {readiness_reason}" if halt_reason else readiness_reason
+            )
 
     summary = series.summary(backend=args.bus, informational_only=informational_only)
     summary["ticks_requested"] = args.ticks
@@ -425,6 +619,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "controller_backend": (
             type(controller).__name__ if controller is not None else None
         ),
+        "startup_readiness_exchange": bool(args.startup_readiness_exchange),
+        "startup_readiness_output": (
+            str(readiness_path) if readiness_path is not None else None
+        ),
         "hardware_authorized": bool(args.hardware_authorized),
         "suspended_or_benched": bool(args.suspended_or_benched),
         "moving_gate_authorized": bool(args.moving_gate_authorized),
@@ -433,6 +631,19 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "telemetry_records_dropped": writer.dropped,
         "realtime": asdict(realtime_state) if realtime_state is not None else None,
     }
+    summary["startup_readiness"] = readiness_record
+    measured_bus_max = summary["bus_total_ms"]["max"]
+    readiness_bus_max = (
+        float(readiness_record["bus_total_ms"])
+        if readiness_record is not None
+        else None
+    )
+    overall_bus_values = [
+        float(value)
+        for value in (measured_bus_max, readiness_bus_max)
+        if value is not None
+    ]
+    summary["overall_bus_max_ms"] = max(overall_bus_values) if overall_bus_values else None
     summary["jsonl_sha256"] = _sha256(args.output)
     core_gate_names = (
         "tick_p99_at_most_21_ms",
@@ -457,6 +668,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         and args.moving_gate_authorized
         and config_sha256 is not None
     )
+    readiness_passed = not args.startup_readiness_exchange or (
+        readiness_record is not None and readiness_record["status"] == "PASS"
+    )
+    overall_bus_passed = (
+        summary["overall_bus_max_ms"] is not None
+        and summary["overall_bus_max_ms"] < 5.0
+    )
     core_timing_and_bus = all(bool(summary["gates"][name]) for name in core_gate_names)
     hardware_base = (
         args.bus == "serial"
@@ -465,6 +683,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         and realtime_verified
         and authorization_provenance
         and moving_scope
+        and readiness_passed
+        and overall_bus_passed
         and core_timing_and_bus
     )
     summary["gates"].update(
@@ -474,6 +694,9 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             "realtime_verified_when_required": realtime_verified,
             "authorization_provenance": authorization_provenance,
             "moving_gate_scope": moving_scope,
+            "startup_readiness_required": bool(args.startup_readiness_exchange),
+            "startup_readiness_passed": readiness_passed,
+            "overall_bus_max_under_5_ms": overall_bus_passed,
             "gate2_home_hold_candidate": hardware_base
             and args.enable_torque
             and args.amplitude_rad == 0.0,

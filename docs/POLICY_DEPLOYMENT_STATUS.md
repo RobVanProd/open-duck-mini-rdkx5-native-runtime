@@ -4,7 +4,7 @@ Status date: 2026-08-02
 
 ## Current state
 
-`T247 GATE-5 x=0 ATTEMPT 1 HALTED BEFORE POLICY; TORQUE-OFF REPAIR PREFLIGHT NEXT`
+`T247 GATE-5 HELD; STARTUP-READINESS REPAIR OFFLINE-GREEN; NO-MOTION REVALIDATION NEXT`
 
 The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
@@ -18,6 +18,14 @@ in a second Python thread, so hotplug processing could hold the interpreter
 lock and starve the RT servo thread. The same code also accepted bytes after
 the four-millisecond deadline and labeled the 90.701 ms grouped read `OK`.
 
+The repaired controller-present 10,000-tick torque-off probe then completed its
+full population. Timing tails, failure rate, controller stability, torque-off,
+serial release, and governor restoration passed, but the frozen result is still
+`FAIL`: measured tick 0 reached 5.080639 ms against the strict `<5 ms` bus
+maximum. The other 9,999 ticks used the fixed-order parser and stayed at or
+below 4.372012 ms. An authorized one-sweep diagnostic later completed cleanly
+at 4.321267 ms; it is diagnostic only and does not replace the failed maximum.
+
 ## What is green
 
 | Layer | Evidence |
@@ -30,6 +38,7 @@ the four-millisecond deadline and labeled the 90.701 ms grouped read `OK`.
 | Robot runtime | Hardware Gates 1-4 are `PASS_REVIEWED` |
 | Gate 5 launcher | Frozen one-arm launcher validates all hashes and restores the governor on every exit |
 | Controller isolation | The known-good Xbox identity passed 10,000/10,000 direct 50 Hz reads, one A edge, zero disconnects, and an unchanged device inode with no UART or servo access |
+| Startup repair offline contract | One pre-serial controller drain, a one-shot separately recorded full-shape readiness exchange, bounded fixed-slot anomaly routing, unchanged measured tick population, and fail-closed home/controller checks pass tests |
 
 The measured X5 policy-host timing is comfortably inside its separately frozen
 compute reserve:
@@ -46,9 +55,10 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Run the preregistered controller-present 10,000-tick torque-off timing probe.
-2. Only if it passes, freeze and review a replacement x=0 launcher.
-4. Obtain fresh explicit authorization for that exact suspended retry.
+1. Freeze the replacement controller-present 10,000-tick torque-off runner.
+2. Obtain explicit authorization for that exact no-motion revalidation.
+3. Only if its readiness exchange and all 10,000 measured ticks pass, freeze and review a replacement x=0 launcher.
+4. Obtain fresh explicit authorization for that exact suspended motion retry.
 5. Independently summarize and review the x=0 artifact.
 6. Only a reviewed green x=0 result can earn a separate x=.08 authorization.
 
@@ -58,8 +68,8 @@ separate authorization and the exact SHA-256 of a reviewed green x=0 receipt.
 ## Still not proven
 
 - No active serial T247 policy tick has run.
-- The controller-isolation repair has not yet passed while sharing the process
-  with the real torque-off serial transaction loop.
+- The complete controller-present serial population has not passed its strict
+  bus maximum; the replacement startup-readiness implementation is offline-only.
 - T247 does not have grounded-walking clearance.
 - A readiness result does not authorize torque, motion, Gate 5, or grounded
   replay by itself.
