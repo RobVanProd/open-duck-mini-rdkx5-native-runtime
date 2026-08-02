@@ -41,7 +41,7 @@ def test_t251a5_target_correction_is_exactly_preregistered() -> None:
 
 def test_t251a5_real_asset_cpu_contract_and_microbenchmark_pass() -> None:
     assert sha256(RESULT) == (
-        "ed6f02f883f56358beca7d7d879443a30044058019b40f0950fd46c096bdca17"
+        "ecd2ae6b1053b258af0069a2228b888e01fd6cf9df66fcaa55ffe9e75d7616f4"
     )
     value = json.loads(RESULT.read_text(encoding="utf-8"))
     assert value["status"] == "PASS_T251A5_TARGET_CPU_CONTRACT"

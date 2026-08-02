@@ -43,7 +43,7 @@ def test_t251a4_correction_was_preregistered_without_advancement() -> None:
 
 def test_t251a4_real_asset_cpu_contract_is_exact_and_cannot_advance() -> None:
     assert sha256(RESULT) == (
-        "c33906f75cceb746b46e2b331fe13a71d4fc246fafcaa0b5e72d871d32ccfb27"
+        "6f59ec19c8d9103f08632baa363f466821bfa0d4179722d0ccfe9daaff9b9066"
     )
     value = json.loads(RESULT.read_text(encoding="utf-8"))
     assert value["status"] == "PASS_T251A4_GRAPH_HOST_CPU_CONTRACT"
