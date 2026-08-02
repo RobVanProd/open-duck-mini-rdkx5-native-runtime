@@ -462,11 +462,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 544
+      "passed": 545
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 235
+      "entries": 236
     }
   },
   "authority": {

@@ -19,6 +19,12 @@ CONTROLLER_PASS = (
     / "artifacts/gates/phase_7_hardware/gate_5_policy"
     / "T247_CONTROLLER_DIRECT_10000_PASS_20260802.json"
 )
+TORQUE_OFF_PREREGISTRATION = (
+    ROOT
+    / "artifacts/gates/phase_7_hardware/gate_5_policy"
+    / "T247_CONTROLLER_PRESENT_TORQUE_OFF_PREREGISTRATION_20260802.json"
+)
+TORQUE_OFF_RUNNER = ROOT / "setup/run_gate5_controller_torque_off_preflight.sh"
 
 
 def test_attempt1_is_a_pre_policy_halt_with_confirmed_cutoff() -> None:
@@ -79,3 +85,23 @@ def test_controller_direct_validation_pins_identity_and_no_servo_scope() -> None
     assert value["identity_attribution"]["rejected_identity"] == (
         "0C:35:26:3E:55:F6"
     )
+
+
+def test_controller_present_runner_has_no_torque_or_motion_path() -> None:
+    preregistration = json.loads(
+        TORQUE_OFF_PREREGISTRATION.read_text(encoding="utf-8")
+    )
+    runner = TORQUE_OFF_RUNNER.read_text(encoding="utf-8")
+
+    assert preregistration["status"] == "PREREGISTERED_NOT_RUN"
+    assert preregistration["scope"]["ticks"] == 10_000
+    assert preregistration["scope"]["torque_enable_requested"] is False
+    assert preregistration["scope"]["motion"] is False
+    assert preregistration["requirements"]["late_accepted_response_markers"] == 0
+    assert 'readonly expected_controller_uniq="0c:35:26:2a:b8:0b"' in runner
+    assert 'readonly ticks="10000"' in runner
+    assert "--controller xbox" in runner
+    assert "--amplitude-rad 0" in runner
+    assert "--hardware-authorized --suspended-or-benched" in runner
+    assert "--enable-torque" not in runner
+    assert "--moving-gate-authorized" not in runner
