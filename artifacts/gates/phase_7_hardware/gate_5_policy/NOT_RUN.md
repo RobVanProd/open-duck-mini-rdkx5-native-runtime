@@ -30,6 +30,9 @@ generic recovery parser; all 9,999 later fixed-order ticks stayed at or below
 fixed-slot recovery path and a separately recorded, one-shot startup readiness
 AND-conjunct now pass offline tests. They require a fresh explicitly authorized
 torque-off revalidation before any replacement x=0 motion attempt.
+That revalidation is frozen in
+`T247_STARTUP_READINESS_REVALIDATION_PREREGISTRATION_20260802.json`; its runner
+has no torque-enable, policy-load, or motion path.
 
 The x=.08 arm remains blocked. It requires a separately reviewed green x=0
 receipt, the receipt's exact SHA-256, and separate explicit authorization.

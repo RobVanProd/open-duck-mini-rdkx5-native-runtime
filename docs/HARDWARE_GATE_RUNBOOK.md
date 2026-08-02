@@ -424,12 +424,30 @@ the watchdog confirmed torque-off. The old launcher remains historical evidence
 and is not a retry command.
 
 T247 still uses its reviewed, default-disabled 115-D two-stage path; the default
-101-D v1 path and the candidate policy weights remain unchanged. Before a retry
-can be preregistered, the thread-free Linux controller backend must pass its
-controller-only screen and a controller-present 10,000-tick torque-off timing
-probe. See `T247_CONTROLLER_ISOLATION_REPAIR_PREREGISTRATION_20260802.json`.
+101-D v1 path and the candidate policy weights remain unchanged. The controller
+screen passed. The first controller-present torque-off population completed
+10,000 ticks but failed the strict bus maximum at measured tick 0: 5.080639 ms.
+That failure remains frozen. The bounded startup-readiness correction must pass
+the replacement no-motion revalidation before a motion retry can be frozen.
 
-The sequence is strict:
+The replacement no-motion command is separately preregistered and requires
+fresh explicit authorization. It performs one recorded readiness exchange and,
+only if that passes, exactly 10,000 measured ticks. It never enables torque,
+loads a policy, or exposes a motion flag:
+
+```bash
+cd /home/sunrise/open-duck-x5-startup-readiness
+sudo setup/run_gate5_startup_readiness_revalidation.sh \
+  --source-root /home/sunrise/open-duck-x5-startup-readiness \
+  --output-dir /home/sunrise/duck-evidence/gate5-startup-readiness-20260802 \
+  --hardware-authorized --suspended-or-benched
+```
+
+Do not run it without the exact no-motion authorization. A failure is preserved
+without retry; a pass earns review and launcher preparation, not motion.
+
+After that no-motion result is independently reviewed green, the motion sequence
+is strict:
 
 1. Run only x=0 after explicit authorization for that exact suspended run.
 2. Independently summarize, hash, and review the complete x=0 artifact.

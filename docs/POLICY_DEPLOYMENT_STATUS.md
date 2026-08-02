@@ -55,8 +55,8 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Freeze the replacement controller-present 10,000-tick torque-off runner.
-2. Obtain explicit authorization for that exact no-motion revalidation.
+1. Obtain explicit authorization for the frozen replacement controller-present no-motion revalidation.
+2. Run its one-shot readiness exchange and, only if it passes, all 10,000 measured ticks.
 3. Only if its readiness exchange and all 10,000 measured ticks pass, freeze and review a replacement x=0 launcher.
 4. Obtain fresh explicit authorization for that exact suspended motion retry.
 5. Independently summarize and review the x=0 artifact.

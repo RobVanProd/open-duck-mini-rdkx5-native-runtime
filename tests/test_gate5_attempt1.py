@@ -25,6 +25,14 @@ TORQUE_OFF_PREREGISTRATION = (
     / "T247_CONTROLLER_PRESENT_TORQUE_OFF_PREREGISTRATION_20260802.json"
 )
 TORQUE_OFF_RUNNER = ROOT / "setup/run_gate5_controller_torque_off_preflight.sh"
+READINESS_REVALIDATION_PREREGISTRATION = (
+    ROOT
+    / "artifacts/gates/phase_7_hardware/gate_5_policy"
+    / "T247_STARTUP_READINESS_REVALIDATION_PREREGISTRATION_20260802.json"
+)
+READINESS_REVALIDATION_RUNNER = (
+    ROOT / "setup/run_gate5_startup_readiness_revalidation.sh"
+)
 
 
 def test_attempt1_is_a_pre_policy_halt_with_confirmed_cutoff() -> None:
@@ -100,6 +108,32 @@ def test_controller_present_runner_has_no_torque_or_motion_path() -> None:
     assert preregistration["requirements"]["late_accepted_response_markers"] == 0
     assert 'readonly expected_controller_uniq="0c:35:26:2a:b8:0b"' in runner
     assert 'readonly ticks="10000"' in runner
+    assert "--controller xbox" in runner
+    assert "--amplitude-rad 0" in runner
+    assert "--hardware-authorized --suspended-or-benched" in runner
+    assert "--enable-torque" not in runner
+    assert "--moving-gate-authorized" not in runner
+
+
+def test_startup_readiness_revalidation_preserves_tick_zero_and_no_motion() -> None:
+    preregistration = json.loads(
+        READINESS_REVALIDATION_PREREGISTRATION.read_text(encoding="utf-8")
+    )
+    runner = READINESS_REVALIDATION_RUNNER.read_text(encoding="utf-8")
+
+    assert preregistration["status"] == "PREREGISTERED_NOT_RUN"
+    assert preregistration["scope"]["startup_readiness_exchanges"] == 1
+    assert preregistration["scope"]["measured_ticks"] == 10_000
+    assert preregistration["scope"]["torque_enable_requested"] is False
+    assert preregistration["scope"]["policy_loaded"] is False
+    assert preregistration["scope"]["motion"] is False
+    assert preregistration["startup_readiness_requirements"]["retries"] == 0
+    assert "not discarded or retried" in preregistration["population_rule"]
+    assert 'readonly ticks="10000"' in runner
+    assert "--startup-readiness-exchange" in runner
+    assert "--startup-readiness-output" in runner
+    assert "summary[\"ticks\"] == summary[\"ticks_requested\"] == 10_000" in runner
+    assert "summary[\"overall_bus_max_ms\"] < 5.0" in runner
     assert "--controller xbox" in runner
     assert "--amplitude-rad 0" in runner
     assert "--hardware-authorized --suspended-or-benched" in runner
