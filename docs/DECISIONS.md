@@ -1200,3 +1200,20 @@ locally, and an independent replay verified every contained file hash, schema,
 tick and trace sequence, percentile, outcome count, and late-byte marker. This
 closes the pre-policy timing repair only. It authorizes preparation of a new x=0
 launcher, not torque, motion, policy execution, x=.08, or grounded replay.
+
+## D073 — Freeze a replacement x=0-only Gate 5 launcher
+
+Accepted offline. The replacement launcher has one hardcoded x=0 runtime
+invocation and no command-selection or second-arm path. It pins the reviewed
+no-motion receipt, runtime and schema trees, every T247 asset, the board config,
+the IMU calibration, and the known-good Xbox identity. It rechecks the
+controller after the run, requires the serial device to be released and the
+governor restored, schema-validates the full telemetry stream, and requires one
+clean startup-readiness event plus every independent control-summary gate.
+
+The frozen launcher SHA-256 is
+`44cfc544ea46fd6fada4eb66913014f22d02f05190a0233089caa7bcae90c7e9`.
+Its preregistration and exact command packet are recorded in the Gate 5
+artifact directory. This decision authorizes no hardware access, torque,
+motion, policy execution, x=.08, or grounded replay. The exact suspended x=0
+motion scope requires fresh explicit operator authorization.

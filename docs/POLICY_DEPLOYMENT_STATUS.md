@@ -4,7 +4,7 @@ Status date: 2026-08-02
 
 ## Current state
 
-`T247 GATE-5 HELD; STARTUP-READINESS REVALIDATION PASS; REPLACEMENT x=0 LAUNCHER NEXT`
+`T247 x=0 REPLACEMENT LAUNCHER FROZEN; FRESH SUSPENDED MOTION AUTHORIZATION NEXT`
 
 The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
@@ -31,6 +31,11 @@ Readiness was 4.009592 ms; the measured 10,000-tick bus maximum was 4.883761 ms;
 tick p99/p99.9 were 20.002629/20.009668 ms; all 160,000 outcomes succeeded; and
 there were zero bursts or late markers. The evidence archive was independently
 hash- and trace-verified locally. This earns only a replacement x=0 launcher.
+
+The x=0-only replacement launcher is now frozen and reviewed. It accepts no
+command selector, starts the runtime exactly once with x=0, pins the accepted
+readiness receipt and known-good controller, and requires a clean startup
+readiness event plus every control-summary gate. It has not run.
 
 ## What is green
 
@@ -61,8 +66,8 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Freeze and review the replacement x=0 launcher against the accepted no-motion receipt.
-2. Obtain fresh explicit authorization for that exact suspended motion retry.
+1. Obtain fresh explicit authorization for the exact frozen suspended x=0 run.
+2. Run that one x=0 invocation and stop; there is no second-command path.
 3. Independently summarize and review the x=0 artifact.
 4. Only a reviewed green x=0 result can earn a separate x=.08 authorization.
 
@@ -72,7 +77,7 @@ separate authorization and the exact SHA-256 of a reviewed green x=0 receipt.
 ## Still not proven
 
 - No active serial T247 policy tick has run.
-- The replacement x=0 launcher has not yet been frozen or authorized.
+- The frozen replacement x=0 launcher has not been authorized or run.
 - T247 does not have grounded-walking clearance.
 - A readiness result does not authorize torque, motion, Gate 5, or grounded
   replay by itself.

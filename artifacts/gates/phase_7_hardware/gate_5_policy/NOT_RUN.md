@@ -15,7 +15,7 @@ The offline and pre-Gate-5 evidence remains green:
 - Hardware Gates 1-4: `PASS_REVIEWED`.
 - Single-arm Gate 5 launcher: correctly halted and failed closed.
 
-The current state is `HALTED_PRE_POLICY_REPLACEMENT_X0_LAUNCHER_REQUIRED`.
+The current state is `READY_FOR_FRESH_EXPLICIT_SUSPENDED_T247_GATE5_X0_AUTHORIZATION`.
 The failed tick was causally aligned with an Xbox Bluetooth HID reconnect. The
 review selected a thread-free Linux joystick backend, late-serial-deadline
 rejection, and paused-controller freshness enforcement. A controller-only test
@@ -36,9 +36,16 @@ has no torque-enable, policy-load, or motion path.
 
 The revalidation passed its readiness and full 10,000-tick populations and was
 independently reviewed. This closes the controller/startup timing repair only.
-A replacement x=0 launcher must now be frozen and reviewed before fresh motion
-authorization can be requested; Gate 5 itself remains without an active policy
-tick.
+The replacement x=0 launcher is now frozen and reviewed; Gate 5 itself remains
+without an active policy tick until fresh motion authorization is provided.
+
+That replacement is now frozen as
+`setup/run_t247_gate5_x0_replacement.sh`, SHA-256
+`44cfc544ea46fd6fada4eb66913014f22d02f05190a0233089caa7bcae90c7e9`.
+It has one hardcoded x=0 invocation, requires the accepted no-motion receipt,
+pins the known-good controller before and after, requires the new readiness
+event and every summary gate, and contains no second-command path. It has not
+run and the earlier no-motion authorization does not authorize it.
 
 The x=.08 arm remains blocked. It requires a separately reviewed green x=0
 receipt, the receipt's exact SHA-256, and separate explicit authorization.
