@@ -128,12 +128,19 @@ def test_startup_readiness_revalidation_preserves_tick_zero_and_no_motion() -> N
     assert preregistration["scope"]["policy_loaded"] is False
     assert preregistration["scope"]["motion"] is False
     assert preregistration["startup_readiness_requirements"]["retries"] == 0
+    assert (
+        preregistration["startup_readiness_requirements"][
+            "late_accepted_response_markers"
+        ]
+        == 0
+    )
     assert "not discarded or retried" in preregistration["population_rule"]
     assert 'readonly ticks="10000"' in runner
     assert "--startup-readiness-exchange" in runner
     assert "--startup-readiness-output" in runner
     assert "summary[\"ticks\"] == summary[\"ticks_requested\"] == 10_000" in runner
     assert "summary[\"overall_bus_max_ms\"] < 5.0" in runner
+    assert "readiness_late_markers == 0" in runner
     assert "--controller xbox" in runner
     assert "--amplitude-rad 0" in runner
     assert "--hardware-authorized --suspended-or-benched" in runner

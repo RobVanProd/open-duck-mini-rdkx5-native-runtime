@@ -43,6 +43,7 @@
     "device_alarm_replies": 0,
     "partial_bytes": 0,
     "unexpected_packets": 0,
+    "late_accepted_response_markers": 0,
     "bus_total_ms_below": 5.0,
     "tick_work_ms_at_most": 40.0,
     "next_measured_tick_period_ms_at_most": 22.0

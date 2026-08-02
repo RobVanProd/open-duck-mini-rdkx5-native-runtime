@@ -4,7 +4,7 @@ set -euo pipefail
 readonly expected_source_tree="95d7b93fe49b022982dbc22e6156a5aebe53f0d6"
 readonly expected_schema_tree="c32a9095fb6353cf2c4c1962104b8ca1e57e6a7f"
 readonly expected_pyproject_blob="8bd71d3a44276bdb21755d1492a19c57f6c80fe0"
-readonly expected_preregistration_sha256="fc1c513b31ed1970060e84391795156b33f4060b3d2d9de64b5b27227ce94f4f"
+readonly expected_preregistration_sha256="9388d50b226d61006a6ab20321ac2b6038b1200da76e513059f3d6bb4e6bcb79"
 readonly expected_failed_population_sha256="986b03043b49d1d1cccedcab68d2180e9e45df72fba74d1ced8e362a85302837"
 readonly expected_controller_pass_sha256="d04e98ffb2eca648cc7ddaa67a00c671a6816b240345794ca72d9073bb717d7f"
 readonly expected_controller_mac="0C:35:26:2A:B8:0B"
@@ -243,6 +243,17 @@ late_markers = 0
 trace_rows = 0
 parser_modes: Counter[str] = Counter()
 deadline_ns = 4_000_000
+readiness_stamps = readiness["instrumentation"]
+readiness_late_markers = int(
+    readiness_stamps["group_last_rx_ns"] > 0
+    and readiness_stamps["group_last_rx_ns"]
+    >= readiness_stamps["group_write_end_ns"] + deadline_ns
+)
+readiness_late_markers += int(
+    readiness_stamps["extended_last_rx_ns"] > 0
+    and readiness_stamps["extended_last_rx_ns"]
+    >= readiness_stamps["extended_write_end_ns"] + deadline_ns
+)
 with trace_path.open(encoding="utf-8") as handle:
     for line in handle:
         row = json.loads(line)
@@ -273,6 +284,7 @@ readiness_clean = (
     and readiness["extended_device_status"] == 0
     and readiness["partial_bytes"] == 0
     and readiness["unexpected_packets"] == 0
+    and readiness_late_markers == 0
     and readiness["bus_total_ms"] < 5.0
     and readiness["tick_work_ms"] <= 40.0
     and readiness["next_measured_tick_period_ms"] is not None
@@ -319,6 +331,7 @@ payload = {
     "status": "PASS" if all(checks.values()) else "FAIL",
     "checks": checks,
     "late_accepted_response_markers": late_markers,
+    "startup_readiness_late_accepted_response_markers": readiness_late_markers,
     "transaction_trace_rows": trace_rows,
     "parser_mode_counts": dict(sorted(parser_modes.items())),
     "controller_uniq_after": uniq_after,
