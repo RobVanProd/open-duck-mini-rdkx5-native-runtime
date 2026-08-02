@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
-  "status_date": "2026-07-31",
-  "status": "T247_X5_THREAD_CPU_ATTRIBUTION_PACKAGE_SEALED",
+  "status_date": "2026-08-01",
+  "status": "T247_X5_COMMAND_ROUTE_RESERVED_SCREEN_PREREGISTERED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -299,7 +299,7 @@
       "gate5_earned": false
     },
     "t247_deployment_x5_thread_cpu_attribution": {
-      "status": "PACKAGE_SEALED_NOT_RUN",
+      "status": "COMPLETE_REVIEWED",
       "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
       "policy_weights_unchanged": true,
       "source_context_route_specialization": "CLOSED_WITHOUT_RETRY",
@@ -312,8 +312,96 @@
       "execution_package": "SEALED",
       "execution_package_file_sha256": "5701d632810c33e4c9d970d327331dfb508b7b8f3777576279742dfa6eb3080e",
       "runner_source_commit": "01191c9e2ee1921d63724edf0ec9dc2aee2cf0b2",
-      "x5_execution": "NOT_RUN",
+      "x5_execution": "COMPLETE",
+      "x5_checks_passed": 24,
+      "x5_checks": 24,
+      "x5_failed_checks": [],
+      "x5_semantics_status": "PASS_BYTE_EXACT",
+      "x5_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+      "x5_maximum_rate_excess_rad_s": 0.0,
+      "x5_stage_wall_ms": {
+        "p50": 1.558235,
+        "p95": 1.7089496499999999,
+        "p99": 2.11269953,
+        "p99_9": 2.3906260990000066,
+        "max": 2.489467
+      },
+      "x5_stage_thread_cpu_ms": {
+        "p50": 1.5530635,
+        "p95": 1.7032434,
+        "p99": 2.10883123,
+        "p99_9": 2.3895289950000085,
+        "max": 2.478875
+      },
+      "x5_stage_stolen_ms": {
+        "p50": 0.005256,
+        "p95": 0.007881,
+        "p99": 0.009716519999999998,
+        "p99_9": 0.013950255000000068,
+        "max": 0.017091
+      },
+      "x5_wall_slow_ticks": 47,
+      "x5_thread_slow_ticks": 46,
+      "x5_wall_and_thread_slow_fraction": 0.9787234042553191,
+      "classification": "SCHEDULED_COMPUTE_DOMINANT",
+      "decision": "SELECT_READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT",
+      "result_sha256": "a391446cef5edf3e9349ee74810180ba3f8d08999bf3ba1b1d5753605f5df0f1",
+      "artifact_file_sha256": "c9ca65799e25072633ab51ca0e2f73cbd15ef98c6f612b072e6e911ae2f7d9b7",
+      "raw_ticks_sha256": "a7f25d75605bcd4e1cdaa0ee1b4ed0ed9f954bf3bacc2235baddc274d75b608d",
+      "review_file_sha256": "0a69b695332dd32fa48bade3124612e38631e6021254fff7cfd546353400a72b",
       "boot_change": false,
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
+    "t247_deployment_static_context_partial_evaluation": {
+      "status": "CLOSED_TOO_SMALL",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "selected_route": "lower-cond0",
+      "source_nodes": 100,
+      "candidate_nodes": 93,
+      "source_initializers": 76,
+      "candidate_initializers": 70,
+      "outputs_byte_exact": true,
+      "local_benchmark_samples": 20000,
+      "candidate_to_current_p50_ratio": 0.9457964601769912,
+      "candidate_to_current_p99_ratio": 0.9385842142094214,
+      "required_maximum_ratio": 0.88,
+      "minimum_x5_reduction_fraction_needed": 0.1480094663532206,
+      "x5_execution_earned": false,
+      "audit_file_sha256": "092f62f48f62ef7276f7eecb0f2bec6d334338ee7ab81e06232feb7b5fdef8c8",
+      "next": "DERIVE_A_NEW_COMPUTE_MECHANISM_FROM_PHASE_AND_TICK_CORRELATION_BEFORE_ANY_X5_RUN",
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
+    "t247_deployment_command_route_specialization": {
+      "status": "PASS_CPU_CONTRACT_REVIEWED",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "context_routes": 6,
+      "exact_command_routes_per_context": 4,
+      "generated_models": 24,
+      "fallback_preserved": true,
+      "derive_twice_byte_exact": true,
+      "all_onnx_checker_pass": true,
+      "all_policy_abis_exact": true,
+      "all_retained_initializers_exact": true,
+      "one_step_cases": 6144,
+      "route_switch_ticks": 7920,
+      "fallback_ticks": 2160,
+      "all_semantics_byte_exact": true,
+      "actual_chains": 4,
+      "maximum_rate_excess_rad_s": 0.0,
+      "worst_local_p50_ratio": 0.8735083532219571,
+      "worst_local_p99_ratio": 0.8780141843971632,
+      "required_maximum_ratio": 0.88,
+      "cpu_result_sha256": "82e9267f5277d7bd67521b7ba0fba079ffcdb53f0830ee340be3b8e2c3651320",
+      "cpu_result_file_sha256": "a1679e52dd43685fd6359d5f093402dc4775c80054ef1904406d27fc2ebd3a98",
+      "cpu_review_file_sha256": "f6e466a6ec9edd427d4e4c0d8b7e15874bff99b2169ff69a1f6df6de51ec4929",
+      "x5_screen_status": "PREREGISTERED_NOT_RUN",
+      "x5_screen_preregistration_file_sha256": "cdda6d2a277b70942f253dacbc799acf279bbe24443f187f09602bbf3d38479b",
       "policy_training_earned": false,
       "production_integration_earned": false,
       "gate5_earned": false
@@ -324,11 +412,11 @@
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 492
+      "passed": 497
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 211
+      "entries": 217
     }
   },
   "authority": {

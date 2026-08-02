@@ -17,7 +17,9 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     authority = status["authority"]
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
-    assert status["status"] == "T247_X5_THREAD_CPU_ATTRIBUTION_PACKAGE_SEALED"
+    assert status["status"] == (
+        "T247_X5_COMMAND_ROUTE_RESERVED_SCREEN_PREREGISTERED"
+    )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
     assert gates["t249b_full_r2"] == {
@@ -154,7 +156,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert specialization["production_integration_earned"] is False
     assert specialization["gate5_earned"] is False
     attribution = gates["t247_deployment_x5_thread_cpu_attribution"]
-    assert attribution["status"] == "PACKAGE_SEALED_NOT_RUN"
+    assert attribution["status"] == "COMPLETE_REVIEWED"
     assert attribution["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
     assert attribution["policy_weights_unchanged"] is True
     assert attribution["source_context_route_specialization"] == (
@@ -172,11 +174,52 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert attribution["execution_package_file_sha256"] == (
         "5701d632810c33e4c9d970d327331dfb508b7b8f3777576279742dfa6eb3080e"
     )
-    assert attribution["x5_execution"] == "NOT_RUN"
+    assert attribution["x5_execution"] == "COMPLETE"
+    assert attribution["x5_checks_passed"] == 24
+    assert attribution["x5_checks"] == 24
+    assert attribution["x5_failed_checks"] == []
+    assert attribution["x5_semantics_status"] == "PASS_BYTE_EXACT"
+    assert attribution["x5_maximum_rate_excess_rad_s"] == 0.0
+    assert attribution["classification"] == "SCHEDULED_COMPUTE_DOMINANT"
+    assert attribution["x5_wall_slow_ticks"] == 47
+    assert attribution["x5_thread_slow_ticks"] == 46
+    assert attribution["x5_wall_and_thread_slow_fraction"] >= 0.8
+    assert attribution["x5_stage_thread_cpu_ms"]["p99"] > 1.8
+    assert attribution["x5_stage_stolen_ms"]["p99"] < 0.02
     assert attribution["boot_change"] is False
     assert attribution["policy_training_earned"] is False
     assert attribution["production_integration_earned"] is False
     assert attribution["gate5_earned"] is False
+    static_context = gates["t247_deployment_static_context_partial_evaluation"]
+    assert static_context["status"] == "CLOSED_TOO_SMALL"
+    assert static_context["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
+    assert static_context["policy_weights_unchanged"] is True
+    assert static_context["outputs_byte_exact"] is True
+    assert static_context["source_nodes"] == 100
+    assert static_context["candidate_nodes"] == 93
+    assert static_context["local_benchmark_samples"] == 20_000
+    assert static_context["candidate_to_current_p50_ratio"] > 0.88
+    assert static_context["candidate_to_current_p99_ratio"] > 0.88
+    assert static_context["x5_execution_earned"] is False
+    assert static_context["policy_training_earned"] is False
+    assert static_context["production_integration_earned"] is False
+    assert static_context["gate5_earned"] is False
+    command_route = gates["t247_deployment_command_route_specialization"]
+    assert command_route["status"] == "PASS_CPU_CONTRACT_REVIEWED"
+    assert command_route["policy"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
+    assert command_route["policy_weights_unchanged"] is True
+    assert command_route["generated_models"] == 24
+    assert command_route["fallback_preserved"] is True
+    assert command_route["one_step_cases"] == 6144
+    assert command_route["route_switch_ticks"] == 7920
+    assert command_route["all_semantics_byte_exact"] is True
+    assert command_route["maximum_rate_excess_rad_s"] == 0.0
+    assert command_route["worst_local_p50_ratio"] <= 0.88
+    assert command_route["worst_local_p99_ratio"] <= 0.88
+    assert command_route["x5_screen_status"] == "PREREGISTERED_NOT_RUN"
+    assert command_route["policy_training_earned"] is False
+    assert command_route["production_integration_earned"] is False
+    assert command_route["gate5_earned"] is False
     assert gates["opt_in_production_integration"] == "NOT_PREREGISTERED"
     assert gates["gate_5"] == "NOT_RUN"
     assert authority["production_runtime_integration_earned"] is False
@@ -220,10 +263,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 492}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 497}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 211,
+        "entries": 217,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

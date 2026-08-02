@@ -33,6 +33,12 @@ PREREGISTRATION = (
 PACKAGE = (
     GATES / "t247_deployment_x5_thread_cpu_attribution_execution_package_20260731.json"
 )
+REVIEW = (
+    GATES / "t247_deployment_x5_thread_cpu_attribution_review_20260801.json"
+)
+STATIC_CONTEXT_AUDIT = (
+    GATES / "t247_deployment_static_context_partial_evaluation_audit_20260801.json"
+)
 POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 
 
@@ -90,6 +96,49 @@ def test_thread_cpu_attribution_execution_package_pins_implementation() -> None:
     assert package["scope"]["torque"] is False
     assert package["scope"]["motion"] is False
     assert package["scope"]["boot_change"] is False
+
+
+def test_completed_thread_cpu_attribution_selects_compute_not_kernel_work() -> None:
+    review = _read(REVIEW)
+
+    assert review["board_result"]["checks_passed"] == 24
+    assert review["board_result"]["checks_total"] == 24
+    assert review["semantic_result"]["all_2298_ticks_byte_exact"] is True
+    assert review["semantic_result"]["maximum_rate_excess_rad_s"] == 0.0
+    timing = review["paired_timing_ms"]
+    assert timing["stage_thread_cpu"]["p99"] > timing["slow_reference"]
+    assert timing["stage_stolen"]["p99"] < 0.02
+    assert timing["wall_slow_and_thread_slow_fraction"] >= 0.8
+    assert review["decision"]["classification"] == "SCHEDULED_COMPUTE_DOMINANT"
+    assert review["decision"]["kernel_housekeeping_change_selected"] is False
+    assert review["decision"]["retry"] is False
+    assert review["authority"]["torque"] is False
+    assert review["authority"]["motion"] is False
+
+
+def test_static_context_partial_evaluation_is_exact_but_too_small() -> None:
+    review = _read(REVIEW)
+    audit = _read(STATIC_CONTEXT_AUDIT)
+
+    assert hashlib.sha256(REVIEW.read_bytes()).hexdigest() == (
+        audit["earned_by"]["review_file_sha256"]
+    )
+    assert review["decision"]["selected_next_audit"] == (
+        "READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT"
+    )
+    assert audit["cpu_only_semantic_check"]["outputs_byte_exact"] is True
+    assert audit["graph_dependency_closure"]["context_only_node_count"] == 5
+    assert audit["audit_candidate"]["nodes"] == 93
+    assert audit["local_microbenchmark_ms"]["candidate_to_current_ratio"][
+        "p50"
+    ] > audit["materiality_gate"]["required_maximum_candidate_to_current_ratio"]
+    assert audit["local_microbenchmark_ms"]["candidate_to_current_ratio"][
+        "p99"
+    ] > audit["materiality_gate"]["required_maximum_candidate_to_current_ratio"]
+    assert audit["decision"]["status"] == "CLOSED_TOO_SMALL"
+    assert audit["decision"]["x5_execution_earned"] is False
+    assert audit["decision"]["policy_training_earned"] is False
+    assert audit["authority"]["motion"] is False
 
 
 def test_classification_identifies_kernel_or_scheduler_dominance() -> None:

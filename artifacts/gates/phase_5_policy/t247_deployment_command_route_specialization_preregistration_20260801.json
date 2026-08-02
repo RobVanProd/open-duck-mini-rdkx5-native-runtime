@@ -1,0 +1,107 @@
+{
+  "schema_version": "open_duck_x5.t247_command_route_specialization_preregistration.v1",
+  "status": "PREREGISTERED_ONE_T247_COMMAND_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+  "date": "2026-08-01",
+  "earned_by": {
+    "audit": "artifacts/gates/phase_5_policy/t247_deployment_command_route_specialization_audit_20260801.json",
+    "audit_file_sha256": "6b0e9b83e90c85967d92c130bd1063b3731224438b5634fc98ebe7226e722635",
+    "reason": "Exploratory lower-cond0 Gate-5 command variants were byte-exact over complete recurrent chains and cleared the inherited local p50/p99 materiality threshold. The audit selected a deterministic all-route implementation before any new X5 execution."
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "new_policy_model": false,
+    "description": "These are exact execution routes of T247, not a T248/T250/T251 policy."
+  },
+  "source_assets": {
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "p30_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "context_variant_manifest_sha256": "61c54d755c2846bd811775786c6599606a7be70fbaa7c9266cd3fb613d64a536"
+  },
+  "implementation_scope": {
+    "deriver": "tools/derive_t247_command_route_variants.py",
+    "verifier": "tools/verify_t247_command_route_specialization.py",
+    "context_routes": [
+      "lower-cond0",
+      "lower-cond1",
+      "positive-cond0",
+      "positive-cond1",
+      "tail-cond0",
+      "tail-cond1"
+    ],
+    "exact_commands_m_s": [
+      0.0,
+      0.074,
+      0.077,
+      0.08
+    ],
+    "generated_models": 24,
+    "fallback": "The selected unspecialized context-route model remains authoritative for every other valid command.",
+    "route_selection": "Exact equality only after the existing command validator accepts the full command vector.",
+    "route_switch": "Transfer previous_action and h_in from the last confirmed output before executing the newly selected graph.",
+    "calibration": "The calibrator and 250-to-0 handoff remain unchanged."
+  },
+  "cpu_contract": {
+    "derive_twice_byte_exact": true,
+    "all_24_onnx_checker_pass": true,
+    "all_24_policy_abis_exact": true,
+    "all_retained_initializers_exact": true,
+    "interior_contexts_per_route": 2,
+    "one_step_cases_per_context_command": 128,
+    "expected_one_step_cases": 6144,
+    "route_switch_ticks_per_context": 660,
+    "expected_route_switch_ticks": 7920,
+    "fallback_ticks_required": true,
+    "required_switch_classes": [
+      "zero to each specialized moving command",
+      "moving to zero",
+      "moving specialized command to another moving specialized command",
+      "specialized to fallback",
+      "fallback to specialized"
+    ],
+    "actual_chain_route": "lower-cond0",
+    "actual_chain_commands_m_s": [
+      0.0,
+      0.074,
+      0.077,
+      0.08
+    ],
+    "actual_chain_ticks_per_command": 2298,
+    "actual_chain_handoff_switches_per_command": 1,
+    "required_maximum_rate_excess_rad_s": 0.0,
+    "timing_warmup_samples_per_variant": 2000,
+    "timing_samples_per_variant": 20000,
+    "timing_order": "alternated source and candidate",
+    "required_maximum_p50_ratio": 0.88,
+    "required_maximum_p99_ratio": 0.88,
+    "all_outputs_byte_exact": true
+  },
+  "decision_rule": {
+    "any_derivation_abi_initializer_or_semantic_failure": "CLOSE_COMMAND_ROUTE_SPECIALIZATION_INVALID_NO_X5_RUN",
+    "any_p50_or_p99_ratio_above_0_88": "CLOSE_COMMAND_ROUTE_SPECIALIZATION_TOO_SMALL_NO_X5_RUN",
+    "all_checks_pass": "EARN_ONE_SEPARATELY_PREREGISTERED_NO_DEVICE_X5_COMMAND_ROUTE_RESERVED_SCREEN",
+    "x5_execution_now": false,
+    "retry": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "safety_and_authority": {
+    "local_cpu_only": true,
+    "generated_models_external_only": true,
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

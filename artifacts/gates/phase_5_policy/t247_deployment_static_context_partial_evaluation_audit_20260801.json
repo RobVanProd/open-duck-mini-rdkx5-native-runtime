@@ -1,0 +1,122 @@
+{
+  "schema_version": "open_duck_x5.t247_static_context_partial_evaluation_audit.v1",
+  "status": "CLOSE_STATIC_CONTEXT_PARTIAL_EVALUATION_TOO_SMALL_NO_X5_RUN",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "earned_by": {
+    "review": "artifacts/gates/phase_5_policy/t247_deployment_x5_thread_cpu_attribution_review_20260801.json",
+    "review_file_sha256": "0a69b695332dd32fa48bade3124612e38631e6021254fff7cfd546353400a72b",
+    "classification": "SCHEDULED_COMPUTE_DOMINANT",
+    "selected_audit": "READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT"
+  },
+  "scope": {
+    "read_only_graph_audit": true,
+    "frozen_x5_route": "lower-cond0",
+    "policy_weights_changed": false,
+    "policy_abi_changed": false,
+    "new_policy_model": false,
+    "selection_weight": 0
+  },
+  "graph_dependency_closure": {
+    "input": "calibration_context",
+    "lower_cond0_before": {
+      "nodes": 100,
+      "initializers": 76,
+      "bytes": 980088,
+      "sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825"
+    },
+    "context_only_nodes": [
+      "MatMul",
+      "Add",
+      "GreaterOrEqual",
+      "LessOrEqual",
+      "And"
+    ],
+    "context_only_node_count": 5,
+    "single_frontier_value": "t156_positive_condition",
+    "single_frontier_consumer": "t156_select_three_way_path",
+    "frozen_route_predicate_value": false,
+    "interpretation": "The existing route specialization already removed the major context-conditioned branch. The only remaining context dependency computes one boolean predicate that selects the known lower/tail branch."
+  },
+  "audit_candidate": {
+    "external_path": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\derived\\policy.lower-cond0.static-context-audit.onnx",
+    "sha256": "fd3a924359adeeb44dbbf96c5045d3aec0ab58507a83692bcea68bf768334dd1",
+    "nodes": 93,
+    "initializers": 70,
+    "bytes": 975042,
+    "rewrite": "Alias conditional_adapter_location to the frozen false third-branch input of t156_select_three_way_path, then apply dead-code elimination.",
+    "deployment_asset": false
+  },
+  "architecture_context_note": {
+    "local_context_float32_bytes_sha256": "a5921612f225329a3fe26b825bfa6296ac738442520a88c32df7a842fac19070",
+    "x5_context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "byte_identity_required_for_this_audit": false,
+    "reason": "Both contexts satisfy the frozen lower-cond0 router and t156_positive_condition=false. The audit folds that reviewed predicate value, not architecture-specific context bytes."
+  },
+  "cpu_only_semantic_check": {
+    "warmup_samples": 2000,
+    "alternated_benchmark_samples": 20000,
+    "outputs_byte_exact": true,
+    "tested_outputs": [
+      "continuous_actions",
+      "previous_action_out",
+      "h_out"
+    ],
+    "source_chain_ticks_byte_exact": 2298,
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "local_microbenchmark_ms": {
+    "current_lower_cond0": {
+      "p50": 0.0904,
+      "p99": 0.162906
+    },
+    "static_context_candidate": {
+      "p50": 0.0855,
+      "p99": 0.152901
+    },
+    "candidate_to_current_ratio": {
+      "p50": 0.9457964601769912,
+      "p99": 0.9385842142094214
+    },
+    "reduction_fraction": {
+      "p50": 0.0542035398230088,
+      "p99": 0.0614157857905786
+    }
+  },
+  "materiality_gate": {
+    "provenance": "Inherited from the valid T247 context-route specialization CPU contract before any X5 execution.",
+    "required_maximum_candidate_to_current_ratio": 0.88,
+    "required_minimum_reduction_fraction": 0.12,
+    "x5_attribution_stage_p99_ms": 2.11269953,
+    "x5_reserve_p99_limit_ms": 1.8,
+    "minimum_x5_reduction_fraction_needed": 0.1480094663532206,
+    "p50_materiality_pass": false,
+    "p99_materiality_pass": false
+  },
+  "decision": {
+    "mechanism": "STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION",
+    "status": "CLOSED_TOO_SMALL",
+    "x5_execution_earned": false,
+    "reason": "The exact rewrite removes only seven nodes and measures 5.42 percent p50 and 6.14 percent p99 local reductions. Both are below the preregistered 12 percent materiality floor, and the measured X5 p99 needs 14.80 percent to reach reserve.",
+    "context_route_specialization_reopened": false,
+    "threshold_changed": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false,
+    "next": "DERIVE_A_NEW_COMPUTE_MECHANISM_FROM_PHASE_AND_TICK_CORRELATION_BEFORE_ANY_X5_RUN"
+  },
+  "authority": {
+    "local_cpu_only": true,
+    "new_x5_execution": false,
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

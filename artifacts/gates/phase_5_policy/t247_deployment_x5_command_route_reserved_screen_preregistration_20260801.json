@@ -1,0 +1,114 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_command_route_reserved_screen_preregistration.v1",
+  "status": "PREREGISTERED_ONE_T247_X5_NO_DEVICE_COMMAND_ROUTE_RESERVED_SCREEN",
+  "date": "2026-08-01",
+  "earned_by": {
+    "review": "artifacts/gates/phase_5_policy/t247_deployment_command_route_specialization_review_20260801.json",
+    "review_file_sha256": "f6e466a6ec9edd427d4e4c0d8b7e15874bff99b2169ff69a1f6df6de51ec4929",
+    "cpu_result_file_sha256": "a1679e52dd43685fd6359d5f093402dc4775c80054ef1904406d27fc2ebd3a98",
+    "cpu_result_canonical_sha256": "82e9267f5277d7bd67521b7ba0fba079ffcdb53f0830ee340be3b8e2c3651320",
+    "cpu_checks": "15/15",
+    "worst_local_p50_ratio": 0.8735083532219571,
+    "worst_local_p99_ratio": 0.8780141843971632,
+    "required_maximum_ratio": 0.88
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "new_policy_model": false,
+    "description": "This is a no-device timing screen of two exact T247 execution routes, not a new policy."
+  },
+  "assets": {
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "p30_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "source_lower_cond0_sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+    "command_variant_manifest_sha256": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd",
+    "lower_cond0_x000_sha256": "a41694fbd57d41b71070d8c8a5e49cdeb6a7a6ac1d725fd9f613a83008b12ead",
+    "lower_cond0_x080_sha256": "e116063b1afa97bc5b2a2182969b5f9084581d4d90ca88893c5798898160addf"
+  },
+  "platform_contract": {
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t247-command-route-v1",
+    "operating_system": "Linux",
+    "machine": "aarch64",
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "isolated_cpus_sysfs": "7",
+    "governor": "performance",
+    "onnx_provider": "CPUExecutionProvider",
+    "onnx_execution_mode": "ORT_SEQUENTIAL",
+    "onnx_graph_optimization": "ORT_ENABLE_ALL",
+    "intra_and_inter_op_threads": 1,
+    "spinning": false,
+    "io_binding": true,
+    "gc_disabled_during_populations": true,
+    "preflight_before_graph_initialization": true
+  },
+  "screen": {
+    "arms": [
+      {
+        "id": "x000_home_hold_route",
+        "command_x_m_s": 0.0,
+        "variant": "lower-cond0-x000"
+      },
+      {
+        "id": "x080_gate5_moving_route",
+        "command_x_m_s": 0.08,
+        "variant": "lower-cond0-x080"
+      }
+    ],
+    "semantic_population_per_arm": "one unpaced lockstep source-versus-candidate 250-calibration plus 2048-locomotion chain",
+    "timing_population_per_arm": "one fresh paced candidate-only 250-calibration plus 2048-locomotion chain",
+    "timing_population": "candidate locomotion stage calls at absolute ticks 250:2297",
+    "period_ms": 20.0,
+    "expected_route": "lower-cond0",
+    "expected_context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "expected_calibration_ticks": 250,
+    "expected_locomotion_ticks": 2048,
+    "expected_handoff_switches_per_chain": 1,
+    "reserve_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "selection_weight": 0
+  },
+  "decision_rule": {
+    "any_platform_asset_route_semantic_state_or_safety_failure": "INVALID_SCREEN_NO_MECHANISM_DECISION",
+    "either_valid_arm_misses_any_reserve_limit": "CLOSE_COMMAND_ROUTE_SPECIALIZATION_WITHOUT_RETRY",
+    "both_valid_arms_pass_all_reserve_limits": "EARN_OPT_IN_PRODUCTION_COMMAND_ROUTE_HOST_CONTRACT_AND_GATE5_READINESS_AUDIT",
+    "retry": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned_by_preregistration": false,
+    "gate5_earned_by_preregistration": false
+  },
+  "launch_contract": {
+    "governor_path": "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor",
+    "required_temporary_governor": "performance",
+    "required_restore_governor": "schedutil",
+    "runner_launch": "sudo -n env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 taskset -c 7 chrt -f 80 <sealed invocation>",
+    "abort_unless_governor_readback_before": "performance",
+    "verify_governor_readback_after": "schedutil"
+  },
+  "safety_and_authority": {
+    "one_no_device_x5_cpu_screen": true,
+    "robot_descriptors_forbidden": true,
+    "robot_modules_forbidden": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

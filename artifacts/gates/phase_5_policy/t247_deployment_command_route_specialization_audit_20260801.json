@@ -1,0 +1,163 @@
+{
+  "schema_version": "open_duck_x5.t247_command_route_specialization_audit.v1",
+  "status": "SELECT_EXACT_COMMAND_ROUTE_SPECIALIZATION_FOR_CPU_CONTRACT",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "earned_by": {
+    "thread_cpu_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_thread_cpu_attribution_review_20260801.json",
+    "thread_cpu_review_file_sha256": "0a69b695332dd32fa48bade3124612e38631e6021254fff7cfd546353400a72b",
+    "static_context_audit": "artifacts/gates/phase_5_policy/t247_deployment_static_context_partial_evaluation_audit_20260801.json",
+    "static_context_audit_file_sha256": "092f62f48f62ef7276f7eecb0f2bec6d334338ee7ab81e06232feb7b5fdef8c8",
+    "reason": "Paired X5 clocks attribute the reserve miss to scheduled graph computation. Constant context folding alone was exact but too small, so the next audit inspected eager graph branches whose outcomes are fixed by the already-frozen command contract."
+  },
+  "mechanism": {
+    "name": "EXACT_CONTEXT_AND_COMMAND_ROUTE_SPECIALIZATION",
+    "description": "After the immutable calibration context selects one of six existing context routes, select an exact x=0, x=.074, x=.077, or x=.080 locomotion graph. Remove only branches proven unreachable for that context-and-command pair. Preserve the unspecialized selected-context graph as the fallback for every other valid command.",
+    "policy_weights_changed": false,
+    "policy_abi_changed": false,
+    "observation_or_action_semantics_changed": false,
+    "supported_command_set_restricted": false,
+    "fallback_required": true,
+    "route_switch_state_transfer_required": [
+      "previous_action",
+      "h_in"
+    ],
+    "calibration_context_immutable_after_handoff": true,
+    "command_route_can_change_only_from_the_current_validated_command": true
+  },
+  "graph_basis": {
+    "source_route": "lower-cond0",
+    "source_nodes": 100,
+    "source_initializers": 76,
+    "source_sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+    "dead_branches": {
+      "all_frozen_commands": [
+        "remaining immutable-context positive expert path",
+        "one of the exact-.074 or non-.074 conditional heads",
+        "both command-deadband predicates after exact command routing"
+      ],
+      "x_zero_only": [
+        "the complete locomotion action path before the zero-command branch while preserving the recurrent h_out path"
+      ],
+      "x_008_only": [
+        "the five-node slice/min/concat command cap, replaced by one exact elementwise selection that writes the frozen capped .077 value"
+      ]
+    }
+  },
+  "exploratory_cpu_falsifier": {
+    "platform": "local CPUExecutionProvider; zero selection weight",
+    "full_chain_ticks_per_command": 2298,
+    "locomotion_input_bank_per_command": 2048,
+    "warmup_samples_per_command": 2000,
+    "alternated_timing_samples_per_command": 20000,
+    "materiality_required_maximum_ratio": 0.88,
+    "all_full_chains_byte_exact": true,
+    "all_timing_outputs_byte_exact": true,
+    "all_maximum_rate_excess_rad_s": 0.0,
+    "commands": {
+      "x_000": {
+        "command_x_m_s": 0.0,
+        "external_candidate": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\derived\\policy.lower-cond0.command000-audit.onnx",
+        "candidate_sha256": "a41694fbd57d41b71070d8c8a5e49cdeb6a7a6ac1d725fd9f613a83008b12ead",
+        "candidate_bytes": 52870,
+        "candidate_nodes": 25,
+        "candidate_initializers": 19,
+        "action_trace_sha256": "63808a1574cbda5852987d22a99443f6aa9a9ee5cf22e1a12a66a520165a5c73",
+        "source_p50_ms": 0.091,
+        "candidate_p50_ms": 0.0236,
+        "p50_ratio": 0.25934065934065936,
+        "source_p99_ms": 0.12120199999999968,
+        "candidate_p99_ms": 0.0325,
+        "p99_ratio": 0.26814739030709134,
+        "materiality_pass": true
+      },
+      "x_074": {
+        "command_x_m_s": 0.074,
+        "external_candidate": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\derived\\policy.lower-cond0.command074-audit.onnx",
+        "candidate_sha256": "e20a1c89ec9e95dce1fa68bed8feec64e5b5c1c9dcdb87a3b76c4409b8ca0305",
+        "candidate_bytes": 968693,
+        "candidate_nodes": 77,
+        "candidate_initializers": 52,
+        "source_p50_ms": 0.0903,
+        "candidate_p50_ms": 0.0713,
+        "p50_ratio": 0.7895902547065338,
+        "source_p99_ms": 0.12260099999999984,
+        "candidate_p99_ms": 0.10500099999999983,
+        "p99_ratio": 0.8564448903353151,
+        "materiality_pass": true
+      },
+      "x_077": {
+        "command_x_m_s": 0.077,
+        "external_candidate": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\derived\\policy.lower-cond0.command077-audit.onnx",
+        "candidate_sha256": "be9cbc1bfe24c2acd6994e7e85a56bec989b0e3499234055a9334d3ffe39bc6b",
+        "candidate_bytes": 968726,
+        "candidate_nodes": 77,
+        "candidate_initializers": 52,
+        "source_p50_ms": 0.0904,
+        "candidate_p50_ms": 0.0718,
+        "p50_ratio": 0.7942477876106195,
+        "source_p99_ms": 0.1243,
+        "candidate_p99_ms": 0.10330099999999984,
+        "p99_ratio": 0.8310619469026536,
+        "materiality_pass": true
+      },
+      "x_080": {
+        "command_x_m_s": 0.08,
+        "external_candidate": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\derived\\policy.lower-cond0.command008-where-cap-audit.onnx",
+        "candidate_sha256": "e55e189e9633e6f6745869e7ea6e7c836f01fd9c3434bcfbe02e7c705941585d",
+        "candidate_bytes": 969525,
+        "candidate_nodes": 78,
+        "candidate_initializers": 54,
+        "action_trace_sha256": "bd672afdb3720ef68311c172f398f5713e5dc472be454da5718307263bb50584",
+        "source_p50_ms": 0.092,
+        "candidate_p50_ms": 0.0743,
+        "p50_ratio": 0.807608695652174,
+        "source_p99_ms": 0.13640099999999983,
+        "candidate_p99_ms": 0.10920299999999952,
+        "p99_ratio": 0.800602634878041,
+        "materiality_pass": true
+      }
+    }
+  },
+  "rejected_neighbor": {
+    "name": "CONCATENATE_FOUR_H_OUT_HEAD_GEMMS",
+    "outputs_byte_exact_cases": 4096,
+    "candidate_sha256": "966949d4ba6c8cf2714ecf4483b84129cff2d651c9bc505e7807c61fcf62789e",
+    "p50_ratio": 1.00396432111001,
+    "p99_ratio": 1.0043076657989798,
+    "decision": "CLOSED_NO_SPEEDUP"
+  },
+  "decision": {
+    "selected": "IMPLEMENT_DETERMINISTIC_ALL_SIX_CONTEXT_BY_FOUR_COMMAND_VARIANT_DERIVER_AND_CPU_CONTRACT",
+    "required_context_routes": 6,
+    "required_exact_command_routes_per_context": 4,
+    "required_fallback_per_context": true,
+    "required_route_switch_cases": [
+      "x=0 to x=.074",
+      "x=0 to x=.077",
+      "x=0 to x=.080",
+      "moving to x=0",
+      "moving command to different moving command",
+      "specialized command to valid non-specialized fallback"
+    ],
+    "x5_execution_earned": false,
+    "x5_preregistration_requires_green_cpu_contract": true,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_read_only_graph_audit": true,
+    "new_x5_execution": false,
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

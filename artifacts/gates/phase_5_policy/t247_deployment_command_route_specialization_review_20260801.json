@@ -1,0 +1,108 @@
+{
+  "schema_version": "open_duck_x5.t247_command_route_specialization_review.v1",
+  "status": "PASS_T247_COMMAND_ROUTE_SPECIALIZATION_CPU_CONTRACT_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "result": {
+    "external_path": "D:\\CodexArtifacts\\t247-command-route-contract\\cpu-contract-result.json",
+    "file_sha256": "a1679e52dd43685fd6359d5f093402dc4775c80054ef1904406d27fc2ebd3a98",
+    "canonical_sha256": "82e9267f5277d7bd67521b7ba0fba079ffcdb53f0830ee340be3b8e2c3651320",
+    "reported_status": "PASS_T247_COMMAND_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+    "checks_passed": 15,
+    "checks_total": 15,
+    "failed_checks": []
+  },
+  "implementation": {
+    "deriver": "tools/derive_t247_command_route_variants.py",
+    "deriver_source_sha256": "063038ddefe071b2ffeb70385c003483014841efd68dafcd553e528546577b5e",
+    "verifier": "tools/verify_t247_command_route_specialization.py",
+    "verifier_source_sha256": "5bdbbc5cda5256b0cfff2673ee7fd7996653f99342acb65943bf42ef3f89e9ee",
+    "preregistration_file_sha256": "d8e66e005c5185c6656dcc588856ad6b85cfee91993159b770fb67d53b27a0d6"
+  },
+  "derivation": {
+    "context_routes": 6,
+    "exact_command_routes_per_context": 4,
+    "generated_models": 24,
+    "derive_a_manifest_sha256": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd",
+    "derive_b_manifest_sha256": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd",
+    "derive_twice_byte_exact": true,
+    "all_onnx_checker_pass": true,
+    "all_policy_abis_exact": true,
+    "all_retained_initializers_exact": true,
+    "fallback_context_route_preserved": true
+  },
+  "semantic_result": {
+    "one_step_cases": 6144,
+    "one_step_outputs_byte_exact": true,
+    "route_switch_ticks": 7920,
+    "route_switches": 7188,
+    "fallback_ticks": 2160,
+    "route_switch_outputs_byte_exact": true,
+    "actual_lower_cond0_chains": {
+      "x000": {
+        "ticks": 2298,
+        "handoff_switches": 1,
+        "action_trace_sha256": "63808a1574cbda5852987d22a99443f6aa9a9ee5cf22e1a12a66a520165a5c73",
+        "maximum_rate_excess_rad_s": 0.0
+      },
+      "x074": {
+        "ticks": 2298,
+        "handoff_switches": 1,
+        "action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+        "maximum_rate_excess_rad_s": 0.0
+      },
+      "x077": {
+        "ticks": 2298,
+        "handoff_switches": 1,
+        "action_trace_sha256": "bd672afdb3720ef68311c172f398f5713e5dc472be454da5718307263bb50584",
+        "maximum_rate_excess_rad_s": 0.0
+      },
+      "x080": {
+        "ticks": 2298,
+        "handoff_switches": 1,
+        "action_trace_sha256": "bd672afdb3720ef68311c172f398f5713e5dc472be454da5718307263bb50584",
+        "maximum_rate_excess_rad_s": 0.0
+      }
+    },
+    "all_2298_tick_chains_byte_exact": true,
+    "all_maximum_rate_excess_rad_s": 0.0
+  },
+  "timing_result": {
+    "variants": 24,
+    "warmup_samples_per_variant": 2000,
+    "alternated_samples_per_variant": 20000,
+    "required_maximum_p50_ratio": 0.88,
+    "required_maximum_p99_ratio": 0.88,
+    "worst_p50_ratio": 0.8735083532219571,
+    "worst_p99_ratio": 0.8780141843971632,
+    "worst_pair": "positive-cond0/x080",
+    "all_p50_materiality_pass": true,
+    "all_p99_materiality_pass": true,
+    "all_outputs_byte_exact": true
+  },
+  "decision": {
+    "cpu_contract": "PASS",
+    "selected_next": "PREREGISTER_ONE_NO_DEVICE_X5_COMMAND_ROUTE_RESERVED_SCREEN",
+    "x5_execution_now": false,
+    "retry": false,
+    "threshold_changed": false,
+    "policy_t247": "UNCHANGED_AND_STILL_OFFLINE_GREEN",
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_review": true,
+    "new_x5_execution": false,
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}
