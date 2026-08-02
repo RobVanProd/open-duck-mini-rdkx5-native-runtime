@@ -18,7 +18,7 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
 
     assert status["schema_version"] == "open_duck.runtime_policy_gate_status.v2"
     assert status["status"] == (
-        "T247_GATE5_X0_READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
+        "T247_GATE5_X0_ATTEMPT1_HALTED_PRE_POLICY_TORQUE_OFF_PREFLIGHT_REQUIRED"
     )
     assert status["offline_policy_green"] is True
     assert status["robot_clearance"] is False
@@ -240,14 +240,21 @@ def test_policy_gate_status_records_green_offline_and_blocked_hardware() -> None
     assert integration["serial_locomotion_ticks"] == 600
     assert integration["legacy_v1_unchanged"] is True
     readiness = gates["t247_gate5_readiness"]
-    assert readiness["status"] == "READY_FOR_EXPLICIT_SUSPENDED_X0_AUTHORIZATION"
+    assert readiness["status"] == (
+        "HALTED_PRE_POLICY_CONTROLLER_DIRECT_PASS_TORQUE_OFF_REQUIRED"
+    )
     assert readiness["launcher_frozen"] is True
     assert readiness["one_arm_per_invocation"] is True
     assert readiness["x008_requires_reviewed_x0_and_separate_authorization"] is True
-    assert readiness["policy_binary_staged_on_x5"] is False
-    assert readiness["x0_run"] == "NOT_RUN"
+    assert readiness["policy_binary_staged_on_x5"] is True
+    assert readiness["controller_direct_validation"] == "PASS_10000_TICKS"
+    assert readiness["controller_identity"] == "0C:35:26:2A:B8:0B"
+    assert readiness["controller_a_edges"] == 1
+    assert readiness["controller_disconnects"] == 0
+    assert readiness["controller_present_torque_off_probe"] == "NOT_RUN"
+    assert readiness["x0_run"] == "HALTED_PRE_POLICY_0_ACTIVE_TICKS"
     assert readiness["x008_run"] == "NOT_RUN"
-    assert gates["gate_5"] == "READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
+    assert gates["gate_5"] == "HALTED_PRE_POLICY_NOT_PASSED"
     assert authority["production_runtime_integration_earned"] is True
     assert authority["gate_5_authorized_by_this_status"] is False
     assert authority["robot_motion_authorized_by_this_status"] is False
@@ -289,10 +296,10 @@ def test_policy_gate_status_pins_current_validation_and_repositories() -> None:
     validation = status["validation"]
     repositories = status["repositories"]
 
-    assert validation["repository_tests"] == {"status": "PASS", "passed": 532}
+    assert validation["repository_tests"] == {"status": "PASS", "passed": 544}
     assert validation["reviewed_artifact_manifest"] == {
         "status": "PASS",
-        "entries": 232,
+        "entries": 235,
     }
     assert repositories == {
         "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",

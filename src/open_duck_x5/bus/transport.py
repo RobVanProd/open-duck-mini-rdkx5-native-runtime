@@ -61,6 +61,12 @@ class SerialTransport:
                 readable, _, _ = select.select([self._fd], [], [], remaining_ns / 1e9)
                 if not readable:
                     return 0
+                # A signal, scheduler stall, or another interpreter thread can
+                # resume this call after the absolute deadline even though the
+                # serial bytes are now buffered. Late data is stale data: do not
+                # turn an over-deadline response into a reported success.
+                if clock_ns() >= deadline_ns:
+                    return 0
                 return int(self._serial.readinto(target))
             waiting = int(getattr(self._serial, "in_waiting", 0))
             if waiting:

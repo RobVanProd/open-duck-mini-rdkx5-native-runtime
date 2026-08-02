@@ -16,6 +16,7 @@ from .bus import ErrorCode, MockSTS3215Bus, ServoSnapshot, STS3215Bus
 from .clock import clock_ns
 from .config import DuckConfig
 from .constants import CONTROL_FREQUENCY_HZ, HOME_RAD, JOINT_NAMES
+from .controller import ControllerReadout, create_controller
 from .hardware_guard import (
     HardwareAuthorizationError,
     add_hardware_ack_arguments,
@@ -59,6 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", type=Path)
     parser.add_argument("--home-seconds", type=float, default=2.0)
     parser.add_argument("--watchdog-failures", type=int, default=3)
+    parser.add_argument("--controller", choices=("none", "xbox", "f710"), default="none")
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=7)
     parser.add_argument("--rt-priority", type=int, default=80)
@@ -228,6 +230,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             )
         if args.config is None:
             raise ValueError("moving serial probe requires --config")
+    if args.controller != "none" and args.bus != "serial":
+        raise ValueError("a physical controller can only accompany a serial timing probe")
     physical_home = HOME_RAD.copy()
     config_sha256 = None
     if args.config is not None:
@@ -262,6 +266,18 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         bus = MockSTS3215Bus(latency_s=args.mock_latency_ms / 1000.0)
         informational_only = True
 
+    controller = None
+    controller_readout = ControllerReadout()
+    if args.controller != "none":
+        try:
+            controller = create_controller(args.controller)
+        except BaseException:
+            try:
+                bus.disable_torque()
+            finally:
+                bus.close()
+            raise
+
     snapshot = ServoSnapshot.create()
     snapshot.instrumentation_enabled = bool(args.instrument_transactions)
     targets = physical_home.copy()
@@ -279,6 +295,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             bus.disable_torque()
         finally:
             bus.close()
+            if controller is not None:
+                controller.close()
         raise
     previous_tick_start_ns = 0
     watchdog = Watchdog(
@@ -314,6 +332,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             _raise_if_stop_requested(args)
             tick_start_ns, lateness_ns = ticker.wait()
             _raise_if_stop_requested(args)
+            if controller is not None:
+                controller.read_into(controller_readout)
+                if (
+                    not controller_readout.connected
+                    or tick_start_ns - controller_readout.timestamp_ns > 250_000_000
+                ):
+                    raise WatchdogTrip("physical controller state is disconnected or stale")
             phase = 2.0 * math.pi * args.sine_hz * tick / args.frequency_hz
             targets[:] = physical_home
             targets[sine_joint_index] += args.amplitude_rad * math.sin(phase)
@@ -359,6 +384,8 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
             torque_off_status = bus.disable_torque()
         finally:
             bus.close()
+            if controller is not None:
+                controller.close()
             writer.close()
     if torque_off_status is not ErrorCode.OK:
         cutoff_reason = f"cleanup torque-off failed: {torque_off_status.name.lower()}"
@@ -394,6 +421,10 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         "torque_enabled": bool(args.enable_torque),
         "torque_off_status": torque_off_status.name.lower(),
         "watchdog_consecutive_failures": args.watchdog_failures,
+        "controller": args.controller,
+        "controller_backend": (
+            type(controller).__name__ if controller is not None else None
+        ),
         "hardware_authorized": bool(args.hardware_authorized),
         "suspended_or_benched": bool(args.suspended_or_benched),
         "moving_gate_authorized": bool(args.moving_gate_authorized),

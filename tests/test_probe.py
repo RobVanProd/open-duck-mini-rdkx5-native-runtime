@@ -73,6 +73,8 @@ def test_mock_probe_writes_schema_valid_jsonl_and_summary(tmp_path: Path) -> Non
     assert summary["environment"]["realtime"] is None
     assert summary["environment"]["torque_off_status"] == "ok"
     assert summary["environment"]["home_seconds"] == 2.0
+    assert summary["environment"]["controller"] == "none"
+    assert summary["environment"]["controller_backend"] is None
     assert summary["gates"]["complete_record_stream"] is True
     assert summary["gates"]["zero_device_alarms"] is True
     assert summary["gates"]["torque_off_confirmed"] is True
@@ -96,6 +98,24 @@ def test_probe_refuses_output_summary_collision(tmp_path: Path) -> None:
             ]
         )
     assert not collision.exists()
+
+
+def test_probe_refuses_physical_controller_on_mock_bus(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--controller",
+                "xbox",
+                "--ticks",
+                "2",
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
 
 
 def test_probe_requires_instrumentation_flag_and_distinct_output(tmp_path: Path) -> None:

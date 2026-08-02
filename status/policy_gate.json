@@ -1,7 +1,7 @@
 {
   "schema_version": "open_duck.runtime_policy_gate_status.v2",
-  "status_date": "2026-08-01",
-  "status": "T247_GATE5_X0_READY_EXPLICIT_AUTHORIZATION_NOT_RUN",
+  "status_date": "2026-08-02",
+  "status": "T247_GATE5_X0_ATTEMPT1_HALTED_PRE_POLICY_TORQUE_OFF_PREFLIGHT_REQUIRED",
   "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
   "offline_policy_green": true,
   "robot_clearance": false,
@@ -442,31 +442,36 @@
       "mock_timing_selection_weight": 0
     },
     "t247_gate5_readiness": {
-      "status": "READY_FOR_EXPLICIT_SUSPENDED_X0_AUTHORIZATION",
+      "status": "HALTED_PRE_POLICY_CONTROLLER_DIRECT_PASS_TORQUE_OFF_REQUIRED",
       "launcher_preregistered": true,
       "launcher_frozen": true,
       "one_arm_per_invocation": true,
       "x008_requires_reviewed_x0_and_separate_authorization": true,
-      "policy_binary_staged_on_x5": false,
-      "x0_run": "NOT_RUN",
+      "policy_binary_staged_on_x5": true,
+      "controller_direct_validation": "PASS_10000_TICKS",
+      "controller_identity": "0C:35:26:2A:B8:0B",
+      "controller_a_edges": 1,
+      "controller_disconnects": 0,
+      "controller_present_torque_off_probe": "NOT_RUN",
+      "x0_run": "HALTED_PRE_POLICY_0_ACTIVE_TICKS",
       "x008_run": "NOT_RUN",
       "grounded_replay": false
     },
-    "gate_5": "READY_EXPLICIT_AUTHORIZATION_NOT_RUN"
+    "gate_5": "HALTED_PRE_POLICY_NOT_PASSED"
   },
   "validation": {
     "repository_tests": {
       "status": "PASS",
-      "passed": 532
+      "passed": 544
     },
     "reviewed_artifact_manifest": {
       "status": "PASS",
-      "entries": 232
+      "entries": 235
     }
   },
   "authority": {
     "policy_training_earned": false,
-    "policy_binary_staged_on_x5": false,
+    "policy_binary_staged_on_x5": true,
     "production_runtime_integration_earned": true,
     "gate_5_authorized_by_this_status": false,
     "robot_motion_authorized_by_this_status": false,

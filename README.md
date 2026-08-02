@@ -24,7 +24,7 @@ research/evidence archive. See
 | T247 policy host | The separate/default-disabled 115-D two-stage implementation is exact; T247 passes 20/20 offline conditions and 320/320 cells, both exact command routes pass the X5 compute reserve, and production host wiring passes 18/18 |
 | Automatic configuration support | The guarded collector and trace-to-profile path remain available for future rebuild characterization without manual mass/COM measurements; that separate physical workflow is `NOT_RUN` and is no longer a blocker for the frozen T247 suspended Gate 5 sequence |
 | Active policy candidate | Unchanged T247 terminal checkpoint, with exact context/command routing and zero target-rate excess; no T250/T251 policy replaced it |
-| Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; T247 Gate 5 x=0 is ready for exact suspended authorization but remains `NOT_RUN`; x=.08 requires a reviewed x=0 result and separate authorization |
+| Hardware gates 1-5 | Gates 1-4 `PASS_REVIEWED`; T247 Gate 5 x=0 attempt 1 halted while paused with zero active policy ticks after a controller-hotplug-correlated hard overrun; the direct-controller repair passed 10,000 ticks and the controller-present torque-off probe is next; x=.08 remains blocked |
 | Grounded replay | Out of scope |
 
 ## Non-negotiable contract

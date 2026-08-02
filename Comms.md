@@ -7,7 +7,7 @@ and the detailed deployment state lives in
 
 ## Current decision
 
-`T247 READY FOR EXPLICIT SUSPENDED GATE-5 x=0 AUTHORIZATION; NOT RUN`
+`T247 GATE-5 x=0 ATTEMPT 1 HALTED PRE-POLICY; TORQUE-OFF REPAIR PREFLIGHT NEXT`
 
 T247 remains the unchanged selected policy. T250 and T251 were contract,
 attribution, and host-optimization evidence labels; they did not replace the
@@ -19,7 +19,7 @@ policy.
 | Policy ABI | Explicit two-stage 115-D/14-action T247 path; default 101-D v1 unchanged |
 | X5 compute | x=0 and x=.08 exact routes pass 35/35 with zero rate excess |
 | Runtime wiring | 18/18 real-asset mock checks pass, including pause and failed-write cleanup |
-| Hardware | Gates 1-4 `PASS_REVIEWED`; Gate 5 `NOT_RUN` |
+| Hardware | Gates 1-4 `PASS_REVIEWED`; Gate 5 attempt 1 halted pre-policy and did not pass |
 
 ## Frozen assets
 
@@ -32,7 +32,22 @@ policy.
 | Command manifest | `5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd` |
 | Context router | `3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284` |
 
-No policy binary is committed here or staged on the X5.
+The external T247 asset bundle and reviewed source were staged on the X5 for
+the authorized attempt. The invocation halted while paused after zero active
+policy ticks. Torque-off and governor restoration were confirmed.
+
+The halt is attributed to an in-process pygame/Bluetooth hotplug GIL stall plus
+late serial data being accepted as `OK`. The selected repair removes the Linux
+pygame polling thread, rejects post-deadline bytes, and enforces controller
+freshness while paused. Gate 5 is held until controller-only and 10,000-tick
+controller-present torque-off validation pass.
+
+The controller-only step now passes on the original Xbox identity
+`0C:35:26:2A:B8:0B`: 10,000/10,000 direct 50 Hz reads, exactly one A edge,
+zero disconnects, unchanged joydev inode, and no UART or servo access. The
+second identity `0C:35:26:3E:55:F6` is rejected after repeated HID-over-GATT
+failures. The next launcher must verify the known-good sysfs `uniq` before it
+opens the UART.
 
 ## Exact T247 ABI
 
@@ -62,10 +77,9 @@ state advance is owned by a confirmed successful servo write.
 
 ## Next action
 
-No training or policy modification is selected. After explicit authorization,
-stage the frozen source/assets and run only the suspended x=0 Gate 5 arm with
-`setup/run_t247_gate5_single_arm.sh`. Independently review it before requesting
-separate x=.08 authorization. The launcher cannot chain the arms and x=.08
-requires the reviewed x=0 receipt hash.
+No training or policy modification is selected. Run the frozen 10,000-tick
+controller-present torque-off probe. Only a reviewed pass can earn a replacement
+x=0 launcher and fresh motion authorization. The old launcher must not be
+reused. x=.08 remains blocked behind a reviewed green x=0 receipt.
 
 Grounded replay remains outside authority.

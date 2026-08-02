@@ -288,7 +288,10 @@ class STS3215Bus:
             count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             if snapshot.instrumentation_enabled:
                 if only_servo_id is None:
                     if snapshot.trace_group_first_rx_ns == 0:
@@ -361,7 +364,10 @@ class STS3215Bus:
             )
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             self._rx_length += count
             stream_received += count
             self._record_group_receive(snapshot, stream_received, receive_ns)
@@ -401,7 +407,10 @@ class STS3215Bus:
             count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             self._rx_length += count
             stream_received += count
             self._record_group_receive(snapshot, stream_received, receive_ns)
@@ -673,6 +682,8 @@ class STS3215Bus:
         while clock_ns() < deadline_ns:
             count = self.transport.read_some_into(view[received:], deadline_ns)
             if count <= 0:
+                break
+            if clock_ns() >= deadline_ns:
                 break
             received += count
             header = buffer.find(b"\xff\xff", 0, received)

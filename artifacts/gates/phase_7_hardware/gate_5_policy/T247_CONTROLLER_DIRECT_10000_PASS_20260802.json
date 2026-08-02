@@ -1,0 +1,51 @@
+{
+  "schema_version": "open_duck_x5.t247_controller_direct_validation.v1",
+  "status": "PASS_CONTROLLER_ONLY",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "preregistration": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_CONTROLLER_ISOLATION_REPAIR_PREREGISTRATION_20260802.json",
+  "hardware_scope": "controller only; no UART, servo read/write, torque, policy, or motion",
+  "controller": {
+    "name": "Xbox Wireless Controller",
+    "bluetooth_identity": "0C:35:26:2A:B8:0B",
+    "sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "modalias": "usb:v045Ep0B13d0515",
+    "battery_percent": 67,
+    "backend": "LinuxJoystickController",
+    "device": "/dev/input/js0",
+    "axis_codes": [0, 1, 2, 5, 9, 10, 16, 17],
+    "button_codes": [304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318],
+    "mapping_verified": {
+      "left_x_axis": 0,
+      "left_y_axis": 1,
+      "right_x_axis": 2,
+      "a_button": 0,
+      "y_button": 3,
+      "left_bumper": 4
+    }
+  },
+  "result": {
+    "ticks_requested": 10000,
+    "ticks_completed": 10000,
+    "a_edges": 1,
+    "disconnect_tick": null,
+    "last_error_errno": null,
+    "device_inode_unchanged": true,
+    "duration_s": 200.076263384,
+    "period_ms_mean": 20.000006793079308,
+    "period_ms_p99": 20.065095,
+    "period_ms_max": 20.127303
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/controller-direct-10000-20260802T074605Z",
+    "summary_json_sha256": "30e6ac23971751b2eb038119df40ae69f17c277c33e1c8f04e253423a5a54bd7"
+  },
+  "identity_attribution": {
+    "known_good_identity": "0C:35:26:2A:B8:0B",
+    "rejected_identity": "0C:35:26:3E:55:F6",
+    "rejected_modalias": "usb:v045Ep0B13d0509",
+    "reason": "The second public Bluetooth identity repeatedly failed HID-over-GATT service reads and could not maintain /dev/input/js0. It is not accepted for Gate 5.",
+    "runner_requirement": "The torque-off preflight and any later reviewed Gate 5 launcher must verify sysfs uniq 0c:35:26:2a:b8:0b before launch."
+  },
+  "advance": "Controller-only validation passes. This does not authorize motion. The controller-present 10000-tick torque-off timing preflight remains required."
+}

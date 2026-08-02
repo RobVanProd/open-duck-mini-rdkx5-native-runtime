@@ -5,8 +5,9 @@ torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
 restored `schedutil`. Gate 3 completed the corrected nine-label BNO055/contact
 matrix with no servo path. Gate 4 completed its frozen two-frequency sine
-sequence. Gate 5 remains `NOT_RUN`; authorization for one gate does not
-authorize the next.
+sequence. Gate 5 attempt 1 halted while paused after zero active policy ticks;
+it did not pass. Authorization for one gate or attempt does not authorize the
+next.
 
 ## Common preflight
 
@@ -416,9 +417,17 @@ does not authorize Gate 5.
 
 ## Gate 5 — Suspended T247 policy replay
 
-Gate 5 is ready to be authorized but remains `NOT_RUN`. T247 uses its reviewed,
-default-disabled 115-D two-stage path; the default 101-D v1 path remains frozen
-and unchanged. The candidate policy weights are unchanged from T247.
+**HOLD:** Do not invoke `setup/run_t247_gate5_single_arm.sh`. Attempt 1 on
+2026-08-02 halted while paused after zero active policy ticks. A Bluetooth Xbox
+HID reconnect was aligned within 17.58 ms of a 90.701 ms grouped-read stall;
+the watchdog confirmed torque-off. The old launcher remains historical evidence
+and is not a retry command.
+
+T247 still uses its reviewed, default-disabled 115-D two-stage path; the default
+101-D v1 path and the candidate policy weights remain unchanged. Before a retry
+can be preregistered, the thread-free Linux controller backend must pass its
+controller-only screen and a controller-present 10,000-tick torque-off timing
+probe. See `T247_CONTROLLER_ISOLATION_REPAIR_PREREGISTRATION_20260802.json`.
 
 The sequence is strict:
 
@@ -432,8 +441,8 @@ locomotion ticks. The 3,850 total-tick cap allows at most 60 seconds for the
 paused operator window. The runtime enters home over five seconds and then
 holds paused until the controller's preserved A-edge toggle unpauses it.
 
-Use only the frozen launcher and command packet in
-`artifacts/gates/phase_7_hardware/gate_5_policy/`. The x=0 invocation is:
+The following attempt-1 command is retained only for provenance and must not be
+rerun:
 
 ```bash
 cd /home/sunrise/open-duck-x5-gate5-t247
@@ -448,8 +457,9 @@ sudo setup/run_t247_gate5_single_arm.sh \
   --gate5-moving-authorized
 ```
 
-Do not run that command until Rob explicitly authorizes the exact x=0 Gate 5
-motion. The launcher validates the source tree, config, IMU profile, policy,
+Do not run that command. A replacement launcher requires completed no-motion
+repair evidence, a new preregistration, and fresh explicit authorization for
+the exact x=0 motion. The historical launcher validates the source tree, config, IMU profile, policy,
 calibrator, observer fit, reference table, route manifests, and context router
 before changing the governor or opening the UART. It requires `/dev/ttyS1`,
 isolated CPU 7, `SCHED_FIFO` priority 80, the temporary `performance` governor,

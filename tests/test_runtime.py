@@ -598,7 +598,8 @@ def test_serial_gate5_requires_calibration_before_opening_bus(
     assert not (tmp_path / "never.jsonl").exists()
 
 
-def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
+@pytest.mark.parametrize("paused", [False, True])
+def test_runtime_halts_when_physical_controller_sample_is_stale(paused: bool) -> None:
     class StaleController:
         @staticmethod
         def read_into(output: ControllerReadout) -> None:
@@ -613,13 +614,13 @@ def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
     runtime.controller_readout = ControllerReadout()
     runtime.commands = np.zeros(7, dtype=np.float64)
     runtime.args = Namespace(fixed_command_x=None, controller="xbox")
-    runtime.paused = False
+    runtime.paused = paused
     runtime.policy = object()
 
     with pytest.raises(SafetyError, match="controller state.*stale"):
         runtime._update_controller(250_000_002)
 
-    assert runtime.paused is False
+    assert runtime.paused is paused
 
 
 def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:

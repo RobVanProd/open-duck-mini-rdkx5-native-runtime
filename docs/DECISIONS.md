@@ -1113,3 +1113,38 @@ governor on every exit. It cannot chain x=0 to x=.08; x=.08 additionally needs
 a hash-verified reviewed x=0 receipt and separate authorization. This decision
 makes x=0 ready for an explicit suspended Gate 5 authorization but does not
 authorize staging, torque, motion, or grounded replay.
+
+## D070 — Remove the Linux controller thread after the pre-policy Gate 5 halt
+
+Accepted as a repair hypothesis, held behind no-motion validation. The first
+authorized x=0 invocation entered home and remained paused, then halted at tick
+2921 on a `92.776 ms` watchdog overrun. It executed zero active policy ticks.
+Torque-off, UART release, and governor restoration were confirmed. The grouped
+read consumed `90.701099 ms` yet all servo statuses were reported `ok` despite
+the configured `4 ms` response timeout.
+
+The tick began at monotonic `10251.550112780 s`; the kernel created a replacement
+Xbox Bluetooth HID device at `10251.532533 s`, only `17.57978 ms` earlier. The
+Linux runtime used an SDL/pygame polling thread in the same interpreter as the
+SCHED_FIFO servo loop. The selected causal hypothesis is that Bluetooth hotplug
+processing held the Python interpreter lock while the serial thread was waiting.
+The transport then resumed after its deadline, consumed already-buffered bytes,
+and misclassified the late transaction as successful.
+
+Linux controller input therefore moves to nonblocking `/dev/input/js0` reads on
+the control thread with no pygame thread. Serial receive code rejects bytes
+returned after the absolute deadline, and physical-controller freshness becomes
+mandatory while paused as well as active. This does not change T247, its ABI,
+observation/action semantics, or any servo setting. The old Gate 5 launcher is
+held. A controller-only A-edge test and a controller-present 10,000-tick
+torque-off timing probe must both pass before a replacement x=0 attempt can be
+preregistered; neither result authorizes motion.
+
+The controller-only step passed on 2026-08-02 using the original public
+Bluetooth identity `0C:35:26:2A:B8:0B` (`usb:v045Ep0B13d0515`). The direct
+backend completed 10,000/10,000 scheduled reads with exactly one A edge, zero
+disconnects, no read errno, and an unchanged joydev inode. Kernel axis and
+button maps also matched the inherited Xbox mapping. A second controller
+identity, `0C:35:26:3E:55:F6` (`d0509`), repeatedly failed HID-over-GATT reads
+and is rejected for Gate 5. The remaining no-motion falsifier is the same
+backend inside the 10,000-tick torque-off serial probe.

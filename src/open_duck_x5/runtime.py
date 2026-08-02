@@ -24,7 +24,7 @@ from .constants import (
     SERVO_IDS,
 )
 from .contract import ActionPipeline, ObservationAssembler, PhaseClock, StaleObservationError
-from .controller import ControllerReadout, NullController, PygameController
+from .controller import ControllerReadout, NullController, create_controller
 from .hardware_guard import (
     HardwareAuthorizationError,
     add_hardware_ack_arguments,
@@ -412,7 +412,7 @@ class Runtime:
             if args.controller == "none":
                 self.controller = NullController()
             else:
-                self.controller = PygameController(args.controller)
+                self.controller = create_controller(args.controller)
             self.writer = AsyncControlWriter(
                 args.telemetry,
                 observation_dim=(
@@ -519,13 +519,9 @@ class Runtime:
             self.commands.fill(0.0)
             self.commands[0] = float(self.args.fixed_command_x)
             self.controller_readout.phase_frequency_factor = 1.0
-        if (
-            not self.paused
-            and self.args.controller != "none"
-            and (
-                not self.controller_readout.connected
-                or tick_start_ns - self.controller_readout.timestamp_ns > 250_000_000
-            )
+        if self.args.controller != "none" and (
+            not self.controller_readout.connected
+            or tick_start_ns - self.controller_readout.timestamp_ns > 250_000_000
         ):
             raise SafetyError("physical controller state is disconnected or stale")
 

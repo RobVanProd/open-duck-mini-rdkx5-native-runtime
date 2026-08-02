@@ -1,15 +1,22 @@
 # Policy Deployment Status
 
-Status date: 2026-08-01
+Status date: 2026-08-02
 
 ## Current state
 
-`T247 READY FOR AN EXPLICIT SUSPENDED GATE-5 x=0 AUTHORIZATION; NOT RUN`
+`T247 GATE-5 x=0 ATTEMPT 1 HALTED BEFORE POLICY; TORQUE-OFF REPAIR PREFLIGHT NEXT`
 
-The policy-search and runtime-integration work are green. T247 is still the
+The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
-policies. No policy binary has been staged on the X5 and Hardware Gate 5 has
-not run.
+policies. The first authorized x=0 invocation entered and held home, but halted
+while paused on a 92.776 ms watchdog overrun. It executed zero active policy
+ticks, confirmed torque-off, released the UART, and restored the governor.
+
+The late transaction began 17.58 ms after the kernel created a replacement
+Xbox Bluetooth HID instance. The Linux controller implementation used pygame
+in a second Python thread, so hotplug processing could hold the interpreter
+lock and starve the RT servo thread. The same code also accepted bytes after
+the four-millisecond deadline and labeled the 90.701 ms grouped read `OK`.
 
 ## What is green
 
@@ -22,6 +29,7 @@ not run.
 | Independent summary | T247 stage, route, ABI, asset, duration, and safety validation passes |
 | Robot runtime | Hardware Gates 1-4 are `PASS_REVIEWED` |
 | Gate 5 launcher | Frozen one-arm launcher validates all hashes and restores the governor on every exit |
+| Controller isolation | The known-good Xbox identity passed 10,000/10,000 direct 50 Hz reads, one A edge, zero disconnects, and an unchanged device inode with no UART or servo access |
 
 The measured X5 policy-host timing is comfortably inside its separately frozen
 compute reserve:
@@ -38,22 +46,20 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Receive explicit authorization for the suspended T247 x=0 Gate 5 run.
-2. Stage the hash-frozen source and external policy assets on the X5 without
-   running them.
-3. With the robot securely supported and the Xbox controller connected, run
-   one launcher invocation for x=0: 250 calibration ticks plus 600 replay
-   ticks.
-4. Independently summarize and review that artifact.
-5. Only a reviewed green x=0 result can earn a separate x=.08 authorization.
+1. Run the preregistered controller-present 10,000-tick torque-off timing probe.
+2. Only if it passes, freeze and review a replacement x=0 launcher.
+4. Obtain fresh explicit authorization for that exact suspended retry.
+5. Independently summarize and review the x=0 artifact.
+6. Only a reviewed green x=0 result can earn a separate x=.08 authorization.
 
 The launcher cannot start x=.08 after x=0. Its x=.08 path requires both a
 separate authorization and the exact SHA-256 of a reviewed green x=0 receipt.
 
 ## Still not proven
 
-- No serial T247 policy replay has run.
-- The physical Xbox pause mapping has not been exercised by this candidate.
+- No active serial T247 policy tick has run.
+- The controller-isolation repair has not yet passed while sharing the process
+  with the real torque-off serial transaction loop.
 - T247 does not have grounded-walking clearance.
 - A readiness result does not authorize torque, motion, Gate 5, or grounded
   replay by itself.

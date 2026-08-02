@@ -1,0 +1,81 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_x0_attempt_review.v1",
+  "status": "HALT_PRE_POLICY_SOFTWARE_ISOLATION_DEFECT",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "287dd896c6402baaf43771aeb97f29a8f40192f8",
+  "fixed_command_x_m_s": 0.0,
+  "robot_supported": true,
+  "operator_present": true,
+  "policy_active_ticks": 0,
+  "paused_ticks": 2922,
+  "policy_behavior_observed": false,
+  "gate5_passed": false,
+  "x008_earned": false,
+  "robot_clearance": false,
+  "halt": {
+    "reason": "WatchdogTrip: hard tick overrun: 92.776 ms > 40.000 ms",
+    "tick": 2921,
+    "tick_start_monotonic_s": 10251.55011278,
+    "tick_period_ms": 19.998193,
+    "tick_work_ms": 92.386521,
+    "group_round_trip_ms": 90.701099,
+    "extended_round_trip_ms": 0.946378,
+    "bus_total_ms": 91.887936,
+    "per_servo_status": "all_reported_ok",
+    "configured_transaction_timeout_ms": 4.0
+  },
+  "otherwise_observed": {
+    "transaction_failures": 0,
+    "read_bursts": 0,
+    "stale_servo_samples": 0,
+    "device_alarm_replies": 0,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "tick_p99_ms": 20.002693,
+    "tick_p99_9_ms": 20.045789080000002,
+    "group_round_trip_p99_9_ms": 2.832586557000014
+  },
+  "safety_exit": {
+    "torque_off_attempted": true,
+    "torque_off_confirmed": true,
+    "serial_device_released": true,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil"
+  },
+  "causal_attribution": {
+    "classification": "IN_PROCESS_PYGAME_BLUETOOTH_HOTPLUG_GIL_INTERFERENCE_PLUS_LATE_OK_CLASSIFICATION",
+    "kernel_xbox_hid_create_monotonic_s": 10251.532533,
+    "gate_tick_start_minus_hid_create_ms": 17.57978,
+    "kernel_event": "input: Xbox Wireless Controller as /devices/virtual/misc/uhid/0005:045E:0B13.0003/input/input3",
+    "code_findings": [
+      "PygameController polls SDL from a second Python thread in the same process as the SCHED_FIFO servo loop.",
+      "A Bluetooth HID reconnect can hold the interpreter lock while the serial loop is waiting and prevent the real-time Python thread from resuming.",
+      "SerialTransport checked the deadline before select but not after it returned, so already-buffered late bytes were accepted as OK.",
+      "Runtime checked physical-controller freshness only after unpause, contrary to the fail-on-controller-loss safety rule."
+    ],
+    "inference": true,
+    "falsifier": "A thread-free direct Linux joystick backend plus post-wait deadline rejection must pass a controller-present 10000-tick torque-off serial probe without a late-OK transaction or hard overrun."
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-t247-x0-20260802",
+    "control_jsonl_sha256": "bbe61f7a3e776cb591c736a9fb42d268dfaa2e1ccd2e46a0567e6d67d875ea97",
+    "summary_json_sha256": "00e585d19b311eeb4d4a59d6283b11d2643aa3874d413520d82f6c6cfc58ed43",
+    "runner_metadata_sha256": "9f1c7dca1b81922165fcfea86f1e9ea0f72ef45282f633524962291daceef95e",
+    "runtime_stderr_sha256": "8171fe5997d272809c13b22a4be98e7ed28bd7956bce06438ecb40cf38f92fa7",
+    "candidate_review_sha256": "d728648d252105f522ace31ca300993269c34482564083a39b1ed38d907c7bce",
+    "external_archive": "D:\\CodexArtifacts\\gate5-t247-x0-attempt1-20260802.tar.gz",
+    "external_archive_sha256": "ef5b3f43dffa195beb289cab924600512ade3fa249f688dc036f4197bd41edd6",
+    "kernel_supplement_archive": "D:\\CodexArtifacts\\gate5-t247-x0-attempt1-supplemental-20260802.tar.gz",
+    "kernel_supplement_archive_sha256": "2047fda0bb94e9b5f76ac17772d8178a33424b313e810d6779de088093ca3bcd",
+    "kernel_window_sha256": "41a13738313a6852a4006cbc3796c7a0d0e653cda2542dae67195ea93b240696"
+  },
+  "required_before_retry": [
+    "Replace the Linux pygame polling thread with a direct nonblocking /dev/input/js0 reader in the control thread.",
+    "Reject serial data returned after the absolute transaction deadline.",
+    "Require fresh connected controller state while paused as well as active.",
+    "Pass the no-servo A-edge/controller stability screen.",
+    "Pass the preregistered controller-present 10000-tick torque-off timing probe."
+  ]
+}

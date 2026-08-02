@@ -1,12 +1,12 @@
 {
   "backend": "mock",
   "bus_total_ms": {
-    "max": 16.5488,
-    "mean": 15.5479732,
-    "min": 6.8953,
-    "p95": 16.07324,
-    "p99": 16.30475,
-    "p99_9": 16.5428738
+    "max": 24.7549,
+    "mean": 15.417063111111112,
+    "min": 4.1223,
+    "p95": 16.38464,
+    "p99": 19.810191999999994,
+    "p99_9": 24.219674400000024
   },
   "bus_total_population": {
     "components": [
@@ -15,7 +15,7 @@
       "extended_read_one_servo"
     ],
     "observation": "complete_tick_sweep",
-    "observations": 250,
+    "observations": 225,
     "statistic": "sample_max_over_completed_ticks"
   },
   "device_alarm_reply_count": 0,
@@ -24,6 +24,8 @@
     "baudrate": 1000000,
     "config_path": null,
     "config_sha256": null,
+    "controller": "none",
+    "controller_backend": null,
     "device": "mock://sts3215",
     "frequency_hz": 50.0,
     "hardware_authorized": false,
@@ -42,17 +44,17 @@
     "watchdog_consecutive_failures": 3
   },
   "extended_round_trip_ms": {
-    "max": 0.01,
-    "mean": 0.0027672,
+    "max": 0.197,
+    "mean": 0.005194666666666666,
     "min": 0.0011,
-    "p95": 0.004054999999999999,
-    "p99": 0.004803999999999997,
-    "p99_9": 0.008755000000000165
+    "p95": 0.0063799999999999985,
+    "p99": 0.009307999999999992,
+    "p99_9": 0.15535840000000195
   },
   "gates": {
     "authorization_provenance": true,
     "bus_max_under_5_ms": false,
-    "complete_record_stream": true,
+    "complete_record_stream": false,
     "gate2_home_hold_candidate": false,
     "gate4_sine_candidate": false,
     "moving_gate_scope": true,
@@ -66,54 +68,54 @@
     "zero_read_bursts": true
   },
   "group_round_trip_ms": {
-    "max": 16.5261,
-    "mean": 15.5349084,
-    "min": 6.8765,
-    "p95": 16.05588,
-    "p99": 16.289310999999998,
-    "p99_9": 16.5230871
+    "max": 24.7379,
+    "mean": 15.397563555555555,
+    "min": 4.1032,
+    "p95": 16.368239999999997,
+    "p99": 19.762727999999992,
+    "p99_9": 24.199919200000025
   },
   "group_round_trip_population": {
     "observation": "one_0x82_request_plus_14_response_burst",
-    "observations": 250,
+    "observations": 225,
     "statistic": "sample_max_over_completed_ticks"
   },
-  "halt_reason": null,
+  "halt_reason": "hard tick overrun: 49.329 ms > 40.000 ms",
   "hardware_gate_status": "NOT_APPLICABLE_MOCK",
   "informational_only": true,
-  "jsonl_sha256": "e53de62a92470234976ecbe181c864d8ad55d7d4f04187f36ed646d2d96c65eb",
+  "jsonl_sha256": "bed812d1b0a0d1066767b6f5f3cb2e15ae4fbde6aabba37d5add8b6b73db7643",
   "max_read_burst_ticks": 0,
   "partial_byte_count": 0,
   "read_burst_count": 0,
   "release_lateness_ms": {
-    "max": 15.5378,
-    "mean": 7.432396000000001,
-    "min": 0.0042,
-    "p95": 14.21482,
-    "p99": 15.171327,
-    "p99_9": 15.496092500000007
+    "max": 31.6451,
+    "mean": 8.109580888888889,
+    "min": 0.0006,
+    "p95": 15.040099999999997,
+    "p99": 19.74004799999997,
+    "p99_9": 29.601727200000095
   },
   "review_status": "INFORMATIONAL_ONLY",
-  "run_status": "COMPLETE",
+  "run_status": "HALTED",
   "schema_version": "open_duck_x5.timing_summary.v2",
   "tick_period_ms": {
-    "max": 31.9778,
-    "mean": 20.01198072289157,
-    "min": 14.8734,
-    "p95": 31.35696,
-    "p99": 31.876832,
-    "p99_9": 31.9746256
+    "max": 49.3287,
+    "mean": 20.14124776785714,
+    "min": 8.8042,
+    "p95": 31.785605,
+    "p99": 35.64539800000003,
+    "p99_9": 46.67631570000018
   },
-  "ticks": 250,
+  "ticks": 225,
   "ticks_requested": 250,
   "tracking_absolute_error_rad": {
     "max": 0.0034631801101951227,
-    "mean": 0.0021663269402231035,
+    "mean": 0.002201606317794547,
     "min": 0.0,
-    "p95": 0.0034451701886752516,
-    "p99": 0.0034631801095548484,
-    "p99_9": 0.003463180110035699,
-    "samples": 250
+    "p95": 0.003450384420371742,
+    "p99": 0.003463180109554849,
+    "p99_9": 0.0034631801100517053,
+    "samples": 225
   },
   "tracking_joint_index": 0,
   "transaction_failure_counts": {
@@ -131,12 +133,12 @@
     "crc": 0,
     "device": 0,
     "io": 0,
-    "ok": 4000,
+    "ok": 3600,
     "partial": 0,
     "timeout": 0,
     "unexpected_id": 0
   },
-  "transactions_expected": 4000,
+  "transactions_expected": 3600,
   "transactions_failed": 0,
   "unexpected_packet_count": 0,
   "voltage_alarm_reply_count": 0

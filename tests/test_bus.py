@@ -5,6 +5,7 @@ import struct
 import time
 
 import numpy as np
+import pytest
 
 from open_duck_x5.bus.protocol import checksum
 from open_duck_x5.bus.sts3215 import (
@@ -209,6 +210,36 @@ def test_group_response_deadline_starts_after_request_write() -> None:
     bus.read_state_into(snapshot)
 
     assert snapshot.all_fresh
+
+
+def test_group_read_rejects_bytes_returned_after_absolute_deadline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeClock:
+        now_ns = 0
+
+        @classmethod
+        def now(cls) -> int:
+            return cls.now_ns
+
+    class LateTransport(FakeTransport):
+        def read_some_into(self, target, deadline_ns: int) -> int:
+            count = super().read_some_into(target, deadline_ns)
+            FakeClock.now_ns = deadline_ns + 1
+            return count
+
+    monkeypatch.setattr("open_duck_x5.bus.sts3215.clock_ns", FakeClock.now)
+    bus = STS3215Bus(
+        transport=LateTransport(read_chunk_size=140),
+        transaction_timeout_s=0.004,
+    )
+    snapshot = ServoSnapshot.create()
+    snapshot.begin_tick()
+
+    bus.read_state_into(snapshot)
+
+    assert not snapshot.all_fresh
+    assert np.all(snapshot.status == int(ErrorCode.TIMEOUT))
 
 
 def test_group_read_routes_a_complete_out_of_order_train_by_servo_id() -> None:
