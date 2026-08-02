@@ -1,0 +1,67 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_command_route_invalid_execution_review.v1",
+  "status": "INVALID_EXECUTION_TRANSPORT_ABORT_NO_MECHANISM_DECISION",
+  "date": "2026-08-01",
+  "screen": "t247_deployment_x5_command_route_reserved_screen",
+  "source_commit": "bcdf408f76d3948c9ecef7a0c138d7b687f37af2",
+  "preregistration": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_reserved_screen_preregistration_20260801.json",
+    "sha256": "cdda6d2a277b70942f253dacbc799acf279bbe24443f187f09602bbf3d38479b"
+  },
+  "execution_package": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_execution_package_20260801.json",
+    "sha256": "a46b159fbb482565eaf3863e142f0d40eb2a72c711fbf7f29c1a6decea850881"
+  },
+  "attempt": {
+    "platform": "RDK-X5 aarch64 Linux",
+    "runner_completed_both_semantic_and_paced_populations": true,
+    "result_json_created": false,
+    "exception": "FileNotFoundError while sealing the raw-output receipt",
+    "unexpected_raw_argument_suffix": "carriage return (0x0d)",
+    "unexpected_file_name": "raw-ticks.npz\\r.npz",
+    "cause": "The Windows PowerShell string-to-stdin transport appended CRLF to the final line of the remote bash script. Bash retained the carriage return in the final --raw-output argument.",
+    "runner_or_model_defect": false,
+    "valid_screen": false
+  },
+  "preserved_invalid_evidence": {
+    "storage": "external D-drive evidence store; not tracked",
+    "relative_external_path": "t247-command-route-contract/x5-evidence-20260801/invalid-attempt-1/invalid-attempt-raw-ticks.npz",
+    "sha256": "b409c72021e547d56ed44addb7f417d2e00ad17affcffb559eca180aff0e82a2",
+    "arrays_complete": true,
+    "selection_weight": 0,
+    "diagnostic_only": true,
+    "diagnostic_locomotion_stage_ms": {
+      "x000_home_hold_route": {
+        "samples": 2048,
+        "p99": 0.75697173,
+        "p99_9": 1.2444256980000272,
+        "max": 1.276589
+      },
+      "x080_gate5_moving_route": {
+        "samples": 2048,
+        "p99": 1.57172953,
+        "p99_9": 1.9498122970000025,
+        "max": 2.17805
+      }
+    }
+  },
+  "safety_receipt": {
+    "temporary_governor_before_run": "performance",
+    "governor_after_abort": "schedutil",
+    "robot_devices": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false
+  },
+  "decision": {
+    "original_rule": "any_platform_asset_route_semantic_state_or_safety_failure -> INVALID_SCREEN_NO_MECHANISM_DECISION",
+    "classification": "INVALID_SCREEN_NO_MECHANISM_DECISION",
+    "command_route_mechanism_closed": false,
+    "command_route_mechanism_passed": false,
+    "threshold_changed": false,
+    "retry_of_a_valid_result": false,
+    "replacement_execution_requires_new_preregistration": true
+  }
+}
