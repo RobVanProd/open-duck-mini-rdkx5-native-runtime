@@ -1,0 +1,71 @@
+{
+  "schema_version": "open_duck_x5.t247_runtime_opt_in_wiring_route_fixture_review.v1",
+  "status": "VALID_HOLD_ROUTE_EXPECTATION_FIXTURE_ERROR",
+  "date": "2026-08-01",
+  "source_commit": "d3f0989076961093ab45ecae17b97b28068acbda",
+  "original_preregistration": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_runtime_opt_in_wiring_preregistration_20260801.json",
+    "sha256": "59f3ce1702c2a4a233949b08cce20e0326e83fdca46ad7bb81851a51c8fadfc9"
+  },
+  "valid_hold_result": {
+    "external_path": "D:\\CodexArtifacts\\t247-runtime-opt-in-wiring\\hold-attempt-1\\result.json",
+    "file_sha256": "30aaf88f0e8a98230d2f86e88880a8609a60c6a4fc58a66897f1d7d589fec877",
+    "canonical_result_sha256": "49a98f2f39a78e1a2e29057f14e2916fa3ad6a8870b4adcbd9278a0dbb57cb97",
+    "reported_status": "HOLD_T247_RUNTIME_OPT_IN_WIRING",
+    "checks": "17/18",
+    "only_failed_check": "lower_cond0_x080_after_handoff",
+    "selected_context_route": "lower-cond1",
+    "selected_command_route": "x080",
+    "success_telemetry_sha256": "24f91b721521ee216c41d05def8691480eb27b736397afd61f469b72d88fc959",
+    "paused_telemetry_sha256": "05cb00e275cdea7714958941a28295c6db41809ce2f35bfb9b9c94743f0aee7d",
+    "failed_write_telemetry_sha256": "fb7f89c92fccf9e7321fc0d32f14fdbb0bb53f86850a18fef9934ac8e04e8284"
+  },
+  "isolation": {
+    "method": "Run the unchanged hash-verified T247 calibrator for exactly 250 confirmed ticks with the frozen constant-home sample. Change only the two foot-contact values.",
+    "common_inputs": {
+      "gyro_rad_s": [0.0, 0.0, 0.0],
+      "acceleration_m_s2": [0.0, 0.0, 9.81],
+      "positions_rad": "HOME_RAD",
+      "velocities_rad_s": "zeros(14)",
+      "soft_offsets_rad": "linspace(-0.001, 0.001, 14)",
+      "confirmed_calibration_ticks": 250
+    },
+    "results": [
+      {
+        "foot_contacts": [0.0, 0.0],
+        "selected_context_route": "lower-cond1"
+      },
+      {
+        "foot_contacts": [1.0, 1.0],
+        "selected_context_route": "lower-cond0"
+      }
+    ],
+    "mock_sensor_contract": "MockSensorHub publishes [0.0, 0.0], matching a suspended/no-contact fixture.",
+    "cause": "The original check hard-coded the lower-cond0 route observed under the older both-feet-contact synthetic fixture. Context routing is designed to select among six immutable hash-verified routes, so lower-cond1 under no contact is valid and expected.",
+    "policy_or_runtime_defect": false
+  },
+  "preserved_evidence": {
+    "all_30_route_assets_hash_verified": true,
+    "all_six_context_routes_cpu_exact": true,
+    "exact_x080_command_subroute_selected": true,
+    "all_258_successful_writes_committed_exactly_once": true,
+    "all_115_observation_fields_preserved": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "failed_write_state_commit_count": 0,
+    "failed_write_faulted_closed": true,
+    "torque_off_on_all_mock_exit_paths": true
+  },
+  "decision": "EARN_ONE_REPLACEMENT_RUNTIME_WIRING_RUN_WITH_CONTEXT_ROUTE_MEMBERSHIP_CHECK",
+  "authority": {
+    "offline_cpu_only": true,
+    "mock_bus_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "gate5": false
+  }
+}
