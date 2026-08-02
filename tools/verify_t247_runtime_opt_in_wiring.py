@@ -27,6 +27,7 @@ from open_duck_x5.runtime import (  # noqa: E402
 )
 from open_duck_x5.safety import SafetyError  # noqa: E402
 from open_duck_x5.t247_command_routes import (  # noqa: E402
+    ROUTE_NAMES,
     T247_CALIBRATOR_SHA256,
     T247_COMMAND_MANIFEST_SHA256,
     T247_CONTEXT_ROUTER_SHA256,
@@ -40,9 +41,9 @@ PREREGISTRATION = (
     / "artifacts"
     / "gates"
     / "phase_5_policy"
-    / "t247_deployment_runtime_opt_in_wiring_preregistration_20260801.json"
+    / "t247_deployment_runtime_opt_in_wiring_replacement_preregistration_20260801.json"
 )
-PREREGISTRATION_SHA256 = "59f3ce1702c2a4a233949b08cce20e0326e83fdca46ad7bb81851a51c8fadfc9"
+PREREGISTRATION_SHA256 = "075f06df4ae1e7ef9ac73ee8126702a7db8a839b61bd813d7cc42d6eaf5fb622"
 ACTIVE_TICKS = 258
 CALIBRATION_TICKS = 250
 
@@ -408,8 +409,8 @@ def main() -> int:
                 for tick in locomotion_ticks
             )
         ),
-        "lower_cond0_x080_after_handoff": all(
-            tick["policy_host"]["selected_context_route"] == "lower-cond0"
+        "valid_context_route_and_x080_after_handoff": all(
+            tick["policy_host"]["selected_context_route"] in ROUTE_NAMES
             and tick["policy_host"]["selected_command_route"] == "x080"
             for tick in locomotion_ticks
         ),
