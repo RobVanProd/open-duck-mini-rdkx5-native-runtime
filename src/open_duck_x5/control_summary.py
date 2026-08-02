@@ -19,6 +19,21 @@ from .constants import (
     SERVO_IDS,
 )
 from .policy import ONNX_SESSION_CONTRACT
+from .t247_command_routes import (
+    ROUTE_NAMES as T247_ROUTE_NAMES,
+)
+from .t247_command_routes import (
+    T247_CALIBRATION_TICKS,
+    T247_CALIBRATOR_SHA256,
+    T247_COMMAND_MANIFEST_SHA256,
+    T247_CONTEXT_ROUTER_SHA256,
+    T247_OBSERVATION_DIM,
+    T247_P30_SHA256,
+    T247_POLICY_CONTRACT,
+    T247_POLICY_SHA256,
+    T247_REFERENCE_SHA256,
+    T247_RUNTIME_CONTRACT_ID,
+)
 
 CONTROL_TICK_SCHEMA = "open_duck_x5.control_tick.v1"
 RUNTIME_EVENT_SCHEMA = "open_duck_x5.runtime_event.v1"
@@ -102,9 +117,10 @@ def _require_number(value: object, label: str, *, minimum: float = 0.0) -> float
     return result
 
 
-def _validate_start(details: dict[str, object]) -> None:
-    if details.get("contract_id") != CONTRACT_ID:
-        raise ControlSummaryError("runtime_start contract_id does not match the frozen contract")
+def _validate_start(details: dict[str, object]) -> str | None:
+    contract_id = details.get("contract_id")
+    if contract_id not in {CONTRACT_ID, T247_RUNTIME_CONTRACT_ID}:
+        raise ControlSummaryError("runtime_start contract_id does not match a reviewed contract")
     if details.get("control_frequency_hz") != 50.0:
         raise ControlSummaryError("runtime_start control frequency is not 50 Hz")
     if details.get("control_period_ns") != 20_000_000:
@@ -123,31 +139,98 @@ def _validate_start(details: dict[str, object]) -> None:
     if bus.get("backend") not in ("mock", "serial"):
         raise ControlSummaryError("runtime_start bus backend is invalid")
     policy = details.get("policy")
-    if policy is not None:
-        policy_map = _require_mapping(policy, "runtime_start.policy")
-        policy_sha = policy_map.get("sha256")
-        if not isinstance(policy_sha, str) or len(policy_sha) != 64 or any(
-            character not in "0123456789abcdef" for character in policy_sha
+    if policy is None:
+        if contract_id != CONTRACT_ID:
+            raise ControlSummaryError("T247 runtime_start has no policy provenance")
+        return None
+    policy_map = _require_mapping(policy, "runtime_start.policy")
+    policy_sha = policy_map.get("sha256")
+    if not isinstance(policy_sha, str) or len(policy_sha) != 64 or any(
+        character not in "0123456789abcdef" for character in policy_sha
+    ):
+        raise ControlSummaryError("runtime_start policy SHA-256 is missing")
+    policy_contract = policy_map.get("contract")
+    if policy_contract == T247_POLICY_CONTRACT:
+        if contract_id != T247_RUNTIME_CONTRACT_ID:
+            raise ControlSummaryError("T247 policy uses the wrong runtime contract ID")
+        if policy_sha != T247_POLICY_SHA256:
+            raise ControlSummaryError("runtime_start T247 policy SHA-256 differs")
+        if policy_map.get("calibration_ticks") != T247_CALIBRATION_TICKS:
+            raise ControlSummaryError("runtime_start T247 calibration duration differs")
+        if policy_map.get("calibrator_inputs") != {
+            "obs": [1, T247_OBSERVATION_DIM],
+            "previous_action": [1, ACTION_DIM],
+            "h_in": [1, 64],
+        }:
+            raise ControlSummaryError("runtime_start T247 calibrator ABI differs")
+        if policy_map.get("locomotion_inputs") != {
+            "obs": [1, T247_OBSERVATION_DIM],
+            "previous_action": [1, ACTION_DIM],
+            "h_in": [1, 64],
+            "calibration_context": [1, 64],
+        }:
+            raise ControlSummaryError("runtime_start T247 locomotion input ABI differs")
+        if policy_map.get("outputs") != {
+            "action": [1, ACTION_DIM],
+            "previous_action_out": [1, ACTION_DIM],
+            "h_out": [1, 64],
+        }:
+            raise ControlSummaryError("runtime_start T247 output ABI differs")
+        if (
+            policy_map.get("context_routes") != 6
+            or policy_map.get("exact_command_routes") != 24
+            or policy_map.get("fallback_preserved") is not True
         ):
-            raise ControlSummaryError("runtime_start policy SHA-256 is missing")
-        if policy_map.get("input") != {
-            "name": "obs",
-            "shape": [1, OBSERVATION_DIM],
-            "type": "tensor(float)",
-        }:
-            raise ControlSummaryError("runtime_start policy input is not frozen obs [1,101]")
-        if policy_map.get("output") != {
-            "name": "continuous_actions",
-            "shape": [1, ACTION_DIM],
-            "type": "tensor(float)",
-        }:
-            raise ControlSummaryError(
-                "runtime_start policy output is not frozen continuous_actions [1,14]"
-            )
-        if policy_map.get("session") != ONNX_SESSION_CONTRACT:
-            raise ControlSummaryError(
-                "runtime_start policy session is not the deterministic single-thread contract"
-            )
+            raise ControlSummaryError("runtime_start T247 route catalog differs")
+        assets = _require_mapping(policy_map.get("assets"), "runtime_start.policy.assets")
+        expected_assets = {
+            "calibrator": T247_CALIBRATOR_SHA256,
+            "command_route_manifest": T247_COMMAND_MANIFEST_SHA256,
+            "p30_fit": T247_P30_SHA256,
+            "reference_table": T247_REFERENCE_SHA256,
+        }
+        for name, expected_sha256 in expected_assets.items():
+            asset = _require_mapping(assets.get(name), f"runtime_start.policy.assets.{name}")
+            if asset.get("sha256") != expected_sha256:
+                raise ControlSummaryError(f"runtime_start T247 {name} SHA-256 differs")
+        context_root = _require_mapping(
+            assets.get("context_route_root"),
+            "runtime_start.policy.assets.context_route_root",
+        )
+        command_root = _require_mapping(
+            assets.get("command_route_root"),
+            "runtime_start.policy.assets.command_route_root",
+        )
+        if (
+            context_root.get("verified_models") != 6
+            or context_root.get("router_sha256") != T247_CONTEXT_ROUTER_SHA256
+            or command_root.get("verified_models") != 24
+        ):
+            raise ControlSummaryError("runtime_start T247 route-root provenance differs")
+        return T247_POLICY_CONTRACT
+    if contract_id != CONTRACT_ID:
+        raise ControlSummaryError("legacy policy uses the wrong runtime contract ID")
+    if policy_contract not in (None, "v1-101"):
+        raise ControlSummaryError("runtime_start legacy policy selector differs")
+    if policy_map.get("input") != {
+        "name": "obs",
+        "shape": [1, OBSERVATION_DIM],
+        "type": "tensor(float)",
+    }:
+        raise ControlSummaryError("runtime_start policy input is not frozen obs [1,101]")
+    if policy_map.get("output") != {
+        "name": "continuous_actions",
+        "shape": [1, ACTION_DIM],
+        "type": "tensor(float)",
+    }:
+        raise ControlSummaryError(
+            "runtime_start policy output is not frozen continuous_actions [1,14]"
+        )
+    if policy_map.get("session") != ONNX_SESSION_CONTRACT:
+        raise ControlSummaryError(
+            "runtime_start policy session is not the deterministic single-thread contract"
+        )
+    return "v1-101"
 
 
 def _read_records(
@@ -213,14 +296,14 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         raise ControlSummaryError(f"control JSONL not found: {source}")
     start, realtime, ticks, halt = _read_records(source)
     details = _require_mapping(start.get("details"), "runtime_start.details")
-    _validate_start(details)
+    policy_contract = _validate_start(details)
     bus_details = _require_mapping(details["bus"], "runtime_start.bus")
     backend = str(bus_details["backend"])
     config_details = _require_mapping(details["config"], "runtime_start.config")
     max_ticks = int(details.get("max_ticks", 0))
     max_active_ticks = int(details.get("max_active_ticks", 0))
     fixed_command_x = details.get("fixed_command_x")
-    policy_present = details.get("policy") is not None
+    policy_present = policy_contract is not None
     realtime_required = details.get("realtime_required") is True
     if realtime_required != (realtime is not None):
         raise ControlSummaryError(
@@ -273,6 +356,10 @@ def summarize_control_run(path: Path) -> dict[str, object]:
             or not realtime_required
         ):
             raise ControlSummaryError("serial Gate 5 duration/RT provenance is incomplete")
+        if policy_contract == T247_POLICY_CONTRACT and max_active_ticks != 850:
+            raise ControlSummaryError(
+                "serial T247 Gate 5 requires 250 calibration and 600 locomotion ticks"
+            )
 
     tick_period_ms: list[float] = []
     tick_work_ms: list[float] = []
@@ -290,6 +377,9 @@ def summarize_control_run(path: Path) -> dict[str, object]:
     voltage_alarm_replies = 0
     paused_ticks = 0
     active_policy_ticks = 0
+    t247_policy_stages: list[str] = []
+    t247_context_routes: set[str] = set()
+    t247_command_routes: set[str] = set()
     command_x_values: list[float] = []
     max_abs_non_x_command = 0.0
     envelope_events = np.zeros(ACTION_DIM, dtype=np.int64)
@@ -431,18 +521,68 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         if observation_valid:
             if paused:
                 raise ControlSummaryError(f"tick {index} has a valid observation while paused")
+            observation_length = (
+                T247_OBSERVATION_DIM
+                if policy_contract == T247_POLICY_CONTRACT
+                else OBSERVATION_DIM
+            )
             observation = _require_array(
-                tick.get("observation"), f"tick {index}.observation", OBSERVATION_DIM
+                tick.get("observation"), f"tick {index}.observation", observation_length
             )
             _require_array(tick.get("action"), f"tick {index}.action", ACTION_DIM)
-            command_x_values.append(float(observation[6]))
             max_abs_non_x_command = max(
                 max_abs_non_x_command,
                 max(abs(float(value)) for value in observation[7:13]),
             )
+            if policy_contract == T247_POLICY_CONTRACT:
+                policy_host = _require_mapping(
+                    tick.get("policy_host"), f"tick {index}.policy_host"
+                )
+                stage = policy_host.get("stage")
+                if stage not in {"calibration", "locomotion"}:
+                    raise ControlSummaryError(f"tick {index} T247 stage is invalid")
+                t247_policy_stages.append(str(stage))
+                context_route = policy_host.get("selected_context_route")
+                command_route = policy_host.get("selected_command_route")
+                if stage == "calibration":
+                    if any(float(value) != 0.0 for value in observation[6:13]):
+                        raise ControlSummaryError(
+                            f"tick {index} T247 calibration command is not zero"
+                        )
+                    if context_route is not None:
+                        if context_route not in T247_ROUTE_NAMES:
+                            raise ControlSummaryError(
+                                f"tick {index} T247 calibration context route is invalid"
+                            )
+                        t247_context_routes.add(str(context_route))
+                    if command_route not in {None, "fallback"}:
+                        raise ControlSummaryError(
+                            f"tick {index} T247 calibration command route is invalid"
+                        )
+                else:
+                    if context_route not in T247_ROUTE_NAMES:
+                        raise ControlSummaryError(
+                            f"tick {index} T247 locomotion context route is invalid"
+                        )
+                    expected_route = "x000" if fixed_command_x == 0.0 else "x080"
+                    if command_route != expected_route:
+                        raise ControlSummaryError(
+                            f"tick {index} T247 locomotion command route differs"
+                        )
+                    t247_context_routes.add(str(context_route))
+                    t247_command_routes.add(str(command_route))
+                    command_x_values.append(float(observation[6]))
+            else:
+                if "policy_host" in tick:
+                    raise ControlSummaryError(
+                        f"tick {index} legacy policy record has T247 host metadata"
+                    )
+                command_x_values.append(float(observation[6]))
             active_policy_ticks += 1
         elif tick.get("observation") is not None or tick.get("action") is not None:
             raise ControlSummaryError(f"tick {index} invalid observation/action must be null")
+        elif "policy_host" in tick:
+            raise ControlSummaryError(f"tick {index} inactive record has policy host metadata")
         if policy_present and observation_valid != (not paused):
             raise ControlSummaryError(
                 f"tick {index} policy pause/observation state is inconsistent"
@@ -526,6 +666,21 @@ def summarize_control_run(path: Path) -> dict[str, object]:
             for value in command_x_values
         )
     )
+    t247_stage_sequence_exact = True
+    t247_route_sequence_exact = True
+    if policy_contract == T247_POLICY_CONTRACT:
+        locomotion_ticks = active_policy_ticks - T247_CALIBRATION_TICKS
+        t247_stage_sequence_exact = (
+            locomotion_ticks > 0
+            and t247_policy_stages
+            == ["calibration"] * T247_CALIBRATION_TICKS
+            + ["locomotion"] * locomotion_ticks
+        )
+        expected_command_route = "x000" if fixed_command_x == 0.0 else "x080"
+        t247_route_sequence_exact = (
+            len(t247_context_routes) == 1
+            and t247_command_routes == {expected_command_route}
+        )
     tick_stats = _stats(tick_period_ms)
     bus_stats = _stats(bus_total_ms)
     gates = {
@@ -536,6 +691,8 @@ def summarize_control_run(path: Path) -> dict[str, object]:
         "policy_ticks_present": active_policy_ticks > 0,
         "fixed_command_matches": command_matches,
         "zero_non_x_commands": max_abs_non_x_command <= 1e-7,
+        "t247_stage_sequence_exact": t247_stage_sequence_exact,
+        "t247_route_sequence_exact": t247_route_sequence_exact,
         "tick_p99_at_most_21_ms": tick_stats["p99"] is not None
         and tick_stats["p99"] <= 21.0,
         "tick_p99_9_at_most_22_ms": tick_stats["p99_9"] is not None

@@ -46,9 +46,12 @@ from .t247_command_routes import (
     T247_CALIBRATOR_SHA256,
     T247_COMMAND_MANIFEST_SHA256,
     T247_CONTEXT_ROUTER_SHA256,
+    T247_OBSERVATION_DIM,
     T247_P30_SHA256,
+    T247_POLICY_CONTRACT,
     T247_POLICY_SHA256,
     T247_REFERENCE_SHA256,
+    T247_RUNTIME_CONTRACT_ID,
     T247CommandRouteCatalog,
     T247CommandRouteTransaction,
 )
@@ -72,8 +75,8 @@ from .winner_v13_state_coherent import (
 )
 
 POLICY_CONTRACT_V1 = "v1-101"
-POLICY_CONTRACT_T247 = "t247-command-routed-115"
-T247_OBSERVATION_DIM = 115
+POLICY_CONTRACT_T247 = T247_POLICY_CONTRACT
+T247_GATE5_ACTIVE_TICKS = T247_CALIBRATION_TICKS + 600
 
 
 def _sha256(path: Path) -> str:
@@ -313,6 +316,11 @@ class Runtime:
                         "serial Gate 5 requires --policy-contract "
                         f"{POLICY_CONTRACT_T247}"
                     )
+                if args.max_active_ticks != T247_GATE5_ACTIVE_TICKS:
+                    raise ValueError(
+                        "serial T247 Gate 5 requires exactly 850 active ticks "
+                        "(250 calibration + 600 locomotion)"
+                    )
             if args.require_realtime:
                 # This must happen before ONNX, sensors, controller, or writer
                 # create threads. They then inherit housekeeping affinity.
@@ -548,6 +556,10 @@ class Runtime:
         assets["context_route_root"] = {
             "path": str(self.t247_asset_paths["context_route_root"]),
             "verified_models": 6,
+            "router_sha256": _sha256(
+                self.t247_asset_paths["context_route_root"]
+                / "policy.context-router.onnx"
+            ),
         }
         assets["command_route_root"] = {
             "path": str(self.t247_asset_paths["command_route_root"]),
@@ -584,7 +596,11 @@ class Runtime:
         sensor_diagnostics = self.sensor_hub.diagnostics()
         imu_diagnostics = dict(sensor_diagnostics["imu"])
         return {
-            "contract_id": CONTRACT_ID,
+            "contract_id": (
+                T247_RUNTIME_CONTRACT_ID
+                if self.t247_host is not None
+                else CONTRACT_ID
+            ),
             "control_frequency_hz": CONTROL_FREQUENCY_HZ,
             "control_period_ns": CONTROL_PERIOD_NS,
             "bus": {

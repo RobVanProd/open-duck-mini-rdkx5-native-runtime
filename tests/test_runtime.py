@@ -484,7 +484,7 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
             "--max-ticks",
             "900",
             "--max-active-ticks",
-            "600",
+            "850",
             "--fixed-command-x",
             "0",
             "--controller",
@@ -501,6 +501,59 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
 
     assert events[:3] == ["bus_open", "disable_torque", "contacts_open"]
     assert events[-2:] == ["disable_torque", "bus_close"]
+
+
+def test_serial_t247_gate5_requires_exact_850_active_ticks_before_bus(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fail_if_opened(*_args, **_kwargs):
+        pytest.fail("serial bus opened before exact T247 duration validation")
+
+    monkeypatch.setattr(runtime_module, "STS3215Bus", fail_if_opened)
+    args = build_parser().parse_args(
+        [
+            "--bus",
+            "serial",
+            "--config",
+            str(Path(__file__).parents[1] / "duck_config.example.json"),
+            "--imu-calibration",
+            str(_imu_calibration(tmp_path)),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--policy",
+            str(tmp_path / "policy.onnx"),
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+            "--context-route-root",
+            str(tmp_path / "context-routes"),
+            "--command-route-root",
+            str(tmp_path / "command-routes"),
+            "--command-route-manifest",
+            str(tmp_path / "command-routes" / "manifest.json"),
+            "--p30-fit",
+            str(tmp_path / "p30.json"),
+            "--reference-table",
+            str(tmp_path / "reference.npz"),
+            "--telemetry",
+            str(tmp_path / "never.jsonl"),
+            "--fixed-command-x",
+            "0.08",
+            "--controller",
+            "xbox",
+            "--max-ticks",
+            "1200",
+            "--max-active-ticks",
+            "849",
+            "--require-realtime",
+            "--gate5-authorized",
+            "--hardware-authorized",
+            "--suspended-or-benched",
+        ]
+    )
+
+    with pytest.raises(ValueError, match="exactly 850 active ticks"):
+        Runtime(args)
 
 
 def test_serial_gate5_requires_calibration_before_opening_bus(

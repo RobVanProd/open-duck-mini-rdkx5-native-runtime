@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,16 @@ from open_duck_x5.control_summary import (
     main as summary_main,
 )
 from open_duck_x5.runtime import main as runtime_main
+from open_duck_x5.t247_command_routes import (
+    T247_CALIBRATOR_SHA256,
+    T247_COMMAND_MANIFEST_SHA256,
+    T247_CONTEXT_ROUTER_SHA256,
+    T247_P30_SHA256,
+    T247_POLICY_CONTRACT,
+    T247_POLICY_SHA256,
+    T247_REFERENCE_SHA256,
+    T247_RUNTIME_CONTRACT_ID,
+)
 
 
 def _example_config() -> Path:
@@ -53,6 +64,101 @@ def _run_paused(
         == 0
     )
     return telemetry
+
+
+def _synthetic_t247_telemetry(tmp_path: Path, *, fixed_x: float = 0.08) -> Path:
+    source = _run_paused(tmp_path, ticks=1)
+    records = [json.loads(line) for line in source.read_text(encoding="utf-8").splitlines()]
+    start = records[0]
+    template = records[1]
+    halt = records[-1]
+    active_ticks = 252
+    details = start["details"]
+    details["contract_id"] = T247_RUNTIME_CONTRACT_ID
+    details["fixed_command_x"] = fixed_x
+    details["max_ticks"] = active_ticks + 1
+    details["max_active_ticks"] = active_ticks
+    details["policy"] = {
+        "contract": T247_POLICY_CONTRACT,
+        "path": "/frozen/policy.onnx",
+        "sha256": T247_POLICY_SHA256,
+        "calibration_ticks": 250,
+        "calibrator_inputs": {
+            "obs": [1, 115],
+            "previous_action": [1, 14],
+            "h_in": [1, 64],
+        },
+        "locomotion_inputs": {
+            "obs": [1, 115],
+            "previous_action": [1, 14],
+            "h_in": [1, 64],
+            "calibration_context": [1, 64],
+        },
+        "outputs": {
+            "action": [1, 14],
+            "previous_action_out": [1, 14],
+            "h_out": [1, 64],
+        },
+        "context_routes": 6,
+        "exact_command_routes": 24,
+        "fallback_preserved": True,
+        "assets": {
+            "calibrator": {"path": "/frozen/calibrator.onnx", "sha256": T247_CALIBRATOR_SHA256},
+            "command_route_manifest": {
+                "path": "/frozen/manifest.json",
+                "sha256": T247_COMMAND_MANIFEST_SHA256,
+            },
+            "p30_fit": {"path": "/frozen/p30.json", "sha256": T247_P30_SHA256},
+            "reference_table": {
+                "path": "/frozen/reference.npz",
+                "sha256": T247_REFERENCE_SHA256,
+            },
+            "context_route_root": {
+                "path": "/frozen/context-routes",
+                "verified_models": 6,
+                "router_sha256": T247_CONTEXT_ROUTER_SHA256,
+            },
+            "command_route_root": {
+                "path": "/frozen/command-routes",
+                "verified_models": 24,
+            },
+        },
+    }
+    tick_records = []
+    first_timestamp = int(start["timestamp_monotonic_ns"]) + 20_000_000
+    for index in range(active_ticks):
+        tick = deepcopy(template)
+        tick["tick"] = index
+        tick["timestamp_monotonic_ns"] = first_timestamp + index * 20_000_000
+        tick["tick_period_ms"] = None if index == 0 else 20.0
+        tick["paused"] = False
+        tick["observation_valid"] = True
+        observation = [0.0] * 115
+        stage = "calibration" if index < 250 else "locomotion"
+        if stage == "locomotion":
+            observation[6] = fixed_x
+        tick["observation"] = observation
+        tick["action"] = [0.0] * 14
+        tick["extended"]["servo_id"] = details["servo_ids"][index % 14]
+        tick["policy_host"] = {
+            "stage": stage,
+            "selected_context_route": (
+                "lower-cond1" if index >= 249 else None
+            ),
+            "selected_command_route": (
+                ("x000" if fixed_x == 0.0 else "x080")
+                if stage == "locomotion"
+                else ("fallback" if index == 249 else None)
+            ),
+        }
+        tick_records.append(tick)
+    halt["timestamp_monotonic_ns"] = first_timestamp + active_ticks * 20_000_000
+    output = tmp_path / "synthetic-t247.jsonl"
+    output.write_text(
+        "\n".join(json.dumps(record) for record in (start, *tick_records, halt)) + "\n",
+        encoding="utf-8",
+    )
+    return output
 
 
 def test_paused_mock_control_summary_is_structurally_complete_but_not_gate5(
@@ -153,6 +259,48 @@ def test_active_policy_summary_preserves_provenance_command_and_envelope(
     assert summary["envelope"]["total_events"] > 0
     assert summary["gates"]["complete_record_stream"] is True
     assert summary["gates"]["zero_non_x_commands"] is True
+
+
+def test_t247_summary_validates_calibration_locomotion_and_route_sequence(
+    tmp_path: Path,
+) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+
+    summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(summary)
+    assert summary["active_policy_ticks"] == 252
+    assert summary["command"]["observed_x"]["min"] == 0.08
+    assert summary["command"]["observed_x"]["max"] == 0.08
+    assert summary["command"]["matches_fixed_x"] is True
+    assert summary["gates"]["t247_stage_sequence_exact"] is True
+    assert summary["gates"]["t247_route_sequence_exact"] is True
+
+
+def test_t247_summary_rejects_wrong_locomotion_route(tmp_path: Path) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    records[-2]["policy_host"]["selected_command_route"] = "x000"
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ControlSummaryError, match="command route differs"):
+        summarize_control_run(telemetry)
+
+
+def test_t247_summary_rejects_legacy_top_level_contract_id(tmp_path: Path) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    records[0]["details"]["contract_id"] = "open-duck-mini.best-walk.101x14.v1"
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ControlSummaryError, match="wrong runtime contract ID"):
+        summarize_control_run(telemetry)
 
 
 def test_summary_rejects_tick_discontinuity(tmp_path: Path) -> None:

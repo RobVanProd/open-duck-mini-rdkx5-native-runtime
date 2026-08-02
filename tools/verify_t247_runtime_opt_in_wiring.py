@@ -34,6 +34,7 @@ from open_duck_x5.t247_command_routes import (  # noqa: E402
     T247_P30_SHA256,
     T247_POLICY_SHA256,
     T247_REFERENCE_SHA256,
+    T247_RUNTIME_CONTRACT_ID,
 )
 
 PREREGISTRATION = (
@@ -378,9 +379,12 @@ def main() -> int:
         "tracked_worktree_clean_at_execution": not bool(tracked_status),
         "all_selected_asset_receipts_exact": all(asset_checks.values()),
         "runtime_start_contract_is_t247_115": (
-            policy_details["contract"] == POLICY_CONTRACT_T247
+            start_event["details"]["contract_id"] == T247_RUNTIME_CONTRACT_ID
+            and policy_details["contract"] == POLICY_CONTRACT_T247
             and policy_details["calibrator_inputs"]["obs"] == [1, 115]
             and policy_details["locomotion_inputs"]["obs"] == [1, 115]
+            and policy_details["assets"]["context_route_root"]["router_sha256"]
+            == T247_CONTEXT_ROUTER_SHA256
         ),
         "all_30_route_assets_verified_before_run": (
             policy_details["context_routes"] == 6

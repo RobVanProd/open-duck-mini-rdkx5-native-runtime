@@ -19,6 +19,7 @@ import numpy as np
 from .constants import ACTION_DIM, CONTROL_PERIOD_NS
 from .t247_x5_optimized import T247X5OptimizedTransaction
 from .winner_v13_state_coherent import (
+    CALIBRATION_TICKS,
     CONTEXT_DIM,
     GraphAsset,
     GraphSpec,
@@ -29,7 +30,11 @@ from .winner_v13_state_coherent import (
     _StateCoherentGraphSession,
 )
 
-CONTRACT_ID = "open-duck-mini.t247.command-routed.115x14.v1"
+T247_POLICY_CONTRACT = "t247-command-routed-115"
+T247_RUNTIME_CONTRACT_ID = "open-duck-mini.t247-command-routed.115x14.v1"
+T247_OBSERVATION_DIM = 115
+T247_CALIBRATION_TICKS = CALIBRATION_TICKS
+CONTRACT_ID = T247_RUNTIME_CONTRACT_ID
 T247_POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
 T247_CALIBRATOR_SHA256 = (
     "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
