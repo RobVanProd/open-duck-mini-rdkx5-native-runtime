@@ -42,8 +42,38 @@ from .sensors import (
     SensorReadout,
     X5FootContacts,
 )
+from .t247_command_routes import (
+    T247_CALIBRATOR_SHA256,
+    T247_COMMAND_MANIFEST_SHA256,
+    T247_CONTEXT_ROUTER_SHA256,
+    T247_P30_SHA256,
+    T247_POLICY_SHA256,
+    T247_REFERENCE_SHA256,
+    T247CommandRouteCatalog,
+    T247CommandRouteTransaction,
+)
+from .t247_command_routes import (
+    calibrator_spec as t247_calibrator_spec,
+)
 from .telemetry import AsyncControlWriter, TelemetryError
 from .timing import AbsoluteTicker
+from .winner_v2 import WinnerV2ContractError
+from .winner_v13_state_coherent import (
+    CALIBRATION_TICKS as T247_CALIBRATION_TICKS,
+)
+from .winner_v13_state_coherent import (
+    GraphAsset as T247GraphAsset,
+)
+from .winner_v13_state_coherent import (
+    P30FitAsset as T247P30FitAsset,
+)
+from .winner_v13_state_coherent import (
+    WinnerV13ContractError,
+)
+
+POLICY_CONTRACT_V1 = "v1-101"
+POLICY_CONTRACT_T247 = "t247-command-routed-115"
+T247_OBSERVATION_DIM = 115
 
 
 def _sha256(path: Path) -> str:
@@ -72,6 +102,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout-ms", type=float, default=4.0)
     parser.add_argument("--config", type=Path, default=Path.home() / "duck_config.json")
     parser.add_argument("--policy", type=Path)
+    parser.add_argument(
+        "--policy-contract",
+        choices=(POLICY_CONTRACT_V1, POLICY_CONTRACT_T247),
+        default=POLICY_CONTRACT_V1,
+    )
+    parser.add_argument("--calibrator", type=Path)
+    parser.add_argument("--context-route-root", type=Path)
+    parser.add_argument("--command-route-root", type=Path)
+    parser.add_argument("--command-route-manifest", type=Path)
+    parser.add_argument("--p30-fit", type=Path)
+    parser.add_argument("--reference-table", type=Path)
     parser.add_argument("--controller", choices=("none", "xbox", "f710"), default="none")
     parser.add_argument("--fixed-command-x", type=float)
     parser.add_argument("--telemetry", type=Path, required=True)
@@ -105,6 +146,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def validate_runtime_args(args: argparse.Namespace) -> None:
+    policy_contract = getattr(args, "policy_contract", POLICY_CONTRACT_V1)
+    if policy_contract not in {POLICY_CONTRACT_V1, POLICY_CONTRACT_T247}:
+        raise ValueError(f"unknown --policy-contract: {policy_contract}")
     if args.baudrate <= 0:
         raise ValueError("--baudrate must be positive")
     if not np.isfinite(args.timeout_ms) or args.timeout_ms <= 0:
@@ -127,11 +171,37 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
     if args.fixed_command_x is not None and not np.isfinite(args.fixed_command_x):
         raise ValueError("--fixed-command-x must be finite")
+    t247_asset_names = (
+        "calibrator",
+        "context_route_root",
+        "command_route_root",
+        "command_route_manifest",
+        "p30_fit",
+        "reference_table",
+    )
+    t247_assets = {
+        name: getattr(args, name, None) for name in t247_asset_names
+    }
+    if policy_contract == POLICY_CONTRACT_T247:
+        missing = [name for name, value in t247_assets.items() if value is None]
+        if args.policy is None:
+            missing.insert(0, "policy")
+        if missing:
+            flags = ", ".join("--" + name.replace("_", "-") for name in missing)
+            raise ValueError(f"T247 policy contract requires {flags}")
+    elif any(value is not None for value in t247_assets.values()):
+        raise ValueError(
+            "T247 asset arguments require --policy-contract "
+            f"{POLICY_CONTRACT_T247}"
+        )
     telemetry_path = args.telemetry.expanduser().resolve()
     protected_paths = {args.config.expanduser().resolve()}
     protected_paths.add(args.imu_calibration.expanduser().resolve())
     if args.policy is not None:
         protected_paths.add(args.policy.expanduser().resolve())
+    for value in t247_assets.values():
+        if value is not None:
+            protected_paths.add(value.expanduser().resolve())
     if args.bus == "serial":
         protected_paths.add(Path(args.device).expanduser().resolve())
     if telemetry_path in protected_paths:
@@ -144,6 +214,11 @@ class Runtime:
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         validate_runtime_args(args)
+        self.policy_contract = getattr(
+            args,
+            "policy_contract",
+            POLICY_CONTRACT_V1,
+        )
         self.config_path = args.config.expanduser().resolve()
         self.config = DuckConfig.load(self.config_path)
         self.config_sha256 = _sha256(self.config_path)
@@ -165,6 +240,12 @@ class Runtime:
         self.phase = PhaseClock(self.config.phase_frequency_factor_offset)
         self.commands = np.zeros(7, dtype=np.float64)
         self.telemetry_action = np.zeros(ACTION_DIM, dtype=np.float32)
+        self.t247_over_envelope = np.zeros(ACTION_DIM, dtype=np.bool_)
+        self.t247_host: T247CommandRouteTransaction | None = None
+        self.policy = None
+        self.policy_path: Path | None = None
+        self.policy_sha256: str | None = None
+        self.t247_asset_paths: dict[str, Path] = {}
         self.paused = self.config.start_paused
         self.watchdog = Watchdog(
             hard_overrun_ns=2 * CONTROL_PERIOD_NS,
@@ -205,6 +286,11 @@ class Runtime:
                     raise ValueError(
                         "Gate 5 serial runtime requires finite --max-active-ticks"
                     )
+                if args.max_active_ticks <= T247_CALIBRATION_TICKS:
+                    raise ValueError(
+                        "Gate 5 T247 runtime requires more than 250 active ticks "
+                        "so locomotion is actually exercised"
+                    )
                 if args.max_ticks <= args.max_active_ticks:
                     raise ValueError(
                         "Gate 5 --max-ticks must exceed --max-active-ticks "
@@ -222,6 +308,11 @@ class Runtime:
                 if not args.require_realtime:
                     raise RealtimeSetupError("serial runtime requires --require-realtime")
                 self.imu_calibration = BNO055Calibration.load(args.imu_calibration)
+                if self.policy_contract != POLICY_CONTRACT_T247:
+                    raise PolicyContractError(
+                        "serial Gate 5 requires --policy-contract "
+                        f"{POLICY_CONTRACT_T247}"
+                    )
             if args.require_realtime:
                 # This must happen before ONNX, sensors, controller, or writer
                 # create threads. They then inherit housekeeping affinity.
@@ -253,18 +344,75 @@ class Runtime:
                 self.bus = MockSTS3215Bus()
                 self.sensor_hub = MockSensorHub()
 
-            self.policy = OnnxPolicy(args.policy) if args.policy else None
             self.policy_path = (
                 args.policy.expanduser().resolve() if args.policy is not None else None
             )
             self.policy_sha256 = (
                 _sha256(self.policy_path) if self.policy_path is not None else None
             )
+            if self.policy_contract == POLICY_CONTRACT_V1:
+                self.policy = OnnxPolicy(args.policy) if args.policy else None
+            else:
+                if self.policy_path is None or self.policy_sha256 != T247_POLICY_SHA256:
+                    raise PolicyContractError(
+                        "T247 provenance policy SHA-256 differs: "
+                        f"{self.policy_sha256}"
+                    )
+                self.t247_asset_paths = {
+                    "calibrator": args.calibrator.expanduser().resolve(),
+                    "context_route_root": args.context_route_root.expanduser().resolve(),
+                    "command_route_root": args.command_route_root.expanduser().resolve(),
+                    "command_route_manifest": (
+                        args.command_route_manifest.expanduser().resolve()
+                    ),
+                    "p30_fit": args.p30_fit.expanduser().resolve(),
+                    "reference_table": args.reference_table.expanduser().resolve(),
+                }
+                if (
+                    _sha256(self.t247_asset_paths["reference_table"])
+                    != T247_REFERENCE_SHA256
+                ):
+                    raise PolicyContractError("T247 reference-table SHA-256 differs")
+                catalog = T247CommandRouteCatalog(
+                    context_root=self.t247_asset_paths["context_route_root"],
+                    command_root=self.t247_asset_paths["command_route_root"],
+                    command_manifest_path=self.t247_asset_paths[
+                        "command_route_manifest"
+                    ],
+                    command_manifest_sha256=T247_COMMAND_MANIFEST_SHA256,
+                    context_router_sha256=T247_CONTEXT_ROUTER_SHA256,
+                )
+                self.t247_host = T247CommandRouteTransaction(
+                    calibrator=T247GraphAsset(
+                        self.t247_asset_paths["calibrator"],
+                        t247_calibrator_spec(),
+                        frozenset({T247_CALIBRATOR_SHA256}),
+                    ),
+                    catalog=catalog,
+                    p30_fit=T247P30FitAsset(
+                        self.t247_asset_paths["p30_fit"],
+                        frozenset({T247_P30_SHA256}),
+                    ),
+                    reference_table_path=self.t247_asset_paths["reference_table"],
+                    enabled=True,
+                    warmup_runs=3,
+                    phase_frequency_factor_offset=(
+                        self.config.phase_frequency_factor_offset
+                    ),
+                )
+                self.t247_host.bind_soft_offsets(self.offsets)
             if args.controller == "none":
                 self.controller = NullController()
             else:
                 self.controller = PygameController(args.controller)
-            self.writer = AsyncControlWriter(args.telemetry)
+            self.writer = AsyncControlWriter(
+                args.telemetry,
+                observation_dim=(
+                    T247_OBSERVATION_DIM
+                    if self.t247_host is not None
+                    else self.assembler.observation.size
+                ),
+            )
             self.halt_reason = "normal_exit"
         except BaseException:
             with suppress(BaseException):
@@ -350,7 +498,7 @@ class Runtime:
         if self.args.fixed_command_x is not None:
             self.commands[0] = float(self.args.fixed_command_x)
         if self.controller_readout.pause_toggle:
-            if self.paused and self.policy is None:
+            if self.paused and self.policy is None and self.t247_host is None:
                 return
             self.paused = not self.paused
         if (
@@ -372,6 +520,65 @@ class Runtime:
             )
         ):
             raise SafetyError("physical controller state is disconnected or stale")
+
+    def _policy_start_details(self) -> dict[str, object] | None:
+        if self.policy_path is None:
+            return None
+        if self.t247_host is None:
+            return {
+                "contract": POLICY_CONTRACT_V1,
+                "path": str(self.policy_path),
+                "sha256": self.policy_sha256,
+                "input": {"name": "obs", "shape": [1, 101], "type": "tensor(float)"},
+                "output": {
+                    "name": "continuous_actions",
+                    "shape": [1, 14],
+                    "type": "tensor(float)",
+                },
+                "session": dict(ONNX_SESSION_CONTRACT),
+            }
+        assets = {
+            name: {
+                "path": str(path),
+                "sha256": _sha256(path) if path.is_file() else None,
+            }
+            for name, path in self.t247_asset_paths.items()
+            if name not in {"context_route_root", "command_route_root"}
+        }
+        assets["context_route_root"] = {
+            "path": str(self.t247_asset_paths["context_route_root"]),
+            "verified_models": 6,
+        }
+        assets["command_route_root"] = {
+            "path": str(self.t247_asset_paths["command_route_root"]),
+            "verified_models": 24,
+        }
+        return {
+            "contract": POLICY_CONTRACT_T247,
+            "path": str(self.policy_path),
+            "sha256": self.policy_sha256,
+            "calibration_ticks": T247_CALIBRATION_TICKS,
+            "calibrator_inputs": {
+                "obs": [1, 115],
+                "previous_action": [1, 14],
+                "h_in": [1, 64],
+            },
+            "locomotion_inputs": {
+                "obs": [1, 115],
+                "previous_action": [1, 14],
+                "h_in": [1, 64],
+                "calibration_context": [1, 64],
+            },
+            "outputs": {
+                "action": [1, 14],
+                "previous_action_out": [1, 14],
+                "h_out": [1, 64],
+            },
+            "context_routes": 6,
+            "exact_command_routes": 24,
+            "fallback_preserved": True,
+            "assets": assets,
+        }
 
     def _runtime_start_details(self) -> dict[str, object]:
         sensor_diagnostics = self.sensor_hub.diagnostics()
@@ -433,21 +640,7 @@ class Runtime:
                     "polarity": "raw GPIO false -> contact true",
                 },
             },
-            "policy": (
-                {
-                    "path": str(self.policy_path),
-                    "sha256": self.policy_sha256,
-                    "input": {"name": "obs", "shape": [1, 101], "type": "tensor(float)"},
-                    "output": {
-                        "name": "continuous_actions",
-                        "shape": [1, 14],
-                        "type": "tensor(float)",
-                    },
-                    "session": dict(ONNX_SESSION_CONTRACT),
-                }
-                if self.policy_path is not None
-                else None
-            ),
+            "policy": self._policy_start_details(),
             "joint_names": list(JOINT_NAMES),
             "servo_ids": list(SERVO_IDS),
             "controller": self.args.controller,
@@ -527,7 +720,48 @@ class Runtime:
                 self.sensor_hub.read_into(self.sensors, clock_ns())
 
                 observation_valid = False
-                if not self.paused and self.policy is not None:
+                t247_staged = False
+                policy_stage: str | None = None
+                if not self.paused and self.t247_host is not None:
+                    policy_tick = self.t247_host.committed_ticks
+                    policy_stage = (
+                        "calibration"
+                        if self.t247_host.confirmed_calibration_ticks
+                        < T247_CALIBRATION_TICKS
+                        else "locomotion"
+                    )
+                    try:
+                        physical_target = self.t247_host.stage_tick(
+                            tick_index=policy_tick,
+                            logical_period_ns=CONTROL_PERIOD_NS,
+                            servo_sample_tick_index=policy_tick,
+                            imu_sample_tick_index=policy_tick,
+                            contacts_sample_tick_index=policy_tick,
+                            gyro_rad_s=self.sensors.gyro_rad_s,
+                            acceleration_m_s2=self.sensors.acceleration_m_s2,
+                            commands=self.commands,
+                            positions_rad=self.logical_positions,
+                            velocities_rad_s=self.logical_velocities,
+                            foot_contacts=self.sensors.contacts,
+                            servo_stale=self.snapshot.stale,
+                            imu_stale=self.sensors.imu_stale,
+                            contacts_stale=self.sensors.contacts_stale,
+                            soft_offsets_rad=self.offsets,
+                        )
+                        np.copyto(
+                            self.telemetry_action,
+                            self.t247_host.normalized_action_view,
+                        )
+                        np.greater(
+                            self.t247_host.target_pipeline.graph_rate_excess_rad_s,
+                            0.0,
+                            out=self.t247_over_envelope,
+                        )
+                        observation_valid = True
+                        t247_staged = True
+                    except (WinnerV13ContractError, WinnerV2ContractError) as exc:
+                        raise SafetyError(f"T247 policy transaction failed: {exc}") from exc
+                elif not self.paused and self.policy is not None:
                     try:
                         observation = self.assembler.build(
                             gyro_rad_s=self.sensors.gyro_rad_s,
@@ -574,15 +808,43 @@ class Runtime:
                         ) from exc
                 else:
                     physical_target = self.hold_physical_target
-                    self.action_pipeline.implied_velocity_rad_s.fill(0.0)
-                    self.action_pipeline.over_envelope.fill(False)
+                    if self.t247_host is None:
+                        self.action_pipeline.implied_velocity_rad_s.fill(0.0)
+                        self.action_pipeline.over_envelope.fill(False)
+                    else:
+                        self.t247_host.target_pipeline.implied_velocity_rad_s.fill(0.0)
+                        self.t247_over_envelope.fill(False)
 
-                if observation_valid:
+                if observation_valid and not t247_staged:
                     np.copyto(self.hold_physical_target, physical_target)
 
                 write_start_ns = clock_ns()
                 self.snapshot.write_status = self.bus.write_positions(physical_target)
                 write_elapsed_ns = clock_ns() - write_start_ns
+                if t247_staged:
+                    if self.snapshot.write_status is not ErrorCode.OK:
+                        try:
+                            self.t247_host.complete_send(write_succeeded=False)
+                        except WinnerV13ContractError as exc:
+                            raise SafetyError(
+                                "T247 target write failed; recurrent state was not committed"
+                            ) from exc
+                        raise SafetyError(
+                            "T247 target write failed without faulting the policy host"
+                        )
+                    try:
+                        self.t247_host.complete_send(write_succeeded=True)
+                        if (
+                            self.t247_host.confirmed_calibration_ticks
+                            == T247_CALIBRATION_TICKS
+                            and not self.t247_host.handoff_complete
+                        ):
+                            self.t247_host.confirm_calibration_handoff(True)
+                    except WinnerV13ContractError as exc:
+                        raise SafetyError(
+                            f"T247 confirmed-send commit failed: {exc}"
+                        ) from exc
+                    np.copyto(self.hold_physical_target, physical_target)
                 self.bus.read_extended_into(self.snapshot, SERVO_IDS[tick % ACTION_DIM])
                 if self.snapshot.extended_device_status:
                     raise SafetyError(
@@ -604,6 +866,31 @@ class Runtime:
                     and self.snapshot.unexpected_packets == 0
                 )
 
+                if self.t247_host is None:
+                    telemetry_observation = self.assembler.observation
+                    telemetry_sent_target = (
+                        self.action_pipeline.previous_motor_target_rad
+                    )
+                    telemetry_implied_velocity = (
+                        self.action_pipeline.implied_velocity_rad_s
+                    )
+                    telemetry_over_envelope = self.action_pipeline.over_envelope
+                    selected_context_route = None
+                    selected_command_route = None
+                else:
+                    telemetry_observation = self.t247_host.observation_view
+                    telemetry_sent_target = self.t247_host.logical_target_view
+                    telemetry_implied_velocity = (
+                        self.t247_host.target_pipeline.implied_velocity_rad_s
+                    )
+                    telemetry_over_envelope = self.t247_over_envelope
+                    selected_context_route = (
+                        self.t247_host.selected_context_route
+                    )
+                    selected_command_route = (
+                        self.t247_host.selected_command_route
+                    )
+
                 self.writer.publish(
                     tick,
                     tick_start_ns,
@@ -614,12 +901,15 @@ class Runtime:
                     self.sensors.imu_age_ns,
                     self.sensors.contacts_age_ns,
                     self.snapshot,
-                    self.assembler.observation,
+                    telemetry_observation,
                     self.telemetry_action,
                     self.logical_positions,
-                    self.action_pipeline.previous_motor_target_rad,
-                    self.action_pipeline.implied_velocity_rad_s,
-                    self.action_pipeline.over_envelope,
+                    telemetry_sent_target,
+                    telemetry_implied_velocity,
+                    telemetry_over_envelope,
+                    policy_stage=policy_stage,
+                    selected_context_route=selected_context_route,
+                    selected_command_route=selected_command_route,
                 )
                 # Include record capture/queue publication in the safety deadline.
                 # The record itself carries pre-publication work so logging remains

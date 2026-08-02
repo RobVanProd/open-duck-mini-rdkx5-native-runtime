@@ -47,6 +47,18 @@ ALLOWED_WINNER_V2_CONSUMERS = {
 ISOLATED_VERSIONED_CONSUMERS = {
     "winner_v13_state_coherent.py": "WinnerV13StateCoherentTransaction",
 }
+REVIEWED_T247_VERSIONED_CONSUMERS = {
+    "runtime.py",
+    "t247_command_routes.py",
+    "t247_x5_optimized.py",
+}
+T247_RUNTIME_WIRING_PREREGISTRATION = (
+    "artifacts/gates/phase_5_policy/"
+    "t247_deployment_runtime_opt_in_wiring_preregistration_20260801.json"
+)
+T247_RUNTIME_WIRING_PREREGISTRATION_SHA256 = (
+    "59f3ce1702c2a4a233949b08cce20e0326e83fdca46ad7bb81851a51c8fadfc9"
+)
 FORBIDDEN_HARDWARE_IMPORT_ROOTS = {
     "gpiod",
     "serial",
@@ -116,7 +128,15 @@ def _has_false_keyword_default(
     return False
 
 
-def _audit_isolated_versioned_consumers(source_root: Path) -> None:
+def _t247_runtime_wiring_preregistered(root: Path) -> bool:
+    preregistration = root / T247_RUNTIME_WIRING_PREREGISTRATION
+    return (
+        preregistration.is_file()
+        and _sha256(preregistration) == T247_RUNTIME_WIRING_PREREGISTRATION_SHA256
+    )
+
+
+def _audit_isolated_versioned_consumers(root: Path, source_root: Path) -> None:
     for filename, class_name in ISOLATED_VERSIONED_CONSUMERS.items():
         isolated_path = source_root / filename
         if not isolated_path.is_file():
@@ -172,10 +192,16 @@ def _audit_isolated_versioned_consumers(source_root: Path) -> None:
                 }:
                     consumers.append(path.name)
                     break
-        _require(
-            consumers == [],
-            f"production modules import isolated versioned host {filename}: {consumers}",
-        )
+        if consumers:
+            reviewed = (
+                set(consumers) == REVIEWED_T247_VERSIONED_CONSUMERS
+                and _t247_runtime_wiring_preregistered(root)
+            )
+            _require(
+                reviewed,
+                f"production modules import isolated versioned host {filename}: "
+                f"{consumers}",
+            )
 
 
 def _audit_default_disabled(root: Path) -> dict[str, Any]:
@@ -201,7 +227,7 @@ def _audit_default_disabled(root: Path) -> dict[str, Any]:
     )
     _require(not forbidden_tokens, f"winner-v2 contains forbidden transforms: {forbidden_tokens}")
 
-    _audit_isolated_versioned_consumers(source_root)
+    _audit_isolated_versioned_consumers(root, source_root)
 
     consumers: list[str] = []
     for path in sorted(source_root.rglob("*.py")):
@@ -223,6 +249,11 @@ def _audit_default_disabled(root: Path) -> dict[str, Any]:
                 }
         if imports_winner:
             if path.name in ISOLATED_VERSIONED_CONSUMERS:
+                continue
+            if (
+                path.name in REVIEWED_T247_VERSIONED_CONSUMERS
+                and _t247_runtime_wiring_preregistered(root)
+            ):
                 continue
             consumers.append(path.name)
             _require(

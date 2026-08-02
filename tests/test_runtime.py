@@ -34,6 +34,41 @@ def _imu_calibration(tmp_path: Path) -> Path:
     return path
 
 
+def test_runtime_policy_contract_defaults_to_frozen_v1() -> None:
+    args = build_parser().parse_args(["--telemetry", "mock.jsonl"])
+    assert args.policy_contract == "v1-101"
+
+
+def test_t247_policy_contract_requires_every_external_asset(tmp_path: Path) -> None:
+    args = build_parser().parse_args(
+        [
+            "--telemetry",
+            str(tmp_path / "control.jsonl"),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--policy",
+            str(tmp_path / "policy.onnx"),
+        ]
+    )
+    with pytest.raises(ValueError, match="--calibrator"):
+        runtime_module.validate_runtime_args(args)
+
+
+def test_v1_policy_contract_rejects_silently_ignored_t247_assets(
+    tmp_path: Path,
+) -> None:
+    args = build_parser().parse_args(
+        [
+            "--telemetry",
+            str(tmp_path / "control.jsonl"),
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+        ]
+    )
+    with pytest.raises(ValueError, match="require --policy-contract"):
+        runtime_module.validate_runtime_args(args)
+
+
 def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
     config = Path(__file__).parents[1] / "duck_config.example.json"
     telemetry = tmp_path / "control.jsonl"
@@ -430,6 +465,20 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
             str(_imu_calibration(tmp_path)),
             "--policy",
             str(tmp_path / "candidate.onnx"),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+            "--context-route-root",
+            str(tmp_path / "context-routes"),
+            "--command-route-root",
+            str(tmp_path / "command-routes"),
+            "--command-route-manifest",
+            str(tmp_path / "command-routes" / "manifest.json"),
+            "--p30-fit",
+            str(tmp_path / "p30.json"),
+            "--reference-table",
+            str(tmp_path / "reference.npz"),
             "--telemetry",
             str(tmp_path / "never.jsonl"),
             "--max-ticks",

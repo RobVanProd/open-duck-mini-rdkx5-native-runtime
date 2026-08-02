@@ -31,6 +31,19 @@ from .winner_v13_state_coherent import (
 
 CONTRACT_ID = "open-duck-mini.t247.command-routed.115x14.v1"
 T247_POLICY_SHA256 = "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+T247_CALIBRATOR_SHA256 = (
+    "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+)
+T247_COMMAND_MANIFEST_SHA256 = (
+    "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd"
+)
+T247_CONTEXT_ROUTER_SHA256 = (
+    "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284"
+)
+T247_P30_SHA256 = "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+T247_REFERENCE_SHA256 = (
+    "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+)
 COMMAND_MANIFEST_SCHEMA = "open_duck_x5.t247_command_route_variant_manifest.v1"
 CONTEXT_MANIFEST_SCHEMA = "open_duck_x5.t247_context_route_variant_manifest.v1"
 ROUTE_NAMES = (

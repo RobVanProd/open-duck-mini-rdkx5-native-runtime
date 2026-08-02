@@ -254,6 +254,9 @@ class ControlRecord:
     over_envelope: np.ndarray = field(
         default_factory=lambda: np.zeros(ACTION_DIM, dtype=np.bool_)
     )
+    policy_stage: str | None = None
+    selected_context_route: str | None = None
+    selected_command_route: str | None = None
 
     def capture(
         self,
@@ -272,6 +275,9 @@ class ControlRecord:
         sent_target_rad: np.ndarray,
         implied_velocity_rad_s: np.ndarray,
         over_envelope: np.ndarray,
+        policy_stage: str | None = None,
+        selected_context_route: str | None = None,
+        selected_command_route: str | None = None,
     ) -> None:
         self.tick = tick
         self.tick_start_ns = tick_start_ns
@@ -302,9 +308,12 @@ class ControlRecord:
         np.copyto(self.sent_target_rad, sent_target_rad)
         np.copyto(self.implied_velocity_rad_s, implied_velocity_rad_s)
         np.copyto(self.over_envelope, over_envelope)
+        self.policy_stage = policy_stage
+        self.selected_context_route = selected_context_route
+        self.selected_command_route = selected_command_route
 
     def as_jsonable(self) -> dict[str, object]:
-        return {
+        result: dict[str, object] = {
             "schema_version": "open_duck_x5.control_tick.v1",
             "tick": self.tick,
             "timestamp_monotonic_ns": self.tick_start_ns,
@@ -342,10 +351,25 @@ class ControlRecord:
             "implied_target_velocity_rad_s": self.implied_velocity_rad_s.tolist(),
             "over_3_75_rad_s": self.over_envelope.tolist(),
         }
+        if self.policy_stage is not None:
+            result["policy_host"] = {
+                "stage": self.policy_stage,
+                "selected_context_route": self.selected_context_route,
+                "selected_command_route": self.selected_command_route,
+            }
+        return result
 
 
 class AsyncControlWriter:
-    def __init__(self, path: str | Path, *, capacity: int = 512) -> None:
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        capacity: int = 512,
+        observation_dim: int = OBSERVATION_DIM,
+    ) -> None:
+        if type(observation_dim) is not int or observation_dim < 1:
+            raise ValueError("observation_dim must be a positive integer")
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._free: queue.SimpleQueue[ControlRecord] = queue.SimpleQueue()
@@ -353,7 +377,11 @@ class AsyncControlWriter:
             maxsize=capacity
         )
         for _ in range(capacity):
-            self._free.put(ControlRecord())
+            self._free.put(
+                ControlRecord(
+                    observation=np.zeros(observation_dim, dtype=np.float32)
+                )
+            )
         self.dropped = 0
         self._error: BaseException | None = None
         self._ready = threading.Event()
@@ -383,6 +411,9 @@ class AsyncControlWriter:
         sent_target_rad: np.ndarray,
         implied_velocity_rad_s: np.ndarray,
         over_envelope: np.ndarray,
+        policy_stage: str | None = None,
+        selected_context_route: str | None = None,
+        selected_command_route: str | None = None,
     ) -> None:
         self._raise_if_failed()
         try:
@@ -406,6 +437,9 @@ class AsyncControlWriter:
             sent_target_rad,
             implied_velocity_rad_s,
             over_envelope,
+            policy_stage,
+            selected_context_route,
+            selected_command_route,
         )
         try:
             self._pending.put_nowait(record)
