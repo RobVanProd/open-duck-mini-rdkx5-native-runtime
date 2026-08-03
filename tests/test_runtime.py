@@ -646,6 +646,37 @@ def test_runtime_halts_when_physical_controller_sample_is_stale(paused: bool) ->
     assert runtime.paused is paused
 
 
+def test_runtime_halts_immediately_on_physical_controller_emergency_stop() -> None:
+    class EmergencyStopController:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            output.commands.fill(0.0)
+            output.pause_toggle = False
+            output.emergency_stop = True
+            output.phase_frequency_factor = 1.0
+            output.timestamp_ns = runtime_module.clock_ns()
+            output.connected = True
+
+    runtime = object.__new__(Runtime)
+    runtime.controller = EmergencyStopController()
+    runtime.controller_readout = ControllerReadout()
+    runtime.commands = np.zeros(7, dtype=np.float64)
+    runtime.args = Namespace(fixed_command_x=None, controller="xbox")
+    runtime.paused = False
+    runtime.policy = object()
+
+    bus = MockSTS3215Bus()
+    with (
+        pytest.raises(SafetyError, match="controller emergency stop"),
+        TorqueGuard(bus) as guard,
+    ):
+        guard.enable()
+        runtime._update_controller(runtime_module.clock_ns())
+
+    assert runtime.paused is False
+    assert bus.torque_enabled is False
+
+
 def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
     class NoisyController:
         @staticmethod
@@ -673,6 +704,68 @@ def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
 
     np.testing.assert_array_equal(runtime.commands, [0.08, 0, 0, 0, 0, 0, 0])
     assert runtime.controller_readout.phase_frequency_factor == 1.0
+
+
+def _grounded_scope_args(tmp_path: Path) -> list[str]:
+    return [
+        "--bus",
+        "serial",
+        "--telemetry",
+        str(tmp_path / "grounded.jsonl"),
+        "--policy-contract",
+        runtime_module.POLICY_CONTRACT_T247,
+        "--policy",
+        str(tmp_path / "policy.onnx"),
+        "--calibrator",
+        str(tmp_path / "calibrator.onnx"),
+        "--context-route-root",
+        str(tmp_path / "context"),
+        "--command-route-root",
+        str(tmp_path / "commands"),
+        "--command-route-manifest",
+        str(tmp_path / "commands" / "manifest.json"),
+        "--p30-fit",
+        str(tmp_path / "p30.json"),
+        "--reference-table",
+        str(tmp_path / "reference.npz"),
+        "--controller",
+        "xbox",
+        "--fixed-command-x",
+        "0",
+        "--max-ticks",
+        "3850",
+        "--max-active-ticks",
+        "850",
+        "--hardware-authorized",
+        "--grounded-test-area-confirmed",
+        "--grounded-x0-authorized",
+    ]
+
+
+def test_grounded_g3_authorization_is_default_off_and_scope_locked(tmp_path: Path) -> None:
+    parser = build_parser()
+    defaults = parser.parse_args(["--telemetry", str(tmp_path / "default.jsonl")])
+    assert defaults.grounded_test_area_confirmed is False
+    assert defaults.grounded_x0_authorized is False
+    assert defaults.grounded_guard_suspended_revalidation is False
+
+    args = parser.parse_args(_grounded_scope_args(tmp_path))
+    runtime_module.validate_runtime_args(args)
+    args.fixed_command_x = 0.08
+    with pytest.raises(ValueError, match="only --fixed-command-x 0"):
+        runtime_module.validate_runtime_args(args)
+
+
+def test_grounded_g3_rejects_suspended_or_gate5_assertions(tmp_path: Path) -> None:
+    parser = build_parser()
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        runtime_module.validate_runtime_args(
+            parser.parse_args([*_grounded_scope_args(tmp_path), "--suspended-or-benched"])
+        )
+    with pytest.raises(ValueError, match="must not reuse"):
+        runtime_module.validate_runtime_args(
+            parser.parse_args([*_grounded_scope_args(tmp_path), "--gate5-authorized"])
+        )
 
 
 def _startup_readiness_runtime(*, bus_total_failure: bool = False):

@@ -1,0 +1,56 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_launcher_review.v1",
+  "status": "PASS_OFFLINE_REVIEW_NOT_RUN",
+  "date": "2026-08-02",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_PREREGISTRATION_20260802.json",
+    "sha256": "6cc1e1d7eb3db60b9c0198fe5d856ef58ba234910dc60b4f953fb4dd7bbaf7cf",
+    "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_NO_SERVO"
+  },
+  "launcher": {
+    "path": "setup/run_grounded_controller_stop_preflight.sh",
+    "sha256": "1d01fb6182a43563efdff56fda4164f841126894cd0e1ea26dc1e4ebed28aeec",
+    "probe_invocations": 1,
+    "probe_module": "open_duck_x5.controller_stop_probe"
+  },
+  "frozen_source": {
+    "source_commit": "257c84fddd1ed9162498840cd00b4d90c33785a1",
+    "source_tree": "ce6a77e08fe860500e3ed8f69cec06e7885af1da",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751"
+  },
+  "offline_checks": {
+    "bash_syntax": true,
+    "help_path_non_mutating": true,
+    "hardware_acknowledgements_required": true,
+    "known_controller_identity_required_before_and_after": true,
+    "reviewed_gate5_x0_and_x008_receipts_pinned": true,
+    "tracked_source_must_be_clean": true,
+    "new_output_directory_required": true,
+    "single_controller_probe_invocation": true,
+    "serial_device_path_absent": true,
+    "servo_bus_invocation_absent": true,
+    "torque_enable_invocation_absent": true,
+    "policy_invocation_absent": true,
+    "motion_invocation_absent": true,
+    "automatic_follow_on_absent": true,
+    "grounded_launcher_absent": true
+  },
+  "result_scope": {
+    "controller_only": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "physical_probe_executed": false
+  },
+  "decision": {
+    "controller_mapping_probe_ready_for_exact_authorization": true,
+    "suspended_cutoff_test_ready": false,
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "automatic_promotion": false
+  },
+  "advance": "Request the exact controller-only physical authorization only when the operator is present and the known controller is connected. A reviewed pass is required before preparing any suspended cutoff test."
+}

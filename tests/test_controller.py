@@ -43,8 +43,10 @@ def make_controller(kind: str = "xbox") -> tuple[PygameController, FakeJoystick]
     controller._commands = np.zeros(7, dtype=np.float64)
     controller._timestamp_ns = 0
     controller._pause_toggle = False
+    controller._emergency_stop = False
     controller._phase_frequency_factor = 1.0
     controller._a_was_pressed = False
+    controller._b_was_pressed = False
     controller._y_was_pressed = False
     controller._head_control_mode = False
     return controller, controller.joystick
@@ -83,6 +85,7 @@ def test_a_button_pause_toggle_is_edge_triggered(
     controller._poll_once()
     controller.read_into(output)
     assert output.pause_toggle is True
+
     controller.read_into(output)
     assert output.pause_toggle is False
 
@@ -96,6 +99,30 @@ def test_a_button_pause_toggle_is_edge_triggered(
     controller._poll_once()
     controller.read_into(output)
     assert output.pause_toggle is True
+
+
+def test_b_button_emergency_stop_is_edge_triggered() -> None:
+    controller, joystick = make_controller()
+    output = ControllerReadout()
+
+    joystick.buttons[1] = True
+    controller._poll_once()
+    controller.read_into(output)
+    assert output.emergency_stop is True
+
+    controller.read_into(output)
+    assert output.emergency_stop is False
+
+    controller._poll_once()
+    controller.read_into(output)
+    assert output.emergency_stop is False
+
+    joystick.buttons[1] = False
+    controller._poll_once()
+    joystick.buttons[1] = True
+    controller._poll_once()
+    controller.read_into(output)
+    assert output.emergency_stop is True
 
 
 def test_y_button_enables_inherited_head_command_mapping(
@@ -189,6 +216,31 @@ def test_linux_joystick_reads_button_edges_without_a_polling_thread(
     assert output.pause_toggle is False
     controller.close()
     assert closed == [41]
+
+
+def test_linux_joystick_reads_b_button_as_emergency_stop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    batches = [_js_event(1, 0x01, 1), _js_event(0, 0x01, 1)]
+    monkeypatch.setattr(controller_module.os, "open", lambda *_: 46)
+    monkeypatch.setattr(controller_module.os, "close", lambda _: None)
+
+    def fake_readv(_fd: int, buffers) -> int:
+        if not batches:
+            raise BlockingIOError
+        payload = batches.pop(0)
+        buffers[0][: len(payload)] = payload
+        return len(payload)
+
+    monkeypatch.setattr(controller_module.os, "readv", fake_readv, raising=False)
+    controller = LinuxJoystickController("xbox")
+    output = ControllerReadout()
+
+    controller.read_into(output)
+    assert output.emergency_stop is True
+    controller.read_into(output)
+    assert output.emergency_stop is False
+    controller.close()
 
 
 def test_linux_joystick_disconnect_is_reported_fail_closed(

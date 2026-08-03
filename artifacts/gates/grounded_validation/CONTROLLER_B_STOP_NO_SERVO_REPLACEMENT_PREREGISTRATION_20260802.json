@@ -1,0 +1,90 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_replacement_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT",
+  "date": "2026-08-02",
+  "purpose": "Repeat only the controller B-edge mapping after correcting the tick-0 sample-age timestamp ordering that halted attempt 1 before operator action.",
+  "supersedes": {
+    "attempt1_path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_ATTEMPT1_HALTED_20260802.json",
+    "attempt1_sha256": "3e3a44bac1aba8b00dae05e7a1a647d7f412db352065bac02cabf558db167969",
+    "attempt1_status": "HALTED_BEFORE_OPERATOR_ACTION",
+    "retry_under_original_preregistration": false
+  },
+  "fix_contract": {
+    "source_commit": "655d510872d8ca08067389bd819e4354c497454e",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751",
+    "change": "Compute controller sample age using clock_ns sampled after controller.read_into, matching runtime and main-probe ordering.",
+    "reproduces_attempt1_negative_age": true,
+    "corrected_positive_age_test": true,
+    "controller_mapping_changed": false,
+    "runtime_control_path_changed": false,
+    "policy_or_robot_contract_changed": false
+  },
+  "frozen_controller": {
+    "kind": "xbox",
+    "device": "/dev/input/js0",
+    "bluetooth_mac": "0C:35:26:2A:B8:0B",
+    "sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "modalias": "usb:v045Ep0B13d0515",
+    "emergency_stop_button": "B",
+    "linux_button_index": 1,
+    "forbidden_button_during_probe": "A"
+  },
+  "frozen_run": {
+    "ticks_maximum": 3000,
+    "frequency_hz": 50.0,
+    "maximum_window_seconds": 60.0,
+    "required_emergency_stop_events": 1,
+    "required_pause_toggle_events": 0,
+    "required_disconnect_or_stale_events": 0,
+    "new_output_directory_must_not_exist": true,
+    "single_probe_invocation": true,
+    "automatic_follow_on": false
+  },
+  "operator_handshake": {
+    "authorization_received_after_attempt1": true,
+    "authorization_scope": "controller-only; no serial, servo, torque, policy, or motion",
+    "before_launch": "Operator is physically present with the known-good controller connected and does not press A or B.",
+    "cue": "GO - press B once now.",
+    "operator_action": "Press B exactly once after the GO cue and do not press A.",
+    "timeout": "If B is not observed within 3000 ticks, the replacement fails and is not retried under this preregistration."
+  },
+  "acceptance": {
+    "probe_exit_zero": true,
+    "summary_status": "PASS",
+    "emergency_stop_events": 1,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 0,
+    "all_recorded_sample_ages_ms_at_least": 0.0,
+    "all_recorded_sample_ages_ms_at_most": 250.0,
+    "correct_controller_identity_before_and_after": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "stop_rules": [
+    "Any source, attempt receipt, controller identity, or Bluetooth-state mismatch blocks before the probe starts.",
+    "Pressing A fails the replacement because A is pause/unpause, not emergency stop.",
+    "Controller disconnect or any sample age outside 0 through 250 ms fails the replacement.",
+    "No serial device, servo bus, torque command, policy, or motion path may be opened.",
+    "A pass authorizes only preparation of a separately preregistered suspended no-policy cutoff test; it does not authorize that test.",
+    "No grounded launcher or grounded motion may be prepared from a NOT_RUN or failed result."
+  ],
+  "required_authorization_text": "I am physically present with the known-good Xbox controller connected. I authorize the frozen controller-only B-button emergency-stop mapping probe: at most 3000 controller ticks, no serial or servo access, no torque, no policy, and no motion. I will press B exactly once only after you say GO and will not press A.",
+  "authority": {
+    "preregistration_only": true,
+    "controller_access": false,
+    "robot_access": false,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "suspended_cutoff_test": false,
+    "grounded_replay": false
+  },
+  "advance": "After a physical PASS_REVIEWED of this exact replacement, freeze a separate suspended, no-policy home-entry emergency-stop cutoff revalidation. Do not create a grounded execution path yet."
+}

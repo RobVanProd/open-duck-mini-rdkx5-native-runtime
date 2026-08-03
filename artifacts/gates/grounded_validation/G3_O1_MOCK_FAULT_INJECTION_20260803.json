@@ -1,0 +1,52 @@
+{
+  "schema_version": "open_duck_x5.g3_o1_mock_fault_injection.v1",
+  "status": "PASS",
+  "scope": {
+    "backend": "pure-software-mock",
+    "robot_access": false,
+    "torque": false,
+    "motion": false,
+    "policy": false
+  },
+  "readiness_samples": 50,
+  "cases": [
+    {
+      "name": "single_hard_tilt",
+      "result": "PASS",
+      "trip_tick": 1,
+      "error": "grounded safety cutoff: single-tick tilt 33.000000 deg reached 32.851062 deg",
+      "expected_error_fragment": "single-tick tilt",
+      "goal_writes_after_trip": 0
+    },
+    {
+      "name": "sustained_tilt",
+      "result": "PASS",
+      "trip_tick": 3,
+      "error": "grounded safety cutoff: tilt 17.000000 deg persisted for 3 ticks above 16.425531 deg",
+      "expected_error_fragment": "persisted for 3 ticks",
+      "goal_writes_after_trip": 0
+    },
+    {
+      "name": "both_contacts_false",
+      "result": "PASS",
+      "trip_tick": 3,
+      "error": "grounded safety cutoff: both foot contacts were false for 3 ticks",
+      "expected_error_fragment": "both foot contacts",
+      "goal_writes_after_trip": 0
+    },
+    {
+      "name": "invalid_acceleration",
+      "result": "PASS",
+      "trip_tick": 3,
+      "error": "grounded safety cutoff: invalid acceleration persisted for 3 ticks",
+      "expected_error_fragment": "invalid acceleration",
+      "goal_writes_after_trip": 0
+    },
+    {
+      "name": "healthy_control",
+      "result": "PASS",
+      "ticks": 250,
+      "trip_reason": null
+    }
+  ]
+}

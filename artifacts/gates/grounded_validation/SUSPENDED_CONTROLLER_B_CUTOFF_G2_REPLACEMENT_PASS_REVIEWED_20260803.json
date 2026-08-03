@@ -1,0 +1,149 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_replacement_review.v1",
+  "status": "PASS_REVIEWED_SUSPENDED_CONTROLLER_B_CUTOFF_G2",
+  "date": "2026-08-03",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_PREREGISTRATION_20260802.json",
+    "sha256": "89291c53af4a56e3a12f08ec83df7e5ee392eb307f63abee09b65f6d9f4a50e4",
+    "status": "PREREGISTERED_NOT_RUN_SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT"
+  },
+  "launcher": {
+    "replacement_path": "setup/run_suspended_controller_b_cutoff_g2_replacement.sh",
+    "replacement_sha256": "db7b1af76596da3994c5493397b2d83dd0ca6d7a5b74c00b0af7c83705da41b5",
+    "underlying_path": "setup/run_suspended_controller_b_cutoff_g2.sh",
+    "underlying_sha256": "63eb293fda095a0be977447de3b81e0e3a56de162ebed7cecda9093e802920ce",
+    "source_commit": "1f004cae53e1c93d3fcd470d6be69be001633a4d",
+    "runtime_changed_from_closed_attempt": false,
+    "probe_changed_from_closed_attempt": false,
+    "servo_bus_changed_from_closed_attempt": false
+  },
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller_device": "/dev/input/js0",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "policy_loaded": false,
+    "commanded_velocity_m_s": null,
+    "home_entry_seconds": 5,
+    "home_hold_ticks_before_b": 692,
+    "grounded_motion": false,
+    "automatic_follow_on": false
+  },
+  "preflight": {
+    "status": "PASS",
+    "ticks_requested": 10000,
+    "ticks_completed": 10000,
+    "tick_sequence_exact": true,
+    "tick_period_ms": {
+      "p99": 20.002676,
+      "p99_9": 20.00480125,
+      "max": 20.009176
+    },
+    "bus_total_ms": {
+      "p99": 3.94534441,
+      "p99_9": 4.049677666,
+      "max": 4.372636
+    },
+    "transactions_expected": 160000,
+    "transactions_failed": 0,
+    "transaction_failure_rate": 0.0,
+    "read_bursts": 0,
+    "stale_servo_samples": 0,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "device_alarm_replies": 0,
+    "telemetry_records_dropped": 0,
+    "torque_enabled": false,
+    "torque_off_status": "ok",
+    "realtime": {
+      "scheduler": "SCHED_FIFO",
+      "priority": 80,
+      "cpu": 7,
+      "isolated": true
+    }
+  },
+  "cutoff": {
+    "status": "PASS_CANDIDATE",
+    "halt_reason": "physical controller emergency stop requested",
+    "probe_exit_status": 2,
+    "home_ready_before_stop": true,
+    "control_exchanges_at_detection": 692,
+    "control_exchanges_completed": 692,
+    "control_exchanges_after_detection": 0,
+    "detection_to_torque_disable_start_ms": 0.024167,
+    "torque_disable_call_ms": 0.173542,
+    "detection_to_torque_disable_complete_ms": 0.197709,
+    "cutoff_limit_ms": 20.0,
+    "within_one_20_ms_tick": true,
+    "torque_disable_status": "ok",
+    "policy_loaded": false,
+    "tracking_p95_rad": 0.0025708856973672145,
+    "transactions_failed": 0,
+    "read_bursts": 0,
+    "stale_servo_samples": 0,
+    "device_alarm_replies": 0,
+    "bus_total_max_ms": 4.08101,
+    "tick_period_p99_ms": 20.0030552,
+    "tick_period_p99_9_ms": 20.00689873
+  },
+  "independent_readback": {
+    "status": "PASS",
+    "process_separate_from_cutoff_probe": true,
+    "initial_disable_status": "ok",
+    "register_address": 40,
+    "records": 14,
+    "responses_ok": 14,
+    "read_order": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13],
+    "torque_enable_values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "all_14_torque_enable_registers_zero": true,
+    "goal_position_write_count": 0,
+    "final_disable_status": "ok"
+  },
+  "independent_review": {
+    "preflight_trace_rows": 10000,
+    "preflight_tick_sequence_exact_0_through_9999": true,
+    "cutoff_trace_rows": 692,
+    "cutoff_tick_sequence_exact_0_through_691": true,
+    "preflight_all_serial_statuses_ok": true,
+    "cutoff_all_serial_statuses_ok": true,
+    "preflight_all_stale_flags_false": true,
+    "cutoff_all_stale_flags_false": true,
+    "validation_checks_passed": 12,
+    "validation_checks_total": 12,
+    "governor_restored": true,
+    "serial_released": true,
+    "archive_member_hashes_present": true
+  },
+  "operator_keep_awake": {
+    "prelaunch_activity_confirmed": true,
+    "board_cues_emitted": 8,
+    "controller_disconnect_or_stale_halt": false,
+    "axis_input_consumed_by_target_generation": false,
+    "note": "The desktop command transport buffered board stdout, so some operator-facing keep-awake reminders were coalesced after multiple board cue records. The controller remained connected and fresh for the complete preflight and cutoff sequence; cue cadence is not a quantitative G2 acceptance metric."
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/suspended-controller-b-cutoff-g2-replacement-20260803-attempt1",
+    "preflight_summary_sha256": "9bc86d27ecbbe9292de9a7b5b50b63ab61f20e013833965d6caab5ed7e22256a",
+    "preflight_timing_jsonl_sha256": "7a9d1d336d1b26772577d72ecf6a1dd6d26730849c67d7fce40e58cbb1fc3b62",
+    "cutoff_audit_sha256": "4385d115aea5dcc9462c3c299373a11aca3f6f0e523e86395c854a25bfc366cb",
+    "cutoff_summary_sha256": "f2e693518bcf93cd19ae52cc1c04177dea02088cd3d4a0cea9eac8e1817501de",
+    "cutoff_timing_jsonl_sha256": "784f13ece40f404ea07406899e4d00385d7df42bbd3fa8a6f63ba5ada81d609e",
+    "cutoff_validation_sha256": "1a87094a9b1807f1fb4ae4e00f26ba5e850897f2187fef6afcf2f77b9bad9921",
+    "torque_off_readback_sha256": "a5616a28fead0c2f83f6d0def99f2c4585ff6eaf86cefe7e4aecd55f27063244",
+    "metadata_sha256": "9dc954383258a626a5ef1c957c118e9b103b00c8ece096c07b5c744827d52378",
+    "replacement_wrapper_metadata_sha256": "a82f83bb72ef363ae59c489ccfb0f1d19e09aa16a69c260a6beff83a6bb0c42a",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\grounded-validation-prep\\suspended-controller-b-cutoff-g2-replacement-20260803-attempt1.tar.gz",
+    "external_archive_sha256": "e715f2f0cb6f665e0d19eacbeddd518b091590b5fc69cffaca05bed373483f8a",
+    "external_archive_bytes": 475328
+  },
+  "decision": {
+    "g2_suspended_controller_b_cutoff": "PASS_REVIEWED",
+    "grounded_x0_design_review_earned": true,
+    "grounded_x0_ready_to_run": false,
+    "grounded_x008_ready": false,
+    "grounded_motion_authorized": false,
+    "grounded_launcher_exists": false,
+    "automatic_promotion": false
+  },
+  "advance": "G2 is closed as PASS_REVIEWED. Before any grounded work, separately review the repository authority boundary, support and clear-area procedure, controller-loss behavior, exact x=0 duration and stop rules, launcher, and fresh authorization. No grounded execution path is authorized or implemented by this review."
+}

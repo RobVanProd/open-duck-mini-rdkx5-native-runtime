@@ -257,6 +257,11 @@ class ControlRecord:
     policy_stage: str | None = None
     selected_context_route: str | None = None
     selected_command_route: str | None = None
+    grounded_safety_mode: str | None = None
+    grounded_tilt_deg: float = 0.0
+    grounded_sustained_tilt_ticks: int = 0
+    grounded_both_contacts_false_ticks: int = 0
+    grounded_invalid_acceleration_ticks: int = 0
 
     def capture(
         self,
@@ -278,6 +283,11 @@ class ControlRecord:
         policy_stage: str | None = None,
         selected_context_route: str | None = None,
         selected_command_route: str | None = None,
+        grounded_safety_mode: str | None = None,
+        grounded_tilt_deg: float = 0.0,
+        grounded_sustained_tilt_ticks: int = 0,
+        grounded_both_contacts_false_ticks: int = 0,
+        grounded_invalid_acceleration_ticks: int = 0,
     ) -> None:
         self.tick = tick
         self.tick_start_ns = tick_start_ns
@@ -311,6 +321,11 @@ class ControlRecord:
         self.policy_stage = policy_stage
         self.selected_context_route = selected_context_route
         self.selected_command_route = selected_command_route
+        self.grounded_safety_mode = grounded_safety_mode
+        self.grounded_tilt_deg = grounded_tilt_deg
+        self.grounded_sustained_tilt_ticks = grounded_sustained_tilt_ticks
+        self.grounded_both_contacts_false_ticks = grounded_both_contacts_false_ticks
+        self.grounded_invalid_acceleration_ticks = grounded_invalid_acceleration_ticks
 
     def as_jsonable(self) -> dict[str, object]:
         result: dict[str, object] = {
@@ -356,6 +371,14 @@ class ControlRecord:
                 "stage": self.policy_stage,
                 "selected_context_route": self.selected_context_route,
                 "selected_command_route": self.selected_command_route,
+            }
+        if self.grounded_safety_mode is not None:
+            result["grounded_safety"] = {
+                "mode": self.grounded_safety_mode,
+                "tilt_from_baseline_deg": self.grounded_tilt_deg,
+                "sustained_tilt_ticks": self.grounded_sustained_tilt_ticks,
+                "both_contacts_false_ticks": self.grounded_both_contacts_false_ticks,
+                "invalid_acceleration_ticks": self.grounded_invalid_acceleration_ticks,
             }
         return result
 
@@ -414,6 +437,11 @@ class AsyncControlWriter:
         policy_stage: str | None = None,
         selected_context_route: str | None = None,
         selected_command_route: str | None = None,
+        grounded_safety_mode: str | None = None,
+        grounded_tilt_deg: float = 0.0,
+        grounded_sustained_tilt_ticks: int = 0,
+        grounded_both_contacts_false_ticks: int = 0,
+        grounded_invalid_acceleration_ticks: int = 0,
     ) -> None:
         self._raise_if_failed()
         try:
@@ -440,6 +468,11 @@ class AsyncControlWriter:
             policy_stage,
             selected_context_route,
             selected_command_route,
+            grounded_safety_mode,
+            grounded_tilt_deg,
+            grounded_sustained_tilt_ticks,
+            grounded_both_contacts_false_ticks,
+            grounded_invalid_acceleration_ticks,
         )
         try:
             self._pending.put_nowait(record)

@@ -1,0 +1,66 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_attempt.v1",
+  "status": "HALTED_BEFORE_OPERATOR_ACTION",
+  "date": "2026-08-02",
+  "scope": {
+    "controller_only": true,
+    "ticks_requested_maximum": 3000,
+    "ticks_recorded": 1,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "operator": {
+    "physically_present": true,
+    "known_controller_connected": true,
+    "go_cue_issued": true,
+    "b_press_observed": false,
+    "a_press_observed": false,
+    "stop_cue_issued_immediately_after_halt": true
+  },
+  "observed": {
+    "probe_status": "FAIL",
+    "failure": "controller_disconnected_or_stale",
+    "controller_connected": true,
+    "controller_sample_age_ms": -0.322834,
+    "emergency_stop_events": 0,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 1,
+    "controller_identity_before_and_after": "0c:35:26:2a:b8:0b",
+    "bluetooth_connected_before_and_after": true
+  },
+  "attribution": {
+    "classification": "PROBE_TIMESTAMP_BOOKKEEPING_DEFECT",
+    "cause": "The probe subtracted a controller timestamp produced inside read_into from the earlier tick release timestamp. A healthy sample was therefore 0.322834 ms newer than tick_start and was incorrectly rejected for having a negative age.",
+    "runtime_affected": false,
+    "runtime_reason": "Runtime and the main timing probe already compare controller timestamps against clock_ns sampled after read_into.",
+    "bluetooth_failure": false,
+    "button_mapping_failure": false,
+    "robot_failure": false,
+    "fix": "Sample clock_ns after controller.read_into and compute that value minus the controller timestamp. Preserve rejection of genuinely future, stale, or disconnected samples."
+  },
+  "frozen_inputs": {
+    "source_commit": "35fa88eea46ff3e18c3f77fd4755a8fff6fc16d1",
+    "launcher_sha256": "1d01fb6182a43563efdff56fda4164f841126894cd0e1ea26dc1e4ebed28aeec",
+    "preregistration_sha256": "6cc1e1d7eb3db60b9c0198fe5d856ef58ba234910dc60b4f953fb4dd7bbaf7cf"
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/controller-b-stop-g1-20260802",
+    "controller_jsonl_sha256": "6532aa2c3bcc62f9a4173cd85929cebd9c8ec6fb7961da3efefdb13484aaef10",
+    "summary_json_sha256": "61995562bb18ce0c64a95c6776baf4b39edd7130923a794ad1c095c5ccd15c21",
+    "metadata_json_sha256": "8b8d33b7c1d44868f0fdfccb460d8cb0347233db993e4c2e3565e62bf46327e8",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\grounded-validation-prep\\controller-b-stop-g1-20260802.tar.gz",
+    "external_archive_sha256": "30fb231317c00cb20bbba2da5f500fe2b5e19679782711df1f0cb83a84b0de8f",
+    "external_archive_bytes": 1838
+  },
+  "decision": {
+    "attempt_passed": false,
+    "retry_under_original_preregistration": false,
+    "replacement_preregistration_required": true,
+    "suspended_cutoff_test_authorized": false,
+    "grounded_motion_authorized": false
+  },
+  "advance": "Fix and CPU-test only the freshness timestamp ordering, then freeze a separately hashed replacement launcher and preregistration before any new physical attempt."
+}

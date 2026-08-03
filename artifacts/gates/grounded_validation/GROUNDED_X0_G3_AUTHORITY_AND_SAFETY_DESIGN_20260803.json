@@ -1,0 +1,190 @@
+{
+  "schema_version": "open_duck_x5.grounded_x0_g3_authority_and_safety_design.v1",
+  "status": "DESIGN_FROZEN_BLOCKED_ON_EXPLICIT_AUTHORITY_AMENDMENT",
+  "date": "2026-08-03",
+  "earned_by": {
+    "g2_review_path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_PASS_REVIEWED_20260803.json",
+    "g2_review_sha256": "6293a79e4db58c5171a1e872b7c5d99d23154bf94f82faf90b65fc2deef1c7fe",
+    "g2_status": "PASS_REVIEWED_SUSPENDED_CONTROLLER_B_CUTOFF_G2",
+    "grounded_x0_design_review_earned": true
+  },
+  "evidence_inputs": {
+    "suspended_x0_review_path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json",
+    "suspended_x0_review_sha256": "9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096",
+    "suspended_x0_control_jsonl_sha256": "06b78b3e852d74cb38a43889c8228afe5589c07d7b49ec0ec5e32f7c72ba6f88",
+    "suspended_x0_archive_sha256": "ace166ceec085bb3d22b817e8256fcb3ef148b9313ac7f0666d6768d84c19633",
+    "gate3_human_review_path": "artifacts/gates/phase_7_hardware/gate_3_sensors/matrix_20260719/human-review.json",
+    "gate3_human_review_sha256": "289d66c8d708e62e4766e35a3fdcd73eb260b08839e1f02c1a7b08fc06f811d6",
+    "gate3_status": "PASS_REVIEWED"
+  },
+  "read_only_suspended_x0_trace_audit": {
+    "active_rows": 850,
+    "calibration_rows": 250,
+    "locomotion_rows": 600,
+    "max_abs_action": 0.5,
+    "max_implied_target_velocity_rad_s": 1.4999955892562866,
+    "max_sent_target_change_from_first_active_tick_rad": 0.10000014305114746,
+    "final_action": [0.0, 0.0, -0.5, 0.25, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.25, 0.25],
+    "locomotion_target_static_after_calibration": true,
+    "suspended_contact_pattern_counts": {
+      "none": 850,
+      "left_only": 0,
+      "right_only": 0,
+      "both": 0
+    },
+    "finding": "T247 x=0 is not a motionless no-op. The 250-tick calibration stage moves four leg chains into a symmetric stance, then the 600-tick locomotion stage holds that stance. Suspended evidence contains no load-bearing contact population."
+  },
+  "current_authority_audit": {
+    "agent_instruction": "Grounded replay and grounded walking are outside this repository's authority.",
+    "hardware_guard_requires": ["--hardware-authorized", "--suspended-or-benched"],
+    "honest_grounded_assertion_exists": false,
+    "automatic_tilt_cutoff_exists": false,
+    "automatic_both_contacts_lost_cutoff_exists": false,
+    "grounded_launcher_exists": false,
+    "reuse_suspended_assertion_for_grounded_prohibited": true,
+    "decision": "Do not create or run a grounded launcher under the current authority."
+  },
+  "proposed_scope": {
+    "stage": "G3",
+    "description": "One bounded, weight-bearing T247 x=0 standing test; not walking",
+    "fixed_command_x_m_s": 0.0,
+    "other_commands_permitted": false,
+    "active_ticks": 850,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 600,
+    "control_frequency_hz": 50,
+    "policy_loaded": true,
+    "automatic_follow_on": false,
+    "x008_path": false,
+    "walking_path": false
+  },
+  "physical_setup_proposal": {
+    "surface": "level, clean, non-slip floor",
+    "feet": "both feet placed on the floor before launch",
+    "catch": "existing stand positioned as a visibly non-contact fall catch; it must not bear robot weight at readiness",
+    "clear_area": "robot-only fall envelope; no people, pets, loose cables, or obstacles",
+    "operator": "physically present with the known Xbox controller, B immediately available, hands clear before torque enable",
+    "measurements_required": [],
+    "explicitly_not_required": ["scale", "caliper", "millimeter placement", "manual center-of-mass entry"]
+  },
+  "required_default_off_runtime_mechanisms": {
+    "honest_authority_mode": {
+      "new_assertions": ["--grounded-test-area-confirmed", "--grounded-x0-authorized"],
+      "mutually_exclusive_with": "--suspended-or-benched",
+      "valid_only_when": {
+        "bus": "serial",
+        "policy_contract": "t247-command-routed-115",
+        "fixed_command_x": 0.0,
+        "max_active_ticks": 850,
+        "controller": "xbox"
+      },
+      "default_enabled": false,
+      "legacy_suspended_behavior_changed": false
+    },
+    "grounded_readiness": {
+      "torque_enabled": false,
+      "samples": 50,
+      "frequency_hz": 50,
+      "requires_fresh_servo_imu_contact_controller": true,
+      "requires_both_contacts_during_baseline": true,
+      "baseline_gravity": "normalized mean acceleration vector from the accepted readiness samples",
+      "policy_staged": false,
+      "goal_position_writes": 0,
+      "failure_action": "HALT_WITH_TORQUE_OFF"
+    },
+    "automatic_stability_guard": {
+      "active_during": ["five-second home entry", "paused home hold", "calibration", "locomotion"],
+      "evaluation_order": "fresh sensor read -> guard -> policy/action transaction -> goal write",
+      "single_tick_tilt_cutoff_deg": 32.851061754962494,
+      "sustained_tilt_cutoff_deg": 16.425530877481247,
+      "sustained_tilt_ticks": 3,
+      "both_contacts_false_ticks": 3,
+      "invalid_acceleration_ticks": 3,
+      "trip_action": "raise SafetyError before any later goal write; TorqueGuard disables torque",
+      "telemetry": ["tilt_from_baseline_deg", "contact_state", "guard_counter", "trip_reason"]
+    }
+  },
+  "tilt_threshold_derivation": {
+    "method": "angle between the reviewed Gate 3 upright mean acceleration and each operator-labeled tilt mean acceleration",
+    "upright_mean_m_s2": [0.3847599999999998, 0.9170399999999999, 9.793600000000003],
+    "labeled_angles_deg": {
+      "nose_forward": 32.851061754962494,
+      "nose_back": 43.39378793436998,
+      "left_tilt": 58.800330671096006,
+      "right_tilt": 43.06668413258922
+    },
+    "single_tick_cutoff": "minimum labeled angle",
+    "sustained_cutoff": "one half of the minimum labeled angle",
+    "persistence": "reuse the frozen three-consecutive-failure watchdog count",
+    "searched_or_tuned": false
+  },
+  "required_evidence_ladder": [
+    {
+      "stage": "G3-O1",
+      "scope": "offline implementation and mock fault injection",
+      "motion": false,
+      "required": ["default-off authority mode", "tilt trip", "contact-loss trip", "invalid-acceleration trip", "zero writes after trip", "torque-off on every exit", "legacy suspended tests unchanged"]
+    },
+    {
+      "stage": "G3-S1",
+      "scope": "separately authorized suspended T247 x=0 revalidation with the guard enabled",
+      "motion": true,
+      "grounded": false,
+      "required": ["same 250+600 active sequence", "no false guard trip", "all timing and bus gates green", "B and controller-loss paths unchanged"]
+    },
+    {
+      "stage": "G3",
+      "scope": "separately authorized grounded x=0 standing test",
+      "motion": true,
+      "grounded": true,
+      "required": ["G3-O1 PASS_REVIEWED", "G3-S1 PASS_REVIEWED", "fresh exact authorization", "grounded readiness PASS", "automatic guard active", "exact 250+600 sequence"]
+    }
+  ],
+  "g3_acceptance_proposal": {
+    "command_x_exact": 0.0,
+    "active_ticks_exact": 850,
+    "stage_sequence_exact": ["calibration:250", "locomotion:600"],
+    "automatic_guard_trips": 0,
+    "controller_disconnect_or_stale_events": 0,
+    "target_velocity_envelope_events": 0,
+    "tick_p99_at_most_ms": 21.0,
+    "tick_p99_9_at_most_ms": 22.0,
+    "bus_max_strictly_below_ms": 5.0,
+    "transaction_failure_rate_strictly_below": 0.001,
+    "read_bursts": 0,
+    "stale_required_samples": 0,
+    "device_alarm_replies": 0,
+    "telemetry_records_dropped": 0,
+    "torque_off_confirmed": true,
+    "independent_all_14_register_40_zero": true,
+    "operator_observation": "no fall, collision, wrong joint/side/sign, unexpected jerk, or concerning sound"
+  },
+  "stop_rules": {
+    "automatic_stability_guard_trip": "TORQUE_OFF_AND_HALT",
+    "b_button": "TORQUE_OFF_AND_HALT",
+    "controller_disconnect_or_stale": "TORQUE_OFF_AND_HALT",
+    "required_sample_stale": "TORQUE_OFF_AND_HALT",
+    "bus_failure_burst": "TORQUE_OFF_AND_HALT",
+    "hard_tick_overrun": "TORQUE_OFF_AND_HALT",
+    "device_alarm": "TORQUE_OFF_AND_HALT",
+    "unexpected_motion_or_sound": "OPERATOR_PRESSES_B; TORQUE_OFF_AND_HALT",
+    "automatic_retry": false,
+    "automatic_x008_follow_on": false
+  },
+  "authority_amendment": {
+    "required_before_runtime_or_launcher_implementation": true,
+    "required_exact_text": "I authorize this repository to implement, offline and default-disabled, the frozen G3 x=0 safety path: an honest grounded authorization mode, automatic IMU/contact cutoff, mock fault injection, and preparation of a separately authorized suspended revalidation. This does not authorize robot access, torque, motion, a grounded run, x=.08, or walking.",
+    "currently_granted": false
+  },
+  "decision": {
+    "design_frozen": true,
+    "runtime_edit_authorized": false,
+    "launcher_edit_authorized": false,
+    "robot_access_authorized": false,
+    "suspended_motion_authorized": false,
+    "grounded_motion_authorized": false,
+    "g3_ready_to_run": false,
+    "g4_ready": false,
+    "automatic_promotion": false
+  }
+}

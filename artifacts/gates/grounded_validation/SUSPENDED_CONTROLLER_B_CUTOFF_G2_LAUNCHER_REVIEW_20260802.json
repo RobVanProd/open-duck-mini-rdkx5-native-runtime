@@ -1,0 +1,50 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_launcher_review.v1",
+  "status": "PASS_OFFLINE_REVIEW_NOT_RUN_G2",
+  "date": "2026-08-02",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_PREREGISTRATION_20260802.json",
+    "sha256": "414776d4792a859b27a75b7020577c5b370fc307f70a036032d250bf8f4dca83"
+  },
+  "launcher": {
+    "path": "setup/run_suspended_controller_b_cutoff_g2.sh",
+    "sha256": "63eb293fda095a0be977447de3b81e0e3a56de162ebed7cecda9093e802920ce",
+    "timing_probe_invocations": 2,
+    "independent_torque_readback_invocations": 1,
+    "policy_runtime_invocations": 0
+  },
+  "offline_checks": {
+    "shell_syntax": true,
+    "source_identity_pinned": true,
+    "controller_identity_pinned": true,
+    "g1_review_pinned": true,
+    "config_identity_pinned": true,
+    "performance_governor_scoped_and_restored": true,
+    "preflight_must_pass_before_torque_enable": true,
+    "home_ready_cue_written_after_home_entry": true,
+    "b_event_checked_before_control_exchange": true,
+    "no_control_exchange_after_b_detection": true,
+    "event_to_disable_limit_frozen_at_20_ms": true,
+    "independent_all_14_register_40_readback": true,
+    "id_13_read_last": true,
+    "no_policy_path": true,
+    "no_grounded_path": true,
+    "no_automatic_follow_on": true
+  },
+  "result_scope": {
+    "physical_g2_executed": false,
+    "torque_enabled": false,
+    "motion_executed": false,
+    "policy_loaded": false,
+    "grounded_motion": false
+  },
+  "decision": {
+    "g2_ready_for_fresh_exact_authorization": true,
+    "g2_authorized": false,
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "grounded_motion_authorized": false,
+    "automatic_promotion": false
+  },
+  "advance": "Obtain the exact fresh suspended G2 authorization text. Run the one-shot launcher and wait for its HOME_HOLD_READY marker before giving the operator the GO cue."
+}

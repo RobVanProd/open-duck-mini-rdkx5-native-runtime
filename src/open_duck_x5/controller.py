@@ -16,6 +16,7 @@ from .clock import clock_ns
 class ControllerReadout:
     commands: np.ndarray = field(default_factory=lambda: np.zeros(7, dtype=np.float64))
     pause_toggle: bool = False
+    emergency_stop: bool = False
     phase_frequency_factor: float = 1.0
     timestamp_ns: int = 0
     connected: bool = False
@@ -25,6 +26,7 @@ class NullController:
     def read_into(self, output: ControllerReadout) -> None:
         output.commands.fill(0.0)
         output.pause_toggle = False
+        output.emergency_stop = False
         output.phase_frequency_factor = 1.0
         output.timestamp_ns = clock_ns()
         output.connected = True
@@ -66,6 +68,7 @@ class LinuxJoystickController:
         self._commands = np.zeros(7, dtype=np.float64)
         self._timestamp_ns = 0
         self._pause_toggle = False
+        self._emergency_stop = False
         self._phase_frequency_factor = 1.0
         self._head_control_mode = False
         self._connected = True
@@ -100,6 +103,8 @@ class LinuxJoystickController:
         if not is_initial and pressed and not was_pressed:
             if number == 0:
                 self._pause_toggle = True
+            elif number == 1:
+                self._emergency_stop = True
             elif number == 3:
                 self._head_control_mode = not self._head_control_mode
 
@@ -149,6 +154,8 @@ class LinuxJoystickController:
         np.copyto(output.commands, self._commands)
         output.pause_toggle = self._pause_toggle
         self._pause_toggle = False
+        output.emergency_stop = self._emergency_stop
+        self._emergency_stop = False
         output.phase_frequency_factor = self._phase_frequency_factor
         output.timestamp_ns = self._timestamp_ns
         output.connected = self._connected
@@ -190,8 +197,10 @@ class PygameController:
         self._commands = np.zeros(7, dtype=np.float64)
         self._timestamp_ns = 0
         self._pause_toggle = False
+        self._emergency_stop = False
         self._phase_frequency_factor = 1.0
         self._a_was_pressed = False
+        self._b_was_pressed = False
         self._y_was_pressed = False
         self._head_control_mode = False
         self._thread = threading.Thread(target=self._run, name=f"{kind}-controller", daemon=True)
@@ -218,11 +227,14 @@ class PygameController:
         right_x_axis = 3 if self.kind == "f710" else 2
         right_x = -float(self.joystick.get_axis(right_x_axis))
         a_pressed = bool(self.joystick.get_button(0))
+        b_pressed = bool(self.joystick.get_button(1))
         y_pressed = bool(self.joystick.get_button(3))
         sprint_pressed = bool(self.joystick.get_button(4))
         pause_toggle = a_pressed and not self._a_was_pressed
+        emergency_stop = b_pressed and not self._b_was_pressed
         head_mode_toggle = y_pressed and not self._y_was_pressed
         self._a_was_pressed = a_pressed
+        self._b_was_pressed = b_pressed
         self._y_was_pressed = y_pressed
 
         with self._lock:
@@ -239,6 +251,7 @@ class PygameController:
                 self._commands[1] = self._clamp(left_x * 0.2, -0.2, 0.2)
                 self._commands[2] = self._clamp(right_x, -1.0, 1.0)
             self._pause_toggle = self._pause_toggle or pause_toggle
+            self._emergency_stop = self._emergency_stop or emergency_stop
             self._phase_frequency_factor = 1.3 if sprint_pressed else 1.0
             self._timestamp_ns = clock_ns()
             if head_mode_toggle:
@@ -258,6 +271,8 @@ class PygameController:
             np.copyto(output.commands, self._commands)
             output.pause_toggle = self._pause_toggle
             self._pause_toggle = False
+            output.emergency_stop = self._emergency_stop
+            self._emergency_stop = False
             output.phase_frequency_factor = self._phase_frequency_factor
             output.timestamp_ns = self._timestamp_ns
         output.connected = output.timestamp_ns != 0

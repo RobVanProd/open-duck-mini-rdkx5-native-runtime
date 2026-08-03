@@ -1,0 +1,85 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_operator_return_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_OPERATOR_RETURN",
+  "date": "2026-08-02",
+  "purpose": "Run one unchanged controller-only B-edge mapping attempt now that the operator has returned and explicitly requested the same-scope repeat.",
+  "earned_by": {
+    "attempt2_path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_ATTEMPT2_OPERATOR_UNAVAILABLE_20260802.json",
+    "attempt2_sha256": "df44adc999e578fe600d257fbef6b6f5aeaf43153b4e67e88c9db0d98b066ad8",
+    "attempt2_status": "HALTED_NO_OPERATOR_ACTION",
+    "timestamp_fix_validated": true,
+    "controller_transport_healthy": true,
+    "button_mapping_tested": false
+  },
+  "frozen_source": {
+    "source_commit": "655d510872d8ca08067389bd819e4354c497454e",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751",
+    "probe_module": "open_duck_x5.controller_stop_probe",
+    "probe_change_from_attempt2": false
+  },
+  "frozen_controller": {
+    "kind": "xbox",
+    "device": "/dev/input/js0",
+    "bluetooth_mac": "0C:35:26:2A:B8:0B",
+    "sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "modalias": "usb:v045Ep0B13d0515",
+    "emergency_stop_button": "B",
+    "linux_button_index": 1,
+    "forbidden_button_during_probe": "A"
+  },
+  "frozen_run": {
+    "ticks_maximum": 3000,
+    "frequency_hz": 50.0,
+    "maximum_window_seconds": 60.0,
+    "required_emergency_stop_events": 1,
+    "required_pause_toggle_events": 0,
+    "required_disconnect_or_stale_events": 0,
+    "new_output_directory_must_not_exist": true,
+    "single_probe_invocation": true,
+    "automatic_follow_on": false
+  },
+  "operator_handshake": {
+    "fresh_request": "try again i had to use the restroom emergency. im good",
+    "before_launch": "Operator is physically present and ready with the known-good controller connected; A and B remain untouched.",
+    "cue": "GO - press B once now.",
+    "operator_action": "Press B exactly once immediately after the GO cue and do not press A.",
+    "timeout": "If B is not observed within 3000 ticks, this attempt fails and is not retried under this preregistration."
+  },
+  "acceptance": {
+    "probe_exit_zero": true,
+    "summary_status": "PASS",
+    "emergency_stop_events": 1,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 0,
+    "all_recorded_sample_ages_ms_at_least": 0.0,
+    "all_recorded_sample_ages_ms_at_most": 250.0,
+    "correct_controller_identity_before_and_after": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "stop_rules": [
+    "Any source, attempt-2 receipt, controller identity, or Bluetooth-state mismatch blocks before the probe starts.",
+    "Pressing A, controller disconnect, stale sample, or no B before the cap fails this attempt.",
+    "No serial device, servo bus, torque command, policy, or motion path may be opened.",
+    "No retry is allowed under this preregistration.",
+    "A pass authorizes only preparation of a separate suspended no-policy cutoff test; it does not authorize that test or grounded work."
+  ],
+  "authority": {
+    "preregistration_only": true,
+    "controller_access": false,
+    "robot_access": false,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "suspended_cutoff_test": false,
+    "grounded_replay": false
+  },
+  "advance": "A physical PASS_REVIEWED earns preparation only of a separately frozen suspended no-policy B-cutoff test."
+}

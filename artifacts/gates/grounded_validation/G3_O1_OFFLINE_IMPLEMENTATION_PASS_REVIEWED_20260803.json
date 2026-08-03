@@ -1,0 +1,73 @@
+{
+  "schema_version": "open_duck_x5.g3_o1_offline_implementation_review.v1",
+  "status": "PASS_REVIEWED_G3_O1_OFFLINE",
+  "date": "2026-08-03",
+  "authority": {
+    "offline_implementation_authorized": true,
+    "robot_access_authorized": false,
+    "torque_authorized": false,
+    "motion_authorized": false,
+    "grounded_run_authorized": false,
+    "x008_authorized": false,
+    "walking_authorized": false
+  },
+  "implementation": {
+    "default_enabled": false,
+    "honest_grounded_assertions": [
+      "--hardware-authorized",
+      "--grounded-test-area-confirmed",
+      "--grounded-x0-authorized"
+    ],
+    "grounded_mutually_exclusive_with_suspended": true,
+    "grounded_scope": {
+      "bus": "serial",
+      "policy_contract": "t247-command-routed-115",
+      "fixed_command_x_m_s": 0.0,
+      "active_ticks": 850,
+      "controller": "xbox"
+    },
+    "readiness": {
+      "samples": 50,
+      "torque_enabled": false,
+      "goal_position_writes": 0,
+      "policy_staged": false,
+      "both_contacts_required_grounded": true
+    },
+    "guard_order": "fresh sensor read -> guard -> policy/action -> goal write",
+    "guard_active_during": [
+      "home entry",
+      "paused hold",
+      "startup readiness",
+      "calibration",
+      "locomotion"
+    ],
+    "thresholds": {
+      "single_tick_tilt_deg": 32.851061754962494,
+      "sustained_tilt_deg": 16.425530877481247,
+      "sustained_ticks": 3,
+      "both_contacts_false_ticks": 3,
+      "invalid_acceleration_ticks": 3,
+      "searched_or_tuned": false
+    }
+  },
+  "mock_fault_injection": {
+    "path": "artifacts/gates/grounded_validation/G3_O1_MOCK_FAULT_INJECTION_20260803.json",
+    "sha256": "f44517d50a6affeac97ede3b39cca22bb13dcf3359b9eb9e0d3f68ae15591da3",
+    "status": "PASS",
+    "cases": 5,
+    "integration_zero_goal_writes_after_home_entry_fault": true,
+    "integration_torque_off_on_fault": true
+  },
+  "contract": {
+    "observation_action_semantics_changed": false,
+    "default_suspended_path_changed": false,
+    "control_tick_guard_telemetry_added": true,
+    "runtime_guard_events_added": true
+  },
+  "next_gate": {
+    "name": "G3-S1",
+    "status": "PREREGISTERED_NOT_RUN",
+    "requires_new_exact_suspended_motion_authorization": true,
+    "automatic_follow_on": false
+  }
+}
