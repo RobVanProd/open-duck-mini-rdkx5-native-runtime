@@ -36,7 +36,7 @@ unchanged.
 | G0 | Offline B-edge implementation and tests | `PASS` | Controller-only physical mapping may be requested |
 | G1 | Physical Xbox B mapping; controller input only | `PASS_REVIEWED` | A separate suspended cutoff test may be preregistered |
 | G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | `PASS_REVIEWED` | Grounded x=0 may be designed and separately reviewed |
-| G3 | Grounded x=0 only | `DESIGN_REVIEW_EARNED`; outside current authority; no launcher exists | Grounded x=.08 may be designed and separately authorized |
+| G3 | Grounded x=0 standing only | `DESIGN_FROZEN_BLOCKED_ON_EXPLICIT_AUTHORITY_AMENDMENT`; no launcher exists | Grounded x=.08 may be designed and separately authorized |
 | G4 | Grounded x=.08 only | `BLOCKED_ON_G3`; no launcher exists | Grounded validation handoff review |
 
 There is no automatic promotion between stages. Every physical stage gets a
@@ -132,6 +132,14 @@ G2 is therefore `PASS_REVIEWED`. It earns review of a possible G3 design only.
 It does not authorize grounded motion, create a grounded launcher, or permit an
 automatic follow-on.
 
+The G3 design review is now frozen separately. A read-only reduction of the
+suspended x=0 trace established that its 250 calibration ticks move the leg
+chains at up to 1.499996 rad/s before the 600-tick static hold. It is therefore
+not safe to treat x=0 as a no-motion test. The current runtime also lacks an
+automatic body-tilt/contact-loss cutoff and has no honest grounded hardware
+assertion. G3 implementation is blocked pending the exact, offline-only
+authority amendment recorded in the design artifact. No launcher was created.
+
 ## G3/G4: grounded work (not authorized and not implemented)
 
 Grounded testing is a new authority boundary. It must not reuse the
@@ -160,6 +168,8 @@ part of this ladder.
   `414776d4792a859b27a75b7020577c5b370fc307f70a036032d250bf8f4dca83`
 - G2 replacement reviewed pass SHA-256:
   `6293a79e4db58c5171a1e872b7c5d99d23154bf94f82faf90b65fc2deef1c7fe`
+- G3 authority and safety design SHA-256:
+  `855411116fb2102cfbde4ea3dce926c904b2842863a356c14a44e4d67218c699`
 
 The G1 preregistration is
 `artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_PREREGISTRATION_20260802.json`.

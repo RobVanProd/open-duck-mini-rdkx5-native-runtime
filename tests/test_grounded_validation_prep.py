@@ -215,10 +215,11 @@ def test_handoff_keeps_grounded_motion_blocked_after_g2_pass() -> None:
 
     assert "G1 | Physical Xbox B mapping" in text
     assert "G2 | Suspended, no-policy home-entry B cutoff" in text
-    assert "G3 | Grounded x=0 only" in text
+    assert "G3 | Grounded x=0 standing only" in text
     assert "G4 | Grounded x=.08 only" in text
     assert "G2 is therefore `PASS_REVIEWED`" in text
-    assert "outside current authority; no launcher exists" in text
+    assert "DESIGN_FROZEN_BLOCKED_ON_EXPLICIT_AUTHORITY_AMENDMENT" in text
+    assert "no launcher exists" in text
     assert "does not authorize grounded motion" in text
     assert "run_suspended_controller_b_cutoff_g2.sh" in text
     assert "within 20 ms" in text
