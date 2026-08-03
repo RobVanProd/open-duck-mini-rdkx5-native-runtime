@@ -646,6 +646,37 @@ def test_runtime_halts_when_physical_controller_sample_is_stale(paused: bool) ->
     assert runtime.paused is paused
 
 
+def test_runtime_halts_immediately_on_physical_controller_emergency_stop() -> None:
+    class EmergencyStopController:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            output.commands.fill(0.0)
+            output.pause_toggle = False
+            output.emergency_stop = True
+            output.phase_frequency_factor = 1.0
+            output.timestamp_ns = runtime_module.clock_ns()
+            output.connected = True
+
+    runtime = object.__new__(Runtime)
+    runtime.controller = EmergencyStopController()
+    runtime.controller_readout = ControllerReadout()
+    runtime.commands = np.zeros(7, dtype=np.float64)
+    runtime.args = Namespace(fixed_command_x=None, controller="xbox")
+    runtime.paused = False
+    runtime.policy = object()
+
+    bus = MockSTS3215Bus()
+    with (
+        pytest.raises(SafetyError, match="controller emergency stop"),
+        TorqueGuard(bus) as guard,
+    ):
+        guard.enable()
+        runtime._update_controller(runtime_module.clock_ns())
+
+    assert runtime.paused is False
+    assert bus.torque_enabled is False
+
+
 def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
     class NoisyController:
         @staticmethod

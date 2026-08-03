@@ -610,6 +610,8 @@ class Runtime:
             or now_ns - self.controller_readout.timestamp_ns > 250_000_000
         ):
             raise SafetyError("physical controller state is disconnected or stale")
+        if self.controller_readout.emergency_stop:
+            raise SafetyError("physical controller emergency stop requested")
         if reject_toggle and self.controller_readout.pause_toggle:
             raise SafetyError("physical controller toggled during startup readiness")
 

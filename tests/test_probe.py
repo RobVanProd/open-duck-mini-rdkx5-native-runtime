@@ -462,6 +462,96 @@ def test_controller_is_primed_before_serial_open_and_checked_before_readiness(
     assert "controller_read" in events[configure_index + 1 : readiness_index]
 
 
+def test_probe_controller_emergency_stop_trips_immediately() -> None:
+    class EmergencyStopController:
+        @staticmethod
+        def read_into(output) -> None:
+            output.connected = True
+            output.timestamp_ns = probe.clock_ns()
+            output.pause_toggle = False
+            output.emergency_stop = True
+
+    readout = probe.ControllerReadout()
+    with pytest.raises(probe.WatchdogTrip, match="controller emergency stop"):
+        probe._read_controller_or_trip(
+            EmergencyStopController(),
+            readout,
+            reject_toggle=False,
+        )
+
+
+def test_probe_emergency_stop_during_home_entry_disables_torque(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class EmergencyStopController:
+        reads = 0
+
+        def read_into(self, output) -> None:
+            self.reads += 1
+            output.connected = True
+            output.timestamp_ns = probe.clock_ns()
+            output.pause_toggle = False
+            output.emergency_stop = self.reads >= 4
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+    class FakeSerialBus(probe.MockSTS3215Bus):
+        instance = None
+
+        def __init__(self, *_args, **_kwargs) -> None:
+            super().__init__(latency_s=0.0)
+            self.device = "/dev/ttyS1"
+            self.baudrate = 1_000_000
+            self.ever_enabled = False
+            FakeSerialBus.instance = self
+
+        def enable_torque(self):
+            self.ever_enabled = True
+            return super().enable_torque()
+
+    monkeypatch.setattr(probe, "create_controller", lambda _kind: EmergencyStopController())
+    monkeypatch.setattr(probe, "STS3215Bus", FakeSerialBus)
+    monkeypatch.setattr(probe, "prepare_realtime", lambda **_kwargs: SimpleNamespace())
+    monkeypatch.setattr(probe, "configure_realtime", lambda **_kwargs: SimpleNamespace())
+    monkeypatch.setattr(probe, "asdict", lambda _value: {"verified": True})
+
+    summary = probe.run_probe(
+        probe.build_parser().parse_args(
+            [
+                "--bus",
+                "serial",
+                "--controller",
+                "xbox",
+                "--enable-torque",
+                "--moving-gate-authorized",
+                "--hardware-authorized",
+                "--suspended-or-benched",
+                "--require-realtime",
+                "--config",
+                str(Path(__file__).parents[1] / "duck_config.example.json"),
+                "--home-seconds",
+                "0.1",
+                "--ticks",
+                "2",
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+    )
+
+    assert summary["run_status"] == "HALTED"
+    assert summary["halt_reason"] == "physical controller emergency stop requested"
+    assert summary["gates"]["torque_off_confirmed"] is True
+    assert FakeSerialBus.instance is not None
+    assert FakeSerialBus.instance.ever_enabled is True
+    assert FakeSerialBus.instance.torque_enabled is False
+
+
 def test_mock_moving_probe_runs_slow_home_path(tmp_path: Path) -> None:
     root = Path(__file__).parents[1]
     output = tmp_path / "moving.jsonl"

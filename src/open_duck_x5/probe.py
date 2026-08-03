@@ -146,6 +146,8 @@ def _read_controller_or_trip(
     now_ns = clock_ns()
     if not readout.connected or now_ns - readout.timestamp_ns > 250_000_000:
         raise WatchdogTrip("physical controller state is disconnected or stale")
+    if readout.emergency_stop:
+        raise WatchdogTrip("physical controller emergency stop requested")
     if reject_toggle and readout.pause_toggle:
         raise WatchdogTrip("physical controller toggled during startup readiness")
 
@@ -440,6 +442,16 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         hard_overrun_ns=2 * int(1e9 / args.frequency_hz),
         max_consecutive_bus_failures=args.watchdog_failures,
     )
+
+    def check_stop_and_controller() -> None:
+        _raise_if_stop_requested(args)
+        if controller is not None:
+            _read_controller_or_trip(
+                controller,
+                controller_readout,
+                reject_toggle=True,
+            )
+
     halt_reason = None
     torque_off_status = ErrorCode.OK
     try:
@@ -467,7 +479,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 snapshot,
                 physical_home,
                 home_seconds=args.home_seconds,
-                stop_check=lambda: _raise_if_stop_requested(args),
+                stop_check=check_stop_and_controller,
                 watchdog=watchdog,
             )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
