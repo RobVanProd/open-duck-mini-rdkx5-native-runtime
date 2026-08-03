@@ -4,38 +4,17 @@ Status date: 2026-08-02
 
 ## Current state
 
-`T247 x=0 REPLACEMENT LAUNCHER FROZEN; FRESH SUSPENDED MOTION AUTHORIZATION NEXT`
+`T247 GATE 5 x=0 PASS_REVIEWED; SEPARATE x=.08 FREEZE NEXT`
 
 The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
-policies. The first authorized x=0 invocation entered and held home, but halted
-while paused on a 92.776 ms watchdog overrun. It executed zero active policy
-ticks, confirmed torque-off, released the UART, and restored the governor.
-
-The late transaction began 17.58 ms after the kernel created a replacement
-Xbox Bluetooth HID instance. The Linux controller implementation used pygame
-in a second Python thread, so hotplug processing could hold the interpreter
-lock and starve the RT servo thread. The same code also accepted bytes after
-the four-millisecond deadline and labeled the 90.701 ms grouped read `OK`.
-
-The repaired controller-present 10,000-tick torque-off probe then completed its
-full population. Timing tails, failure rate, controller stability, torque-off,
-serial release, and governor restoration passed, but the frozen result is still
-`FAIL`: measured tick 0 reached 5.080639 ms against the strict `<5 ms` bus
-maximum. The other 9,999 ticks used the fixed-order parser and stayed at or
-below 4.372012 ms. An authorized one-sweep diagnostic later completed cleanly
-at 4.321267 ms; it is diagnostic only and does not replace the failed maximum.
-
-The frozen replacement revalidation is now `PASS_REVIEWED_NO_MOTION`.
-Readiness was 4.009592 ms; the measured 10,000-tick bus maximum was 4.883761 ms;
-tick p99/p99.9 were 20.002629/20.009668 ms; all 160,000 outcomes succeeded; and
-there were zero bursts or late markers. The evidence archive was independently
-hash- and trace-verified locally. This earns only a replacement x=0 launcher.
-
-The x=0-only replacement launcher is now frozen and reviewed. It accepts no
-command selector, starts the runtime exactly once with x=0, pins the accepted
-readiness receipt and known-good controller, and requires a clean startup
-readiness event plus every control-summary gate. It has not run.
+policies. The readiness-cued suspended x=0 arm completed exactly 250 calibration
+plus 600 locomotion ticks. Tick p99/p99.9 were 20.058568/20.115872 ms, bus
+p99.9/max were 3.836193/3.919508 ms, and all 56,960 transactions succeeded.
+There were zero bursts, stale samples, alarms, telemetry drops, or target-rate
+envelope events. Runtime and independent register readback confirmed torque
+off, independent replay matched the board summary exactly, and the operator
+reported that everything looked and sounded normal.
 
 ## What is green
 
@@ -47,7 +26,7 @@ readiness event plus every control-summary gate. It has not run.
 | Production host wiring | 18/18 mock real-asset checks pass, including pause and injected-write failure |
 | Independent summary | T247 stage, route, ABI, asset, duration, and safety validation passes |
 | Robot runtime | Hardware Gates 1-4 are `PASS_REVIEWED` |
-| Gate 5 launcher | Frozen one-arm launcher validates all hashes and restores the governor on every exit |
+| Gate 5 x=0 | `PASS_REVIEWED`: exact 250+600 active ticks, all automatic gates green, normal operator observation, torque off independently verified |
 | Controller isolation | The known-good Xbox identity passed 10,000/10,000 direct 50 Hz reads, one A edge, zero disconnects, and an unchanged device inode with no UART or servo access |
 | Startup repair offline contract | One pre-serial controller drain, a one-shot separately recorded full-shape readiness exchange, bounded fixed-slot anomaly routing, unchanged measured tick population, and fail-closed home/controller checks pass tests |
 
@@ -66,21 +45,20 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Obtain fresh explicit authorization for the exact frozen suspended x=0 run.
-2. Run that one x=0 invocation and stop; there is no second-command path.
-3. Independently summarize and review the x=0 artifact.
-4. Only a reviewed green x=0 result can earn a separate x=.08 authorization.
+1. Freeze a separate x=.08 preregistration and launcher bound to the reviewed
+   x=0 receipt's exact SHA-256.
+2. Run all offline checks, push the freeze, and require green CI.
+3. Obtain fresh explicit authorization for that exact suspended x=.08 run.
+4. Run only x=.08, then independently summarize and review it.
 
 The launcher cannot start x=.08 after x=0. Its x=.08 path requires both a
 separate authorization and the exact SHA-256 of a reviewed green x=0 receipt.
 
 ## Still not proven
 
-- No active serial T247 policy tick has run.
-- The frozen replacement x=0 launcher has not been authorized or run.
+- No suspended x=.08 T247 policy tick has run.
 - T247 does not have grounded-walking clearance.
-- A readiness result does not authorize torque, motion, Gate 5, or grounded
-  replay by itself.
+- The reviewed x=0 result does not authorize x=.08 or grounded replay by itself.
 
 The frozen readiness and command packet are in
 `artifacts/gates/phase_7_hardware/gate_5_policy/`.

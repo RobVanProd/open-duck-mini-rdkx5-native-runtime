@@ -1301,3 +1301,29 @@ The preregistration and launcher review bind a new unused evidence directory
 and the exact operator handshake. They authorize no robot access, torque,
 motion, policy execution, x=.08, or grounded replay; fresh explicit suspended
 x=0 authorization is still required.
+
+## D078 — Accept the readiness-cued suspended T247 x=0 arm
+
+Accepted as `PASS_REVIEWED_T247_GATE5_X0`. After the frozen five-second home
+entry, the monitored launcher produced exactly one clean readiness `PASS`
+record while paused and before policy staging. The operator pressed A once only
+after the explicit GO cue. The runtime then completed exactly 250 calibration
+and 600 locomotion ticks at fixed x=0.
+
+Tick p99/p99.9 were 20.058568/20.115872 ms and bus p99.9/max were
+3.836193/3.919508 ms. All 56,960 expected transactions succeeded. There were
+zero read bursts, stale required samples, alarms, partial bytes, unexpected
+packets, telemetry drops, or 3.75 rad/s envelope events. Runtime cutoff and a
+separate all-14 register-40 readback confirmed torque off. The operator reported
+that everything looked and sounded normal.
+
+The external archive reproduced SHA-256
+`ace166ceec085bb3d22b817e8256fcb3ef148b9313ac7f0666d6768d84c19633`
+locally. Independent review verified every contained hash, all 3,564 schemas,
+contiguous control ticks 0-3559, exact active-stage counts, and an exact summary
+replay after source-path normalization.
+
+This decision earns only a separately frozen and reviewed suspended x=.08 arm.
+It does not authorize x=.08, automatic promotion, grounded replay, or robot
+clearance. The three earlier failed pre-policy attempts remain preserved and
+are not reclassified.
