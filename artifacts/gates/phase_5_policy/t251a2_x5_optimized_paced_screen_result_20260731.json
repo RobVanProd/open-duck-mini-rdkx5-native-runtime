@@ -1,0 +1,150 @@
+{
+  "asset_receipts": {
+    "calibrator": {
+      "bytes": 55573,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/assets/calibrator.onnx",
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "deployment_policy": {
+      "bytes": 993875,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/assets/policy.onnx",
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/assets/p30.json",
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/assets/reference.npz",
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "authority": {
+    "gate5": false,
+    "grounded_replay": false,
+    "motion": false,
+    "policy_deployed": false,
+    "production_runtime_modified": false,
+    "sensors": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "t251_rerun": false,
+    "threshold_changed": false,
+    "torque": false
+  },
+  "checks": {
+    "aarch64_linux": true,
+    "asset_receipts_exact": true,
+    "byte_exact_every_tick": true,
+    "exact_250_0_2048_chain": true,
+    "implementation_sources_exact": true,
+    "no_robot_descriptors": true,
+    "no_robot_modules": true,
+    "optimized_max_with_reserve": true,
+    "optimized_p99_9_with_reserve": false,
+    "optimized_p99_with_reserve": false,
+    "performance_governor": true,
+    "sched_fifo_priority_80": true,
+    "single_cpu7_affinity": true,
+    "tracked_source_clean": true,
+    "zero_measured_rate_excess": true
+  },
+  "date": "2026-07-31",
+  "decision": "HOLD_AND_OPTIMIZE_ONLY_THE_MEASURED_HOST_COMPONENT",
+  "execution": {
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "calibration_ticks": 250,
+    "executed_ticks": 2298,
+    "home_return_ticks": 0,
+    "locomotion_ticks": 2048,
+    "maximum_rate_excess_rad_s": 0.0,
+    "mismatch": null,
+    "optimized_commit_all": {
+      "max_ms": 0.76371,
+      "mean_ms": 0.5899323816362053,
+      "min_ms": 0.559834,
+      "p50_ms": 0.5894385,
+      "p95_ms": 0.60489475,
+      "p99_9_ms": 0.6843785990000171,
+      "p99_ms": 0.618558,
+      "samples": 2298
+    },
+    "optimized_stage_locomotion": {
+      "max_ms": 2.620463,
+      "mean_ms": 1.9945739033203125,
+      "min_ms": 1.855795,
+      "p50_ms": 1.989025,
+      "p95_ms": 2.08143085,
+      "p99_9_ms": 2.5456359740000014,
+      "p99_ms": 2.17971376,
+      "samples": 2048
+    },
+    "release_lateness": {
+      "max_ms": 0.066872,
+      "mean_ms": 0.04038208355091384,
+      "min_ms": 0.025816,
+      "p50_ms": 0.040949,
+      "p95_ms": 0.045720149999999994,
+      "p99_9_ms": 0.05391024500000082,
+      "p99_ms": 0.04728659000000001,
+      "samples": 2298
+    },
+    "release_period_ns": 20000000
+  },
+  "failed_checks": [
+    "optimized_p99_9_with_reserve",
+    "optimized_p99_with_reserve"
+  ],
+  "git": {
+    "branch": "codex/policy-deployment-consolidation",
+    "commit": "25311ec11811c4daabcc7ef786cc16751c393f56"
+  },
+  "isolation_evidence": {
+    "external_send_implementation": false,
+    "robot_descriptors_after": {},
+    "robot_descriptors_before": {},
+    "robot_modules_after": [],
+    "robot_modules_before": [],
+    "serial_gpio_i2c_controller_or_torque_access": false
+  },
+  "platform": {
+    "affinity": [
+      7
+    ],
+    "governor": "performance",
+    "machine": "aarch64",
+    "numpy": "2.2.6",
+    "python": "3.10.12",
+    "release": "6.1.83",
+    "scheduler": "SCHED_FIFO",
+    "scheduler_priority": 80,
+    "system": "Linux"
+  },
+  "preregistration": {
+    "bytes": 4944,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a2/source/artifacts/gates/phase_5_policy/t251a2_x5_optimized_paced_screen_preregistration_20260731.json",
+    "sha256": "cd9e71c724087f1ecffa4e4d6f0c462df3780b64a6723d094bcfab60692b1ebc"
+  },
+  "raw_output": {
+    "bytes": 55372,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251a2/evidence/raw-ticks.npz",
+    "sha256": "de7a1a668d7a467d320681043e65938b9092d975ad43afdd61e91c578e6e7367"
+  },
+  "result_sha256": "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5",
+  "schema_version": "open_duck_x5.t251a2_x5_optimized_paced_screen_result.v1",
+  "source_receipts": {
+    "baseline": {
+      "bytes": 40452,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/source/src/open_duck_x5/winner_v13_state_coherent.py",
+      "sha256": "d6fe348dbb95d86e4def71338aaf3044ff4a3ac7e4cf1420ba777f0ff831bf86"
+    },
+    "optimized": {
+      "bytes": 13681,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251a2/source/tools/winner_v14_optimized.py",
+      "sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+    }
+  },
+  "status": "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN"
+}

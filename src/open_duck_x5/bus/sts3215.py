@@ -110,6 +110,9 @@ class STS3215Bus:
         self._rx_chunk_end = np.zeros(len(self._rx), dtype=np.int64)
         self._rx_chunk_time_ns = np.zeros(len(self._rx), dtype=np.int64)
         self._rx_chunk_count = 0
+        self._slot_ids = np.full(ACTION_DIM, -1, dtype=np.int16)
+        self._slot_aligned = np.zeros(ACTION_DIM, dtype=np.bool_)
+        self._slot_logical_indices = np.full(ACTION_DIM, -1, dtype=np.int16)
         self._group_state_decoded = False
 
     def close(self) -> None:
@@ -288,7 +291,10 @@ class STS3215Bus:
             count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             if snapshot.instrumentation_enabled:
                 if only_servo_id is None:
                     if snapshot.trace_group_first_rx_ns == 0:
@@ -361,7 +367,10 @@ class STS3215Bus:
             )
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             self._rx_length += count
             stream_received += count
             self._record_group_receive(snapshot, stream_received, receive_ns)
@@ -372,6 +381,11 @@ class STS3215Bus:
             consumed, seen_count = expected_bytes, ACTION_DIM
             if snapshot.instrumentation_enabled:
                 snapshot.trace_group_parser_mode = 1
+        elif self._parse_bounded_fixed_slot_train(snapshot):
+            consumed = expected_bytes
+            seen_count = int(np.count_nonzero(self._read_seen))
+            if snapshot.instrumentation_enabled:
+                snapshot.trace_group_parser_mode = 3
         else:
             if snapshot.instrumentation_enabled:
                 snapshot.trace_group_parser_mode = 2
@@ -401,7 +415,10 @@ class STS3215Bus:
             count = self.transport.read_some_into(self._rx_view[self._rx_length :], deadline_ns)
             if count <= 0:
                 break
-            receive_ns = clock_ns() if snapshot.instrumentation_enabled else 0
+            completed_ns = clock_ns()
+            if completed_ns >= deadline_ns:
+                break
+            receive_ns = completed_ns if snapshot.instrumentation_enabled else 0
             self._rx_length += count
             stream_received += count
             self._record_group_receive(snapshot, stream_received, receive_ns)
@@ -434,10 +451,11 @@ class STS3215Bus:
     def _parse_exact_sync_read_train(self, snapshot: ServoSnapshot) -> bool:
         """Parse the normal ordered 14 x 10-byte state train without scanning.
 
-        Structure is validated before state is mutated. Any order, header, or
-        length anomaly falls back to the generic ID-routing parser. A
-        structurally valid train retains per-servo CRC classification while
-        decoding fresh position and speed directly into the snapshot.
+        Structure is validated before state is mutated. A structurally valid
+        train retains per-servo CRC classification while decoding fresh
+        position and speed directly into the snapshot. Other exact-length
+        layouts are offered to the bounded fixed-slot router before the generic
+        recovery parser.
         """
 
         if self._rx_length != ACTION_DIM * 10:
@@ -457,38 +475,145 @@ class STS3215Bus:
         )
         for wire_index, logical_index in enumerate(self._sync_read_wire_indices):
             offset = wire_index * 10
-            self._read_seen[logical_index] = True
-            if completion_times is not None:
-                completion_times[logical_index] = self._completion_time_for_stream_offset(
-                    offset + 10
-                )
-            expected_checksum = (
-                ~(
-                    self._rx[offset + 2]
-                    + self._rx[offset + 3]
-                    + self._rx[offset + 4]
-                    + self._rx[offset + 5]
-                    + self._rx[offset + 6]
-                    + self._rx[offset + 7]
-                    + self._rx[offset + 8]
-                )
-            ) & 0xFF
-            if expected_checksum != self._rx[offset + 9]:
-                self._read_codes[logical_index] = int(ErrorCode.CRC)
-                continue
-
-            self._read_lengths[logical_index] = 4
-            self._read_device_status[logical_index] = self._rx[offset + 4]
-            self._read_codes[logical_index] = int(ErrorCode.OK)
-            raw_position = self._rx[offset + 5] | (self._rx[offset + 6] << 8)
-            if raw_position >= 0x8000:
-                raw_position -= 0x10000
-            raw_speed = self._rx[offset + 7] | (self._rx[offset + 8] << 8)
-            snapshot.positions_rad[logical_index] = raw_position_to_rad(raw_position)
-            snapshot.velocities_rad_s[logical_index] = raw_speed_to_rad_s(raw_speed)
+            self._decode_fixed_status_slot(
+                snapshot,
+                offset=offset,
+                logical_index=logical_index,
+                completion_times=completion_times,
+            )
 
         self._group_state_decoded = True
         return True
+
+    def _parse_bounded_fixed_slot_train(self, snapshot: ServoSnapshot) -> bool:
+        """Route an exact 140-byte train without the generic scanning tail.
+
+        A SyncRead response is fourteen fixed ten-byte slots. If all slots are
+        structurally valid, route them by ID so a complete out-of-order train
+        remains supported. If exactly one slot is structurally damaged while
+        the other thirteen still match the requested wire positions, classify
+        only that slot stale. The thirteen anchors prove that bytes have not
+        shifted; more ambiguous trains retain the generic recovery path.
+        """
+
+        if self._rx_length != ACTION_DIM * 10:
+            return False
+        self._slot_ids.fill(-1)
+        self._slot_aligned.fill(False)
+        self._slot_logical_indices.fill(-1)
+        aligned_count = 0
+        expected_matches = 0
+        for wire_index, expected_id in enumerate(SERVO_SYNC_READ_IDS):
+            offset = wire_index * 10
+            slot_aligned = (
+                self._rx[offset] == 0xFF
+                and self._rx[offset + 1] == 0xFF
+                and self._rx[offset + 3] == 6
+            )
+            self._slot_aligned[wire_index] = slot_aligned
+            if not slot_aligned:
+                continue
+            aligned_count += 1
+            servo_id = int(self._rx[offset + 2])
+            self._slot_ids[wire_index] = servo_id
+            if servo_id == expected_id:
+                expected_matches += 1
+
+        completion_times = (
+            snapshot.trace_group_response_complete_ns if snapshot.instrumentation_enabled else None
+        )
+        if aligned_count == ACTION_DIM:
+            logical_mask = 0
+            complete_unique_set = True
+            for wire_index in range(ACTION_DIM):
+                servo_id = int(self._slot_ids[wire_index])
+                logical_index = (
+                    int(self._id_to_index[servo_id])
+                    if 0 <= servo_id < len(self._id_to_index)
+                    else -1
+                )
+                self._slot_logical_indices[wire_index] = logical_index
+                if logical_index < 0 or logical_mask & (1 << logical_index):
+                    complete_unique_set = False
+                    break
+                logical_mask |= 1 << logical_index
+            if complete_unique_set:
+                for wire_index in range(ACTION_DIM):
+                    logical_index = int(self._slot_logical_indices[wire_index])
+                    self._decode_fixed_status_slot(
+                        snapshot,
+                        offset=wire_index * 10,
+                        logical_index=logical_index,
+                        completion_times=completion_times,
+                    )
+                self._group_state_decoded = True
+                return True
+
+        if expected_matches != ACTION_DIM - 1:
+            return False
+        for wire_index, expected_logical_index in enumerate(self._sync_read_wire_indices):
+            offset = wire_index * 10
+            if (
+                bool(self._slot_aligned[wire_index])
+                and int(self._slot_ids[wire_index]) == SERVO_SYNC_READ_IDS[wire_index]
+            ):
+                self._decode_fixed_status_slot(
+                    snapshot,
+                    offset=offset,
+                    logical_index=expected_logical_index,
+                    completion_times=completion_times,
+                )
+                continue
+            self._read_seen[expected_logical_index] = True
+            if completion_times is not None:
+                completion_times[expected_logical_index] = (
+                    self._completion_time_for_stream_offset(offset + 10)
+                )
+            if bool(self._slot_aligned[wire_index]):
+                self._read_codes[expected_logical_index] = int(ErrorCode.UNEXPECTED_ID)
+                self._unexpected_packets += 1
+            else:
+                self._read_codes[expected_logical_index] = int(ErrorCode.PARTIAL)
+        self._group_state_decoded = True
+        return True
+
+    def _decode_fixed_status_slot(
+        self,
+        snapshot: ServoSnapshot,
+        *,
+        offset: int,
+        logical_index: int,
+        completion_times: np.ndarray | None,
+    ) -> None:
+        self._read_seen[logical_index] = True
+        if completion_times is not None:
+            completion_times[logical_index] = self._completion_time_for_stream_offset(
+                offset + 10
+            )
+        expected_checksum = (
+            ~(
+                self._rx[offset + 2]
+                + self._rx[offset + 3]
+                + self._rx[offset + 4]
+                + self._rx[offset + 5]
+                + self._rx[offset + 6]
+                + self._rx[offset + 7]
+                + self._rx[offset + 8]
+            )
+        ) & 0xFF
+        if expected_checksum != self._rx[offset + 9]:
+            self._read_codes[logical_index] = int(ErrorCode.CRC)
+            return
+
+        self._read_lengths[logical_index] = 4
+        self._read_device_status[logical_index] = self._rx[offset + 4]
+        self._read_codes[logical_index] = int(ErrorCode.OK)
+        raw_position = self._rx[offset + 5] | (self._rx[offset + 6] << 8)
+        if raw_position >= 0x8000:
+            raw_position -= 0x10000
+        raw_speed = self._rx[offset + 7] | (self._rx[offset + 8] << 8)
+        snapshot.positions_rad[logical_index] = raw_position_to_rad(raw_position)
+        snapshot.velocities_rad_s[logical_index] = raw_speed_to_rad_s(raw_speed)
 
     def _record_group_receive(
         self, snapshot: ServoSnapshot, stream_end_offset: int, receive_ns: int
@@ -673,6 +798,8 @@ class STS3215Bus:
         while clock_ns() < deadline_ns:
             count = self.transport.read_some_into(view[received:], deadline_ns)
             if count <= 0:
+                break
+            if clock_ns() >= deadline_ns:
                 break
             received += count
             header = buffer.find(b"\xff\xff", 0, received)

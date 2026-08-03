@@ -1,0 +1,67 @@
+{
+  "schema_version": "open_duck_x5.t247_controller_isolation_repair_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN",
+  "date": "2026-08-02",
+  "source_attempt": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_ATTEMPT1_HALTED_20260802.json",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "policy_weights_unchanged": true,
+  "policy_observation_action_contract_unchanged": true,
+  "selected_repairs": [
+    "Use the Linux joystick ABI directly and nonblocking from the control thread; do not run pygame or a controller polling thread on Linux.",
+    "Discard bytes returned after an absolute serial deadline and classify the required state as stale/timeout.",
+    "Fail on disconnected or stale physical-controller state even while paused.",
+    "Allow runtime_timing_probe to exercise the same physical-controller backend during a torque-off serial run."
+  ],
+  "ordered_validation": [
+    {
+      "step": 1,
+      "name": "offline_contract",
+      "requirements": [
+        "full pytest suite passes",
+        "ruff passes",
+        "mock timing probe remains informational and completes",
+        "policy and action semantics are unchanged"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "controller_only",
+      "hardware_scope": "controller only; no UART, torque, servo read/write, or policy",
+      "requirements": [
+        "LinuxJoystickController is selected",
+        "one A-button edge is detected",
+        "connection remains continuously fresh for at least 10 seconds after the edge",
+        "no pygame import or controller polling thread exists in the Linux process"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "controller_present_torque_off_timing",
+      "hardware_scope": "suspended/benched; /dev/ttyS1; torque disabled throughout; no motion; no policy",
+      "ticks": 10000,
+      "frequency_hz": 50.0,
+      "transaction_timeout_ms": 4.0,
+      "controller": "xbox",
+      "realtime": {
+        "cpu": 7,
+        "scheduler": "SCHED_FIFO",
+        "priority": 80,
+        "governor": "performance"
+      },
+      "requirements": [
+        "all 10000 ticks complete",
+        "tick p99 <= 21 ms",
+        "tick p99.9 <= 22 ms",
+        "bus maximum < 5 ms",
+        "zero read bursts",
+        "transaction failure rate < 0.1%",
+        "zero late-OK transactions",
+        "zero controller stale/disconnect events",
+        "torque-off confirmed",
+        "governor restored"
+      ]
+    }
+  ],
+  "stop_rule": "Any failed ordered step holds Gate 5. No motion retry and no threshold change.",
+  "advance_rule": "Only a reviewed pass of all three steps can earn a separately preregistered suspended x=0 retry. It does not authorize that retry."
+}

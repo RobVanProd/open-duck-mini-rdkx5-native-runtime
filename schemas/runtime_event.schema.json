@@ -7,7 +7,14 @@
   "properties": {
     "schema_version": { "const": "open_duck_x5.runtime_event.v1" },
     "timestamp_monotonic_ns": { "type": "integer", "minimum": 0 },
-    "event": { "enum": ["runtime_start", "realtime_verified", "runtime_halt"] },
+    "event": {
+      "enum": [
+        "runtime_start",
+        "realtime_verified",
+        "startup_readiness",
+        "runtime_halt"
+      ]
+    },
     "details": { "type": "object" },
     "reason": { "type": "string", "minLength": 1 },
     "telemetry_records_dropped": { "type": "integer", "minimum": 0 },
@@ -43,6 +50,13 @@
       }
     },
     {
+      "if": { "properties": { "event": { "const": "startup_readiness" } } },
+      "then": {
+        "required": ["details"],
+        "properties": { "details": { "$ref": "#/$defs/startupReadiness" } }
+      }
+    },
+    {
       "if": { "properties": { "event": { "const": "runtime_halt" } } },
       "then": {
         "required": [
@@ -57,6 +71,10 @@
   ],
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "transactionStatus": {
+      "enum": ["ok", "timeout", "crc", "partial", "device", "unexpected_id", "io"]
+    },
+    "deviceStatusByte": { "type": "integer", "minimum": 0, "maximum": 255 },
     "onnxTensor": {
       "type": "object",
       "required": ["name", "shape", "type"],
@@ -91,7 +109,12 @@
         "suspended_or_benched"
       ],
       "properties": {
-        "contract_id": { "const": "open-duck-mini.best-walk.101x14.v1" },
+        "contract_id": {
+          "enum": [
+            "open-duck-mini.best-walk.101x14.v1",
+            "open-duck-mini.t247-command-routed.115x14.v1"
+          ]
+        },
         "control_frequency_hz": { "const": 50.0 },
         "control_period_ns": { "const": 20000000 },
         "bus": {
@@ -196,8 +219,9 @@
             { "type": "null" },
             {
               "type": "object",
-              "required": ["path", "sha256", "input", "output", "session"],
+              "required": ["contract", "path", "sha256", "input", "output", "session"],
               "properties": {
+                "contract": { "const": "v1-101" },
                 "path": { "type": "string", "minLength": 1 },
                 "sha256": { "$ref": "#/$defs/sha256" },
                 "input": { "$ref": "#/$defs/onnxTensor" },
@@ -219,6 +243,91 @@
                     "inter_op_num_threads": { "const": 1 },
                     "intra_op_allow_spinning": { "const": false },
                     "inter_op_allow_spinning": { "const": false }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "contract",
+                "path",
+                "sha256",
+                "calibration_ticks",
+                "calibrator_inputs",
+                "locomotion_inputs",
+                "outputs",
+                "context_routes",
+                "exact_command_routes",
+                "fallback_preserved",
+                "assets"
+              ],
+              "properties": {
+                "contract": { "const": "t247-command-routed-115" },
+                "path": { "type": "string", "minLength": 1 },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "calibration_ticks": { "const": 250 },
+                "calibrator_inputs": {
+                  "const": {
+                    "obs": [1, 115],
+                    "previous_action": [1, 14],
+                    "h_in": [1, 64]
+                  }
+                },
+                "locomotion_inputs": {
+                  "const": {
+                    "obs": [1, 115],
+                    "previous_action": [1, 14],
+                    "h_in": [1, 64],
+                    "calibration_context": [1, 64]
+                  }
+                },
+                "outputs": {
+                  "const": {
+                    "action": [1, 14],
+                    "previous_action_out": [1, 14],
+                    "h_out": [1, 64]
+                  }
+                },
+                "context_routes": { "const": 6 },
+                "exact_command_routes": { "const": 24 },
+                "fallback_preserved": { "const": true },
+                "assets": {
+                  "type": "object",
+                  "required": [
+                    "calibrator",
+                    "command_route_manifest",
+                    "p30_fit",
+                    "reference_table",
+                    "context_route_root",
+                    "command_route_root"
+                  ],
+                  "properties": {
+                    "calibrator": { "$ref": "#/$defs/asset" },
+                    "command_route_manifest": { "$ref": "#/$defs/asset" },
+                    "p30_fit": { "$ref": "#/$defs/asset" },
+                    "reference_table": { "$ref": "#/$defs/asset" },
+                    "context_route_root": {
+                      "type": "object",
+                      "required": ["path", "verified_models", "router_sha256"],
+                      "properties": {
+                        "path": { "type": "string", "minLength": 1 },
+                        "verified_models": { "const": 6 },
+                        "router_sha256": { "$ref": "#/$defs/sha256" }
+                      },
+                      "additionalProperties": false
+                    },
+                    "command_route_root": {
+                      "type": "object",
+                      "required": ["path", "verified_models"],
+                      "properties": {
+                        "path": { "type": "string", "minLength": 1 },
+                        "verified_models": { "const": 24 }
+                      },
+                      "additionalProperties": false
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -295,6 +404,87 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "asset": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "additionalProperties": false
+    },
+    "startupReadiness": {
+      "type": "object",
+      "required": [
+        "status",
+        "failures",
+        "paused",
+        "policy_staged",
+        "policy_committed_ticks",
+        "phase",
+        "tick_start_monotonic_ns",
+        "tick_work_ms",
+        "release_lateness_ms",
+        "next_release_monotonic_ns",
+        "bus_total_ms",
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "write_status",
+        "all_fresh",
+        "per_servo_status",
+        "per_servo_device_status",
+        "extended_status",
+        "extended_device_status",
+        "imu_stale",
+        "contacts_stale",
+        "partial_bytes",
+        "unexpected_packets"
+      ],
+      "properties": {
+        "status": { "enum": ["PASS", "FAIL"] },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "paused": { "type": "boolean" },
+        "policy_staged": { "type": "boolean" },
+        "policy_committed_ticks": { "type": ["integer", "null"], "minimum": 0 },
+        "phase": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number" }
+        },
+        "tick_start_monotonic_ns": { "type": "integer", "minimum": 0 },
+        "tick_work_ms": { "type": "number", "minimum": 0 },
+        "release_lateness_ms": { "type": "number", "minimum": 0 },
+        "next_release_monotonic_ns": { "type": "integer", "minimum": 0 },
+        "bus_total_ms": { "type": "number", "minimum": 0 },
+        "group_round_trip_ms": { "type": "number", "minimum": 0 },
+        "extended_round_trip_ms": { "type": "number", "minimum": 0 },
+        "write_status": { "$ref": "#/$defs/transactionStatus" },
+        "all_fresh": { "type": "boolean" },
+        "per_servo_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/transactionStatus" }
+        },
+        "per_servo_device_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/deviceStatusByte" }
+        },
+        "extended_status": { "$ref": "#/$defs/transactionStatus" },
+        "extended_device_status": { "$ref": "#/$defs/deviceStatusByte" },
+        "imu_stale": { "type": "boolean" },
+        "contacts_stale": { "type": "boolean" },
+        "partial_bytes": { "type": "integer", "minimum": 0 },
+        "unexpected_packets": { "type": "integer", "minimum": 0 }
+      },
       "additionalProperties": false
     },
     "realtime": {

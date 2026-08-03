@@ -123,6 +123,8 @@ class TransactionTraceSeries:
                             if int(self.group_parser_mode[index]) == 1
                             else "generic_recovery"
                             if int(self.group_parser_mode[index]) == 2
+                            else "fixed_slot_recovery"
+                            if int(self.group_parser_mode[index]) == 3
                             else "not_recorded"
                         ),
                     },

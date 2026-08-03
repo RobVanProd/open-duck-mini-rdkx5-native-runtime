@@ -1,0 +1,182 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_x008_review.v1",
+  "status": "PASS_REVIEWED_T247_GATE5_X008",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "90b685b6c912dcd018a3779bbd1d3d4f72ec311f",
+  "source_tree": "2aba58167a82b47bdd6942da25d4913c098cbfba",
+  "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+  "earned_by": {
+    "x0_review_path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json",
+    "x0_review_sha256": "9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096",
+    "x0_status": "PASS_REVIEWED_T247_GATE5_X0"
+  },
+  "preregistration": {
+    "path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X008_READINESS_CUED_PREREGISTRATION_20260802.json",
+    "sha256": "00aa292f9a39445690d5ec654aadc46edde49021d6cb467a524e739d7009d457"
+  },
+  "launcher": {
+    "path": "setup/run_t247_gate5_x008.sh",
+    "sha256": "d5ff0da2b7ea09528baeb7ea58b91168b5af06f874c02f7704e6d571d5a83fd7",
+    "runtime_invocations": 1,
+    "second_command_path": false
+  },
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "fixed_command_x_m_s": 0.08,
+    "home_entry_seconds": 5,
+    "startup_readiness_attempts": 1,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 600,
+    "active_policy_ticks": 850,
+    "maximum_total_ticks": 3850,
+    "grounded_motion": false
+  },
+  "startup_readiness": {
+    "status": "PASS",
+    "paused": true,
+    "policy_staged": false,
+    "policy_committed_ticks": 0,
+    "phase": [0.0, 0.0],
+    "all_14_servo_samples_fresh": true,
+    "imu_fresh": true,
+    "contacts_fresh": true,
+    "write_status": "ok",
+    "extended_status": "ok",
+    "bus_total_ms": 4.353469,
+    "group_round_trip_ms": 3.262425,
+    "extended_round_trip_ms": 0.924752,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "device_alarm_replies": 0,
+    "failures": []
+  },
+  "measured_population": {
+    "ticks_total": 2889,
+    "paused_ticks": 2039,
+    "active_policy_ticks": 850,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 600,
+    "tick_period_ms": {
+      "min": 19.775425,
+      "mean": 19.99999538975424,
+      "p95": 20.0347426,
+      "p99": 20.12655692,
+      "p99_9": 20.137625704,
+      "max": 20.227427
+    },
+    "tick_work_ms": {
+      "p99_9": 7.259604704,
+      "max": 7.725395
+    },
+    "bus_total_ms": {
+      "min": 3.198008,
+      "mean": 3.544519174800969,
+      "p95": 3.7038598,
+      "p99": 3.78080916,
+      "p99_9": 3.898666,
+      "max": 4.008135
+    },
+    "group_round_trip_ms": {
+      "p99_9": 2.743732,
+      "max": 2.759173
+    },
+    "extended_round_trip_ms": {
+      "p99_9": 0.999336,
+      "max": 1.067002
+    },
+    "transactions_expected": 46224,
+    "transactions_successful": 46224,
+    "transactions_failed": 0,
+    "transaction_failure_rate": 0.0,
+    "read_bursts": 0,
+    "stale_servo_samples": 0,
+    "device_alarm_replies": 0,
+    "voltage_alarm_replies": 0,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "telemetry_records_dropped": 0,
+    "imu_age_p99_9_ms": 13.272096,
+    "contacts_age_p99_9_ms": 12.953296
+  },
+  "policy_review": {
+    "contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+    "command_exact_x008": true,
+    "observed_command_x_m_s": 0.07999999821186066,
+    "max_abs_non_x": 0.0,
+    "stage_sequence_exact": true,
+    "route_sequence_exact": true,
+    "all_control_summary_gates_true": true,
+    "control_summary_gates_passed": 20,
+    "control_summary_gates_total": 20,
+    "candidate_validator_checks_passed": 15,
+    "candidate_validator_checks_total": 15,
+    "candidate_validator_failed_checks": [],
+    "target_velocity_envelope_rad_s": 3.75,
+    "target_velocity_envelope_events": 0,
+    "maximum_observed_target_velocity_rad_s": 1.5000050067901611
+  },
+  "operator_review": {
+    "physically_present": true,
+    "robot_securely_supported": true,
+    "hands_clear": true,
+    "readiness_cue_obeyed": true,
+    "observation": "looked and sounded clean to me",
+    "unexpected_jerk": false,
+    "wrong_joint_side_or_sign": false,
+    "collision": false,
+    "concerning_sound": false,
+    "result": "PASS"
+  },
+  "independent_review": {
+    "status": "PASS",
+    "archive_member_hashes": true,
+    "all_2893_records_schema_valid": true,
+    "event_sequence_exact": true,
+    "tick_sequence_exact_0_through_2888": true,
+    "active_tick_counts_exact": true,
+    "stage_sequence_exact_250_calibration_then_600_locomotion": true,
+    "summary_recomputed_locally": true,
+    "recomputed_summary_exact_after_source_path_normalization": true,
+    "all_summary_gates_true": true,
+    "runner_statuses_zero": true,
+    "runtime_stderr_empty": true
+  },
+  "safety_exit": {
+    "runtime_torque_off_confirmed": true,
+    "independent_disable_torque_status": "ok",
+    "all_14_torque_enable_registers_zero": true,
+    "serial_device_released": true,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil",
+    "controller_identity_unchanged": true
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-t247-x008-readiness-cued-20260802",
+    "control_jsonl_sha256": "5f5faf3a6ea5bdaebc1d89dc84eeaa0e3065346bd7496b7393bba905ff6469d9",
+    "summary_json_sha256": "76f7a85b65552328657511e0c5e846fe311d51bc007393edd1fdab41e4609317",
+    "candidate_review_json_sha256": "861ca9156f944bce7b5113b8d4d4545839708920f68d952a12e8766799ef619b",
+    "runner_metadata_json_sha256": "b7a25910d64bc75c1e798ed06192a689801dcdb3157ee700fc0ba61d8fadfc5f",
+    "runtime_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x008-readiness-cued-20260802.tar.gz",
+    "external_archive_sha256": "2a06a0f9e5489f4d751098ca0aab221bf50b4b6e9694e0cc1a2e126c019911c5",
+    "external_archive_bytes": 702821,
+    "postrun_torque_off_receipt": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x008-readiness-cued-20260802-postrun-torque-off.json",
+    "postrun_torque_off_receipt_sha256": "e8cf52437a3a56973a7851b8dd181bff5763334166128ff7e0a4b8721e3ed3a0"
+  },
+  "decision": {
+    "gate5_x0": "PASS_REVIEWED",
+    "gate5_x008": "PASS_REVIEWED",
+    "suspended_gate5_sequence": "COMPLETE_PASS_REVIEWED",
+    "runtime_handoff_ready": true,
+    "ready_to_deploy_on_rdk_x5_suspended": true,
+    "automatic_promotion": false,
+    "grounded_replay_authorized": false,
+    "grounded_robot_clearance": false,
+    "additional_motion_authorized": false
+  },
+  "advance": "The frozen T247 policy/runtime has completed the suspended Gate 5 x=0 and x=.08 sequence. Hand off the reviewed runtime and evidence. Grounded replay remains outside this repository's authority and requires a separate workstream."
+}

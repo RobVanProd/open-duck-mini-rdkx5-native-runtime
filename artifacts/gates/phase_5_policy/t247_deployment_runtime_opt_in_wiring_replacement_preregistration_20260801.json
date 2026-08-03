@@ -1,0 +1,49 @@
+{
+  "schema_version": "open_duck_x5.t247_runtime_opt_in_wiring_replacement_preregistration.v1",
+  "status": "PREREGISTERED_REPLACEMENT_T247_RUNTIME_OPT_IN_WIRING",
+  "date": "2026-08-01",
+  "earned_by": {
+    "route_fixture_review": "artifacts/gates/phase_5_policy/t247_deployment_runtime_opt_in_wiring_route_fixture_review_20260801.json",
+    "review_status": "VALID_HOLD_ROUTE_EXPECTATION_FIXTURE_ERROR",
+    "original_result_checks": "17/18"
+  },
+  "unchanged_contract": {
+    "source_commit": "d3f0989076961093ab45ecae17b97b28068acbda",
+    "policy": "UNCHANGED_T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "policy_weights_changed": false,
+    "runtime_semantics_changed": false,
+    "asset_set_changed": false,
+    "mock_sensor_fixture_changed": false,
+    "active_ticks": 258,
+    "calibration_confirmed_ticks": 250,
+    "locomotion_ticks": 8,
+    "fixed_command_x_m_s": 0.08,
+    "all_original_non_route_checks_unchanged": true
+  },
+  "corrected_route_check": {
+    "selected_context_route": "must be exactly one of lower-cond0, lower-cond1, positive-cond0, positive-cond1, tail-cond0, or tail-cond1",
+    "selected_command_route": "must be exactly x080 on every locomotion tick",
+    "reason": "The immutable context route is selected from the measured 250-tick calibration context. Foot-contact state legitimately changes that context; a suspended no-contact fixture selects lower-cond1 while the older both-contact synthetic fixture selects lower-cond0.",
+    "no_post_hoc_route_selection": true,
+    "all_six_context_routes_previously_verified_exact": true
+  },
+  "decision_rule": {
+    "all_18_checks_pass": "PASS_T247_RUNTIME_OPT_IN_WIRING_AND_EARN_GATE5_READINESS_AUDIT",
+    "any_check_fails": "HOLD_RUNTIME_INTEGRATION_AND_FIX_ONLY_THE_DEFECT",
+    "additional_retry": false,
+    "hardware_execution": false,
+    "motion": false
+  },
+  "authority": {
+    "offline_cpu_only": true,
+    "mock_bus_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "gate5": false
+  }
+}

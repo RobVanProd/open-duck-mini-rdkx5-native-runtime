@@ -1,0 +1,1166 @@
+{
+  "schema_version": "open_duck_x5.t247_context_route_specialization_result.v1",
+  "status": "PASS_T247_CONTEXT_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "preregistration": {
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t247_deployment_context_route_specialization_preregistration_20260731.json",
+    "bytes": 8700,
+    "sha256": "4a038b0db38703e9a8adbd2439c1c23d82d09805a7119985874cbde48cd5a5ec"
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "policy": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "p30_fit": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "reference_table": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "derivation": {
+    "derive_a_manifest": {
+      "schema_version": "open_duck_x5.t247_context_route_variant_manifest.v1",
+      "source_policy": {
+        "bytes": 993875,
+        "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+        "nodes": 141,
+        "initializers": 96
+      },
+      "routes": [
+        "lower-cond0",
+        "lower-cond1",
+        "positive-cond0",
+        "positive-cond1",
+        "tail-cond0",
+        "tail-cond1"
+      ],
+      "generated": [
+        {
+          "name": "instrumented",
+          "file": "policy.instrumented-routes.onnx",
+          "bytes": 994112,
+          "sha256": "5f5c631659380ab1474452f8b3823186d8c1f9274adacde1c84a4921b41b7c32",
+          "nodes": 141,
+          "initializers": 96,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 22,
+            "And": 4,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 5,
+            "Equal": 2,
+            "Gather": 5,
+            "Gemm": 10,
+            "Greater": 2,
+            "GreaterOrEqual": 9,
+            "Identity": 4,
+            "LessOrEqual": 4,
+            "MatMul": 8,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 6,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 17
+          }
+        },
+        {
+          "name": "router",
+          "file": "policy.context-router.onnx",
+          "bytes": 3756,
+          "sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+          "nodes": 19,
+          "initializers": 7,
+          "operation_counts": {
+            "Add": 5,
+            "And": 2,
+            "Greater": 1,
+            "GreaterOrEqual": 4,
+            "LessOrEqual": 2,
+            "MatMul": 5
+          }
+        },
+        {
+          "name": "lower-cond0",
+          "file": "policy.lower-cond0.onnx",
+          "bytes": 980088,
+          "sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+          "nodes": 100,
+          "initializers": 76,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 17,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 5,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 8,
+            "GreaterOrEqual": 5,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 4,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 9
+          }
+        },
+        {
+          "name": "lower-cond1",
+          "file": "policy.lower-cond1.onnx",
+          "bytes": 975247,
+          "sha256": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+          "nodes": 96,
+          "initializers": 76,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 16,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 4,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 3,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "positive-cond0",
+          "file": "policy.positive-cond0.onnx",
+          "bytes": 969914,
+          "sha256": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+          "nodes": 88,
+          "initializers": 64,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 15,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 4,
+            "Gather": 5,
+            "Gemm": 6,
+            "Greater": 1,
+            "GreaterOrEqual": 3,
+            "Identity": 1,
+            "LessOrEqual": 2,
+            "MatMul": 2,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "positive-cond1",
+          "file": "policy.positive-cond1.onnx",
+          "bytes": 970859,
+          "sha256": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+          "nodes": 93,
+          "initializers": 73,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 15,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Gather": 5,
+            "Gemm": 6,
+            "Greater": 1,
+            "GreaterOrEqual": 3,
+            "Identity": 1,
+            "LessOrEqual": 2,
+            "MatMul": 2,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "tail-cond0",
+          "file": "policy.tail-cond0.onnx",
+          "bytes": 976203,
+          "sha256": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+          "nodes": 99,
+          "initializers": 74,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 17,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 5,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 5,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 4,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 9
+          }
+        },
+        {
+          "name": "tail-cond1",
+          "file": "policy.tail-cond1.onnx",
+          "bytes": 975550,
+          "sha256": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c",
+          "nodes": 98,
+          "initializers": 77,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 16,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 4,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 3,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 8
+          }
+        }
+      ]
+    },
+    "derive_b_manifest": {
+      "schema_version": "open_duck_x5.t247_context_route_variant_manifest.v1",
+      "source_policy": {
+        "bytes": 993875,
+        "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+        "nodes": 141,
+        "initializers": 96
+      },
+      "routes": [
+        "lower-cond0",
+        "lower-cond1",
+        "positive-cond0",
+        "positive-cond1",
+        "tail-cond0",
+        "tail-cond1"
+      ],
+      "generated": [
+        {
+          "name": "instrumented",
+          "file": "policy.instrumented-routes.onnx",
+          "bytes": 994112,
+          "sha256": "5f5c631659380ab1474452f8b3823186d8c1f9274adacde1c84a4921b41b7c32",
+          "nodes": 141,
+          "initializers": 96,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 22,
+            "And": 4,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 5,
+            "Equal": 2,
+            "Gather": 5,
+            "Gemm": 10,
+            "Greater": 2,
+            "GreaterOrEqual": 9,
+            "Identity": 4,
+            "LessOrEqual": 4,
+            "MatMul": 8,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 6,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 17
+          }
+        },
+        {
+          "name": "router",
+          "file": "policy.context-router.onnx",
+          "bytes": 3756,
+          "sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+          "nodes": 19,
+          "initializers": 7,
+          "operation_counts": {
+            "Add": 5,
+            "And": 2,
+            "Greater": 1,
+            "GreaterOrEqual": 4,
+            "LessOrEqual": 2,
+            "MatMul": 5
+          }
+        },
+        {
+          "name": "lower-cond0",
+          "file": "policy.lower-cond0.onnx",
+          "bytes": 980088,
+          "sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+          "nodes": 100,
+          "initializers": 76,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 17,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 5,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 8,
+            "GreaterOrEqual": 5,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 4,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 9
+          }
+        },
+        {
+          "name": "lower-cond1",
+          "file": "policy.lower-cond1.onnx",
+          "bytes": 975247,
+          "sha256": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+          "nodes": 96,
+          "initializers": 76,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 16,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 4,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 3,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "positive-cond0",
+          "file": "policy.positive-cond0.onnx",
+          "bytes": 969914,
+          "sha256": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+          "nodes": 88,
+          "initializers": 64,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 15,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 4,
+            "Gather": 5,
+            "Gemm": 6,
+            "Greater": 1,
+            "GreaterOrEqual": 3,
+            "Identity": 1,
+            "LessOrEqual": 2,
+            "MatMul": 2,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "positive-cond1",
+          "file": "policy.positive-cond1.onnx",
+          "bytes": 970859,
+          "sha256": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+          "nodes": 93,
+          "initializers": 73,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 15,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Gather": 5,
+            "Gemm": 6,
+            "Greater": 1,
+            "GreaterOrEqual": 3,
+            "Identity": 1,
+            "LessOrEqual": 2,
+            "MatMul": 2,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "ScatterElements": 1,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 7
+          }
+        },
+        {
+          "name": "tail-cond0",
+          "file": "policy.tail-cond0.onnx",
+          "bytes": 976203,
+          "sha256": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+          "nodes": 99,
+          "initializers": 74,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 17,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 1,
+            "Div": 5,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 5,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 4,
+            "Max": 4,
+            "Min": 5,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 3,
+            "Sub": 9,
+            "Tanh": 2,
+            "Where": 9
+          }
+        },
+        {
+          "name": "tail-cond1",
+          "file": "policy.tail-cond1.onnx",
+          "bytes": 975550,
+          "sha256": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c",
+          "nodes": 98,
+          "initializers": 77,
+          "operation_counts": {
+            "Abs": 2,
+            "Add": 16,
+            "And": 1,
+            "Atanh": 1,
+            "Clip": 7,
+            "Concat": 2,
+            "Div": 4,
+            "Equal": 1,
+            "Gather": 4,
+            "Gemm": 7,
+            "GreaterOrEqual": 4,
+            "Identity": 1,
+            "LessOrEqual": 3,
+            "MatMul": 3,
+            "Max": 4,
+            "Min": 6,
+            "Mul": 5,
+            "Sigmoid": 3,
+            "Slice": 6,
+            "Sub": 8,
+            "Tanh": 2,
+            "Where": 8
+          }
+        }
+      ]
+    },
+    "generated_filenames": [
+      "manifest.json",
+      "policy.context-router.onnx",
+      "policy.instrumented-routes.onnx",
+      "policy.lower-cond0.onnx",
+      "policy.lower-cond1.onnx",
+      "policy.positive-cond0.onnx",
+      "policy.positive-cond1.onnx",
+      "policy.tail-cond0.onnx",
+      "policy.tail-cond1.onnx"
+    ],
+    "derive_twice_byte_exact": true,
+    "all_onnx_checker_pass": true,
+    "all_policy_abis_exact": true,
+    "all_retained_initializers_exact": true,
+    "router": {
+      "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.context-router.onnx",
+      "bytes": 3756,
+      "sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284"
+    },
+    "instrumented": {
+      "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.instrumented-routes.onnx",
+      "bytes": 994112,
+      "sha256": "5f5c631659380ab1474452f8b3823186d8c1f9274adacde1c84a4921b41b7c32"
+    },
+    "variants": {
+      "lower-cond0": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.lower-cond0.onnx",
+        "bytes": 980088,
+        "sha256": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+        "nodes": 100,
+        "initializers": 76,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      },
+      "lower-cond1": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.lower-cond1.onnx",
+        "bytes": 975247,
+        "sha256": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+        "nodes": 96,
+        "initializers": 76,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      },
+      "positive-cond0": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.positive-cond0.onnx",
+        "bytes": 969914,
+        "sha256": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+        "nodes": 88,
+        "initializers": 64,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      },
+      "positive-cond1": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.positive-cond1.onnx",
+        "bytes": 970859,
+        "sha256": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+        "nodes": 93,
+        "initializers": 73,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      },
+      "tail-cond0": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.tail-cond0.onnx",
+        "bytes": 976203,
+        "sha256": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+        "nodes": 99,
+        "initializers": 74,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      },
+      "tail-cond1": {
+        "path": "D:\\CodexArtifacts\\t247-context-specialization-contract\\derive-a\\policy.tail-cond1.onnx",
+        "bytes": 975550,
+        "sha256": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c",
+        "nodes": 98,
+        "initializers": 77,
+        "abi_exact": true,
+        "retained_initializers_exact": true
+      }
+    }
+  },
+  "router_and_one_step_semantics": {
+    "interior_contexts": {
+      "lower-cond0": [
+        {
+          "context_sha256": "df0371a61ecbb0bd3c735d4dfb8fa247feaa4e15d862d3be04e4b1f5b5e239ec",
+          "positive_score": -0.19999992847442627,
+          "conditional_score": -0.22400397062301636,
+          "predicates": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "lower-cond0"
+        },
+        {
+          "context_sha256": "25a65e2a155a1eafa2984ceacabcb746a92da6d91c63b20df6992c660e71f4db",
+          "positive_score": -0.09999990463256836,
+          "conditional_score": -0.32536017894744873,
+          "predicates": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "lower-cond0"
+        }
+      ],
+      "lower-cond1": [
+        {
+          "context_sha256": "5d2334ed4f3a6cf1a2b8f33d1bda65737663e15363984c87310dd814ec235a37",
+          "positive_score": -0.20000004768371582,
+          "conditional_score": 0.3623162508010864,
+          "predicates": [
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "lower-cond1"
+        },
+        {
+          "context_sha256": "f32a8c8e1996a28fe9e53cd1b660cabe690b03376bce2053e57c05ccfef1889e",
+          "positive_score": -0.09999990463256836,
+          "conditional_score": 0.265303373336792,
+          "predicates": [
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "lower-cond1"
+        }
+      ],
+      "positive-cond0": [
+        {
+          "context_sha256": "1c196f1e3a3536e852c54ca6faa4eb12697ad43070a800bcc41bb78a35dfc339",
+          "positive_score": 0.05000007152557373,
+          "conditional_score": -0.4773944616317749,
+          "predicates": [
+            false,
+            false,
+            true,
+            false,
+            true
+          ],
+          "selected_route": "positive-cond0"
+        },
+        {
+          "context_sha256": "c2d6eba6bbe2b444d20d5136d20c0146cd933322137e4a65d0415e2e41857809",
+          "positive_score": 0.12000000476837158,
+          "conditional_score": -0.547960638999939,
+          "predicates": [
+            false,
+            false,
+            true,
+            false,
+            true
+          ],
+          "selected_route": "positive-cond0"
+        }
+      ],
+      "positive-cond1": [
+        {
+          "context_sha256": "7b1e451a68c5ab0956339df89d998a7a082323360fb04608fc314a88cc3dd474",
+          "positive_score": 0.05000007152557373,
+          "conditional_score": 0.1197584867477417,
+          "predicates": [
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          "selected_route": "positive-cond1"
+        },
+        {
+          "context_sha256": "21803a1bf5f51be27805a2e5a8e515a4272f75e0d97a4929091b69a6f5e5dfcd",
+          "positive_score": 0.12000000476837158,
+          "conditional_score": 0.05183744430541992,
+          "predicates": [
+            false,
+            true,
+            true,
+            true,
+            true
+          ],
+          "selected_route": "positive-cond1"
+        }
+      ],
+      "tail-cond0": [
+        {
+          "context_sha256": "30b6cfbfaa98b651c9bb3ed1c5e8fa2e9970c3826ee701a8aebfb008d56aa1ec",
+          "positive_score": 0.1730513572692871,
+          "conditional_score": -0.6009381413459778,
+          "predicates": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "tail-cond0"
+        },
+        {
+          "context_sha256": "c7da08bf470d7518856e1d7dd42e093b74212e7df7f554fdb286d7c392a8bea7",
+          "positive_score": 0.17310142517089844,
+          "conditional_score": -0.6009880900382996,
+          "predicates": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "tail-cond0"
+        }
+      ],
+      "tail-cond1": [
+        {
+          "context_sha256": "04217fff97035fcf1951ccb1e054947e8eef4e2e1a4055d76055a1f31bb19ca2",
+          "positive_score": 0.17305147647857666,
+          "conditional_score": 0.0003616809844970703,
+          "predicates": [
+            true,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "tail-cond1"
+        },
+        {
+          "context_sha256": "096229b84affca092f35ee9d5e6eacca35277977b19c3655b01a450d343ec95b",
+          "positive_score": 0.17310142517089844,
+          "conditional_score": 0.00031316280364990234,
+          "predicates": [
+            true,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "tail-cond1"
+        }
+      ]
+    },
+    "interior_contexts_per_route": 2,
+    "router_cases": 3072,
+    "boundary_neighborhoods": {
+      "positive_zero": [
+        {
+          "context_sha256": "686ffacf64536ac4fa2b7dcc7e3563f5282c00fc579440ff106b083c082e3dd1",
+          "predicates": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "lower-cond0"
+        },
+        {
+          "context_sha256": "537588c553996041b0af0853987ac9439f76b307523d29ea988a63a4b9a86c10",
+          "predicates": [
+            false,
+            false,
+            true,
+            false,
+            true
+          ],
+          "selected_route": "positive-cond0"
+        },
+        {
+          "context_sha256": "537588c553996041b0af0853987ac9439f76b307523d29ea988a63a4b9a86c10",
+          "predicates": [
+            false,
+            false,
+            true,
+            false,
+            true
+          ],
+          "selected_route": "positive-cond0"
+        }
+      ],
+      "positive_upper": [
+        {
+          "context_sha256": "821942dc95956efb22d6b3d26c33bdeb8e9d4cdc8c2788dc9cf0ba91cd6b5712",
+          "predicates": [
+            false,
+            false,
+            true,
+            false,
+            true
+          ],
+          "selected_route": "positive-cond0"
+        },
+        {
+          "context_sha256": "2cd0f1cc95c7d1ade067fc91f41515fad0e31b18cc919b5f5fbe3c6163721fd5",
+          "predicates": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "tail-cond0"
+        },
+        {
+          "context_sha256": "c49f1d89159164d2dd5eb3e3d13bf018ffb588127e624a98db82912ee1f06055",
+          "predicates": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "tail-cond0"
+        }
+      ],
+      "conditional_zero": [
+        {
+          "context_sha256": "2f30af6cf700c7f6e8468d5c0f7e6daf5c412fa6054952366010d63db979eb1f",
+          "predicates": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "selected_route": "lower-cond0"
+        },
+        {
+          "context_sha256": "ce318847ba696b71401dcb81cad7df0e2a203bb0e3b7637508772f041f6f3db4",
+          "predicates": [
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "lower-cond1"
+        },
+        {
+          "context_sha256": "4aea698ce804aae4059d046baa617ad80fa5f219297c0e292198f6c4b911825f",
+          "predicates": [
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "selected_route": "lower-cond1"
+        }
+      ]
+    },
+    "one_step_cases": 3072,
+    "one_step_cases_per_route": 512,
+    "commands_m_s": [
+      0.0,
+      0.074,
+      0.077,
+      0.08
+    ],
+    "all_router_predicates_exact": true,
+    "all_one_step_outputs_byte_exact": true
+  },
+  "actual_chain_semantics": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "selected_route": "lower-cond0",
+    "context_float32_bytes_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+    "mismatch": null,
+    "baseline_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "specialized_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "all_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "captured_locomotion_inputs": 2048
+  },
+  "local_timing_contract": {
+    "routes": {
+      "lower-cond0": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1077,
+          "mean_ms": 0.117019685,
+          "p50_ms": 0.1135,
+          "p95_ms": 0.1345,
+          "p99_ms": 0.1881049999999992,
+          "p99_9_ms": 0.26060290000001113,
+          "max_ms": 0.39
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.086,
+          "mean_ms": 0.09447313999999998,
+          "p50_ms": 0.0915,
+          "p95_ms": 0.1096,
+          "p99_ms": 0.15840599999999905,
+          "p99_9_ms": 0.23570030000000114,
+          "max_ms": 0.7068
+        },
+        "specialized_to_source_p50_ratio": 0.8061674008810572,
+        "specialized_to_source_p99_ratio": 0.8421147763217338,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      },
+      "lower-cond1": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1068,
+          "mean_ms": 0.11464198000000002,
+          "p50_ms": 0.1129,
+          "p95_ms": 0.125,
+          "p99_ms": 0.16360099999999983,
+          "p99_9_ms": 0.25630080000000305,
+          "max_ms": 0.8521
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.0823,
+          "mean_ms": 0.089162715,
+          "p50_ms": 0.088,
+          "p95_ms": 0.0982,
+          "p99_ms": 0.1292,
+          "p99_9_ms": 0.20380290000001114,
+          "max_ms": 0.2872
+        },
+        "specialized_to_source_p50_ratio": 0.7794508414526129,
+        "specialized_to_source_p99_ratio": 0.7897262241673348,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      },
+      "positive-cond0": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1071,
+          "mean_ms": 0.11434334999999998,
+          "p50_ms": 0.113,
+          "p95_ms": 0.1235,
+          "p99_ms": 0.16160099999999983,
+          "p99_9_ms": 0.23450010000000038,
+          "max_ms": 0.3195
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.0774,
+          "mean_ms": 0.08349005500000001,
+          "p50_ms": 0.0827,
+          "p95_ms": 0.0916,
+          "p99_ms": 0.1226,
+          "p99_9_ms": 0.18590120000000462,
+          "max_ms": 0.3263
+        },
+        "specialized_to_source_p50_ratio": 0.731858407079646,
+        "specialized_to_source_p99_ratio": 0.7586586716666366,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      },
+      "positive-cond1": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1073,
+          "mean_ms": 0.114433205,
+          "p50_ms": 0.113,
+          "p95_ms": 0.1248,
+          "p99_ms": 0.16210199999999966,
+          "p99_9_ms": 0.2557024000000092,
+          "max_ms": 0.4343
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.0808,
+          "mean_ms": 0.08732556500000001,
+          "p50_ms": 0.0865,
+          "p95_ms": 0.0959,
+          "p99_ms": 0.124,
+          "p99_9_ms": 0.21140030000000115,
+          "max_ms": 0.2926
+        },
+        "specialized_to_source_p50_ratio": 0.7654867256637168,
+        "specialized_to_source_p99_ratio": 0.7649504632885483,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      },
+      "tail-cond0": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1069,
+          "mean_ms": 0.114804205,
+          "p50_ms": 0.1131,
+          "p95_ms": 0.1269,
+          "p99_ms": 0.1661,
+          "p99_9_ms": 0.22110020000000075,
+          "max_ms": 0.2934
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.0852,
+          "mean_ms": 0.09208754499999999,
+          "p50_ms": 0.091,
+          "p95_ms": 0.1026,
+          "p99_ms": 0.13660099999999983,
+          "p99_9_ms": 0.19480070000000269,
+          "max_ms": 0.3862
+        },
+        "specialized_to_source_p50_ratio": 0.8045977011494252,
+        "specialized_to_source_p99_ratio": 0.8224021673690538,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      },
+      "tail-cond1": {
+        "warmup_samples": 2000,
+        "measured_samples": 20000,
+        "alternated_order": true,
+        "outputs_byte_exact": true,
+        "source": {
+          "samples": 20000,
+          "min_ms": 0.1071,
+          "mean_ms": 0.11524095,
+          "p50_ms": 0.113,
+          "p95_ms": 0.1273,
+          "p99_ms": 0.17770299999999953,
+          "p99_9_ms": 0.27430110000000424,
+          "max_ms": 0.4817
+        },
+        "specialized": {
+          "samples": 20000,
+          "min_ms": 0.0852,
+          "mean_ms": 0.09267116,
+          "p50_ms": 0.0908,
+          "p95_ms": 0.1038,
+          "p99_ms": 0.1436,
+          "p99_9_ms": 0.24110050000000194,
+          "max_ms": 0.6237
+        },
+        "specialized_to_source_p50_ratio": 0.8035398230088496,
+        "specialized_to_source_p99_ratio": 0.8080899028153739,
+        "required_maximum_ratio": 0.88,
+        "p50_materiality_pass": true,
+        "p99_materiality_pass": true
+      }
+    },
+    "all_outputs_byte_exact": true,
+    "all_routes_p50_materiality_pass": true,
+    "all_routes_p99_materiality_pass": true
+  },
+  "checks": {
+    "asset_hashes_exact": true,
+    "derive_twice_byte_exact": true,
+    "all_onnx_checker_pass": true,
+    "all_policy_abis_exact": true,
+    "all_retained_initializers_exact": true,
+    "all_six_routes_have_two_interior_contexts": true,
+    "router_predicates_exact_interior_and_boundaries": true,
+    "all_one_step_outputs_byte_exact": true,
+    "actual_2298_tick_chain_byte_exact": true,
+    "actual_exact_handoff_and_route": true,
+    "zero_measured_rate_excess": true,
+    "timing_outputs_byte_exact": true,
+    "all_routes_p50_improve_at_least_12_percent": true,
+    "all_routes_p99_improve_at_least_12_percent": true
+  },
+  "checks_passed": 14,
+  "checks_total": 14,
+  "failed_checks": [],
+  "decision": "EARN_SEPARATE_T247_X5_NO_MOTION_CONTEXT_SPECIALIZATION_SCREEN_PREREGISTRATION",
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "robot_device_access": false,
+    "servo_reads_or_writes": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5": false
+  },
+  "result_sha256": "d6d8026e8dfdd59ac68942d70da87bc65e6bb5c8952712be4eb17ad9797b25a2"
+}

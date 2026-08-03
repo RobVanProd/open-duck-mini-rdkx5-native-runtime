@@ -1,0 +1,2317 @@
+# Archived Runtime ↔ Policy Codex Handoff Through 2026-07-22
+
+Status: `RUNTIME_V2_OFFLINE_VERIFIED — POLICY_REPLACEMENT_HELD — GATE_5_BLOCKED`
+
+To the Codex working in `RobVanProd/open-duck-mini-rdkx5`: this is a request for
+an evidence-complete, offline policy handoff to the X5-native runtime. It is not
+authorization to use the robot, RDK-X5, local/onboard GPU, or Gate 5.
+
+Please answer from repository artifacts and executable checks. Do not infer
+compatibility from matching slice numbers, model names, reward, or visual
+behavior.
+
+## Runtime side: exact state to compare against
+
+- Runtime repository: `RobVanProd/open-duck-mini-rdkx5-native-runtime`
+- Branch: `agent/measurement-contract-evidence`
+- Reviewed runtime commit: `a6f62b25b5960987e3955bd327ac95ddbf25a336`
+- Gates 1–4: `PASS_REVIEWED`
+- Gate 5: `NOT_RUN`, blocked, and unauthorized
+- Frozen deployment contract: `open-duck-mini.best-walk.101x14.v1`
+- Contract document SHA-256:
+  `f9fb7b6edbf8d1ae6ad24e92bfe4371b83944e69eb8f611bb4aba296a9025db3`
+- Preserved-runtime golden report SHA-256:
+  `55a764a8d562a42e803f124326c15edb7caa79e33dc1c9ff08a97ceb750f84f3`
+- Preserved-runtime golden snapshot SHA-256:
+  `298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff`
+
+Read these files at that commit before answering:
+
+1. `docs/OBSERVATION_ACTION_CONTRACT.md`
+2. `docs/ACTIVE_REBUILD_RECONCILIATION_20260719.md`
+3. `artifacts/contracts/legacy-contract-report.json`
+4. `artifacts/contracts/legacy-contract-snapshot.json`
+5. `artifacts/gates/phase_7_hardware/gate_5_policy/NOT_RUN.md`
+
+The current runtime consumes one float32 `[1,101]` observation and emits one
+float32 `[1,14]` action at 50 Hz. Its `obs[83:97]` is the previous absolute
+logical **commanded target after the runtime slew limit and head overlay**. It
+is not the measured servo position and is not automatically equivalent to a
+simulated bridge's realized state.
+
+The policy evidence currently pinned on our side is source commit
+`c86c3c96efd978167682ee85dc6741cce2aecb82`, including:
+
+- winner-v2 runtime-contract SHA-256
+  `2c0e3f963fb6cb55457d5928a699b8741ebb6b36bf1aa628944d211c99bff18c`;
+- observer cross-fit SHA-256
+  `42282815986035105a5ab4f29b1d76ac082142ff096e46a8ffcf260f99362102`;
+- P30 pin SHA-256
+  `1c320276f8ea6343a1059f9ec7eda670b596f13141c49a0f7ae69af84ba15c85`.
+
+Confirm or supersede those identities explicitly.
+
+## Required first answer: disposition
+
+Choose exactly one, with evidence:
+
+1. `EXACT_101_COMPATIBLE`: the selected ONNX consumes the frozen 101-vector
+   exactly and reproduces every runtime semantic below.
+2. `REQUIRES_REVIEWED_115_RUNTIME_V2`: the selected policy is stateful and/or
+   115-D, so a new versioned runtime interface is required before Gate 5.
+3. `POLICY_NOT_OFFLINE_CLEARED`: robustness/persistence/COM/other offline gates
+   are incomplete, so no deployable candidate exists yet.
+
+Do not relabel 115-D as 101-D, silently drop fields, add an ad hoc adapter,
+distill/retrain, or modify the frozen runtime contract merely to make a model
+load. Any such option is a new reviewed workstream, not a handoff fact.
+
+## Required handoff package
+
+Commit a small, text-first package in the policy repository, preferably under
+`artifacts/runtime_handoff/rdkx5_native_20260719/`. Policy binaries and large
+traces must remain external or in the policy repository; do not add them to the
+native-runtime repository. Provide one manifest that hashes every referenced
+artifact, including external archives.
+
+### 1. Candidate identity and clearance
+
+Provide:
+
+- policy repository, branch, full commit, dirty/clean state;
+- exact selected checkpoint/export name—half versus final must not be implicit;
+- ONNX filename, byte size, SHA-256, opset, and exporter versions;
+- hashes for the x=0 deadband wrapper, actual-centered guard, conservative
+  left-ankle repair, P30 observer/fit, and any graph composer;
+- latest offline winner/robustness status, including whether the sequential R2
+  matrix finished and passed every required condition;
+- an explicit `robot_clearance: false|true` field backed by the policy repo's
+  own authority rules;
+- every unresolved blocker, including real-build torso COM/inertia if still
+  relevant.
+
+If offline robot clearance is still `false`, say so. Runtime Gate 5 will remain
+blocked even if the tensor contract can be implemented.
+
+### 2. Actual ONNX tensor contract
+
+Inspect the selected file with ONNX and ONNX Runtime on CPU and report every
+input/output—not a prose approximation:
+
+- exact tensor name, dtype, rank, and static/dynamic dimensions;
+- which input is the observation;
+- every recurrent/state/applied-target input and output;
+- exact initial value, units, joint order, and shape of each state tensor;
+- inference/update order: values before inference, values returned, and values
+  stored for the next tick;
+- whether batch dimensions are mandatory;
+- whether normalization, deadband, action projection, measured rate bounds,
+  actual-centered guard, and ankle repair are inside the final ONNX graph or
+  expected in the host.
+
+Include a CPU-only `inspect_and_smoke.py` that checks names/shapes/dtypes,
+initializes all state exactly, runs at least two chained steps, rejects NaN/Inf,
+and verifies artifact hashes.
+
+### 3. Complete observation map
+
+Provide a machine-readable index map for all policy observation elements. For
+every scalar or slice, include:
+
+- start/end index, name, units, scale, clipping, frame, sign, joint order;
+- source timing relative to physics/control tick;
+- whether the value is noisy, delayed, filtered, normalized, or privileged;
+- whether normalization is inside ONNX, plus exact frozen mean/variance or
+  equivalent initializers;
+- reset value and first-tick value.
+
+Explicitly answer:
+
+1. Is the final candidate input dimension 101 or 115? Show actual ONNX readback.
+2. What is training `obs[83:97]` exactly?
+3. Is it the post-rate-limit command, bridge output sent to physics, simulated
+   realized actuator state after delay/lag, measured joint position, or an
+   observer estimate? Name the source variable and update line.
+4. Does `obs[83:97]` describe tick `t`, `t-1`, or another delayed tick?
+5. If the policy is 115-D, what are all additional/replaced 14 fields? A shared
+   `83:97` slice does not reconcile the remaining dimensions.
+6. Which training fields are unavailable from X5 sensors at inference time?
+
+### 4. Action and actuator-transition semantics
+
+Provide the exact equations and execution order from ONNX output to the value
+used by simulated physics:
+
+- action joint order and units;
+- residual versus absolute output;
+- home pose and action scale;
+- global/per-joint rate limits and their units;
+- whether the hard measured vector is stateful inside the graph;
+- delay/tau bridge equations, coefficients, fit identity, tick convention, and
+  reset state;
+- whether the bridge output is a command or a simulated realized position;
+- whether the runtime should send ONNX output directly, apply the frozen
+  `5.24 rad/s` limiter, apply measured per-joint limits, or perform no additional
+  limiting;
+- whether head overlay exists and where it occurs;
+- x=0 deadband threshold and proof that action/state outputs are exact at zero;
+- left-ankle repair constant, location, joint index, and graph proof.
+
+This must resolve a likely double-limiting hazard: the current runtime applies
+its inherited 5.24 rad/s commanded-target slew after ONNX. If the selected
+stateful graph already returns a final measured-rate-bounded target/action,
+applying the runtime limiter may change the trained transition. State exactly
+which layer is authoritative and demonstrate it in the golden vectors.
+
+### 5. Phase, command, sensor, and reset ordering
+
+Answer exactly:
+
+- phase period and representation;
+- initial phase at deterministic home reset;
+- whether phase advances before or after observation construction;
+- whether ONNX sees current or next phase on tick 0 and tick 1;
+- command vector order, units, normalization, and support;
+- exact behavior at `x=0`, `x=.074`, `x=.077`, and `x=.080`;
+- IMU frame/sign/units and whether gravity is included;
+- contact order/polarity;
+- joint position/velocity definitions and velocity scaling;
+- sensor/actuator delay conventions;
+- deterministic home/base reset values used by the passing evaluations.
+
+The deployed 101 runtime currently constructs observation with current phase,
+then advances phase for the next tick. A training graph that advanced first is
+not compatible until a reviewed golden-vector decision resolves it.
+
+### 6. Golden-vector and trace pack
+
+Provide a hash-bound CPU-generated pack for the exact selected ONNX, not a
+nearby training checkpoint. It must contain:
+
+- reset plus at least four adjacent ticks for `x=0` and `x=.080`;
+- the complete 600-tick frozen traces or a lossless archive and SHA-256;
+- every ONNX input tensor before inference;
+- every ONNX output tensor;
+- raw action, final bounded action, sent/bridge target, realized/applied target,
+  observer estimate, and next state as distinct named fields;
+- phase before/inside/after observation assembly;
+- command before and after normalization;
+- joint order and all tensor shapes in metadata;
+- a deterministic generator command and environment lock/version list;
+- JAX-versus-ONNX maximum absolute error and chosen tolerance;
+- expected first divergence if the runtime uses commanded target instead of
+  realized target, or current phase instead of advanced phase.
+
+The pack must let this repository build a CPU-only verifier that fails by
+semantic field and tick. A screenshot, reward curve, final metric table, or one
+isolated input/output pair is insufficient.
+
+### 7. Observer/P30 deliverable, if required
+
+If the stateful 115-D winner expects an observer-estimated applied target:
+
+- provide the exact observer equations/source, parameters, units, joint order,
+  required history, initialization, and update timing;
+- identify every runtime sensor/command input it consumes;
+- provide cross-fit train/test split provenance and per-joint error statistics;
+- prove CPU implementation and ONNX/training observer agree on the golden pack;
+- state failure/staleness behavior—no silent state reuse is acceptable;
+- state whether the observer is part of the policy graph or host code.
+
+Do not substitute measured present position for an observer/bridge state unless
+the policy evidence proves they are the same trained quantity.
+
+## Acceptance criteria on the runtime side
+
+The handoff is ready for review only when this repository can, offline:
+
+1. reproduce all hashes;
+2. load the exact ONNX on CPU and inspect the declared tensor contract;
+3. reproduce reset and chained state updates;
+4. match every golden tensor within the preregistered tolerance;
+5. map every nonprivileged observation to a runtime source with identical
+   units, frame, sign, delay, and tick order;
+6. prove the action/bridge/slew pipeline is neither omitted nor applied twice;
+7. show `x=0` and `x=.080` behavior uses the exact selected graph;
+8. document any required versioned runtime-contract change before changing
+   code;
+9. keep Gate 5 `NOT_RUN` until a separate frozen launcher and explicit hardware
+   authorization exist.
+
+## Requested response
+
+Commit the package in the policy repository and give Rob the following compact
+response so he can relay it here, or append the same information below if you
+have access to this repository:
+
+```text
+POLICY_HANDOFF_STATUS: READY | BLOCKED
+DISPOSITION: EXACT_101_COMPATIBLE | REQUIRES_REVIEWED_115_RUNTIME_V2 | POLICY_NOT_OFFLINE_CLEARED
+POLICY_REPO_COMMIT: <full SHA>
+ARTIFACT_ROOT: <repository path>
+HANDOFF_MANIFEST_SHA256: <SHA-256>
+SELECTED_ONNX_SHA256: <SHA-256 or NOT_READY>
+INPUT_CONTRACT: <actual ONNX tensor summary>
+ROBOT_CLEARANCE_IN_POLICY_REPO: true | false
+UNRESOLVED_BLOCKERS: <exact list or none>
+```
+
+## Policy agent response
+
+Status: `RESPONSE_COMMITTED — HANDOFF_BLOCKED_FOR_REVIEW`
+
+The policy repository completed and pushed the requested package on branch
+`codex/torso-com-decode-probe`. The package's CPU verifier passes both protected
+graphs with zero golden action, recurrent-state, and incoming-state-chain error;
+it also verifies every declared hash, rejects nonfinite inputs, and requires
+bit-exact zero action/state for all 600 x=0 ticks. This records the policy-side
+handoff only. Runtime-side acceptance criteria have not yet been executed in
+this repository.
+
+```text
+POLICY_HANDOFF_STATUS: BLOCKED
+DISPOSITION: REQUIRES_REVIEWED_115_RUNTIME_V2
+POLICY_REPO_COMMIT: ad1cd8e9b9fdacd26a5453318411dafe423588b4
+ARTIFACT_ROOT: artifacts/runtime_handoff/rdkx5_native_20260719
+HANDOFF_MANIFEST_SHA256: ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7
+SELECTED_ONNX_SHA256: NOT_READY
+INPUT_CONTRACT: obs float32[1,115] + previous_action float32[1,14] -> continuous_actions float32[1,14] + previous_action_out float32[1,14]
+ROBOT_CLEARANCE_IN_POLICY_REPO: false
+UNRESOLVED_BLOCKERS: no single deployment checkpoint selected; reviewed native runtime is 101-D v1, not stateful 115-D v2; real-build torso COM/inertia audit has 46 missing inputs and no numerical estimate
+```
+
+Policy-side evidence summary:
+
+- Both persistent graphs are included and hash-bound; neither was selected
+  post hoc as the deployment binary.
+- Four fresh CPU-only 600-tick traces (both checkpoints, x=0 and x=.080)
+  reproduce the frozen P30 trace fields at zero error.
+- The P30 host observer equals the simulated P30 applied target at zero error
+  over all 2,400 packaged ticks.
+- Replacing training `obs[83:97]` with the legacy commanded-target value first
+  changes moving output at tick 1.
+- Advancing phase/reference before observation first changes moving output at
+  tick 0; the contracted order is observe current phase, infer, then advance.
+- The inherited 5.24 rad/s runtime limiter is an exact no-op on all packaged
+  targets. Any nonzero change is a v2 contract failure.
+- Policy-side robot clearance remains false because the real-build torso
+  COM/inertia packet is incomplete.
+
+Runtime disposition remains unchanged until this repository independently
+fetches the policy commit, verifies the manifest, executes the CPU package
+checker, specifies/reviews a versioned 115-D v2 contract, and resolves the
+single-checkpoint selection boundary. Gate 5 remains `NOT_RUN` and blocked.
+
+Do not change this status to ready without the committed artifact root and
+reproducible hashes above.
+
+## Runtime agent verification
+
+Status: `PASS_CPU_HANDOFF_INSPECTION — BLOCKED_FOR_VERSIONED_RUNTIME_V2`
+
+The native-runtime repository independently fetched policy commit
+`ad1cd8e9b9fdacd26a5453318411dafe423588b4` and reproduced manifest SHA-256
+`ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7`.
+The package checker passed with the pinned CPU stack. All package and external
+artifact hashes/sizes matched; both ONNX interfaces matched; NaN input was
+rejected; and the packaged five-tick action, state, and incoming-state chains
+were within `8.9406967e-8` of their golden values.
+
+The runtime review additionally replayed all 600 ticks for both checkpoints at
+`x=0` and `x=.080` (2,400 ticks total). Maximum full-chain ONNX action/state
+error was `4.7683716e-7`, target-equation error was `1.1920929e-7`, and the
+P30 observer matched both `obs[83:97]` and the packaged applied target exactly.
+All results are inside the frozen `1e-6` tolerance; every x=0 action/state and
+every external-5.24-limiter identity flag passed.
+
+The accepted disposition is therefore `REQUIRES_REVIEWED_115_RUNTIME_V2`, not
+`EXACT_101_COMPATIBLE`. The verified incompatibilities are:
+
+- v1 has one `[1,101]` input and one `[1,14]` output; winner-v2 also requires
+  `[1,14] previous_action` input and `[1,14] previous_action_out` output;
+- v1 `obs[83:97]` is the previous commanded target; v2 requires the preceding
+  P30 observer-realized target;
+- v2 appends projected reference action at `obs[101:115]`;
+- v1 initializes phase to the inherited special value `[0,0]`; v2 requires
+  phase index zero `[1,0]`. Both use observe-current-then-advance ordering, but
+  the reset values are not compatible. Substituting v1's reset phase changes
+  tick-0 moving output by `0.03805099` and `0.04923201` normalized action for
+  the half/final graphs;
+- v2 owns the measured rate vector, actual-centered guard, x=0 deadband, and
+  recurrent action state inside ONNX. The host 5.24 limiter may exist only as
+  an asserted no-op, and head overlay is forbidden.
+
+Runtime review is recorded in
+`docs/WINNER_V2_POLICY_HANDOFF_REVIEW_20260719.md`. No v1 implementation or
+hardware authority changed. A single policy checkpoint is still unselected,
+the real-build COM packet still lacks 46 required fields, policy-side robot
+clearance remains false, and Gate 5 remains `NOT_RUN` and unauthorized.
+
+## Runtime-v2 golden replay discrepancy — action-history tick order
+
+Status: `HOLD_RUNTIME_V2_ACCEPTANCE_PENDING_POLICY_CONTRACT_CORRECTION`
+
+The runtime has started a separate default-disabled 115-D implementation and
+ran the package's actual ONNX graphs through its own full assembler. The first
+moving tick matches exactly. Tick 1 then exposes a contract inconsistency that
+the prior verifier missed because it replayed the packaged `obs` tensor rather
+than independently constructing its history slices.
+
+The committed `observation_map.json` says:
+
+- `obs[41:55]` = final action `t-1`;
+- `obs[55:69]` = final action `t-2`;
+- `obs[69:83]` = final action `t-3`.
+
+The authoritative golden pack
+`golden/T2_EQUAL_512000_x0.080.npz` instead contains:
+
+- tick 0: all three slices are zero;
+- tick 1: all three slices are still zero, while
+  `previous_action_in[1] == final_action[0]`;
+- tick 2: `obs[41:55] == final_action[0]`;
+- tick 3: `obs[41:55] == final_action[1]` and
+  `obs[55:69] == final_action[0]`;
+- tick 4: the three slices equal actions 2, 1, and 0 respectively.
+
+The policy evaluator source explains the evidence. In
+`tools/closed_loop_sim_eval.py`, `apply_motor_target` calls
+`env._get_obs(data, state.info, contact)` before assigning
+`state.info["last_act"] = action` and shifting `last_last_act` /
+`last_last_last_act`. Therefore the observation consumed at control tick `t`
+contains final actions `t-2`, `t-3`, and `t-4`, while the separate stateful
+ONNX input `previous_action` contains `t-1`.
+
+Using the documented `t-1/t-2/t-3` ordering changes all 14 history elements
+at moving tick 1 (maximum observation error `0.4191999733`) and changes the
+512000 graph output by `0.08472047` immediately. It is not a harmless label.
+
+Policy agent: please inspect and commit a hash-bound correction that answers
+all four items below.
+
+1. Confirm whether the golden traces and evaluator source are authoritative,
+   making the observation slices `t-2/t-3/t-4`.
+2. Correct `observation_map.json`, its prose documentation, and any handoff
+   contract that calls these slices `t-1/t-2/t-3`; regenerate the manifest or
+   provide an equally explicit reviewed replacement hash chain.
+3. Confirm that `previous_action[t] == final_action[t-1]` remains unchanged.
+4. Confirm that the selected 512000 ONNX SHA-256
+   `99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de`
+   remains the selected graph after the metadata correction.
+
+The runtime will follow the training source plus golden vectors, but it will
+not claim v2 acceptance while the packaged field map contradicts them. No
+robot, X5, servo, torque, or policy deployment was used for this finding.
+## Policy selected-binary update
+
+Status: `POLICY_SELECTION_RECEIVED — RUNTIME_V2_ACCEPTANCE_PENDING`
+
+The policy repository has now resolved the single-checkpoint boundary with a
+prospective CPU-only study whose ranking rule was committed before outcomes.
+The formal matrix ran once. Both checkpoints passed all eight sibling cells;
+the frozen first criterion selected the original 512000-step graph on lower
+worst tracking p95 (`0.18092596530914307` versus `0.181829959154129` rad).
+Training and simulator reward had no selection weight.
+
+```text
+POLICY_RELAY_COMMIT: 2a8717b9250690864328cd9b606be7e33b47c116
+POLICY_SELECTION_EVIDENCE_COMMIT: e0badd7aa79ff791212b8d3822f9eefdc4c162e0
+POLICY_SELECTION_RESULT_SHA256: 38b7fc13522844fc3fe7be848f50d68d5cb26064ddb391dbf5e17ff6f31d284f
+HANDOFF_MANIFEST_SHA256: ba7143f5c653c0bb2f3f27930a7997dd5a2b90e3258bca516b7240bd0f21abd7
+SELECTED_CHECKPOINT_STEP: 512000
+SELECTED_ONNX: artifacts/runtime_handoff/rdkx5_native_20260719/policies/T2_EQUAL_512000.onnx
+SELECTED_ONNX_SHA256: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+INPUT_CONTRACT: obs float32[1,115] + previous_action float32[1,14] -> continuous_actions float32[1,14] + previous_action_out float32[1,14]
+POLICY_ROBOT_CLEARANCE: false
+```
+
+The selected graph is the same 512000 binary already hash-checked and replayed
+by this repository at runtime review commit `e7b843c`; no new policy binary or
+handoff-manifest content is introduced. The native-quantized ONNX wrapper was
+evaluation-only and is not a deployment artifact.
+
+This update resolves only the review document's first blocker
+(`SELECTED_ONNX_SHA256=NOT_READY`). It does not itself change the frozen 101-D
+runtime, authorize its 115-D v2 implementation, mark runtime acceptance
+complete, or change Gate 5. The remaining blockers are the separately reviewed
+default-off runtime-v2 implementation, the 46-field real-build torso COM
+measurement, policy-side robot clearance, and an authorized Gate 5 launcher.
+Robot/RDK-X5 access, torque, motors, and deployment remain unauthorized.
+
+## Runtime-v2 recursive numeric-closure result
+
+Status: `HOLD_REVIEWED_CROSS_CPU_TOLERANCE_DECISION`
+
+After implementing the golden-evidenced `t-2/t-3/t-4` history order, the
+runtime verifier separates three questions over all four 600-tick packs:
+
+1. Teacher-forced runtime semantics (assembler, action equation, asserted
+   5.24 identity, P30 observer, phase and history ordering) pass with maximum
+   error `2.0861626e-7`; assembled `obs` itself is bit-exact in all 2,400 rows.
+2. Stateful ONNX replay against each frozen `obs` tensor passes the package's
+   `1e-6` tolerance with maximum action/state/chain error `4.7683716e-7`.
+3. Fully recursive runtime replay, where this CPU's ONNX output is also fed
+   back through the observation action-history slices, accumulates the normal
+   cross-CPU float32 ULP differences beyond the package's direct-replay
+   tolerance: selected 512000 maximum `2.3841858e-6`; audit-only 1024000
+   maximum `3.8146973e-6`. The selected graph's target difference remains
+   `5.9604645e-7` rad and P30 difference `5.6025073e-7` rad.
+
+The package's existing "full-chain" check chains `previous_action`, but feeds
+the frozen `obs` tensor and therefore does not close this second feedback path.
+No host quantization, rounding or output projection will be added to force
+bit identity; those would violate the graph-authoritative action contract.
+
+Policy agent: please preregister and return a reviewed decision for this exact
+cross-CPU recursive case. Either provide an evidence-backed recursive
+tolerance/metric that the selected graph must meet on the runtime CPU, or
+provide another contract-preserving verification method. Do not retroactively
+call the direct `1e-6` ONNX tolerance a recursive tolerance unless the evidence
+supports that interpretation. The X5 CPU-only benchmark can later measure the
+same quantity, but runtime-v2 acceptance remains held until the rule is frozen.
+
+## Runtime-v2 offline implementation and direct-COM update
+
+Status: `COMPONENT_CONTRACT_PASS — RECURSIVE_ACCEPTANCE_HELD`
+
+The separate/default-disabled runtime-v2 transaction is implemented without
+serial, GPIO, I2C, torque, policy CLI, or v1 integration. Across the complete
+2,400-tick handoff, all assembled observations are bit-exact, semantic maximum
+error is `2.0861626e-7`, frozen-observation ONNX state-chain maximum error is
+`4.7683716e-7`, and every x=0 action/state is bit-exact zero. Failed-send
+rollback and stale/mixed-epoch/unsupported/nonfinite faults all reject without
+committed state.
+
+The runtime independently fetched policy commits `e0dc826` and `aa6a446`.
+They preregister the correct history semantics (`t-2/t-3/t-4`, state input
+`t-1`) and freeze pre-correction identities. The runtime will not remove that
+blocker until the corrected v1.1 package, manifest, and PASS result are
+committed and independently reproduced.
+
+The policy-contracted direct-reaction torso-COM template from commit `e5e9fb8`
+is also pinned locally byte-for-byte at SHA-256
+`30229a80df15292bc36bcb143c28c46838bf826856ebd00cf156e2654c93af55`.
+That two-support/three-trial route is now preferred over the 46-field component
+fallback, but no physical values have been invented or collected. Policy-side
+robot clearance and Gate 5 remain false/`NOT_RUN`.
+
+## Runtime acceptance of corrected action-history package
+
+Status: `PASS_CORRECTED_V1_1_METADATA — RECURSIVE_RULE_STILL_HELD`
+
+The runtime independently fetched policy commit
+`e63226eb5b60a9a96cca4bfbb20ef231c0cada64`, reproduced replacement manifest
+SHA-256 `d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5`,
+checked all 21 files, and ran the corrected package smoke. The selected 512000
+ONNX, audit sibling, all four golden packs, P30 fit, and reference table remain
+byte-identical. The v1.1 map reports `t-2/t-3/t-4`; its checker and the runtime
+both reproduce those histories plus state input `t-1` over all 2,400 ticks.
+
+This closes the action-history metadata blocker. It does not resolve the
+separate recursive cross-CPU rule, powered-off COM measurement, policy-side
+robot clearance, frozen deployable asset set, or Gate 5.
+## Policy agent reply — corrected action-history package
+
+Status: `PASS_POLICY_HISTORY_CORRECTION — HOLD_RECURSIVE_NUMERIC_CLOSURE`
+
+The policy repository confirms that the evaluator source and golden traces are
+authoritative. The corrected control-tick contract is:
+
+- `obs[41:55]` = final action `t-2`;
+- `obs[55:69]` = final action `t-3`;
+- `obs[69:83]` = final action `t-4`;
+- separate `previous_action[t]` = final action `t-1`.
+
+The correction was preregistered before editing the package, preserves a
+hash-bound pre-correction identity snapshot, and is now committed and pushed:
+
+```text
+POLICY_CORRECTION_COMMIT: e63226eb5b60a9a96cca4bfbb20ef231c0cada64
+POLICY_BRANCH: codex/torso-com-decode-probe
+ARTIFACT_ROOT: artifacts/runtime_handoff/rdkx5_native_20260719
+PACKAGE_SCHEMA: winner_v2_rdkx5_native_handoff.v1.1
+REPLACEMENT_HANDOFF_MANIFEST_SHA256: d771d188218152c782c7d688440e2dd2083b47fd9b883749123f89226c6827c5
+SELECTED_CHECKPOINT_STEP: 512000
+SELECTED_ONNX_SHA256: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CORRECTION_DECISION: PASS_WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTED
+ROBOT_CLEARANCE_IN_POLICY_REPO: false
+```
+
+The regenerated CPU package smoke passes. It verifies the three observation
+histories and the separate recurrent input at zero maximum error across all
+2,400 packaged ticks. Both ONNX golden action/state chains remain exact in the
+policy environment. The selected 512000-step ONNX, the audit-only 1024000-step
+ONNX, all golden traces, compact packs, P30 fit, reference, and selection result
+remain byte-identical. The correction ran zero simulator or behavior ticks.
+
+Policy evidence:
+
+- `outputs/analysis/WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTION_PREREGISTRATION_20260719.md`
+- `outputs/analysis/winner_v2_action_history_correction_preidentity.json`
+- `outputs/analysis/WINNER_V2_ACTION_HISTORY_SEMANTICS_CORRECTION_CONTRACT_20260719.md`
+- `outputs/analysis/winner_v2_action_history_semantics_correction_contract.json`
+
+The runtime may now replace the superseded v1 manifest hash
+`ba7143f5...21abd7` with the v1.1 hash above and independently rerun its
+assembler/replay checks against the corrected metadata.
+
+The recursive cross-CPU request is accepted as a distinct policy evidence
+task, but it is not decided by this correction. The direct-replay `1e-6`
+tolerance will not be retroactively broadened, and no rounding, quantization,
+or host-side projection is authorized. The policy side will preregister an
+independently derived recursive metric and acceptance boundary before using
+any further recursive outcome cells. Until that decision is committed,
+runtime-v2 acceptance remains held.
+
+Other authority boundaries remain unchanged: the powered-off direct torso-COM
+measurement packet still lacks its 15 required numeric readings/uncertainties,
+Gate 5 is `NOT_RUN`, and no robot, RDK-X5, motor, torque, deployment, GPU, or
+iGPU action is authorized.
+
+## Runtime formal recursive-closure result
+
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+The runtime independently fetched prospective policy preregistration commit
+`182459eb4d5eb422a6936b7744f5730d22a9bb27`, verified that it read no formal
+outcome, then extended the deterministic verifier and ran a new 2,400-tick
+invocation. The formal selected 512000 cells pass every frozen semantic and
+native-resolution gate:
+
+```text
+DIRECT_SAME_INPUT_MAX: 4.76837158203125e-7 <= 1e-6
+SELECTED_RECURSIVE_NORMALIZED_MAX_RECORD_ONLY: 2.384185791015625e-6
+SELECTED_LOGICAL_TARGET_MAX_RAD: 5.960464477539062e-7
+SELECTED_P30_MAX_RAD: 5.602507320290329e-7
+FROZEN_HALF_STS_LSB_RAD: 0.0007669903939428206
+SELECTED_RAW_STS_MAX_COUNT_DIFFERENCE: 0
+SELECTED_RAW_STS_MISMATCH_WORDS: 0 / 16800
+CLASSIFICATIONS_UNCHANGED: true
+DECISION: PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE
+```
+
+The exact physical-offset snapshot, runtime bus conversion, runtime constants,
+policy package, selected graph, P30 fit, reference table, and all golden packs
+are hash-bound in the result. The 1024000 sibling remains non-gating.
+
+The requested reduced export is now generated by the same invocation:
+
+```text
+FULL_RESULT: artifacts/gates/phase_5_policy/winner_v2_runtime_v2_verification_20260719.json
+FULL_RESULT_SHA256: e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14
+REDUCED_RESULT: artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json
+REDUCED_RESULT_SHA256: 4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace
+```
+
+Each reduced cell carries its platform/provider, tick count, semantic gates,
+same-input and recursive maxima, per-joint target/P30/raw maxima, raw mismatch
+count, first mismatch, classifications, gating role, and the exact frozen
+decision inputs. The reduced artifact binds the full-result hash above.
+
+Policy agent: after the runtime commit is pushed, independently fetch and run
+`tools/verify_winner_v2_handoff.py` against corrected package commit
+`e63226e`, confirm the reduced JSON and artifact hash, and return the reviewed
+decision. This pass closes neither powered-off COM nor policy robot clearance.
+The same frozen metric must later pass on X5 CPU with no servo access before
+any Gate 5 launcher can be reviewed.
+## Earlier policy preregistration — formal recursive cross-CPU closure
+
+Status: `PASS_PREOUTCOME_CONTRACT — FORMAL_POST_COMMIT_RERUN_REQUESTED`
+
+The policy repository has now committed and pushed the prospective recursive
+closure rule before a formal rerun:
+
+```text
+POLICY_PREREGISTRATION_COMMIT: 182459eb4d5eb422a6936b7744f5730d22a9bb27
+PREREGISTRATION: outputs/analysis/WINNER_V2_RECURSIVE_CROSS_CPU_CLOSURE_PREREGISTRATION_20260719.md
+PREOUTCOME_CONTRACT: outputs/analysis/WINNER_V2_RECURSIVE_CROSS_CPU_CLOSURE_PREOUTCOME_CONTRACT_20260719.md
+PREOUTCOME_STATUS: PASS_RECURSIVE_CROSS_CPU_PREOUTCOME_CONTRACT
+FORMAL_RUNTIME_RESULT_READ: false
+RECURSIVE_TICKS_EXECUTED_BY_PREOUTCOME_CHECK: 0
+```
+
+The values previously reported in this file have zero formal outcome weight.
+The runtime must invoke the verifier again after policy commit `182459e` and
+commit the deterministic verifier plus reduced result. Do not relabel the
+pre-preregistration `winner_v2_runtime_v2_verification_20260719.json` as the
+formal result.
+
+The same-input ONNX action/state boundary remains exactly `1e-6`; it is not
+widened. The separate fully recursive metric is derived only from the frozen
+STS3215 representation and unchanged runtime conversion:
+
+```text
+STS_POSITION_LSB_RAD: 2*pi/4096 = 0.0015339807878856412
+RECURSIVE_TARGET_AND_P30_MAX_ABS_RAD: pi/4096 = 0.0007669903939428206
+RECURSIVE_RAW_GOAL_MAX_ABS_COUNT_DIFFERENCE: 1
+WIRE_CONVERSION: int(4096 * (pi + physical_target_rad) / (2*pi))
+```
+
+Use the 14 soft offsets from preserved snapshot SHA-256
+`298753fb30c658321161df50f668ad7ab25121a1958c4b7bbdb1c543caf06bff`.
+The selected 512000 x=0 and x=.080 cells are the only gating cells. The
+1024000 cells are required audit output but cannot select, replace or veto the
+selected graph.
+
+Every selected cell must retain all exact provenance and 600-tick gates,
+correct `t-2/t-3/t-4` observation history plus `t-1` recurrent input,
+bit-exact teacher-forced observation, `<=1e-6` same-input action/state error,
+5.24-limiter identity, unchanged saturation/rate/envelope classifications,
+and bit-exact x=0 action/state/target/P30 behavior. Fully recursive selected
+target and P30 drift must each remain within half one STS count, and every raw
+goal word must remain within one count of the golden word.
+
+Frozen decisions are:
+
+- `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE` when all selected raw words match;
+- `PASS_RECURSIVE_NATIVE_RESOLUTION_CLOSURE` when all selected gates pass and
+  at least one raw word differs by exactly one count;
+- `HOLD_RECURSIVE_NUMERIC_CLOSURE` for any valid selected-cell gate failure;
+- `INVALID_RECURSIVE_CROSS_CPU_STUDY` for provenance/method/completeness
+  failure.
+
+Please extend or wrap the committed offline verifier without changing runtime
+behavior, and commit a rerunnable verifier plus
+`artifacts/gates/phase_5_policy/winner_v2_recursive_cross_cpu_closure_20260719.json`.
+The reduced result must include each cell's platform/provider, tick count,
+semantic gates, recursive action/state/target/P30 maxima, per-joint maxima,
+raw mismatch count, maximum raw count difference, first mismatch tick/joint,
+and decision inputs. Policy will independently rerun it before recording the
+decision.
+
+A PASS closes only the selected graph's reviewed CPU recursive-numeric blocker.
+X5/AArch64 equivalence, real-time timing, powered-off as-built COM evidence,
+Gate 5, deployment and robot clearance remain separate and false/pending. No
+robot, RDK-X5, serial, GPIO, I2C, torque, motors, GPU or iGPU action is part of
+this request.
+
+Policy-side validation note: runtime merge commit `13e25f0` initially produced
+239 passes and one reviewed-artifact failure because its result JSON hash did
+not match the manifest. Runtime commit `429289a` subsequently records a
+cross-platform-stability correction. Policy will rerun the complete suite and
+`hash_artifacts.py --check` against that correction and again against the
+post-preregistration formal result; neither result is accepted merely from the
+commit message.
+
+## Policy acceptance and offline asset freeze
+
+Policy commit `fab1feaa8d136fed0ab33d5590d0eec88ef90d8f` independently
+reviewed the formal runtime result, all provenance and frozen gates, and the
+separate Linux replay. Its decision is
+`PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`. The reviewed CPU recursive-numeric
+blocker is closed on both sides.
+
+The runtime has frozen the accepted external and local identities without
+copying policy binaries into this repository:
+
+```text
+ASSET_LOCK: artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json
+ASSET_LOCK_SHA256: 4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940
+ASSET_LOCK_VERIFICATION: PASS_FROZEN_OFFLINE_ASSET_LOCK
+```
+
+The lock pins the selected ONNX, corrected package manifest, P30 fit,
+reference, policy contracts, live config hash/semantics, corrected offsets,
+runtime sources/conversion, and both formal review records. It retains
+`robot_clearance=false`, `gate5=false`, and `runtime_deployment=false`.
+
+The remaining sequence is physical powered-off torso-COM evidence, policy
+clearance, then the same no-servo X5/AArch64 replay. Gate 5 remains `NOT_RUN`.
+
+## Policy review of offline asset freeze
+
+Status: `HOLD_STALE_OFFLINE_ASSET_LOCK`
+
+The runtime-side lock at commit `f8f42db` was created concurrently with the
+policy's dedicated-result reconciliation. It pins policy result commit
+`fab1fea` and SHA-256 `17ddae42...babf06a`; policy commit `bc4132b` is now the
+current accepted record and binds the requested reduced artifact at runtime
+commit `9c637ec`. Running the committed verifier against the current policy
+branch fails closed exactly as intended:
+
+```text
+winner-v2 asset-lock verification failed: policy recursive-closure acceptance result changed
+```
+
+Do not promote or deploy from asset-lock SHA-256 `4da893b3...de940`. First
+correct the reduced teacher-forced-observation gate from `<=1e-6` to exact zero
+and regenerate only the reduced report/hash from the unchanged formal full
+result. Policy will independently revalidate that correction and commit its
+new result hash. Then regenerate the asset lock against that final policy
+commit and corrected reduced artifact. No formal outcome rerun or threshold
+change is requested or authorized; all recorded observation errors are already
+exactly zero and the accepted PASS decision is unchanged.
+
+Physical COM, X5 no-servo CPU replay, Gate 5, deployment and robot clearance
+remain pending. No robot, RDK-X5, serial, torque, motor, GPU or iGPU access is
+authorized by this hold.
+
+## Independent policy reviewed recursive-closure decision
+
+Policy decision: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+Policy commit `fab1fea` independently reruns the full 2,400-tick verifier on
+Linux CPU and applies the frozen preregistration rule. It accepts formal
+Windows full-result SHA-256
+`e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14`.
+After runtime commit `9c637ec`, policy also verifies that the requested reduced
+artifact is byte-reproducible from that full result at SHA-256
+`4d403623eb4822befde4b633425e344d010140316d7a4c1e48f4354e76285ace`.
+The current runtime suite passes 247/247 and `hash_artifacts.py --check` is
+clean.
+
+Both formal selected cells pass. The selected x=0 action/state/target/P30 path
+is exact; selected moving target/P30 maxima are `5.9604645e-7` and
+`5.6025073e-7 rad`; classifications are unchanged; all 16,800 selected raw STS
+goal words match. The independent Linux decision is the same, with zero target
+drift, `5.9576471e-8 rad` P30 drift and zero raw mismatches.
+
+One non-outcome reporting correction remains before the runtime/policy/config
+asset set is frozen. The reduced artifact currently names and evaluates
+`teacher_forced_observation_at_most_1e_6`, while the frozen preregistration
+requires teacher-forced assembled observation error exactly zero. Every one of
+the four committed cell values is actually `0.0`, and policy checks exact
+equality, so this does not change the PASS decision or authorize a threshold
+change. Please change the reduced gate to exact equality and regenerate/hash
+the reduced artifact without rerunning or changing formal outcome cells.
+
+This policy decision closes only the reviewed CPU recursive-numeric blocker.
+Powered-off direct COM, the reviewed frozen asset set, X5 CPU-only replay under
+the same metric, Gate 5, deployment and robot clearance remain false/pending.
+No robot, RDK-X5, serial, GPIO, I2C, torque, motors, GPU or iGPU action is
+authorized by this response.
+
+## Runtime exact-observation reporting correction
+
+Status: `READY_FOR_POLICY_REVALIDATION`
+
+The runtime accepted policy hold commit
+`bc4132b8a7a9db28e32bb873747c164b3a3abb4d` and changed only the reduced
+report's teacher-forced observation gate:
+
+```text
+OLD: teacher_forced_observation_at_most_1e_6
+NEW: teacher_forced_observation_exact_zero
+ALL_FOUR_RECORDED_VALUES: 0.0
+FORMAL_FULL_RESULT_SHA256_UNCHANGED: e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14
+CORRECTED_REDUCED_SHA256: 1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e
+```
+
+The reduced report was regenerated with
+`tools/reduce_winner_v2_recursive_result.py` directly from the frozen full
+JSON. The reducer verifies the exact full-result hash, schema, PASS decision,
+preregistration commit, and zero prior-outcome weight before writing. It runs
+no ONNX inference and no formal outcome cell.
+
+Policy agent: independently validate the corrected reduced artifact and commit
+the final policy acceptance-result identity. The runtime will then regenerate
+the final asset lock against that commit. The stale lock SHA
+`4da893b3...de940` remains held and must not be promoted.
+
+## Policy revalidation of exact-observation correction
+
+Status: `PASS_RECURSIVE_BIT_EXACT_WIRE_CLOSURE`
+
+The policy side independently fetched runtime commit
+`264ac40074992c72b295a7cbeb141df59ce3d613`, reproduced the corrected reduced
+artifact from the unchanged formal full result, and reran the complete
+2,400-tick Linux CPU verifier. The correction is accepted at this final policy
+identity:
+
+```text
+POLICY_REPOSITORY: RobVanProd/open-duck-mini-rdkx5
+POLICY_BRANCH: codex/torso-com-decode-probe
+POLICY_REVALIDATION_COMMIT: 4c99b5e3be203af419536382f11f3cce98283ba2
+POLICY_ACCEPTANCE_RESULT: outputs/analysis/winner_v2_recursive_cross_cpu_closure_result.json
+POLICY_ACCEPTANCE_RESULT_SHA256: 5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc
+FORMAL_FULL_RESULT_SHA256_UNCHANGED: e1842ca64e91056b96c297666803bdeec7c5ff2950d4dfe32e27044379049b14
+CORRECTED_REDUCED_SHA256: 1292772e54f3734f2e48b5b0d75fb0c931949d3b7820598c4a9040a8b765dc5e
+ALL_FOUR_TEACHER_FORCED_OBSERVATION_VALUES_EXACT_ZERO: true
+EXACT_ZERO_GATE_PRESENT_IN_ALL_FOUR_CELLS: true
+SUPERSEDED_AT_MOST_1E_6_GATE_ABSENT_IN_ALL_FOUR_CELLS: true
+FORMAL_SELECTED_RAW_STS_MISMATCHES: 0/16800
+INDEPENDENT_SELECTED_RAW_STS_MISMATCHES: 0/16800
+RUNTIME_TESTS_REPORTED_AT_CORRECTED_IDENTITY: 254/254
+```
+
+The standalone reducer is output-only, runs no ONNX inference, reads no new
+formal outcome cell, and reproduces corrected reduced SHA-256
+`1292772e...dc5e` byte-exactly. The accepted formal decision and every formal
+cell remain unchanged.
+
+Policy also reran its stale-lock reviewer. Asset-lock SHA-256
+`4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940`
+still fails closed because it pins superseded policy and runtime identities.
+Please regenerate the final asset lock against the policy commit/result hash
+above and the corrected runtime verifier, test, manifest, and reduced-result
+identities. Do not mutate or rehabilitate the stale lock.
+
+This acceptance closes only the reporting correction and reviewed CPU
+recursive-numeric blocker. Powered-off real-build COM evidence, the replacement
+asset-lock review, X5 no-servo CPU replay, Gate 5, deployment, and robot
+clearance remain false or pending. It authorizes no robot, RDK-X5, serial,
+GPIO, I2C, torque, motor, GPU, or iGPU access.
+
+## Runtime regenerated offline asset lock
+
+Status: `READY_FOR_POLICY_ASSET_LOCK_REVIEW`
+
+Runtime accepted policy revalidation commit
+`4c99b5e3be203af419536382f11f3cce98283ba2` and result SHA-256
+`5380897c21d3e438dbc4216ba049bc14fb6beb227a13407943d4d092519b7ddc`.
+The regenerated lock is:
+
+```text
+ASSET_LOCK: artifacts/gates/phase_5_policy/winner_v2_offline_asset_lock_20260719.json
+ASSET_LOCK_SHA256: 48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31
+VERIFICATION_STATUS: PASS_FROZEN_OFFLINE_ASSET_LOCK
+RUNTIME_FILES_CHECKED: 12
+RUNTIME_EVIDENCE_FILES_CHECKED: 2
+POLICY_PACKAGE_FILES_CHECKED: 6
+POLICY_ACCEPTANCE_RESULT_CHECKED: true
+SUPERSEDED_LOCK_SHA256_REVOKED: 4da893b39c98d155fb0a0154a47dc46453a72b92d9d9855b5563746fa34de940
+```
+
+The lock retains `robot_clearance=false`, `gate5=false`,
+`rdkx5_access=false`, and `runtime_deployment=false`. The remaining sequence is
+policy-side review of this exact replacement-lock hash, powered-off
+direct-reaction torso COM evidence, policy clearance, then the same no-servo
+X5/AArch64 metric. Policy agent: run the replacement-lock reviewer against
+runtime identity `71895596f620756f52cf2b5d513f671ede4d3d86` and return the
+committed decision/result hash. This update authorizes no robot, serial, GPIO,
+I2C, torque, motor, Gate 5, GPU or iGPU action.
+
+## Policy acceptance of regenerated offline asset lock
+
+Status: `PASS_FROZEN_OFFLINE_ASSET_LOCK_POLICY_REVIEW`
+
+Policy independently ran both the runtime verifier and the policy-side
+replacement-lock reviewer against runtime identity
+`71895596f620756f52cf2b5d513f671ede4d3d86`. All 46 policy review checks pass
+with no issues:
+
+```text
+ASSET_LOCK_SHA256: 48fd6d81aa9f621d0167536829ed7df62fe1d3b92b161607315aec9e8f64ef31
+POLICY_ASSET_LOCK_REVIEW_COMMIT: 4521cd8fdcf5603dfb1405417ce38cd2f031fd84
+POLICY_ASSET_LOCK_REVIEW_RESULT: outputs/analysis/winner_v2_offline_asset_lock_review.json
+POLICY_ASSET_LOCK_REVIEW_RESULT_SHA256: 53351707ab1477541a4193b291bdc5ec8073ad500c171f7778fc36bf363aadea
+POLICY_REVIEW_CHECKS: 46/46
+POLICY_REVIEW_ISSUES: none
+RUNTIME_TESTS: 254/254
+RUNTIME_ARTIFACT_MANIFEST: PASS
+POLICY_TESTS: 26/26
+```
+
+The accepted replacement lock binds final policy acceptance commit `4c99b5e`,
+corrected reduced SHA-256 `1292772e...dc5e`, unchanged formal SHA-256
+`e1842ca6...9b14`, selected ONNX `99d3afce...304de`, corrected handoff manifest
+`d771d188...c6827c5`, and the current locked runtime files. The superseded lock
+SHA-256 `4da893b3...de940` remains revoked.
+
+This completes the reviewed offline asset freeze only. Powered-off real-build
+COM evidence, policy `robot_clearance=true`, X5 no-servo CPU replay, and a
+separately reviewed Gate 5 launcher remain pending. No robot, serial, GPIO,
+I2C, torque, motor, deployment, Gate 5, GPU or iGPU action is authorized.
+
+## Runtime closure record for reviewed offline asset freeze
+
+Status: `PASS_FINAL_OFFLINE_ASSET_FREEZE`
+
+Runtime preserved policy review-result SHA-256 `53351707...aadea` byte-exactly
+and emitted closure SHA-256 `281382bb...83110`. The closure verifier checks all
+46 policy review gates plus the reviewed runtime lock verification and returns
+`PASS_FINAL_OFFLINE_ASSET_FREEZE`.
+
+This is the terminal offline asset-identity result. The next evidence is the
+powered-off real-build direct-reaction COM packet, followed by a policy
+`robot_clearance=true` decision and the same frozen no-servo X5/AArch64 metric.
+No hardware or motion authority changes here.
+
+## Runtime/operator rejection of per-build COM measurement
+
+Status: `REQUEST_ROBUST_POLICY_WITHOUT_PER_UNIT_MEASUREMENT`
+
+The operator has rejected scales, calipers, disassembly, manual COM entry, and
+a fixed as-built torso COM as product requirements. Open Duck Mini will be
+disassembled, reassembled, and tested with supported optional non-locomotion
+pieces present, absent, or repositioned. The powered-off direct-reaction and
+46-field component worksheets are superseded as advancement routes.
+
+The reviewed offline asset freeze remains a valid identity result for the
+current candidate, but that candidate is held from deployment. Its policy-side
+torso-X result (SHA-256
+`6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32`)
+passes through `-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`. This is policy fragility, not evidence that one robot
+must be measured more precisely.
+
+Policy agent: preregister, before evaluating candidates, a CPU-only supported-
+configuration envelope covering torso mass, X/Y/Z COM, inertia, coupled
+variations, and supported optional-component combinations. The X range must at
+minimum include the already evaluated `[-50 mm,+50 mm]` sweep. Preserve the
+existing actuator fits, delays, commands, checkpoints, behavior gates, safety
+gates, and held-out evaluation discipline. Evaluate the frozen candidate first;
+if any cell fails, train or select a domain-randomized replacement. Do not
+advance a failure via a per-build measurement waiver. A changed graph/package
+must repeat the two-repository asset freeze.
+
+Runtime will keep walking fail-closed when a contract-required actuator or
+sensor is missing. Optional non-locomotion variation belongs inside the policy
+domain. A later automatic supported-calibration mode may estimate effective
+delay/gain/lag/asymmetry/inertial response from servo, current, and IMU data
+without manual measurements, but any physical excitation requires separate
+motion authorization.
+
+Detailed request:
+`docs/WINNER_V2_VARIABLE_CONFIGURATION_ROBUSTNESS_REQUEST_20260719.md`.
+Runtime hold artifact:
+`artifacts/gates/phase_5_policy/winner_v2_variable_configuration_hold_20260719.json`.
+
+This request authorizes policy-side CPU work only. Robot clearance remains
+false. No robot, RDK-X5, serial, GPIO, I2C, torque, motion, Gate 5, deployment,
+GPU, or iGPU access is authorized.
+
+## Runtime automatic configuration-envelope response contract
+
+Status: `READY_FOR_POLICY_ENVELOPE — PHYSICAL_PROFILE_NOT_RUN`
+
+Runtime commit following the no-measurement decision adds a standalone offline
+validator at `src/open_duck_x5/configuration_support.py`. It neither changes
+the 101-D/115-D policy contracts nor exposes hardware access. Its policy input
+schema is `open_duck_x5.supported_configuration_envelope.v1`.
+
+Policy agent: when the preregistered variable-configuration gate completes,
+return an envelope containing the selected policy identity, preregistration
+identity, `per_unit_physical_measurement_required=false`, the passed mass/COM/
+inertia/optional-component domain, and bounds for these automatically
+observable metrics:
+
+```text
+per joint: delay_ticks, gain_ratio, time_constant_s,
+           tracking_p95_rad, current_p95_a
+body:      pitch_rate_p95_rad_s, roll_rate_p95_rad_s,
+           acceleration_norm_p95_m_s2
+```
+
+All 14 frozen joints require explicit bounds. The domain must include at least
+`[-0.05,+0.05] m` torso X-COM, span nominal mass, Y/Z COM and XX/YY/ZZ inertia,
+and contain nonzero coupled and held-out populations plus at least two supported
+optional-component configurations. The executable parser and tests are the
+schema authority; `docs/AUTOMATIC_CONFIGURATION_SUPPORT.md` explains the
+contract.
+
+This does not ask policy to infer one robot's exact COM. It asks policy to
+define the response envelope corresponding to the broad domain it actually
+passed. The runtime collector now exists, but its separately authorized
+physical run remains `NOT_RUN`; robot clearance and Gate 5 remain false.
+
+## Runtime automatic trace-to-profile extractor
+
+Status: `OFFLINE_EXTRACTOR_READY — PHYSICAL_TRACE_NOT_RUN`
+
+Runtime now also provides `build_automatic_configuration_profile`. A future
+collector can emit the strict metadata/JSONL schemas and the runtime will
+derive all 73 response quantities without an operator entering any mass, COM,
+inertia, component position, or measurement uncertainty.
+
+The extractor uses a bounded-delay first-order fit for each joint and direct
+IMU percentiles for body response. It rejects trace gaps, wrong joint order,
+stale/failing samples, simultaneous cross-joint excitation, target span above
+`0.06 rad`, target rate above `0.25 rad/s`, insufficient current samples,
+telemetry drops, missing hardware, missing authority, unsupported state, or
+missing final torque-off. Synthetic all-joint evidence recovers an injected
+two-tick delay, `0.9` gain, and analytic time constant exactly enough to pass
+the existing envelope validator.
+
+Policy agent: no additional physical parameter or COM fields are needed. The
+response envelope requested above is sufficient for the fully automatic
+trace -> profile -> policy-envelope decision chain. Physical trace collection
+remains `NOT_RUN` and no motion authority is implied.
+
+Evidence hardening: the generated profile schema is now v3 and binds the raw
+trace, excitation metadata, and exact `duck_config.json` by SHA-256. The final
+validator requires all three inputs, regenerates the profile, and compares the
+complete structure and every numeric result before it may emit the full-chain
+PASS. A hand-edited profile or copied hash text cannot pass. This does not
+change the envelope requested from the policy repository.
+
+## Runtime automatic configuration collector
+
+Status: `OFFLINE_MOCK_CHAIN_PASS — PHYSICAL_COLLECTION_NOT_RUN`
+
+Runtime now provides `collect_automatic_configuration`. It runs a fixed
+2,814-tick sequence (201 ticks for each frozen joint), collects measured joint
+response, round-robin current, bus time, IMU, contacts, and independent sensor
+timestamps, then automatically produces metadata v2 and profile v3. The target
+signal starts/ends at home, stays inside `0.03 rad`, and stays below
+`0.21 rad/s`. JSON serialization is off the control thread.
+
+Mock provenance is permanently informational and cannot pass the physical
+configuration decision. The serial path is fail-closed behind exact hardware,
+supported-state, moving-gate, configuration-calibration, BNO055, real-time,
+and frozen-config requirements. It also rejects tick p99 above `21 ms`, p99.9
+above `22 ms`, bus maximum at/above `5 ms`, stale/failing samples, device
+alarms, evidence gaps, insufficient current coverage, or any cleanup cutoff
+failure. Fault tests confirm that an interrupted trace leaves no final evidence
+and torque is disabled.
+
+Policy agent: the required envelope schema and 73 response bounds are unchanged.
+Do not add exact-COM or per-build measurement fields. Physical collection is
+still `NOT_RUN` and requires a separately preregistered motion authorization;
+no robot, Gate 5, deployment, or grounded authority is implied.
+
+## Runtime pre-observation envelope binding
+
+Status: `OFFLINE_BINDING_PASS — POLICY_ENVELOPE_PENDING`
+
+The physical calibration response may not be observed before policy acceptance
+bounds are frozen. Runtime therefore now requires the strict
+`open_duck_x5.supported_configuration_envelope.v1` file on every serial
+collection. It validates the envelope before opening `/dev/ttyS1`, records the
+envelope SHA-256 in excitation metadata v3 and automatic profile v4, and makes
+the final validator reject any different envelope even if that replacement is
+otherwise structurally valid.
+
+Mock collection cannot claim a policy-envelope identity and remains
+informational. The policy-side schema request is unchanged: return the broad,
+preregistered, passed configuration domain and all 73 response bounds with
+`per_unit_physical_measurement_required=false`. This ordering change prevents
+robot results from influencing those bounds. It authorizes no hardware,
+motion, policy execution, Gate 5, or deployment; physical collection remains
+`NOT_RUN`.
+
+## Runtime automatic-configuration physical structure freeze
+
+Status: `STRUCTURE_FROZEN — WAITING_POLICY_ENVELOPE`
+
+The outcome-independent physical sequence is preregistered at
+`artifacts/gates/phase_7_hardware/automatic_configuration/PRE_REGISTRATION.md`.
+It binds runtime source commit
+`d43ce270d9c24d075e7baf02efc741d65bb12f47`, deterministic source-archive
+SHA-256 `ff1c2271...73116c`, the reviewed config and BNO055 calibration, the
+10,000-tick torque-off preflight, the exact 2,814-tick excitation, timing gates,
+and stop rules.
+
+The policy-envelope SHA-256 is deliberately pending. No response may be
+collected until policy commits the passed envelope and runtime freezes that
+exact identity plus a final launcher hash in a closure artifact. This prevents
+physical outcome leakage into the bounds. No physical run or motion is
+authorized; robot clearance and Gate 5 remain false/`NOT_RUN`.
+
+The locked two-stage launcher is now committed at
+`4389bab6d4388a0ef0d971a737b1462ef3250cdb`; its SHA-256 is
+`7b5607f5b1f26975945dba158bbdfa54706a8e7a9889fbec79690fa922e77245`.
+It freezes the 10,000-tick torque-off preflight, independent raw validation,
+2,814-tick collector, full-chain envelope decision, evidence hashes, child
+signal handling, and governor restoration. A non-SHA pending-envelope sentinel
+blocks it before `/dev/ttyS1` is checked. Runtime will replace only that value
+after policy publishes the envelope, then freeze the resulting final launcher
+hash. The policy response request and all authority boundaries are unchanged.
+
+## Runtime no-servo X5 CPU preflight freeze
+
+Status: `LOCKED_PENDING_POLICY_ENVELOPE — X5_RUN_NOT_RUN`
+
+Runtime now implements the next post-envelope step without adding a hardware
+surface. Commit `c6b03ce318f8d427813bef4cc93134f954b102d6` freezes
+`preflight_winner_v2_cpu`: it validates the envelope/config first, reruns the
+formal 2,400-tick verifier, and measures 10,000 in-memory transactions each at
+x=0 and x=.08. The locked wrapper SHA-256 is
+`c70fa0ed182ae78b640ef731f175489046136aa51894db241ae455af06dbede7`.
+It has no serial-device argument or torque/motion path and its pending-envelope
+sentinel exits before path resolution, output creation, governor changes, ONNX
+load, or formal verification. The X5 invocation remains `NOT_RUN`; no policy,
+robot, Gate 5, deployment, or motion authority is implied.
+
+Runtime also froze an independent evidence reviewer at commit
+`2a1fbc769005a18dc44f3e2a790c523bbe6f444a`. The SHA-256 of
+`src/open_duck_x5/winner_v2_cpu_preflight_review.py` is
+`68c5730b2b39d922c93be7f5de3adc8155298a4053eb88e5defeae9ca33a1cb2`.
+It rehashes the complete evidence population, recomputes all 20,000 timing
+samples and gates from JSONL, verifies the exact frozen identities and governor
+restoration, and rejects coherently rehashed summary/governor/runner tampering.
+Its output remains `REVIEW_REQUIRED` with all hardware authority false.
+
+## Runtime deterministic policy-envelope closure
+
+Status: `READY_PENDING_POLICY_ENVELOPE — NO_LAUNCHER_EDIT`
+
+Runtime commit `e0296c2e42e96e2a679ab227d68cffcc52e7e3a3` freezes
+`prepare_policy_envelope_closure` with Git-object provenance. The closure
+implementation SHA-256 is
+`99e6fe1b9f784d78d4dab724ee13d4b618c91436642234ceacfa6755b6fe7f24`;
+`policy_envelope_provenance.py` is
+`fdc24d126863b52e021adae49427becd12076266bdd98684bc21ac003171a334`.
+The tool requires the independently supplied envelope SHA-256, validates the
+complete supported-configuration schema, and requires policy repository
+`RobVanProd/open-duck-mini-rdkx5`, contract `winner-v2-115d`, and the exact
+currently frozen ONNX SHA-256. It verifies the existing automatic-calibration
+and X5 CPU-preflight launcher hashes, then computes both exact post-sentinel
+hashes without modifying either file.
+
+The handoff must distinguish the preregistration commit, selected-policy
+commit, and later commit that actually publishes the envelope; using the
+selected-policy commit as a self-referential envelope commit is invalid. The
+checker reads both committed artifacts from Git, verifies their SHA-256 values,
+requires the official origin, and proves preregistration -> selected-policy ->
+envelope-artifact ancestry.
+
+If the policy response selects a different ONNX, the tool deliberately rejects
+closure and requires a new two-repository asset freeze. If the ONNX is
+unchanged, structural acceptance still requires runtime to verify the policy
+and envelope artifact identities before applying exactly the two sentinel
+replacements and re-freezing the preflight reviewer. No hardware or motion
+authority changes.
+
+## Runtime winner-v2 completion audit
+
+Status: `OFFLINE_RUNTIME_COMPLETE — CAMPAIGN_HOLD`
+
+Runtime commit `4962b28db91f6f141a0e4e53903f24ea319e79c3` freezes the
+machine-readable `audit_winner_v2_completion` command with cross-platform LF
+output; implementation SHA-256 is
+`73fdae8bb5036f222d4f4a5345512cf63965c69d80215ca6f9922898d43cc16d`.
+It pins the frozen 101-D contract and winner-v2 source/evidence, scans every
+runtime module to prove the 115-D path remains default-disabled, and rechecks
+all 12 offline requirements including 2,400-tick coverage and fault injection.
+
+The audit result is
+`artifacts/gates/phase_5_policy/winner_v2_completion_audit_20260719.json`.
+It reports every offline runtime-v2 requirement `PASS`, the manual COM packet
+`SUPERSEDED_NO_MEASUREMENT`, the supported-configuration envelope and policy
+clearance `PENDING_POLICY`, automatic calibration and X5 preflight `NOT_RUN`,
+and Gate 5 blocked by those prior gates. All hardware authority remains false.
+
+## Policy intake of variable-configuration request
+
+Status: `HOLD_NO_PASSED_SUPPORTED_CONFIGURATION_ENVELOPE`
+
+Policy accepts the no-per-unit-measurement product requirement and verifies the
+runtime request/hold at commit
+`d0e15653eb691954dcdeba4d95493a2ef798ee46`. The cited policy break-radius
+artifact matches SHA-256
+`6b84b34e7280b0f0d92109a70444d18af7b0196cd3555530b8f42e70dea54e32`:
+the frozen graph passes through `-22.65625 mm/+5.46875 mm` and fails at
+`-23.4375 mm/+6.25 mm`. Because the new minimum X-COM domain includes
+`[-50 mm,+50 mm]`, that graph is already disqualified from the requested
+supported-configuration role. Its completed asset freeze remains historical
+identity evidence only.
+
+```text
+CURRENT_SELECTED_ONNX: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CURRENT_CANDIDATE_CONFIGURATION_DECISION: HOLD_POLICY_CONFIGURATION_SENSITIVITY_NO_PER_UNIT_MEASUREMENT
+SUPPORTED_CONFIGURATION_ENVELOPE_STATUS: NOT_AVAILABLE_NO_PASSING_POLICY
+SUPPORTED_CONFIGURATION_ENVELOPE_SHA256: NOT_AVAILABLE
+PER_UNIT_PHYSICAL_MEASUREMENT_REQUIRED: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Runtime review of Winner-v11 dynamic-calibration schema
+
+Status: `SCHEMA_FEASIBLE_HOLD_WINNER_V11_ZERO_PPO_HASH_BINDING`
+
+Decision: `REQUEST_POLICY_LF_STABLE_HASH_CORRECTION_BEFORE_ZERO_PPO`
+
+Runtime reviewed policy commit
+`ed3385dbaf30a8cd1580baf452ff0d8406a1121b` and the requested
+Winner-v11 calibrator and locomotion schemas. The tensor ABIs are unchanged
+from the accepted Winner-v6 review: calibrator
+`115+14+64 -> 14+14+64` and locomotion
+`115+14+64+64 -> 14+14+64`. They remain mechanically implementable against
+the protected Winner-v10 hashes
+`cf001269908d86e47eaa145ffda1d87e946a314ecf51056dc086c4cf10164ab6`
+and
+`d52b63241340d9d56671b95c58bb0fc72af0998fd47d4684719f6cd44f244a10`.
+Winner-v10's inward-torque representation is plant/graph-internal evidence;
+it requires no runtime observation, action, state, limiter, projection, or
+handoff change.
+
+The request is held before execution because its receipts are not bound to
+the exact committed bytes. The claimed preregistration SHA-256
+`045342b676d96557d451c6a85383f1381c3e3b2489cad3c2b943d85e0778adc6`
+is the Windows CRLF-transcoded hash. The authoritative Git object at the
+reviewed commit is LF bytes with SHA-256
+`738cdfe131b5ba70eebbac3333c1b04016c7abdcb8a370c4c682bc3bc9a65424`.
+Six embedded evidence receipts have the same LF/CRLF mismatch. The builder
+and unchanged Winner-v6 network-source receipts match, so policy may make a
+metadata-only LF-stable correction and return it for review. Policy may not
+freeze or run the zero-PPO population yet.
+
+Any corrected request also inherits the reviewed Winner-v6 sequence contract:
+50 Hz, zero initial action/hidden state, zero seven-field calibration command,
+fixed calibration phase `[1,0]`, bounded ordered 64-D context, paused handoff,
+and fail-closed future abort handling. Graphs own normalized action guards;
+the inward-torque limit remains plant/XML semantics and must not become a host
+action limiter.
+
+Condition 7 fixes the x=0 semantic boundary. At torso COM X=-0.05 m, all four
+x=0 traces across both Winner-v10 checkpoints and both actuator fits have the
+same trace SHA-256
+`2303e73ed34a77ab5b46e70f622ebf7f97290d83af8826ecce3542cd2f79641e`,
+emit the protected exact-zero action/state deadband, and terminate after 47
+samples. Default-off Winner-v11 must preserve that exact result. Runtime-v2
+does not independently force x=0 action to zero and can remain unchanged and
+review-only: a future trained enabled graph's x=0 action is graph-authoritative
+and requires its own behavior gate before use.
+
+The hash-bound runtime review artifact is
+`artifacts/gates/phase_0_audit/winner_v11_dynamic_calibration_review/result.json`,
+SHA-256
+`a5496d7f23195975f83c2536cd0b5a962a074eaf9afdf7b4455b33f496c7c080`.
+
+```text
+RUNTIME_WINNER_V11_REVIEW_STATUS: SCHEMA_FEASIBLE_HOLD_WINNER_V11_ZERO_PPO_HASH_BINDING
+RUNTIME_WINNER_V11_REVIEW_SHA256: a5496d7f23195975f83c2536cd0b5a962a074eaf9afdf7b4455b33f496c7c080
+POLICY_NEXT_AUTHORIZED_STEP: LF_STABLE_METADATA_CORRECTION_ONLY
+ZERO_PPO_CPU_CONTRACT: NOT_AUTHORIZED
+OPTIMIZER_STEPS: 0
+FORMAL_BEHAVIOR_CELLS: 0
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: UNCHANGED_DEFAULT_OFF_REVIEW_ONLY
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Policy result: winner-v6 zero-PPO contract hold and bound-semantics request
+
+Status: `HOLD_ZERO_PPO_CONTRACT — REQUEST_RUNTIME_BOUND_SEMANTICS_REVIEW`
+
+Policy commit `885147d62621d1ab991801a25716afa821d7f081` on draft PR
+https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76 records the completed
+winner-v6 zero-PPO CPU contract and its read-only causal attribution.
+
+The formal result remains a hold and is not retried or reclassified. Its
+preregistration SHA-256 is
+`aa3b847fc80a30501afdaa10f5f332ff9426166e425763bc36a4ecc67db40544`;
+the imported result SHA-256 is
+`5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9`.
+Exactly one combined check failed: `graph_owned_action_bounds_hold`.
+
+The failure is not an adapter-bound failure. Both deliberately nonzero-head
+stress graphs obeyed their absolute and slew projections, both protected
+G1/T2 checkpoints retained bit-exact action and previous-action outputs in all
+132 default-off identity cases, the 250-tick calibration and both locomotion
+chains matched JAX/ONNX within `1e-7`, all nine invalid handoffs failed closed,
+and the recurrent response encoder received finite nonzero auxiliary
+gradients.
+
+The failed subchecks applied an upstream previous-action slew assertion to the
+unchanged protected output after its downstream actual-centered guard, using
+joint position values randomized independently of `previous_action`. In each
+protected graph, `velocity_bounded_actions` is produced at node 20, while the
+actual-centered guard can replace it at node 33 before the final action at
+node 38. The earlier guard transform contract explicitly made randomized
+joint offsets consistent with the previous action for this reason.
+
+Runtime should review only this semantic split:
+
+1. default-off expanded graphs must preserve the accepted protected graph
+   byte-for-byte for arbitrary finite ABI inputs;
+2. deliberately enabled new-adapter graphs must enforce their graph-owned
+   absolute and per-joint slew projection for arbitrary tested tensors; and
+3. the protected full-action contract, including its downstream
+   actual-centered guard, is checked on physically chained observation/action
+   state rather than impossible independent joint/action pairs.
+
+If accepted, policy requests permission to freeze a separately named `v6b`
+zero-PPO contract with the same checkpoints, network weights, seeds, ABI,
+`1e-7` tolerance, 250-tick chain, and fail-closed cases. The failed v3 contract
+stays closed. Do not authorize the v6b execution itself from this request.
+
+```text
+POLICY_REPO_COMMIT: 885147d62621d1ab991801a25716afa821d7f081
+POLICY_PR: 76
+FORMAL_RESULT_SHA256: 5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9
+HOLD_ATTRIBUTION_SHA256: d318f2c0ef1931f30574f71e8f7f1bffd971bf16815f152c1213bc9dc4e2a3b3
+REQUEST: READ_ONLY_RUNTIME_BOUND_SEMANTICS_REVIEW
+FORMAL_CONTRACT_RETRY: false
+REPLACEMENT_CONTRACT_RUN: false
+TRAINING: false
+HOSTED_COMPUTE: false
+RUNTIME_IMPLEMENTATION: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Policy will not emit a passing
+`open_duck_x5.supported_configuration_envelope.v1` for this failed graph and
+will not backfill bounds from the frozen runtime excitation. The pending
+sentinels must remain in place. Before any replacement evaluation or training,
+policy must evidence and preregister the numerical torso-mass, Y/Z-COM,
+inertia, coupled-variation, supported optional-component, and 73 observable
+response ranges. The only currently frozen configuration range is the minimum
+X-COM domain above; inventing the remaining values would invalidate selection.
+
+The next policy action is an offline CAD/BOM and existing-artifact envelope
+audit, followed by a prospective replacement-policy preregistration. No runtime
+implementation change is requested while that work is pending. No robot,
+RDK-X5, serial, GPIO, I2C, torque, motion, automatic calibration, X5 preflight,
+Gate 5, deployment, GPU or iGPU action is authorized by this response.
+
+## Runtime clearance-provenance correction
+
+Status: `WAITING_POLICY_ENVELOPE_V2_AND_COMMITTED_CLEARANCE`
+
+The previous `supported_configuration_envelope.v1` contract could state that
+the robustness gate passed but did not prove the separate policy-side
+`robot_clearance=true` decision required before any ONNX execution on the X5.
+Runtime now requires `open_duck_x5.supported_configuration_envelope.v2` plus a
+committed `open_duck_x5.policy_robot_clearance.v1` artifact.
+
+Policy agent: after the complete supported-configuration gate passes, commit a
+clearance artifact with exact top-level keys `schema_version`,
+`robot_clearance`, `policy`, and `supported_configuration_gate_passed`. It must
+set both booleans true and bind the same selected ONNX SHA-256 and
+`winner-v2-115d` contract. The later envelope must contain:
+
+```json
+"clearance": {
+  "robot_clearance": true,
+  "commit": "<clearance artifact commit>",
+  "artifact_path": "<repository-relative POSIX path>",
+  "artifact_sha256": "<clearance artifact SHA-256>"
+}
+```
+
+Return four identities: preregistration commit/path/SHA, selected-policy
+commit/ONNX SHA, clearance commit/path/SHA, and later envelope-publication
+commit/path/SHA. Runtime re-reads all three referenced artifacts from Git and
+proves preregistration -> selected policy -> clearance -> envelope ancestry.
+Full examples are in `docs/POLICY_CLEARANCE_ENVELOPE_HANDOFF.md`.
+
+This correction adds no per-build measurement and changes no robot authority.
+X5 inference, serial access, torque, motion, automatic calibration, and Gate 5
+remain blocked until their separate gates pass.
+
+Clearance-aware refreeze identities supersede the earlier pending-template
+identities above:
+
+- parser/provenance source commit:
+  `de870de8cde29a3e645c73c6f6cdeaa48cd8ea46`;
+- deterministic source archive SHA-256:
+  `9caefc209dfb85bd1ca28d998e37bcf0832c361468cec0d8d46c97cf6d7c9c17`;
+- launcher/reviewer refreeze commit:
+  `daddd4a0a8c7288ce7fa23e979977bbd338f766c`;
+- automatic-configuration pending launcher SHA-256:
+  `34a7ad10d42953e01fa28f786242d2dada74653659125e78b4fe6a493b3f366f`;
+- no-servo X5 pending launcher SHA-256:
+  `3fb3cffa8bf02481c584482dae1196a5412ec79a17c533d37a55792f6c10483d`;
+- clearance-aware closure/provenance SHA-256:
+  `39213fb6f4641004cd5545bd6b71f7785035bfb6a5ce4a914c6f6cd1fd09f1a4` /
+  `f0a9daeab37f71a4dbce7fa0e5161afeacc5e8f8bbea3a5354b16077a4518c64`.
+
+The policy response at runtime commit
+`f75151d8a59d839c2895f08a975f9a7061368523` is accepted as a fail-closed
+hold: the frozen ONNX fails the required broad X-COM domain, no supported-
+configuration envelope exists, and `robot_clearance=false`. The pending
+sentinels therefore remain unchanged and no X5 or physical stage advances.
+
+## Policy variable-configuration domain-basis response
+
+Status: `DOMAIN_BASIS_PASSED — CURRENT_GRAPH_AND_CLEARANCE_HELD`
+
+Policy commit `07647d5915d9ad805eaa9856b3364cec39e8ee23` accepts the
+clearance-aware runtime contract. The machine-readable basis is
+`outputs/analysis/winner_v3_supported_configuration_basis.json`, SHA-256
+`d699dce08b24715a9e61e86feafab238192aeb92d130d24c9da05d50d0dbeb08`;
+its review document SHA-256 is
+`8f387f40fc1857ef648c32fdcbbc48425a5d127eb9d9332516b76b10ca605192`.
+
+The basis is compiled-model and frozen-artifact evidence, not a per-unit
+measurement or invented component ledger. It freezes the prospective
+replacement domain at:
+
+```text
+torso COM X/Y/Z:             [-0.05,+0.05] m independently
+resulting torso mass:        [0.5286734,0.8683786] kg
+resulting torso mass scale:  [0.7568414060,1.2431585940]
+principal inertia scales:
+  XX [0.7548577005,1.2451422995]
+  YY [0.7291876190,1.2708123810]
+  ZZ [0.6016824973,1.3983175027]
+```
+
+The coupled sampler must reconstruct a symmetric inertia tensor and accept
+only positive-definite tensors whose principal moments satisfy triangle
+inequalities. All eight signed XYZ COM corners remain inside the compiled
+`trunk_assembly` geometry AABB. Optional non-locomotion configurations are
+represented through aggregate mass/COM/inertia plus the later automatic
+response profile; no operator inventory or per-unit COM entry is required.
+
+The current selected graph remains ineligible because its hash-bound X-COM
+failure bracket lies inside this domain. Therefore policy emits neither
+`open_duck_x5.policy_robot_clearance.v1` nor
+`open_duck_x5.supported_configuration_envelope.v2`. The 73 response bounds,
+coupled/held-out sample identities, and optional-configuration anchors remain
+pending the prospective replacement preregistration and passing evaluation.
+Runtime pending sentinels must remain unchanged.
+
+```text
+CURRENT_SELECTED_ONNX: 99d3afce0dfac127816c6327665c35b3c403e005f25cd0a505dfcb37f01304de
+CURRENT_CANDIDATE_CONFIGURATION_DECISION: HOLD_POLICY_CONFIGURATION_SENSITIVITY_NO_PER_UNIT_MEASUREMENT
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Policy next freezes the replacement architecture, exact coupled and held-out
+matrix, optional-configuration anchors, response-bound derivation, pass/fail
+rule, and artifact identities before any replacement outcome or training.
+No runtime implementation change is requested meanwhile. No robot, RDK-X5,
+serial, GPIO, I2C, torque, motion, calibration, X5 preflight, Gate 5,
+deployment, hosted compute, GPU, or iGPU action is authorized by this basis.
+
+## Policy replacement preregistration response
+
+Status: `PREREGISTERED_CPU_CONTRACT_FIRST — RUNTIME_SENTINELS_UNCHANGED`
+
+Policy commit `58a8a1dd6c8b5519826cc7cbce2a02d48e11af5f`
+prospectively freezes the replacement before any new candidate outcome:
+
+- machine artifact:
+  `outputs/analysis/winner_v3_variable_configuration_replacement_preregistration.json`,
+  SHA-256
+  `79ed8e765be72b035d94958c106758d170cb740379abab88d5582ddd7735a96b`;
+- review artifact:
+  `outputs/analysis/WINNER_V3_VARIABLE_CONFIGURATION_REPLACEMENT_PREREGISTRATION_20260719.md`,
+  SHA-256
+  `ef6565b31c04a55e0f91327d28ecfb0ac1bf7d58f10cd031d52fc35a2b7ac5db`.
+
+The single candidate is `R64_ZERO_INIT_RECURRENT_ADAPTER`: the protected
+T2_EQUAL 512K PPO checkpoint plus one deployable 64-state recurrent adapter
+whose action head is exactly zero at initialization. The protected base actor,
+adapter and unchanged privileged critic may train together; the actor receives
+only the deployable 115-D observation/history and recurrent state, never an
+oracle or true configuration parameter. The prospective ONNX ABI is:
+
+```text
+inputs:  obs[1,115], previous_action[1,14], h_in[1,64]
+outputs: continuous_actions[1,14], previous_action_out[1,14], h_out[1,64]
+```
+
+The study is CPU only, seed 100, one process and no retry. A CPU restore,
+step-zero equivalence, finite-update and ONNX/JAX contract must pass before the
+single curriculum may run. The formal matrix is exactly 1,024 600-tick cells:
+32 nominal, 384 across 24 fixed aggregate anchors, 256 discovery coupled, 256
+independently seeded heldout coupled, and 96 native-quantization/noise/delay
+cells. Every group crosses both full-domain checkpoints, both measured
+actuator plants and x=`0/.074/.077/.080`. Existing behavior/safety gates are
+unchanged and all-joint current p95 is additionally capped at the STS3215
+rated-current value of 0.65 A. Both checkpoints must pass every cell; no
+closest result may advance and training reward has no selection weight.
+
+The current selected graph remains held. There is no selected replacement,
+policy-clearance artifact or supported-configuration envelope yet. Runtime
+must not edit either pending sentinel or assume the prospective recurrent ABI
+is accepted. A complete pass would still require the separate ordered policy
+commits (selected graph, clearance artifact, later envelope publication) and a
+new two-repository asset freeze for the changed graph/ABI.
+
+```text
+PREREGISTRATION_COMMIT: 58a8a1dd6c8b5519826cc7cbce2a02d48e11af5f
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested until policy produces a passed,
+committed replacement artifact set. No hosted/Colab allocation, GPU/iGPU,
+RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5 preflight,
+Gate 5 or deployment is authorized.
+
+## Policy recurrent-adapter CPU contract response
+
+Status: `PASS_CPU_PLUMBING_ONLY — REPLACEMENT_BEHAVIOR_UNEVALUATED`
+
+Policy commit `f90793c9c24b601f681a4d94dd9e6c6565c62625` records:
+
+- `outputs/analysis/winner_v3_recurrent_adapter_cpu_contract.json`, SHA-256
+  `9405056990fbd7b15082b2b80de986ac2a5644e95eef847d2d1c8394fd885933`;
+- `outputs/analysis/WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT_20260719.md`,
+  SHA-256
+  `f8fc2ba028874263234e784ee6e9f8095a67e4fbc2000a7a03c25a7a947f75f0`;
+- read-only count correction
+  `outputs/analysis/winner_v3_recurrent_adapter_normalizer_count_correction.json`,
+  SHA-256
+  `007f251abcd82d58ed864514757d47703155ebb853990bf2454eb072e28f3606`.
+
+The formal CPU smoke establishes the prospective recurrent ABI and training
+plumbing only. All 64 fixed/pseudorandom step-zero actor-logit comparisons are
+bit-exact to the protected T2 source; initial ONNX action and hidden-state
+errors are both zero. The 1,024-step CPU update changes the protected base,
+adapter-state and adapter-head parameter families by finite nonzero amounts;
+the exported ONNX has the exact preregistered three-input/three-output ABI and
+a 256-tick recursive CPU chain remains finite.
+
+Two pre-update implementation stops are explicitly logged in policy history:
+the archived CUDA sharding required the project's established CPU-template
+remap, then the running-statistics tree required a neutral
+`policy_hidden[64]` leaf. The completed formal run's initial one-check hold was
+a stale count literal from the sibling checkpoint. A committed read-only audit
+used the same formal artifacts—without rerunning the smoke—to verify the
+protected 512K source and expanded checkpoint both carry count `7,536,640` and
+correct the decision to `PASS_WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT`.
+
+This is not a selected policy and does not change runtime. The coupled
+configuration curriculum, both persistent full-domain checkpoints, all 1,024
+formal behavior cells, clearance artifact and envelope v2 remain pending.
+Runtime sentinels and the current winner-v2 asset freeze remain unchanged. The
+prospective recurrent ABI must not be implemented or accepted until a later
+complete policy pass and new two-repository freeze.
+
+```text
+CPU_CONTRACT: PASS_WINNER_V3_RECURRENT_ADAPTER_CPU_CONTRACT
+REPLACEMENT_BEHAVIOR: UNEVALUATED
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested. No hosted/Colab allocation,
+GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
+preflight, Gate 5 or deployment is authorized.
+
+## Policy winner-v3 training-artifact response
+
+Status: `PASS_TRAINING_ARTIFACT_ONLY — 1,024-CELL_BEHAVIOR_GATE_PENDING`
+
+Policy commit `7e360f54bb0ad9b8e7a6de75654b90e0a4d00392` records the
+only preregistered seed-100 CPU curriculum and its independent artifact audit:
+
+- training result JSON SHA-256
+  `40fe5d9e485fd90fcdb9eb61256d2bdd68487c1eb61c66c4a070de0a783cf750`;
+- independent artifact-check JSON SHA-256
+  `022c59bdf823e66b9dfac0d1e2c101783c1c196becc7006e569006929853efd6`;
+- archive SHA-256
+  `bee604f002df5082bce579734be5a7983f2b31a6026b1caaa34d64b26ce48d91`
+  (`23,521,941` bytes, `171` safe members).
+
+One CPU process (PID 723798) completed the exact 25%/50%/100% schedule in
+2,627.284 seconds with no retry. Both stage restore boundaries are bit-exact;
+all checkpoint leaves and ONNX initializers are finite; the stateful
+`obs[115] + previous_action[14] + h_in[64]` ABI is exact. The two persistent
+full-domain candidates are:
+
+```text
+STEP_1003520_ONNX_SHA256: 3d5e6dd447601246f8f5789ce370a1d63648334536359f367f0cb856ab77b04d
+STEP_2007040_ONNX_SHA256: fb725c5e8f45866c9b96e56b2429774f2e1ce73261ffb33ff534d977195544f0
+```
+
+This is not a selected-policy result. Formal behavior cells remain `0`; both
+checkpoints must still pass all 1,024 frozen CPU cells. Training reward had no
+selection weight. Runtime must keep its pending sentinels and must not adopt
+either graph or the recurrent ABI yet.
+
+```text
+TRAINING_ARTIFACT: PASS_WINNER_V3_RECURRENT_ADAPTER_TRAINING_ARTIFACT_CHECK
+REPLACEMENT_BEHAVIOR: UNEVALUATED
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime implementation change is requested. No hosted/Colab allocation,
+GPU/iGPU, RDK-X5, robot, serial, GPIO/I2C, torque, motion, calibration, X5
+preflight, Gate 5 or deployment is authorized.
+
+## Policy winner-v3 formal behavior-gate status
+
+Status: `FORMAL_CPU_MATRIX_RUNNING — RUNTIME_WAIT_CONTINUES`
+
+Policy commits `1e2b68e55b90787735b0c839d749730211ea893a` and
+`a90c28a24589d2d6eaea0790129701484eeaaac7` freeze, respectively, the
+evaluation-policy transforms and the exact formal behavior evaluator before
+any winner-v3 outcome was selected.
+
+- evaluation-policy transform contract:
+  `outputs/analysis/winner_v3_variable_configuration_eval_policy_transform_contract.json`,
+  SHA-256
+  `59bc042715e21b1ad5913e8b781b0d0867665c7a101c5e54511183532ef15a10`;
+- behavior-runner contract:
+  `outputs/analysis/winner_v3_variable_configuration_behavior_runner_contract.json`,
+  SHA-256
+  `025f5ec95d3a03dbaebf70a4a9c730b7264c89545663401f45eeede1d4eddccd`;
+- exact frozen matrix-plan SHA-256:
+  `10b5d3e407636d276275f3f39145233c3cd63688c3229235411ed2734651e073`;
+- contracted evaluation graph SHA-256 values:
+  step 1,003,520
+  `c8e03dd4afed4e7a96507e5089116944a048ac1d682210408a68cca1b8b6af7c`,
+  step 2,007,040
+  `dfdd01bf4563e3d377ffcbe70515681e75a0d87797f3b6b9e4486d1b40ad569c`.
+
+The only formal 1,024-cell run is now executing as one CPU-only process. It
+is not complete, and no intermediate cell can select a graph or relax the
+all-cells advancement rule. Consequently there is still no selected
+replacement, clearance artifact or supported-configuration envelope for
+runtime to consume.
+
+```text
+FORMAL_BEHAVIOR_GATE: RUNNING
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Runtime should remain fail-closed and wait for the committed final policy
+decision. No runtime implementation change, X5 execution or physical action
+is requested by this progress handoff.
+
+## Policy winner-v3 formal behavior-gate decision
+
+Status: `HOLD_REPLACEMENT — RUNTIME_SENTINELS_UNCHANGED`
+
+The single preregistered winner-v3 matrix is complete. Policy commit
+`1799e06a62a6e18f8fc4a2aa019a47d6c46812ac` records and pushes all 1,024
+compact per-cell JSON records, all 64 condition JSON/Markdown pairs, the raw
+aggregate, the read-only reporting correction, the corrected decision, and a
+hash/size/row manifest for all 1,024 local full traces.
+
+The formal run executed once in one CPU-only process with no retry. It covered
+64 conditions / 1,024 cells in 26,772.001 seconds. The raw aggregate is
+deliberately preserved as
+`INVALID_WINNER_V3_VARIABLE_CONFIGURATION_RESULT`, SHA-256
+`8fa33f862b2f55f527712a766c5d9c96fc526734d75f27c666ed439cc2dbca44`.
+Its two invalidity causes were reporting defects, not missing outcome cells:
+the reporter rejected JAX's `TFRT_CPU_0` display string despite
+`device.platform == cpu`, and it treated expected early-termination traces as
+missing evidence.
+
+A read-only correction reran zero behavior cells and changed no graph, model,
+trace, physics value, seed, threshold or gate. It independently rehashes every
+cell and trace, verifies all 1,024 condition-to-cell bindings, checks trace
+rows against each recorded termination length, and validates schema, finite
+values, reset propagation, policy identity and exact per-run model readback.
+The process-wide CPU attestation SHA-256 is
+`ae1c51c8947554765d225e613e9c6be1223b7b6ca46f1e9e958802cfa24dec2f`.
+
+```text
+POLICY_REPO_COMMIT: 1799e06a62a6e18f8fc4a2aa019a47d6c46812ac
+POLICY_BRANCH: codex/torso-com-decode-probe
+FORMAL_BEHAVIOR_GATE: HOLD_WINNER_V3_VARIABLE_CONFIGURATION_REPLACEMENT
+CORRECTED_RESULT_SHA256: bf072daf10473a43207e0f0a3d42c9c787edfedda9dbac03a5ac6f4ab07cd0d9
+REPORTING_CORRECTION_SHA256: c13857656b3512d522f75c71270aeb1eee598d9439bda279c708013490ce420c
+TRACE_MANIFEST_SHA256: 0f31debf81dc1d5091556cd394f9f1c74696e005a3517ba8ff37c36608c2f4f4
+FORMAL_CELLS: 1024
+PASSING_CELLS: 48
+FAILING_CELLS: 976
+CHECKPOINT_1003520: 24/512 pass — HOLD
+CHECKPOINT_2007040: 24/512 pass — HOLD
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+The corrected aggregate has no failed evidence-validity checks. The physical
+gate failures remain decisive: 944 cells exceed the frozen 0.65 A all-joint
+current-p95 cap, 239 terminate before 600 ticks, 251 fail the candidate gate,
+107 moving cells have command-inconsistent direction, and smaller sets fail
+tracking, saturation, envelope, rate, zero-command or bilateral-transition
+requirements. Each persistent checkpoint fails the frozen all-512 rule.
+Negative X still reverses/falls and positive X still runs away/falls. No
+closest configuration, sibling checkpoint, aggregate score or training reward
+is promoted.
+
+This exact replacement branch is closed. Runtime must not implement or adopt
+the recurrent ABI, replace either pending sentinel, execute the policy on X5,
+or advance automatic configuration or Gate 5. Any new policy formulation or
+training route requires a separate policy preregistration and a later complete
+asset/clearance/envelope handoff. No robot, RDK-X5, serial, GPIO/I2C, torque,
+motion, X5 preflight, Gate 5, deployment, hosted compute, GPU or iGPU action is
+authorized by this decision.
+
+## Runtime request after winner-v3 hold
+
+Status: `REQUEST_READ_ONLY_FAILURE_ATTRIBUTION_THEN_NEW_PREREGISTRATION`
+
+Policy agent: accept commit
+`1799e06a62a6e18f8fc4a2aa019a47d6c46812ac` as the final negative
+winner-v3 decision. Do not promote either checkpoint, reuse a closest cell, or
+retroactively relax a gate. The runtime remains complete through Gate 4 and
+fail-closed before policy execution; no runtime or robot action can resolve
+this policy failure.
+
+The next authorized policy-side task is a read-only causal audit of the
+committed 1,024-cell evidence. Do this before selecting an architecture,
+starting another training run, or requesting compute. At minimum, report:
+
+1. failure counts and first-failure timing split by checkpoint, condition,
+   varied configuration axis, command, actuator fit, and policy transform;
+2. whether current-p95 exceedance precedes loss of direction, saturation,
+   tracking failure, or early termination in each failure family, rather than
+   treating all 944 current failures as one cause;
+3. the exact calculation, units, aggregation population, and evidence
+   provenance of the frozen `0.65 A` current-p95 limit, without changing the
+   completed gate or reclassifying its result;
+4. why negative-X cases reverse or fall and positive-X cases run away or fall,
+   including a command/sign/normalization and reset-propagation audit;
+5. a comparison against the last nominal G1/T2 + x=0 repair traces that
+   identifies which behavior or safety properties regressed under the broad
+   configuration curriculum; and
+6. which configuration variables are not identifiable from the policy's
+   deployed observations or a supported automatic, no-manual-measurement
+   startup procedure.
+
+Commit the audit as a standalone artifact with hashes. A new formulation may
+advance only if that audit selects a falsifiable mechanism. Before training,
+commit a separate prospective preregistration that freezes the hypothesis,
+policy/ONNX interface, supported configuration domain, curriculum, checkpoints,
+seeds, compute boundary, complete behavior matrix, pass thresholds, persistence
+rule, and stop rule. Preserve the existing supported-configuration and physical
+safety limits unless an evidence-backed prospective contract correction is
+committed before training; never revise the completed winner-v3 result.
+
+Product requirements remain unchanged:
+
+- no scales, calipers, static per-build COM values, or manual per-unit physical
+  measurement;
+- normal assembly variation, optional components, and later disassembly or
+  reassembly must be handled by demonstrated robustness or an automatic
+  supported calibration path;
+- no deployment-interface change may be assumed. Any proposed observation,
+  action, state, recurrent, or phase ABI must be frozen field-by-field and
+  reviewed by runtime before implementation;
+- no robot, RDK-X5, Gate 5, motion, or policy deployment before a complete
+  offline pass and the required two-repository handoff.
+
+The eventual successful handoff must provide repository commit/path/SHA
+identities for the causal audit, preregistration, selected deployable ONNX,
+policy clearance artifact, and `supported_configuration_envelope.v2`. It must
+also prove the selected graph passes every frozen cell at both persistent
+checkpoints and requires no manual per-build measurement. Until then the
+runtime sentinels remain:
+
+```text
+REPLACEMENT_SELECTED_ONNX: NOT_AVAILABLE
+POLICY_ROBOT_CLEARANCE_ARTIFACT: NOT_AVAILABLE
+SUPPORTED_CONFIGURATION_ENVELOPE_V2: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Runtime review of winner-v4 automatic-response interface
+
+Status: `PASS_RESPONSE73_FIELD_MAP_HOLD_POLICY_CONDITIONING_READINESS`
+
+Decision: `HOLD_TRAINING_PENDING_SIGNED_X_AND_SUPPORT_MODE_CONTRACT`
+
+Runtime reviewed policy commit
+`6a5d43cd6aacd8cc9a989182444e8a7416c35299`, draft PR
+`https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76`, and exact
+preregistration SHA-256
+`562ea92c4ba9eb026263740a07fe349ed79e051f0a162e8dd476812f089b6adc`.
+
+The proposed field map is implementable without altering the canonical
+observation or action contracts. Runtime can preallocate a separate immutable
+`response_context[1,73]` float32 input in this exact order:
+
+1. for each frozen logical joint, five profile-v4 values in order:
+   `delay_ticks`, `gain_ratio`, `time_constant_s`, `tracking_p95_rad`,
+   `current_p95_a` (`14 * 5 = 70`); then
+2. `pitch_rate_p95_rad_s`, `roll_rate_p95_rad_s`, and
+   `acceleration_norm_p95_m_s2` (`3`).
+
+Runtime applies no scaling; any normalizer belongs inside ONNX. Missing,
+invalid, stale, unreproducible, wrong-order, or out-of-envelope profile
+evidence prevents policy arming. No default or stale response value is
+permitted. The committed review-only flattener is not connected to the policy
+loader or control loop.
+
+Two pretraining holds remain:
+
+1. Profile v4 stores absolute p95 body magnitudes aggregated over the entire
+   excitation. It contains no explicit sign or per-joint-stage body response.
+   The preregistered CPU signed-X endpoint screen must prove that the complete
+   73-vector does not collapse the two failure signs.
+2. Profile v4 records only `suspended_or_benched=true`. It does not distinguish
+   torso-supported, free-hanging, or feet-supported calibration. Policy must
+   freeze exactly one automatic calibration support mode and reproduce that
+   boundary in simulation, rejecting every other mode, or prove the 73 values
+   invariant across all accepted modes.
+
+If signed X collapses, close response73 before PPO. A sign-preserving profile
+extension requires a new field-by-field policy proposal and runtime review.
+
+```text
+POLICY_REPO_COMMIT: 6a5d43cd6aacd8cc9a989182444e8a7416c35299
+POLICY_PR: 76
+POLICY_PREREGISTRATION_SHA256: 562ea92c4ba9eb026263740a07fe349ed79e051f0a162e8dd476812f089b6adc
+RUNTIME_REVIEW_JSON: artifacts/gates/phase_0_audit/winner_v4_response_review/result.json
+RUNTIME_REVIEW_JSON_SHA256: e860ac7c93565ef6bba9bc08435565faa75cca0768dc7392f6415b66629f55f8
+RUNTIME_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No runtime policy implementation, X5 or robot access, serial/GPIO/I2C,
+torque, motion, training, hosted compute, Gate 5, deployment, or robot
+clearance is authorized by this review.
+
+## Policy result: response73 support mode falsified
+
+Policy commit `3fc3ada044c87f2796b24c20fd734cfc11b59897` completed the
+single preregistered zero-PPO CPU falsification. Formal result SHA-256 is
+`b7eb0a5d8ccdfa4034fec85fdd98cd21e6888f7d4bd5b106c6e2052a07966730`.
+
+The exact runtime/policy field map is not the failure: all eight contexts are
+finite 73-value float32 arrays, repeats are bit-exact, and both P30 and P31/34
+distinguish torso X = -0.05 m from +0.05 m in 60/73 fields. The frozen support
+mode fails instead. At the negative endpoint the model finishes the 250-tick
+setup at base Z `-0.156836729809` m and roll `-3.139646185483` rad, only
+`0.001946468107` rad from pi. Its later two-foot response evidence is therefore
+an inverted invalid calibration state. The explanatory diagnostic JSON
+SHA-256 is
+`acf5af92261fd4f15d69dcc212698d5726a2fb12aa8e17f7f3e1892139882e40`.
+
+Runtime action is explicit: do not connect `response_context[1,73]` to the
+policy loader or control loop, and do not implement the rejected free-body
+support mode. Keep the review-only flattener isolated. Any replacement
+sign-preserving response mechanism requires a new field-by-field policy
+proposal and runtime review before implementation.
+
+```text
+POLICY_REPO_COMMIT: 3fc3ada044c87f2796b24c20fd734cfc11b59897
+POLICY_PR: 76
+FORMAL_RESPONSE73_RESULT_SHA256: b7eb0a5d8ccdfa4034fec85fdd98cd21e6888f7d4bd5b106c6e2052a07966730
+SUPPORT_FAILURE_DIAGNOSTIC_SHA256: acf5af92261fd4f15d69dcc212698d5726a2fb12aa8e17f7f3e1892139882e40
+RESPONSE73_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No Colab session, GPU/iGPU, runtime implementation, X5 or robot access,
+serial/GPIO/I2C, torque, motion, Gate 5, deployment, or clearance is authorized
+by this result.
+
+## Policy result: corrected reset and winner-v5 automatic recovery falsification
+
+Status: `HOLD_ONE_SHOT_RECOVERY — REQUEST_WINNER_V6_SCHEMA_REVIEW`
+
+Policy commit `53fb7e28cad693e7ac9844559690bc9bbd35093c` on draft PR
+https://github.com/RobVanProd/open-duck-mini-rdkx5/pull/76 records the
+prospective follow-up to response73.
+
+The response73 completed result remains failed and is not retried or
+reclassified. A CPU causal audit proved that its simulator harness called
+`mj_setConst` after loading the episode home pose. That ordering makes even the
+nominal model invert. Correct ordering restores nominal upright support, but
+the corrected -0.05 m torso-X endpoint still falls, so response73 remains
+closed. Causal-audit result SHA-256:
+`619ed2f3d4927e53a8d9f3e51e6ee0aa781cafe7eb13eebbd0672bb8695dc682`.
+
+Policy then froze a new one-shot IMU threshold plus fixed-recovery rule before
+running an independent 960-cell population: 96 unseen configurations, both
+measured actuator fits, native gyro quantization, and five bounded gyro-bias
+cases. Preregistration SHA-256:
+`0e9e1d78444ce2f9d5e3d8c14d4f5805369e39ac645ad5b097b0cf7c4d3a2276`.
+The no-retry gate failed 176/960 cells. Raw result SHA-256:
+`f36855923f91f683ebe691b0726e1231c04c5036ab7dff27836534ade7b0d17a`;
+attributed repository result SHA-256:
+`641b164d451cca6d83f94dc6f4b1f9961b5c774c28a3e738d04c480d5e798653`.
+
+All 176 failed cells were triggered recoveries, so the detector did not miss
+the failed population. The fixed target itself is non-universal: 58 cells
+collapsed and 118 remained upright but lost uninterrupted two-foot support.
+Under nominal quantized input, 12/96 configurations split between the two
+measured actuator fits. Opposing P30 pass/fail outcomes occur one native gyro
+count apart. Threshold and fixed-target retuning are therefore closed.
+
+The selected new question is a dedicated dynamic support-calibration policy:
+it changes its bounded action every tick for 250 ticks, encodes only deployable
+sensor/action response into a 64-D recurrent state, and hands the final state
+to a response-conditioned locomotion graph. It uses no true mass, COM,
+inertia, dimensions, component identity, scales, calipers, or manual per-build
+measurement. The exact request is:
+
+```text
+POLICY_REPO_COMMIT: 53fb7e28cad693e7ac9844559690bc9bbd35093c
+POLICY_PR: 76
+POLICY_INTERFACE_ARTIFACT: outputs/analysis/winner_v6_dynamic_calibration_interface_preregistration.json
+POLICY_INTERFACE_SHA256: a66ff7138bdc474c5bd6d0a8899eba041d00305a3d3bd38fc13b0c00e4c3007e
+REQUEST: READ_ONLY_DEFAULT_OFF_RUNTIME_V2_SCHEMA_REVIEW
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+Runtime review should decide only whether the default-off versioned-v2 path
+can preserve the exact calibrator and locomotion ABI, winner-v2 115-D
+observation semantics, recurrent state, final-action/applied-target handoff,
+phase reset, immutable 64-D context, `start_paused`, and fail-closed behavior.
+Do not implement either graph or authorize training from this request. The
+frozen runtime-v1 101x14 path must remain unchanged.
+
+## Runtime review of winner-v6 dynamic calibration interface
+
+Status: `PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT`
+
+Decision: `AUTHORIZE_POLICY_ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`53fb7e28cad693e7ac9844559690bc9bbd35093c` and exact interface artifact
+SHA-256
+`a66ff7138bdc474c5bd6d0a8899eba041d00305a3d3bd38fc13b0c00e4c3007e`.
+The reduced runtime review is committed at
+`artifacts/gates/phase_0_audit/winner_v6_dynamic_calibration_review/result.json`,
+SHA-256
+`f0b95db839cff0c0329ffb1d9458c06e1ec6e6432b2b3ef84ef5f451550547c8`.
+
+The proposed calibrator `115+14+64 -> 14+14+64` ABI and locomotion
+`115+14+64+64 -> 14+14+64` ABI are implementable as a default-off,
+versioned runtime-v2 path. The frozen runtime-v1 101x14 path is unchanged and
+the shared 0:101 slice is not treated as compatible. Runtime can pass the
+final successful calibrator `h_out[64]` without scaling into immutable
+locomotion `calibration_context[64]`, carry the final confirmed previous
+action and applied-target observer state across the handoff, reset locomotion
+hidden state and phase exactly once, and remain paused while holding the last
+safe calibration target.
+
+The learned context is session-local and must never be persisted or loaded
+from a prior boot. Every runtime process start requires a new successful
+calibration before v2 locomotion can arm; this covers later disassembly or
+configuration changes without manual mass, COM, dimension, or component
+entry. Any stale sample, failed transaction, lost contact, watchdog, timing,
+support-mode, nonfinite, shape, bound, or handoff failure prevents arming and
+must torque off on the future implemented path.
+
+This review authorizes only the policy-side zero-PPO CPU software contract.
+It does not authorize calibrator training, locomotion training, Colab, hosted
+compute, GPU/iGPU use, runtime implementation, X5 or robot access, torque,
+motion, Gate 5, deployment, or clearance.
+
+```text
+RUNTIME_REVIEW_STATUS: PASS_DYNAMIC_CALIBRATION_SCHEMA_HOLD_CPU_CONTRACT
+RUNTIME_REVIEW_SHA256: f0b95db839cff0c0329ffb1d9458c06e1ec6e6432b2b3ef84ef5f451550547c8
+POLICY_NEXT_AUTHORIZED_STEP: ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Runtime review of winner-v6 bound semantics
+
+Status: `PASS_BOUND_SEMANTICS_SPLIT_HOLD_V6B_CONTRACT`
+
+Decision: `AUTHORIZE_POLICY_V6B_ZERO_PPO_CPU_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`885147d62621d1ab991801a25716afa821d7f081`, the held formal result
+SHA-256
+`5a99f94a4a4d0f3ffcf23e3d27a5d4c833b318b5cc8f677d6b851e3f619fe5c9`,
+and the read-only hold attribution SHA-256
+`d318f2c0ef1931f30574f71e8f7f1bffd971bf16815f152c1213bc9dc4e2a3b3`.
+The completed formal result remains held and may not be retried or
+reclassified.
+
+Runtime accepts the requested three-way semantic split:
+
+1. Default-off expanded graphs must delegate the protected action and
+   previous-action state byte-for-byte for arbitrary finite ABI tensors. No
+   second host or adapter limiter may change that disabled path.
+2. When the new adapter is deliberately enabled, the final combined output
+   must enforce the graph-owned protected winner-v2 absolute and per-joint
+   delta vector for arbitrary finite stress tensors.
+3. The protected graph's complete action contract includes the downstream
+   actual-centered guard. It is evaluated on chained observations whose joint
+   state and previous action come from the same sequence, not independently
+   randomized impossible pairs subjected to an upstream-only delta assertion.
+
+Policy may freeze and run one separately named `v6b` zero-PPO CPU contract.
+It must retain the same two protected checkpoints, weights, seeds, graph ABIs,
+`1e-7` tolerance, 250-tick chain, and invalid-handoff cases. The only allowed
+change is separating the disabled, enabled, and physically chained bound
+populations as reviewed. A v6b pass may authorize only a later, separately
+reviewed calibrator-training preregistration; it does not authorize an
+optimizer step by itself.
+
+The review artifact is
+`artifacts/gates/phase_0_audit/winner_v6_bound_semantics_review/result.json`,
+SHA-256
+`5505308efc146146c3609fc7594eb4dfa4d27ad67d9336673cb38fc6692b895f`.
+
+```text
+RUNTIME_BOUND_REVIEW_STATUS: PASS_BOUND_SEMANTICS_SPLIT_HOLD_V6B_CONTRACT
+RUNTIME_BOUND_REVIEW_SHA256: 5505308efc146146c3609fc7594eb4dfa4d27ad67d9336673cb38fc6692b895f
+POLICY_NEXT_AUTHORIZED_STEP: V6B_ZERO_PPO_CPU_SOFTWARE_CONTRACT_ONLY
+FAILED_V6_CONTRACT_RETRY: false
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_IMPLEMENTATION: false
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Runtime rereview of LF-corrected Winner-v11 calibration schema
+
+Status: `PASS_WINNER_V11_LF_BINDING_HOLD_ZERO_PPO_ONLY`
+
+Decision: `AUTHORIZE_POLICY_WINNER_V11_ZERO_PPO_CPU_MECHANICS_CONTRACT_ONLY`
+
+Runtime reviewed policy commit
+`07893eecb7858f15a61d8763be526ca4800ebafa`. The corrected preregistration's
+authoritative committed LF SHA-256 is
+`2500c731a3413b08568e6e88b57300d2c8c86b61f9fe7418f3efa21ab639c8a2`,
+and all nine embedded source receipts reproduce the exact Git blobs under the
+declared LF-normalized hash rule. The correction is metadata-only, cites the
+prior runtime HOLD commit and artifact exactly, and records that no zero-PPO
+run started before this rereview. The prior HOLD is not reclassified.
+
+The corrected request changes no graph, ABI, gate, or authority. It now
+explicitly inherits the full reviewed Winner-v6 sequence: 50 Hz, zero initial
+action and hidden state, zero seven-field calibration command, fixed phase
+`[1,0]`, ordered bounded 64-D context, final confirmed action/P30 observer
+handoff, paused safe-target hold, and fail-closed abort behavior.
+
+The x=0 boundary is unchanged. Default-off remains byte-exact Winner-v10,
+including the four identical condition-7 exact-zero traces that terminate
+after 47 samples. Runtime does not impose a host x=0 deadband. Any future
+enabled graph may emit nonzero x=0 corrective action, but that output remains
+graph-authoritative and requires a separate behavior gate. Normalized action
+guards are graph-owned; inward torque is plant/XML semantics and adds no host
+limiter.
+
+Policy may now freeze and run one separately named zero-PPO CPU mechanics
+contract only: 250 calibration ticks, both Winner-v10 hashes, exact default-off
+action/state delegation, JAX/ONNX calibration and handoff chains, graph-owned
+enabled guards, physically chained protected semantics, invalid-handoff
+rejection, zero optimizer steps, and zero behavior cells.
+
+The hash-bound rereview artifact is
+`artifacts/gates/phase_0_audit/winner_v11_dynamic_calibration_rereview/result.json`,
+SHA-256
+`6c4f05830d2f1b661bd27297a40e05da5256c701427d929cf1a480d731bfcf57`.
+
+```text
+RUNTIME_WINNER_V11_REREVIEW_STATUS: PASS_WINNER_V11_LF_BINDING_HOLD_ZERO_PPO_ONLY
+RUNTIME_WINNER_V11_REREVIEW_SHA256: 6c4f05830d2f1b661bd27297a40e05da5256c701427d929cf1a480d731bfcf57
+POLICY_NEXT_AUTHORIZED_STEP: FREEZE_AND_RUN_ONE_ZERO_PPO_CPU_MECHANICS_CONTRACT_ONLY
+OPTIMIZER_STEPS: 0
+FORMAL_BEHAVIOR_CELLS: 0
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: UNCHANGED_DEFAULT_OFF_REVIEW_ONLY
+TRAINING: false
+HOSTED_COMPUTE: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+AUTOMATIC_CONFIGURATION: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+## Winner-v12 full-calibrator training and runtime-v2 hold
+
+Status: `POLICY_TRAINING_IN_PROGRESS — RUNTIME_V2_OFFLINE_GREEN — FINAL_ABI_NOT_SELECTED`
+
+Policy PR 76 has advanced beyond the Winner-v11 mechanics review to one
+corrected, frozen full-calibrator run. GitHub Actions run `29808732634`, attempt
+`1`, is bound to training launch commit
+`30ba44b2461d0f11da77ebfe42ac30446682c22d`. As of 2026-07-21 07:39 UTC,
+Actions reports the single training step `in_progress`; every preceding
+environment, package, Playground, evidence-byte, XML, and fit reconstruction
+step passed. No completed training artifact or result exists yet.
+
+The policy branch has prospectively frozen the post-training evidence path:
+
+- independent safe raw-ZIP verification of all 415 expected files, all 201
+  immutable snapshots and receipts, the complete result/manifest/claim chain,
+  both persistent NPZ checkpoints, and both stateful ONNX graphs;
+- exact GitHub run/attempt/head/artifact-ID/name/digest attribution;
+- a zero-formal-cell pinned Linux/JAX integration contract;
+- the unchanged formal support gate: 124 cells at half plus 124 at final, with
+  64 deterministic heldout repeats and no closest-result selection; and
+- dormant workflows whose path filters cannot run until each preceding exact
+  evidence JSON is committed.
+
+The current calibrator ABI under test is:
+
+```text
+obs float32[1,115]
+previous_action float32[1,14]
+h_in float32[1,64]
+  -> calibration_actions float32[1,14]
+  -> previous_action_out float32[1,14]
+  -> h_out float32[1,64]
+```
+
+This calibrator is not a deployable walking policy. A final
+response-conditioned locomotion graph, one selected deployment checkpoint,
+its exact ONNX SHA-256, and policy `robot_clearance: true` do not exist yet.
+Runtime must therefore not replace the existing winner-v2 selected hash or
+connect the calibrator ABI to the control loop.
+
+Runtime-side read-only revalidation at commit
+`b91bf86` passed 66 focused winner-v2 tests, and
+`python tools/hash_artifacts.py --check` reproduced the complete tracked
+artifact manifest. The frozen 101-D v1 path remains unchanged. The older
+default-disabled 115-D host remains an offline compatibility scaffold only;
+its two-input/two-output selected candidate is not evidence for the pending
+Winner-v12 calibrator or the future locomotion ABI.
+
+```text
+POLICY_PR: 76
+TRAINING_RUN: 29808732634 attempt 1
+TRAINING_LAUNCH_HEAD: 30ba44b2461d0f11da77ebfe42ac30446682c22d
+TRAINING_STATUS: IN_PROGRESS
+TRAINING_ARTIFACT: NOT_AVAILABLE
+CALIBRATOR_SUPPORT_GATE: PREREGISTERED_NOT_RUN
+SELECTED_DEPLOYMENT_ONNX: NOT_AVAILABLE
+FINAL_LOCOMOTION_ABI: NOT_AVAILABLE
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_OFFLINE_TESTS: 66_PASS
+RUNTIME_V2_POLICY_INTEGRATION: false
+ROBOT_CLEARANCE: false
+X5_CPU_PREFLIGHT: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No robot, X5, serial, GPIO/I2C, torque, motion, Gate 5, onboard GPU, or policy
+deployment action is authorized by this status update.
+
+## Offline Winner-v12 two-stage host scaffold
+
+Status: `PASS_OFFLINE_TWO_STAGE_HOST_SCAFFOLD — DEFAULT_DISABLED`
+
+Runtime now contains an isolated, default-disabled host for the reviewed
+automatic-calibration handoff. It does not replace or import into the frozen
+101-D runtime-v1 path, and it is not connected to the control loop or any
+hardware surface.
+
+The host accepts only caller-supplied exact graph specifications and non-empty
+lowercase SHA-256 allowlists. The calibrator ABI is fixed to
+`obs[1,115] + previous_action[1,14] + h_in[1,64]` and
+`calibration_actions[1,14] + previous_action_out[1,14] + h_out[1,64]`.
+The future locomotion ABI remains caller-frozen because no deployment graph is
+selected yet; its semantic roles add immutable `calibration_context[1,64]`.
+
+Implemented invariants:
+
+- CPUExecutionProvider only, sequential single-threaded ONNX Runtime;
+- preallocated inputs, outputs, recurrent state, context, and I/O bindings;
+- inference stages state without committing it;
+- only the literal boolean `True` commits a transaction;
+- exactly 250 confirmed calibration ticks precede a separately confirmed
+  handoff;
+- the final confirmed calibrator action is carried into locomotion, locomotion
+  hidden state resets once, and the finite `[-1,1]` context is immutable and
+  process-local;
+- no context persistence/load API exists; and
+- wrong hashes, ABI/provider mismatch, nonfinite or out-of-range values,
+  divergent action state, premature locomotion, and failed or ambiguous commits
+  fail closed.
+
+Evidence at implementation time: the new focused suite passed 15 tests; the
+complete runtime suite passed all 368 collected tests; Ruff and
+`git diff --check` passed. No ONNX binary, selected hash, CLI/control-loop
+integration, X5 access, torque, motion, or Gate 5 authority is included.
+
+## Winner-v21 predictor-preserving policy handoff
+
+Status: `WINNER_V21_TRAINING_IN_PROGRESS — RUNTIME_V2_OFFLINE_GREEN`
+
+The prior Winner-v20 calibrator completed its frozen 100-update run, but its
+unchanged formal support gate held. Half passed `108/124` main cells and final
+passed `104/124`; every physical failure was roll/pitch-only. The frozen
+Stage-1 auxiliary response predictor had also become incompatible with the
+jointly updated recurrent policy and lost catastrophically to the constant
+baseline. That result remains closed and is not a deployment candidate.
+
+Winner-v21 preserves the same Stage-1 source, rollout, PPO objective,
+population, action boundary, and ONNX ABI while updating the three existing
+auxiliary-predictor leaves alongside the nine Winner-v20 leaves. The optimizer
+consumes an explicit per-leaf sum of separately differentiated PPO and
+predictor gradients at the single frozen scale `8.393629541414427e-11`. There
+was no scale search and no flat-transport or attention mechanism was added.
+
+The exact two-update Linux/JAX proof passed at GitHub run `29862894656`, attempt
+`1`, launch commit `5ba4eeb5c49df628cfd05bf44b988b41ac11238b`. Its artifact
+ZIP SHA-256 is
+`9e2ac8d1fdfe669412786800a718b34b72ab12f45de9c4fe1d2aa08f199ad2eb`.
+All twelve trainable leaves had nonzero gradients and deltas on both updates;
+the digest-protected twelve-leaf optimizer snapshot and deployable calibrator
+ONNX both passed exact readback and ABI checks.
+
+One separately preregistered 100-update Winner-v21 CPU training arm is running
+as GitHub run `29863785760`, attempt `1`, bound to launch commit
+`334be0b78d7e97c6fdff6dec44658ee38aecec41`. The dormant next gate reuses the
+unchanged reviewed population: 124 main cells and 32 heldout repeats at both
+half and final checkpoints. It still requires every support cell,
+repeatability, context separation, and learned-predictor-versus-constant check
+to pass at both checkpoints; no closest checkpoint can advance.
+
+Runtime-v2 remains default-disabled and disconnected from the control loop.
+The full runtime suite currently passes all `368` tests, including the isolated
+two-stage host. No manual mass/COM/inertia measurements are required by this
+automatic-response path, consistent with the robot's rebuildable configuration
+requirement.
+
+```text
+POLICY_PR: 76
+WINNER_V20_SUPPORT_GATE: HOLD
+WINNER_V21_TWO_UPDATE_PROOF: PASS
+WINNER_V21_TRAINING_RUN: 29863785760 attempt 1
+WINNER_V21_TRAINING_LAUNCH_HEAD: 334be0b78d7e97c6fdff6dec44658ee38aecec41
+WINNER_V21_TRAINING_STATUS: IN_PROGRESS
+WINNER_V21_SUPPORT_GATE: PREPARED_NOT_PREREGISTERED_NOT_RUN
+SELECTED_DEPLOYMENT_ONNX: NOT_AVAILABLE
+ROBOT_CLEARANCE: false
+RUNTIME_V1_101X14: UNCHANGED
+RUNTIME_V2_115D: OFFLINE_GREEN_DEFAULT_DISABLED
+X5_CPU_PREFLIGHT: NOT_RUN
+GATE_5: NOT_RUN
+```
+
+No robot, X5, serial, GPIO/I2C, torque, motion, policy deployment, or Gate 5
+action is authorized by this handoff.

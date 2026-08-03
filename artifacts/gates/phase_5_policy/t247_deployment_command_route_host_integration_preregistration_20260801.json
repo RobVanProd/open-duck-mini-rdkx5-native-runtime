@@ -1,0 +1,105 @@
+{
+  "schema_version": "open_duck_x5.t247_command_route_host_integration_preregistration.v1",
+  "status": "PREREGISTERED_DEFAULT_DISABLED_T247_COMMAND_ROUTE_HOST_INTEGRATION",
+  "date": "2026-08-01",
+  "earned_by": {
+    "x5_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_reserved_screen_review_20260801.json",
+    "x5_status": "PASS_T247_X5_COMMAND_ROUTE_RESERVED_SCREEN_REVIEWED",
+    "x5_checks": "35/35",
+    "x080_stage_p99_ms": 1.6063589999999999,
+    "x080_stage_p99_9_ms": 1.937126099,
+    "x080_stage_max_ms": 1.944338,
+    "limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    }
+  },
+  "nomenclature": {
+    "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "new_policy_model": false,
+    "description": "This promotes the already-proven exact host mechanism into a default-disabled runtime package surface; it does not create T250 or T251 policy weights."
+  },
+  "implementation_scope": {
+    "selected_hot_path": "the exact optimized observation, P30, graph-binding, and target host used by the passing X5 command-route screen",
+    "new_modules": [
+      "src/open_duck_x5/t247_x5_optimized.py",
+      "src/open_duck_x5/t247_command_routes.py"
+    ],
+    "production_runtime_import_or_cli_change": false,
+    "default_enabled": false,
+    "policy_binary_committed": false,
+    "existing_101d_runtime_changed": false
+  },
+  "asset_contract": {
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "command_manifest_sha256": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd",
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "p30_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "source_context_models": 6,
+    "exact_command_models": 24,
+    "all_30_model_files_checked_before_enable": true,
+    "manifest_paths_confined_to_caller_selected_roots": true
+  },
+  "routing_contract": {
+    "context_route_selected_once_after_exact_250_tick_calibration": true,
+    "context_routes": [
+      "lower-cond0",
+      "lower-cond1",
+      "positive-cond0",
+      "positive-cond1",
+      "tail-cond0",
+      "tail-cond1"
+    ],
+    "exact_specialized_commands_x_m_s": [
+      0.0,
+      0.074,
+      0.077,
+      0.08
+    ],
+    "remaining_six_command_fields_must_be_exact_zero_for_specialization": true,
+    "every_other_valid_command_uses_selected_context_source_model": true,
+    "command_support_narrowed": false,
+    "route_switch_transfers_committed_previous_action_and_hidden_state_before_inference": true,
+    "post_projection_previous_action_chain_preserved": true,
+    "calibration_context_immutable": true
+  },
+  "cpu_contract": {
+    "all_asset_hashes_and_abis_exact": true,
+    "default_disabled_fault_closed": true,
+    "all_six_context_routes_selected_exactly": true,
+    "one_step_cases": 6144,
+    "recurrent_route_switch_ticks": 7920,
+    "fallback_ticks_at_least": 2160,
+    "full_real_asset_chains": 4,
+    "ticks_per_full_chain": 2298,
+    "all_outputs_and_committed_states_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "send_failure_discard_and_fault_boundaries_exact": true,
+    "no_hardware_import_or_access": true,
+    "existing_runtime_parser_and_import_surface_unchanged": true
+  },
+  "decision_rule": {
+    "all_checks_pass": "EARN_EXPLICIT_RUNTIME_OPT_IN_WIRING_PREREGISTRATION_AND_GATE5_READINESS_AUDIT",
+    "any_asset_abi_semantic_state_fallback_safety_or_existing_runtime_check_fails": "HOLD_HOST_INTEGRATION_AND_FIX_ONLY_THE_CONTRACT_DEFECT",
+    "timing_threshold_change": false,
+    "new_x5_timing_run": false,
+    "policy_training": false,
+    "gate5_execution": false
+  },
+  "authority": {
+    "offline_cpu_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_runtime_wiring": false,
+    "gate5": false
+  }
+}

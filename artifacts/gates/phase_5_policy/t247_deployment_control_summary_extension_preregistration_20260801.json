@@ -1,0 +1,81 @@
+{
+  "schema_version": "open_duck_x5.t247_control_summary_extension_preregistration.v1",
+  "status": "PREREGISTERED_DEFAULT_COMPATIBLE_T247_CONTROL_SUMMARY_EXTENSION",
+  "date": "2026-08-01",
+  "earned_by": {
+    "runtime_wiring_result": "D:\\CodexArtifacts\\t247-runtime-opt-in-wiring\\replacement-result.json",
+    "runtime_wiring_file_sha256": "068048ed37036aaab49e4a3bbf7e49eb30d5ea085d6426bacc9e352497558f7f",
+    "runtime_wiring_canonical_sha256": "f6a38fb391b6b3fc204fe77ee58a849ff6c721df4fd24d3509784f3d1e0fd0d3",
+    "runtime_wiring_status": "PASS_T247_RUNTIME_OPT_IN_WIRING",
+    "runtime_wiring_checks": "18/18"
+  },
+  "observed_readiness_defects": [
+    {
+      "id": "legacy_contract_id_on_t247_start_event",
+      "current_behavior": "The nested policy provenance identifies t247-command-routed-115, but runtime_start.details.contract_id still reports the legacy 101x14 contract.",
+      "required_fix": "Use a distinct T247 115x14 runtime contract ID only on the explicit T247 path; leave v1 unchanged."
+    },
+    {
+      "id": "summarizer_rejects_115d_and_calibration_stage",
+      "current_behavior": "The independent summarizer requires obs [1,101] and compares the fixed command across every active tick, so it cannot validate T247's 115-D ABI or its required 250 zero-command calibration ticks.",
+      "required_fix": "Validate the exact T247 ABI/assets/stage metadata, compare the fixed command only over locomotion ticks, and require the ordered calibration-to-locomotion transition."
+    },
+    {
+      "id": "serial_t247_duration_not_exact",
+      "current_behavior": "Serial T247 currently accepts any active target greater than 250.",
+      "required_fix": "Require exactly 850 active ticks: 250 calibration plus the frozen 600-tick Gate-5 replay."
+    }
+  ],
+  "frozen_default_contract": {
+    "policy_selector": "v1-101",
+    "runtime_contract_id": "open-duck-mini.best-walk.101x14.v1",
+    "observation_dim": 101,
+    "action_dim": 14,
+    "summary_behavior_changed": false,
+    "existing_tests_must_remain_green": true
+  },
+  "t247_contract": {
+    "policy_selector": "t247-command-routed-115",
+    "runtime_contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+    "observation_dim": 115,
+    "action_dim": 14,
+    "calibration_ticks": 250,
+    "serial_locomotion_ticks": 600,
+    "serial_active_ticks": 850,
+    "calibration_observation_commands": "all seven command fields must be zero",
+    "locomotion_command": "fixed x must equal 0 or .08 and the other six command fields must be zero",
+    "x0_command_route": "x000",
+    "x008_command_route": "x080",
+    "context_route": "must be one of the six hash-verified routes selected from calibration context",
+    "write_owned_state": "only recorded successful active ticks may advance the ordered stage sequence",
+    "asset_hashes": "must match the frozen T247 policy, calibrator, command manifest, P30 fit, reference table, and context router identities"
+  },
+  "offline_contract": {
+    "unit_tests": [
+      "legacy 101-D summaries remain unchanged",
+      "T247 mock summary accepts 250 calibration plus locomotion",
+      "T247 summary rejects a missing/wrong stage, context route, command route, ABI, or asset hash",
+      "serial T247 startup rejects any active target other than 850 before bus construction"
+    ],
+    "real_asset_mock_summary": "summarize the existing green 258-tick runtime-wiring telemetry and require all structural gates green",
+    "hardware": false,
+    "motion": false
+  },
+  "decision_rule": {
+    "all_contract_tests_and_real_asset_mock_summary_pass": "EARN_FINAL_GATE5_READINESS_PACKET",
+    "any_check_fails": "HOLD_GATE5_READINESS_AND_FIX_ONLY_THE_DEFECT",
+    "hardware_execution": false,
+    "motion": false
+  },
+  "authority": {
+    "offline_cpu_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "gate5": false
+  }
+}

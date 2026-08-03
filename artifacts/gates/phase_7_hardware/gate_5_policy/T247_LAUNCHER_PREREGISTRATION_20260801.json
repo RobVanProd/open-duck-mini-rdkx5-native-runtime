@@ -1,0 +1,99 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_launcher_preregistration.v1",
+  "status": "PREREGISTERED_T247_GATE5_SINGLE_ARM_LAUNCHER",
+  "date": "2026-08-01",
+  "earned_by": {
+    "offline_policy": "T249B_PASS_20_OF_20_CONDITIONS_320_OF_320_CELLS",
+    "x5_command_route_screen": "PASS_T247_X5_COMMAND_ROUTE_RESERVED_SCREEN_REVIEWED_35_OF_35",
+    "runtime_opt_in_wiring": "PASS_T247_RUNTIME_OPT_IN_WIRING_18_OF_18",
+    "control_summary_extension": "PASS_DEFAULT_COMPATIBLE_T247_CONTROL_SUMMARY_EXTENSION"
+  },
+  "frozen_candidate": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "policy_contract": "t247-command-routed-115",
+    "runtime_contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+    "observation_dim": 115,
+    "action_dim": 14,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 600,
+    "active_ticks": 850,
+    "maximum_total_ticks": 3850,
+    "home_seconds": 5,
+    "watchdog_consecutive_failures": 3
+  },
+  "frozen_transport": {
+    "device": "/dev/ttyS1",
+    "baudrate": 1000000,
+    "timeout_ms": 4,
+    "wire_read_order": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13],
+    "controller": "xbox",
+    "rt_cpu": 7,
+    "rt_priority": 80,
+    "required_isolated_cpu_text": "7",
+    "initial_governor": "schedutil",
+    "run_governor": "performance",
+    "restore_governor": "schedutil"
+  },
+  "frozen_inputs": {
+    "config_sha256": "131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b",
+    "imu_calibration_sha256": "e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be",
+    "policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "command_manifest_sha256": "5621f7c6782a8346bf25f05ce7f0bc002acbe8e98872cf658f0d44773511b4cd",
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "p30_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "command_route_models": 24,
+    "context_route_models": 6
+  },
+  "launcher_contract": {
+    "one_command_arm_per_invocation": true,
+    "allowed_fixed_x_m_s": [0.0, 0.08],
+    "x0_must_run_and_be_reviewed_first": true,
+    "x008_requires_separate_explicit_authorization": true,
+    "x008_requires_a_hash_verified_pass_review_for_x0": true,
+    "automatic_x0_to_x008_advance": false,
+    "output_directory_must_not_exist": true,
+    "all_input_and_asset_hashes_verified_before_governor_or_serial_access": true,
+    "serial_device_must_be_unowned": true,
+    "runtime_must_receive_all_three_hardware_authority_assertions": true,
+    "controller_is_pause_unpause_only": true,
+    "start_paused_required_by_runtime": true,
+    "active_runtime_is_signaled_on_launcher_interrupt": true,
+    "governor_restored_on_normal_failure_and_signal_exit": true,
+    "summary_is_always_independent_from_the_control_loop": true,
+    "serial_summary_status_remains_review_required": true,
+    "no_gate_is_promoted_automatically": true
+  },
+  "gate5_acceptance": {
+    "all_summary_gates_true": true,
+    "active_ticks": 850,
+    "locomotion_ticks": 600,
+    "zero_telemetry_drops": true,
+    "zero_stale_required_samples": true,
+    "zero_read_bursts": true,
+    "transaction_failure_rate_below": 0.001,
+    "tick_p99_ms_at_most": 21.0,
+    "tick_p99_9_ms_at_most": 22.0,
+    "bus_max_ms_below": 5.0,
+    "zero_device_alarms": true,
+    "torque_off_confirmed": true,
+    "operator_observation_required": true
+  },
+  "stop_rules": [
+    "Any preflight/hash/device/RT/controller failure blocks before the runtime can move.",
+    "Any runtime or summary failure halts the arm and restores the governor.",
+    "The x=0 arm cannot cause an x=0.08 arm to start.",
+    "The x=0.08 arm remains blocked until a separately authorized, hash-pinned x=0 review exists.",
+    "Unexpected motion, wrong joint/side/sign, stale data, bus burst, device alarm, controller loss, or hard overrun requires immediate stop."
+  ],
+  "authority": {
+    "preregistration_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "torque": false,
+    "motion": false,
+    "gate5_run": false,
+    "grounded_replay": false
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "schema_version": "open_duck_x5.t247_deployment_host_architecture_audit.v1",
+  "status": "SELECT_EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION_FOR_PREREGISTRATION",
+  "date": "2026-07-31",
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "clarification": "T250 and T251 labels identify deployment-validation evidence stages; they are not replacement policy models. This audit continues deployment work on unchanged T247."
+  },
+  "source_evidence": {
+    "last_whole_host_x5_result": {
+      "stage": "T247 deployment validation / T251A5 internal evidence label",
+      "raw_ticks_path": "D:\\CodexArtifacts\\t251a5-evidence-a0431e3\\raw-ticks.npz",
+      "raw_ticks_sha256": "13f293b99455f3fa2cb5f3b179b187dae7ad8a5d8ab3114730ad2f6d5baef4d1",
+      "locomotion_ticks": 2048,
+      "stage_latency_ms": {
+        "p50": 1.794629,
+        "p95": 1.8732126500000001,
+        "p99": 2.01108949,
+        "p99_9": 2.396690901000009,
+        "max": 2.701923
+      },
+      "frozen_reserve_limits_ms": {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0
+      },
+      "p99_gap_ms": 0.21108948999999977,
+      "p99_gap_fraction_of_current_p99": 0.10496275329846201,
+      "ticks_above_p99_limit": 936,
+      "fraction_above_p99_limit": 0.45703125,
+      "release_lateness_ms": {
+        "p99": 0.04440097,
+        "max": 0.050489
+      }
+    },
+    "periodicity": {
+      "stage_latency_autocorrelation": {
+        "lag_50": 0.1957326365764171,
+        "lag_250": 0.36519735050518654,
+        "lag_251": 0.3583041162272831,
+        "lag_501": 0.2949280135820456
+      },
+      "largest_modulo_50_residue": {
+        "residue": 20,
+        "mean_ms": 1.9623681951219514
+      },
+      "largest_stage_ticks_absolute": [
+        812,
+        1815,
+        1063,
+        1564,
+        1314,
+        311,
+        2120,
+        2066
+      ],
+      "interpretation": "The p99 miss is a sustained compute deficit with a phase/data-dependent periodic component, not a release-scheduling tail: 45.7% of locomotion ticks exceed 1.8 ms while release lateness is at most 0.050489 ms."
+    }
+  },
+  "read_only_graph_audit": {
+    "environment": {
+      "python": "3.10.11",
+      "onnx": "1.22.0",
+      "onnxruntime": "1.23.2",
+      "numpy": "2.2.6",
+      "provider": "CPUExecutionProvider",
+      "graph_optimization": "ORT_ENABLE_ALL"
+    },
+    "source_graph": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+      "nodes": 141,
+      "initializers": 96,
+      "operation_counts": {
+        "Add": 22,
+        "Gemm": 10,
+        "MatMul": 8,
+        "Where": 17
+      }
+    },
+    "ort_optimized_source_graph": {
+      "external_audit_path": "D:\\CodexArtifacts\\t247-host-architecture-audit\\policy.ort-optimized.onnx",
+      "bytes": 991209,
+      "sha256": "6a2d8452a9e171843dd367a652f6f19b8d47df3bfcbb690269d7acea6fbebbb8",
+      "nodes": 112,
+      "initializers": 73,
+      "operation_counts": {
+        "Add": 15,
+        "Gemm": 13,
+        "MatMul": 2,
+        "Where": 15
+      }
+    },
+    "context_routes": {
+      "positive_router_regimes": [
+        "lower: score < 0",
+        "positive: 0 <= score <= 0.17300140857696533",
+        "tail: score > 0.17300140857696533"
+      ],
+      "conditional_router_regimes": [
+        "cond0: score < 0",
+        "cond1: score >= 0"
+      ],
+      "complete_route_count": 6,
+      "context_immutability": "The 64-D calibration context is frozen after the exact 250-tick handoff, so the route may be classified once without changing policy state or per-tick semantics."
+    },
+    "observed_t250_handoff_context": {
+      "context_float32_bytes_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+      "minimum": -0.8058688044548035,
+      "maximum": 0.8790773749351501,
+      "positive_router_score": -0.24124455451965332,
+      "conditional_router_score": -0.03249061107635498,
+      "route": "lower-cond0",
+      "all_five_original_route_predicates_false": true
+    },
+    "exploratory_static_variants": [
+      {
+        "route": "lower-cond0",
+        "raw_nodes": 93,
+        "optimized_nodes": 85,
+        "optimized_gemm": 8,
+        "optimized_where": 8,
+        "prototype_bytes": 975042,
+        "prototype_sha256": "fd3a924359adeeb44dbbf96c5045d3aec0ab58507a83692bcea68bf768334dd1"
+      },
+      {
+        "route": "lower-cond1",
+        "raw_nodes": 93,
+        "optimized_nodes": 85,
+        "optimized_gemm": 7,
+        "optimized_where": 7,
+        "prototype_bytes": 971036,
+        "prototype_sha256": "8e92918595d3407291355d66f310c5a898d1772ada2b7675bee4a9dc40de0dbd"
+      },
+      {
+        "route": "positive-cond0",
+        "raw_nodes": 94,
+        "optimized_nodes": 85,
+        "optimized_gemm": 7,
+        "optimized_where": 7,
+        "prototype_bytes": 971078,
+        "prototype_sha256": "b628498b37ec50e2090c1cfd9e5f537b2f81374a4dca43cc23603dfd4888719e"
+      },
+      {
+        "route": "positive-cond1",
+        "raw_nodes": 103,
+        "optimized_nodes": 93,
+        "optimized_gemm": 8,
+        "optimized_where": 8,
+        "prototype_bytes": 972858,
+        "prototype_sha256": "ee54e887815f123ad040e20defe1d8b4360fcbf4d5b8bb53f136fd7efa0068b6"
+      },
+      {
+        "route": "tail-cond0",
+        "raw_nodes": 96,
+        "optimized_nodes": 87,
+        "optimized_gemm": 8,
+        "optimized_where": 8,
+        "prototype_bytes": 972108,
+        "prototype_sha256": "6754fd610063d5ad92259b681fe30832fde4a8cb4f96edf663724c3097b696fc"
+      },
+      {
+        "route": "tail-cond1",
+        "raw_nodes": 99,
+        "optimized_nodes": 90,
+        "optimized_gemm": 8,
+        "optimized_where": 8,
+        "prototype_bytes": 972290,
+        "prototype_sha256": "0a05126fb4588b5d7771c6a67e3e2452fc7b025bb34c56b231dd77029abcab21"
+      }
+    ],
+    "static_scope_limit": "The exploratory variants establish only that all six route-specific dependency closures are materially smaller. Their binaries are external, unreviewed prototypes and are not deployment assets. They carry zero semantic or timing selection weight until a preregistered deterministic derivation and CPU contract pass."
+  },
+  "mechanism_selection": {
+    "selected": "EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION",
+    "mechanically_distinct_reason": "The frozen graph evaluates every branch of each Where node on every tick. Selecting one of six complete route-specific dependency closures after the immutable calibration context is known removes unreachable expert and routing work; it is not another Python component micro-optimization.",
+    "automatic_configuration_preserved": true,
+    "policy_weights_changed": false,
+    "policy_numerics_changed": false,
+    "policy_abi_changed": false,
+    "training_needed": false,
+    "native_extension_needed": false,
+    "rejected_next_actions": {
+      "release_scheduler_tuning": "The measured release-lateness maximum is less than one quarter of the 0.21108949 ms p99 compute gap and cannot explain 936 over-limit ticks.",
+      "repeat_closed_component_optimization": "Graph host, target, observation, transaction residual, and observer-stage local work are exhausted by reviewed evidence.",
+      "policy_training": "No behavior defect or policy-weight change is selected; hosted training is unearned.",
+      "policy_native_extension": "The repository escalation rule permits a native servo transaction only after the 20 ms loop gate fails; it does not authorize replacing the policy host."
+    }
+  },
+  "next_falsifier": {
+    "name": "T247 exact context-route specialization CPU contract",
+    "required_before": [
+      "write and hash a preregistration",
+      "implement deterministic six-variant derivation outside the repository artifact tree",
+      "prove exact route selection and byte-exact outputs before any timing decision"
+    ],
+    "timing_not_yet_run": true,
+    "x5_not_yet_earned": true,
+    "production_integration_not_earned": true,
+    "gate5_not_earned": true
+  },
+  "authority": {
+    "read_only_local_audit": true,
+    "policy_binary_committed": false,
+    "x5_execution": false,
+    "robot_device_access": false,
+    "servo_reads_or_writes": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false
+  }
+}

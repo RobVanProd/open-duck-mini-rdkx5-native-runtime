@@ -1,0 +1,125 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_context_route_reserved_screen_preregistration.v1",
+  "status": "PREREGISTERED_ONE_T247_X5_NO_MOTION_CONTEXT_ROUTE_RESERVED_SCREEN",
+  "date": "2026-07-31",
+  "earned_by": {
+    "cpu_contract_result_file_sha256": "f3a185718ab166fa9ac349f63f6261f7589e2602674da335e9fd1a4f11f9482c",
+    "cpu_contract_result_sha256": "d6d8026e8dfdd59ac68942d70da87bc65e6bb5c8952712be4eb17ad9797b25a2",
+    "cpu_contract_review_file_sha256": "ae6d7d4b7ada216f808240e009c1daad2f869fe821abeec42482171732ddad7e",
+    "checks_passed": 14,
+    "checks_total": 14,
+    "all_six_route_p50_and_p99_ratios_at_most": 0.8421147763217338,
+    "selection": "one X5 falsification of the unchanged reference reserve"
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "clarification": "This screen measures an exact execution specialization of unchanged T247. It is not a T250/T251 policy."
+  },
+  "unchanged_assets": {
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "derived_assets": {
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "routes": {
+      "lower-cond0": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+      "lower-cond1": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+      "positive-cond0": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+      "positive-cond1": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+      "tail-cond0": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+      "tail-cond1": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c"
+    },
+    "all_variants_required_in_staging_package": true,
+    "only_selected_lower_cond0_executes_in_frozen_sample_screen": true,
+    "selection_must_be_made_by_context_router": true
+  },
+  "execution_package_contract": {
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t247-context-route-v1",
+    "runner": "tools/run_t247_x5_context_route_reserved_screen.py",
+    "sealed_package_artifact": "artifacts/gates/phase_5_policy/t247_deployment_x5_context_route_execution_package_20260731.json",
+    "sealed_after_runner_implementation_before_x5_execution": true,
+    "sealed_package_must_pin": [
+      "this preregistration file SHA-256",
+      "runner and every imported project source SHA-256",
+      "all unchanged and derived asset SHA-256 values",
+      "repository commit containing the runner",
+      "exact invocation and staging root"
+    ],
+    "tracked_repository_must_be_clean": true,
+    "output_and_raw_output_must_not_preexist": true,
+    "generated_onnx_files_remain_external": true
+  },
+  "platform_contract": {
+    "operating_system": "Linux",
+    "machine": "aarch64",
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [7],
+    "isolated_cpu_runtime_verified": true,
+    "governor_during_screen": "performance",
+    "governor_restored_after_screen": "schedutil",
+    "onnx_provider": "CPUExecutionProvider",
+    "onnx_execution_mode": "ORT_SEQUENTIAL",
+    "onnx_graph_optimization": "ORT_ENABLE_ALL",
+    "intra_and_inter_op_threads": 1,
+    "spinning": false,
+    "io_binding": true,
+    "gc_disabled_during_arms": true
+  },
+  "screen": {
+    "command_x_m_s": 0.074,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "period_ms": 20.0,
+    "expected_handoff_switches": 1,
+    "expected_route": "lower-cond0",
+    "expected_context_float32_bytes_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+    "expected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "semantic_arm": "paced original T247 versus selected specialized T247, all transaction state compared at staged and committed boundaries",
+    "timing_arm": "paced single specialized T247 host only",
+    "semantic_arm_selection_weight": 0,
+    "timing_population": "specialized locomotion stage ticks 250:2297 only",
+    "reference_reserve_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    }
+  },
+  "safety_and_scope": {
+    "robot_descriptors_forbidden": true,
+    "robot_modules_forbidden": true,
+    "serial_gpio_i2c_controller_imports_forbidden": true,
+    "external_send_implementation": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_binary_staged_to_production": false,
+    "production_runtime_changed": false
+  },
+  "decision_rule": {
+    "all_semantic_platform_safety_and_reserve_checks_pass": "EARN_T247_CONTEXT_ROUTE_PRODUCTION_INTEGRATION_PREREGISTRATION_ONLY",
+    "any_semantic_platform_or_safety_check_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION_WITHOUT_PRODUCTION_INTEGRATION",
+    "p99_p99_9_or_max_reserve_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION_WITHOUT_PRODUCTION_INTEGRATION",
+    "retry": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_executed": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "one_no_motion_x5_cpu_screen": true,
+    "robot_device_access": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

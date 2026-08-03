@@ -1,0 +1,46 @@
+{
+  "schema_version": "open_duck_x5.t247_controller_present_torque_off_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "07c0b7deada0043fb5e9298bdcbbbf66464e671b",
+  "source_tree": "e570eaa42eb482ed58d3eb3d3a97bb22f86d14f9",
+  "schema_tree": "7674ece93c836eb0f9ff2ae2c3bc6203b032a5c3",
+  "controller_only_pass": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_CONTROLLER_DIRECT_10000_PASS_20260802.json",
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller": "xbox",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "ticks": 10000,
+    "frequency_hz": 50.0,
+    "transaction_timeout_ms": 4.0,
+    "baudrate": 1000000,
+    "amplitude_rad": 0.0,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion": false,
+    "realtime_cpu": 7,
+    "realtime_scheduler": "SCHED_FIFO",
+    "realtime_priority": 80,
+    "cpu_governor": "performance"
+  },
+  "requirements": {
+    "ticks_complete": 10000,
+    "tick_p99_ms_at_most": 21.0,
+    "tick_p99_9_ms_at_most": 22.0,
+    "bus_total_max_ms_below": 5.0,
+    "read_bursts": 0,
+    "transaction_failure_rate_below": 0.001,
+    "late_accepted_response_markers": 0,
+    "controller_backend": "LinuxJoystickController",
+    "controller_identity_unchanged": true,
+    "controller_disconnect_or_stale_events": 0,
+    "torque_off_confirmed": true,
+    "governor_restored": true
+  },
+  "ordered_decision": {
+    "pass": "Freeze and review a replacement suspended x=0 launcher. This artifact does not authorize that motion run.",
+    "fail": "Hold Gate 5 and preserve the failure without threshold changes, retries, or motion."
+  }
+}

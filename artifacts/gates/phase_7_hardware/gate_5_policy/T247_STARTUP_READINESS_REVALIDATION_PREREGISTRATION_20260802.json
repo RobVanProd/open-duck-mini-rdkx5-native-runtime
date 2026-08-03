@@ -1,0 +1,74 @@
+{
+  "schema_version": "open_duck_x5.t247_startup_readiness_revalidation_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "2dee8a04bc1a443e3bb0e5edcf90977b10ff096b",
+  "source_tree": "95d7b93fe49b022982dbc22e6156a5aebe53f0d6",
+  "schema_tree": "c32a9095fb6353cf2c4c1962104b8ca1e57e6a7f",
+  "failed_population": {
+    "path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_CONTROLLER_PRESENT_TORQUE_OFF_FAIL_20260802.json",
+    "sha256": "986b03043b49d1d1cccedcab68d2180e9e45df72fba74d1ced8e362a85302837"
+  },
+  "controller_only_pass": {
+    "path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_CONTROLLER_DIRECT_10000_PASS_20260802.json",
+    "sha256": "d04e98ffb2eca648cc7ddaa67a00c671a6816b240345794ca72d9073bb717d7f"
+  },
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller": "xbox",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "startup_readiness_exchanges": 1,
+    "measured_ticks": 10000,
+    "frequency_hz": 50.0,
+    "transaction_timeout_ms": 4.0,
+    "baudrate": 1000000,
+    "amplitude_rad": 0.0,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion": false,
+    "realtime_cpu": 7,
+    "realtime_scheduler": "SCHED_FIFO",
+    "realtime_priority": 80,
+    "cpu_governor": "performance"
+  },
+  "startup_readiness_requirements": {
+    "attempts": 1,
+    "retries": 0,
+    "status": "PASS",
+    "all_14_fresh": true,
+    "write_status": "ok",
+    "extended_status": "ok",
+    "device_alarm_replies": 0,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "late_accepted_response_markers": 0,
+    "bus_total_ms_below": 5.0,
+    "tick_work_ms_at_most": 40.0,
+    "next_measured_tick_period_ms_at_most": 22.0
+  },
+  "measured_population_requirements": {
+    "ticks_complete": 10000,
+    "tick_p99_ms_at_most": 21.0,
+    "tick_p99_9_ms_at_most": 22.0,
+    "bus_total_max_ms_below": 5.0,
+    "read_bursts": 0,
+    "transaction_failure_rate_below": 0.001,
+    "late_accepted_response_markers": 0
+  },
+  "combined_requirements": {
+    "overall_bus_max_ms_below": 5.0,
+    "controller_backend": "LinuxJoystickController",
+    "controller_identity_unchanged": true,
+    "controller_disconnect_or_stale_events": 0,
+    "torque_off_confirmed": true,
+    "serial_released": true,
+    "governor_restored": true
+  },
+  "population_rule": "The readiness exchange is a separate AND-conjunct. It is not discarded or retried. The measured population remains exactly ticks 0 through 9999, and its maximum is unchanged. Overall bus maximum is max(readiness, measured population).",
+  "ordered_decision": {
+    "pass": "Review the complete evidence and only then freeze a replacement suspended x=0 Gate 5 launcher. This result cannot authorize motion.",
+    "fail": "Hold Gate 5. Preserve the first failure without retry, threshold changes, warmup exclusion, or motion."
+  }
+}

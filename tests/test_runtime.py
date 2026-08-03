@@ -13,7 +13,7 @@ from open_duck_x5 import runtime as runtime_module
 from open_duck_x5.bus.mock import MockSTS3215Bus
 from open_duck_x5.controller import ControllerReadout
 from open_duck_x5.runtime import Runtime, build_parser, main
-from open_duck_x5.safety import SafetyError, WatchdogTrip
+from open_duck_x5.safety import SafetyError, TorqueGuard, WatchdogTrip
 
 
 def _imu_calibration(tmp_path: Path) -> Path:
@@ -32,6 +32,41 @@ def _imu_calibration(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     return path
+
+
+def test_runtime_policy_contract_defaults_to_frozen_v1() -> None:
+    args = build_parser().parse_args(["--telemetry", "mock.jsonl"])
+    assert args.policy_contract == "v1-101"
+
+
+def test_t247_policy_contract_requires_every_external_asset(tmp_path: Path) -> None:
+    args = build_parser().parse_args(
+        [
+            "--telemetry",
+            str(tmp_path / "control.jsonl"),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--policy",
+            str(tmp_path / "policy.onnx"),
+        ]
+    )
+    with pytest.raises(ValueError, match="--calibrator"):
+        runtime_module.validate_runtime_args(args)
+
+
+def test_v1_policy_contract_rejects_silently_ignored_t247_assets(
+    tmp_path: Path,
+) -> None:
+    args = build_parser().parse_args(
+        [
+            "--telemetry",
+            str(tmp_path / "control.jsonl"),
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+        ]
+    )
+    with pytest.raises(ValueError, match="require --policy-contract"):
+        runtime_module.validate_runtime_args(args)
 
 
 def test_mock_runtime_starts_paused_and_exits_cleanly(tmp_path: Path) -> None:
@@ -412,11 +447,28 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
         events.append("bus_open")
         return FakeBus()
 
+    class FakeController:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            events.append("controller_read")
+            output.connected = True
+            output.timestamp_ns = runtime_module.clock_ns()
+            output.pause_toggle = False
+
+        @staticmethod
+        def close() -> None:
+            events.append("controller_close")
+
+    def create_controller(_kind: str):
+        events.append("controller_open")
+        return FakeController()
+
     def fail_contacts():
         events.append("contacts_open")
         raise RuntimeError("simulated GPIO initialization failure")
 
     monkeypatch.setattr(runtime_module, "prepare_realtime", lambda **_kwargs: object())
+    monkeypatch.setattr(runtime_module, "create_controller", create_controller)
     monkeypatch.setattr(runtime_module, "STS3215Bus", create_bus)
     monkeypatch.setattr(runtime_module, "X5FootContacts", fail_contacts)
     config = Path(__file__).parents[1] / "duck_config.example.json"
@@ -430,12 +482,26 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
             str(_imu_calibration(tmp_path)),
             "--policy",
             str(tmp_path / "candidate.onnx"),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+            "--context-route-root",
+            str(tmp_path / "context-routes"),
+            "--command-route-root",
+            str(tmp_path / "command-routes"),
+            "--command-route-manifest",
+            str(tmp_path / "command-routes" / "manifest.json"),
+            "--p30-fit",
+            str(tmp_path / "p30.json"),
+            "--reference-table",
+            str(tmp_path / "reference.npz"),
             "--telemetry",
             str(tmp_path / "never.jsonl"),
             "--max-ticks",
             "900",
             "--max-active-ticks",
-            "600",
+            "850",
             "--fixed-command-x",
             "0",
             "--controller",
@@ -450,8 +516,67 @@ def test_serial_startup_establishes_torque_off_before_sensor_initialization(
     with pytest.raises(RuntimeError, match="simulated GPIO"):
         Runtime(args)
 
-    assert events[:3] == ["bus_open", "disable_torque", "contacts_open"]
-    assert events[-2:] == ["disable_torque", "bus_close"]
+    assert events[:5] == [
+        "controller_open",
+        "controller_read",
+        "bus_open",
+        "disable_torque",
+        "contacts_open",
+    ]
+    assert events[-3:] == ["disable_torque", "controller_close", "bus_close"]
+
+
+def test_serial_t247_gate5_requires_exact_850_active_ticks_before_bus(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def fail_if_opened(*_args, **_kwargs):
+        pytest.fail("serial bus opened before exact T247 duration validation")
+
+    monkeypatch.setattr(runtime_module, "STS3215Bus", fail_if_opened)
+    args = build_parser().parse_args(
+        [
+            "--bus",
+            "serial",
+            "--config",
+            str(Path(__file__).parents[1] / "duck_config.example.json"),
+            "--imu-calibration",
+            str(_imu_calibration(tmp_path)),
+            "--policy-contract",
+            "t247-command-routed-115",
+            "--policy",
+            str(tmp_path / "policy.onnx"),
+            "--calibrator",
+            str(tmp_path / "calibrator.onnx"),
+            "--context-route-root",
+            str(tmp_path / "context-routes"),
+            "--command-route-root",
+            str(tmp_path / "command-routes"),
+            "--command-route-manifest",
+            str(tmp_path / "command-routes" / "manifest.json"),
+            "--p30-fit",
+            str(tmp_path / "p30.json"),
+            "--reference-table",
+            str(tmp_path / "reference.npz"),
+            "--telemetry",
+            str(tmp_path / "never.jsonl"),
+            "--fixed-command-x",
+            "0.08",
+            "--controller",
+            "xbox",
+            "--max-ticks",
+            "1200",
+            "--max-active-ticks",
+            "849",
+            "--require-realtime",
+            "--gate5-authorized",
+            "--hardware-authorized",
+            "--suspended-or-benched",
+        ]
+    )
+
+    with pytest.raises(ValueError, match="exactly 850 active ticks"):
+        Runtime(args)
 
 
 def test_serial_gate5_requires_calibration_before_opening_bus(
@@ -496,7 +621,8 @@ def test_serial_gate5_requires_calibration_before_opening_bus(
     assert not (tmp_path / "never.jsonl").exists()
 
 
-def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
+@pytest.mark.parametrize("paused", [False, True])
+def test_runtime_halts_when_physical_controller_sample_is_stale(paused: bool) -> None:
     class StaleController:
         @staticmethod
         def read_into(output: ControllerReadout) -> None:
@@ -511,13 +637,13 @@ def test_runtime_halts_when_physical_controller_sample_is_stale() -> None:
     runtime.controller_readout = ControllerReadout()
     runtime.commands = np.zeros(7, dtype=np.float64)
     runtime.args = Namespace(fixed_command_x=None, controller="xbox")
-    runtime.paused = False
+    runtime.paused = paused
     runtime.policy = object()
 
     with pytest.raises(SafetyError, match="controller state.*stale"):
         runtime._update_controller(250_000_002)
 
-    assert runtime.paused is False
+    assert runtime.paused is paused
 
 
 def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
@@ -527,7 +653,7 @@ def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
             output.commands[:] = (0.1, -0.2, 0.7, 0.3, -0.4, 0.5, -0.6)
             output.pause_toggle = False
             output.phase_frequency_factor = 1.3
-            output.timestamp_ns = 10_000
+            output.timestamp_ns = runtime_module.clock_ns()
             output.connected = True
 
     runtime = object.__new__(Runtime)
@@ -547,6 +673,135 @@ def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
 
     np.testing.assert_array_equal(runtime.commands, [0.08, 0, 0, 0, 0, 0, 0])
     assert runtime.controller_readout.phase_frequency_factor == 1.0
+
+
+def _startup_readiness_runtime(*, bus_total_failure: bool = False):
+    events: list[tuple[str, object]] = []
+
+    class Controller:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            output.connected = True
+            output.timestamp_ns = runtime_module.clock_ns()
+            output.pause_toggle = False
+
+    class Bus:
+        disable_calls = 0
+
+        @staticmethod
+        def enable_torque():
+            return runtime_module.ErrorCode.OK
+
+        def disable_torque(self):
+            self.disable_calls += 1
+            return runtime_module.ErrorCode.OK
+
+        @staticmethod
+        def read_state_into(snapshot) -> None:
+            snapshot.status.fill(int(runtime_module.ErrorCode.OK))
+            snapshot.stale.fill(False)
+            snapshot.device_status.fill(0)
+            snapshot.group_round_trip_ns = 4_600_000 if bus_total_failure else 3_000_000
+
+        @staticmethod
+        def write_positions(_targets):
+            return runtime_module.ErrorCode.OK
+
+        @staticmethod
+        def read_extended_into(snapshot, servo_id: int) -> None:
+            snapshot.extended_servo_id = servo_id
+            snapshot.extended_status = runtime_module.ErrorCode.OK
+            snapshot.extended_device_status = 0
+            snapshot.extended_round_trip_ns = 500_000
+
+    class Sensors:
+        @staticmethod
+        def read_into(output, _now_ns: int) -> None:
+            output.imu_stale = False
+            output.contacts_stale = False
+
+    class Writer:
+        @staticmethod
+        def publish_event(name: str, *, details) -> None:
+            events.append((name, details))
+
+    class Ticker:
+        start_ns = runtime_module.clock_ns()
+        next_release_ns = start_ns + 20_000_000
+
+        @staticmethod
+        def wait() -> tuple[int, int]:
+            return Ticker.start_ns, 0
+
+    runtime = object.__new__(Runtime)
+    runtime.args = Namespace(controller="xbox")
+    runtime.controller = Controller()
+    runtime.controller_readout = ControllerReadout()
+    runtime.snapshot = runtime_module.ServoSnapshot.create()
+    runtime.sensor_hub = Sensors()
+    runtime.sensors = runtime_module.SensorReadout()
+    runtime.bus = Bus()
+    runtime.hold_physical_target = np.zeros(14, dtype=np.float64)
+    runtime.paused = True
+    runtime.t247_host = Namespace(committed_ticks=0)
+    runtime.phase = Namespace(value=np.zeros(2, dtype=np.float64))
+    runtime.writer = Writer()
+    runtime.stop_requested = False
+    runtime.watchdog = runtime_module.Watchdog()
+    runtime._previous_tick_start_ns = 0
+    return runtime, Ticker(), events
+
+
+def test_runtime_startup_readiness_preserves_policy_state_and_pause() -> None:
+    runtime, ticker, events = _startup_readiness_runtime()
+
+    runtime._run_startup_readiness(ticker)
+
+    assert runtime.paused is True
+    assert runtime.t247_host.committed_ticks == 0
+    np.testing.assert_array_equal(runtime.phase.value, [0.0, 0.0])
+    assert len(events) == 1
+    name, details = events[0]
+    assert name == "startup_readiness"
+    assert details["status"] == "PASS"
+    assert details["policy_staged"] is False
+    assert details["policy_committed_ticks"] == 0
+    assert details["next_release_monotonic_ns"] == ticker.next_release_ns
+    assert details["bus_total_ms"] < 5.0
+    assert details["all_fresh"] is True
+    assert details["per_servo_device_status"] == [0] * 14
+    assert details["extended_device_status"] == 0
+    assert details["imu_stale"] is False
+    assert details["contacts_stale"] is False
+    event_schema = json.loads(
+        (Path(__file__).parents[1] / "schemas/runtime_event.schema.json").read_text()
+    )
+    event = {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": ticker.start_ns + 4_000_000,
+        "event": name,
+        "details": details,
+    }
+    # Exercise the production writer boundary as well as schema validation.
+    # A raw NumPy phase vector is schema-shaped but is not JSON serializable.
+    serialized = json.dumps(event)
+    Draft202012Validator(event_schema).validate(json.loads(serialized))
+    assert runtime._previous_tick_start_ns == ticker.start_ns
+
+
+def test_runtime_startup_readiness_failure_is_fail_closed_by_torque_guard() -> None:
+    runtime, ticker, events = _startup_readiness_runtime(bus_total_failure=True)
+
+    with (
+        pytest.raises(SafetyError, match="startup readiness failed.*bus-total-ms"),
+        TorqueGuard(runtime.bus) as guard,
+    ):
+        guard.enable()
+        runtime._run_startup_readiness(ticker)
+
+    assert runtime.bus.disable_calls == 1
+    assert runtime.t247_host.committed_ticks == 0
+    assert events[0][1]["status"] == "FAIL"
 
 
 def test_total_tick_cap_halts_when_active_policy_target_is_not_reached(
@@ -699,6 +954,72 @@ def test_stop_during_home_move_torques_off_with_signal_reason(
     halt = [record for record in records if record.get("event") == "runtime_halt"]
     assert len(halt) == 1
     assert halt[0]["reason"] == f"signal:{signal.SIGTERM}"
+
+
+def test_controller_disconnect_during_home_stops_before_position_write(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    config = Path(__file__).parents[1] / "duck_config.example.json"
+    args = build_parser().parse_args(
+        [
+            "--bus",
+            "mock",
+            "--config",
+            str(config),
+            "--telemetry",
+            str(tmp_path / "controller-disconnect-control.jsonl"),
+            "--home-seconds",
+            "0.02",
+            "--max-ticks",
+            "1",
+        ]
+    )
+    runtime = Runtime(args)
+    bus = runtime.bus
+    runtime.args.controller = "xbox"
+
+    class DisconnectedController:
+        @staticmethod
+        def read_into(output: ControllerReadout) -> None:
+            output.connected = False
+            output.timestamp_ns = runtime_module.clock_ns()
+            output.pause_toggle = False
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+    runtime.controller = DisconnectedController()
+    write_calls = 0
+    original_write_positions = bus.write_positions
+
+    def record_write(targets):
+        nonlocal write_calls
+        write_calls += 1
+        return original_write_positions(targets)
+
+    monkeypatch.setattr(bus, "write_positions", record_write)
+    monkeypatch.setattr(
+        runtime_module,
+        "AbsoluteTicker",
+        type(
+            "ImmediateTicker",
+            (),
+            {"wait": staticmethod(lambda: (runtime_module.clock_ns(), 0))},
+        ),
+    )
+    try:
+        with (
+            pytest.raises(SafetyError, match="controller state is disconnected"),
+            TorqueGuard(bus) as guard,
+        ):
+            runtime._move_home_slowly(guard)
+
+        assert write_calls == 0
+        assert bus.torque_enabled is False
+    finally:
+        runtime.close()
 
 
 def test_runtime_home_move_hard_overrun_torques_off(

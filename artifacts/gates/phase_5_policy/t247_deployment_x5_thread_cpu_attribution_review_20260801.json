@@ -1,0 +1,123 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_thread_cpu_attribution_review.v1",
+  "status": "COMPLETE_T247_X5_THREAD_CPU_ATTRIBUTION_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "board_result": {
+    "external_path": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\result.json",
+    "file_sha256": "c9ca65799e25072633ab51ca0e2f73cbd15ef98c6f612b072e6e911ae2f7d9b7",
+    "canonical_sha256": "a391446cef5edf3e9349ee74810180ba3f8d08999bf3ba1b1d5753605f5df0f1",
+    "reported_status": "COMPLETE_T247_X5_THREAD_CPU_ATTRIBUTION",
+    "checks_passed": 24,
+    "checks_total": 24,
+    "failed_checks": [],
+    "raw_ticks_external_path": "D:\\CodexArtifacts\\t247-x5-thread-cpu-attribution\\evidence-20260801\\raw-ticks.npz",
+    "raw_ticks_sha256": "a7f25d75605bcd4e1cdaa0ee1b4ed0ed9f954bf3bacc2235baddc274d75b608d"
+  },
+  "execution_identity": {
+    "board_source_commit": "d324c609ec20c39bafd16c46d5c4c1d750bf794f",
+    "runner_source_commit": "01191c9e2ee1921d63724edf0ec9dc2aee2cf0b2",
+    "tracked_repository_clean": true,
+    "preregistration_file_sha256": "72d78a7b1332509f9cc9a0eca465cc56a4e9918b83a8e87ba55fb47fc3f9a681",
+    "execution_package_file_sha256": "5701d632810c33e4c9d970d327331dfb508b7b8f3777576279742dfa6eb3080e"
+  },
+  "platform_preconditions": {
+    "passed_before_graph_initialization": true,
+    "linux_aarch64": true,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "cpu7_isolated": true,
+    "governor_during": "performance",
+    "governor_before": "schedutil",
+    "governor_after": "schedutil",
+    "onnxruntime_version": "1.23.2",
+    "onnx_provider": "CPUExecutionProvider"
+  },
+  "semantic_result": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "selected_route": "lower-cond0",
+    "context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "expected_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "all_2298_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "exact_one_handoff": true,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true
+  },
+  "paired_timing_ms": {
+    "population": "2048 locomotion stage calls",
+    "slow_reference": 1.8,
+    "stage_wall": {
+      "p50": 1.558235,
+      "p95": 1.7089496499999999,
+      "p99": 2.11269953,
+      "p99_9": 2.3906260990000066,
+      "max": 2.489467
+    },
+    "stage_thread_cpu": {
+      "p50": 1.5530635,
+      "p95": 1.7032434,
+      "p99": 2.10883123,
+      "p99_9": 2.3895289950000085,
+      "max": 2.478875
+    },
+    "stage_stolen": {
+      "p50": 0.005256,
+      "p95": 0.007881,
+      "p99": 0.009716519999999998,
+      "p99_9": 0.013950255000000068,
+      "max": 0.017091
+    },
+    "wall_slow_ticks": 47,
+    "thread_slow_ticks": 46,
+    "wall_and_thread_slow_ticks": 46,
+    "wall_slow_and_thread_slow_fraction": 0.9787234042553191
+  },
+  "secondary_counters": {
+    "locomotion_voluntary_context_switches": 0,
+    "locomotion_involuntary_context_switches": 11,
+    "locomotion_minor_faults": 6,
+    "locomotion_major_faults": 0,
+    "cpu7_arch_timer_delta": 4637,
+    "cpu7_rcu_softirq_delta": 705,
+    "cpu7_timer_softirq_delta": 5,
+    "interpretation": "CPU 7 still serviced timer and RCU work, but 46 of 47 wall-slow ticks were also thread-CPU-slow and stolen time remained below 0.018 ms. These counters therefore cannot override the preregistered scheduled-compute classification."
+  },
+  "independent_raw_reproduction": {
+    "all_reported_percentiles_reproduced": true,
+    "slow_tick_counts_reproduced": true,
+    "action_trace_sha256_reproduced": true,
+    "raw_array_rows": 2298,
+    "locomotion_start_index": 250
+  },
+  "decision": {
+    "classification": "SCHEDULED_COMPUTE_DOMINANT",
+    "selected_next_audit": "READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT",
+    "kernel_housekeeping_change_selected": false,
+    "context_route_specialization_reopened": false,
+    "reserve_pass_claim": false,
+    "retry": false,
+    "policy_t247": "UNCHANGED_AND_STILL_OFFLINE_GREEN",
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "read_only_execution_review": true,
+    "robot_descriptors": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

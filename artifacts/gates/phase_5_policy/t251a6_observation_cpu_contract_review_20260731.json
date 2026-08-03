@@ -1,0 +1,68 @@
+{
+  "schema_version": "open_duck_x5.t251a6_observation_cpu_contract_review.v1",
+  "status": "CLOSED_T251A6_OBSERVATION_CORRECTION_AS_TOO_SMALL",
+  "date": "2026-07-31",
+  "source_result": {
+    "status": "FAIL_T251A6_OBSERVATION_CPU_CONTRACT",
+    "checks_passed": 9,
+    "checks": 10,
+    "failed_checks": [
+      "microbenchmark_median_improves_at_least_25_percent"
+    ],
+    "canonical_sha256": "a368645581264f5836e848cae7be7f5d83d18ca3f58f8ca5e1b339f5605e31d3",
+    "file_sha256": "1351d09308d36588053de7e6cf8f0c5f540ec62246d3ee0135f45e82948b7114"
+  },
+  "semantic_result": {
+    "all_2298_ticks_byte_exact": true,
+    "exact_one_handoff": true,
+    "action_traces_identical": true,
+    "bound_live_sources_remain_writeable": true,
+    "mutated_bound_sources_observed_exactly": true,
+    "zero_measured_rate_excess": true
+  },
+  "microbenchmark_result": {
+    "samples": 20000,
+    "alternated_order": true,
+    "predecessor_p50_ms": 0.0108,
+    "corrected_p50_ms": 0.0111,
+    "corrected_to_predecessor_median_ratio": 1.0277777777777777,
+    "required_maximum_median_ratio": 0.75,
+    "material_improvement": false
+  },
+  "next_measured_component": {
+    "name": "transaction_residual",
+    "selection_basis": "observation failed its local materiality screen; after immutable ONNX and the closed graph_host, target, and observation corrections, transaction_residual is the largest unchanged eligible T251A3 component by p50",
+    "t251a3_p50_ms": 0.087543,
+    "next_eligible_components_p50_ms": {
+      "transaction_residual": 0.087543,
+      "observer_stage": 0.045501
+    },
+    "allowed_next_work": "preregister and CPU-contract one transaction-residual-only default-off correction; no X5 execution until the contract passes",
+    "forbidden_next_work": [
+      "observation, target, or graph_host rerun or threshold adjustment",
+      "policy, calibrator, ONNX, ABI, observation, P30, phase, history, action, target, rate-limit, or production change",
+      "T251B execution, policy deployment, robot interface access, torque, or motion"
+    ]
+  },
+  "decision": {
+    "observation_correction": "CLOSED_WITHOUT_X5_EXECUTION",
+    "next": "PREREGISTER_AND_CPU_CONTRACT_TRANSACTION_RESIDUAL_ONLY_CORRECTION",
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

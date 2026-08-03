@@ -1,0 +1,61 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_command_route_replacement_execution_preregistration.v1",
+  "status": "PREREGISTERED_ONE_TRANSPORT_CORRECTED_REPLACEMENT_AFTER_INVALID_ABORT",
+  "date": "2026-08-01",
+  "invalid_execution_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_invalid_execution_review_20260801.json",
+  "reason": "No valid reserved-screen result exists. The first attempt aborted only while sealing a path whose final argument was corrupted by the host stdin transport.",
+  "frozen_inputs": {
+    "original_preregistration": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_reserved_screen_preregistration_20260801.json",
+    "original_preregistration_sha256": "cdda6d2a277b70942f253dacbc799acf279bbe24443f187f09602bbf3d38479b",
+    "execution_package": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_execution_package_20260801.json",
+    "execution_package_sha256": "a46b159fbb482565eaf3863e142f0d40eb2a72c711fbf7f29c1a6decea850881",
+    "runner_source_commit": "b3de662f0dc381d2bcc45fe61aa8f11555a7432e",
+    "staged_source_commit": "bcdf408f76d3948c9ecef7a0c138d7b687f37af2",
+    "models_unchanged": true,
+    "thresholds_unchanged": true,
+    "populations_unchanged": true,
+    "runner_unchanged": true
+  },
+  "screen": {
+    "arms": [
+      "x000_home_hold_route",
+      "x080_gate5_moving_route"
+    ],
+    "reserve_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "selection_weight": 0,
+    "diagnostic_values_from_invalid_attempt_used_to_change_decision_rule": false
+  },
+  "transport_correction": {
+    "remote_script_via_stdin_forbidden": true,
+    "runner_invoked_as_a_direct_ssh_remote_command": true,
+    "governor_set_and_restored_by_separate_direct_commands": true,
+    "final_raw_output_argument": "/home/sunrise/open_duck_x5_preflight/t247-command-route-v1/evidence/raw-ticks.npz",
+    "control_characters_in_arguments_forbidden": true,
+    "result_json_and_raw_output_must_both_exist": true
+  },
+  "decision_rule": {
+    "transport_or_platform_abort": "INVALID_REPLACEMENT_NO_MECHANISM_DECISION_AND_NO_FURTHER_EXECUTION",
+    "either_valid_arm_misses_any_original_reserve_limit": "CLOSE_COMMAND_ROUTE_SPECIALIZATION_WITHOUT_RETRY",
+    "both_valid_arms_pass_all_original_reserve_limits": "EARN_OPT_IN_PRODUCTION_COMMAND_ROUTE_HOST_CONTRACT_AND_GATE5_READINESS_AUDIT",
+    "threshold_change": false,
+    "further_replacement_after_abort": false,
+    "retry_after_valid_result": false
+  },
+  "safety_and_authority": {
+    "no_device_cpu_only": true,
+    "robot_descriptors_forbidden": true,
+    "robot_modules_forbidden": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

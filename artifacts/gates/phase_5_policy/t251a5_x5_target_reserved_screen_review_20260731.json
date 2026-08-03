@@ -1,0 +1,100 @@
+{
+  "schema_version": "open_duck_x5.t251a5_x5_target_reserved_screen_review.v1",
+  "status": "HOLD_T251A5_X5_TARGET_RESERVED_SCREEN_REVIEWED",
+  "date": "2026-07-31",
+  "source_result": {
+    "status": "HOLD_T251A5_X5_TARGET_RESERVED_SCREEN",
+    "checks_passed": 21,
+    "checks": 22,
+    "failed_checks": [
+      "stage_p99_within_reserve"
+    ],
+    "canonical_sha256": "1f304fd1ad3b86693cbb4b7ee2ec9717b6a66dc6e158bc29186551f8941c3270",
+    "file_sha256": "bbb966e7686c0666fe671a2d4a3ccc3671117324e740f7863dec7194a1738bb8",
+    "raw_ticks_sha256": "13f293b99455f3fa2cb5f3b179b187dae7ad8a5d8ab3114730ad2f6d5baef4d1",
+    "board_source_commit": "a0431e300043a44f1fbd0a67636ec0db7fae7a58"
+  },
+  "package": {
+    "archive": "D:/CodexArtifacts/t251a5-staging-a0431e3.tar.gz",
+    "bytes": 41952903,
+    "sha256": "c6df0ea3acf0290f2382c7b33f28ffafbb9e23217cf7997367af9a0c2e55454d",
+    "recovered_evidence": "D:/CodexArtifacts/t251a5-evidence-a0431e3",
+    "all_recovered_hashes_verified": true
+  },
+  "semantic_result": {
+    "all_2298_ticks_byte_exact": true,
+    "exact_one_handoff": true,
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "zero_measured_rate_excess": true,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true,
+    "no_robot_modules": true,
+    "no_robot_device_descriptors": true,
+    "governor_restored_to_schedutil": true
+  },
+  "timing_result_ms": {
+    "p50": 1.794629,
+    "p95": 1.8732126500000001,
+    "p99": 2.01108949,
+    "p99_9": 2.396690901000009,
+    "max": 2.701923,
+    "limits": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "p99_miss_ms": 0.21108949,
+    "p99_9_margin_ms": 0.10330909899999075,
+    "max_margin_ms": 1.298077
+  },
+  "measured_effect": {
+    "t251a4_predecessor_p50_ms": 1.77442,
+    "t251a5_corrected_p50_ms": 1.794629,
+    "p50_change_ms": 0.020209,
+    "t251a4_predecessor_p99_ms": 2.03906,
+    "t251a5_corrected_p99_ms": 2.01108949,
+    "p99_reduction_ms": 0.02797051,
+    "t251a4_predecessor_p99_9_ms": 2.4417013490000015,
+    "t251a5_corrected_p99_9_ms": 2.396690901000009,
+    "p99_9_reduction_ms": 0.045010447999992654,
+    "local_target_component_materially_improved": true,
+    "whole_host_clears_frozen_reserve": false
+  },
+  "next_measured_component": {
+    "name": "observation",
+    "selection_basis": "after excluding immutable ONNX and the now-closed graph_host and target corrections, observation assembly is the largest unchanged eligible T251A3 component by p50",
+    "t251a3_p50_ms": 0.179042,
+    "next_eligible_components_p50_ms": {
+      "observation": 0.179042,
+      "transaction_residual": 0.087543,
+      "observer_stage": 0.045501
+    },
+    "allowed_next_work": "preregister and CPU-contract one observation-only default-off correction; no X5 execution until the contract passes",
+    "forbidden_next_work": [
+      "target or graph_host rerun or threshold adjustment",
+      "policy, calibrator, ONNX, ABI, observation values or order, P30 semantics, phase, rate-limit, or production change",
+      "T251B execution, policy deployment, robot interface access, torque, or motion"
+    ]
+  },
+  "decision": {
+    "target_correction": "CLOSED_WITHOUT_T251B",
+    "next": "PREREGISTER_AND_CPU_CONTRACT_OBSERVATION_ONLY_CORRECTION",
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

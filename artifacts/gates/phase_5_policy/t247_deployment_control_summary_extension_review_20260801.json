@@ -1,0 +1,77 @@
+{
+  "schema_version": "open_duck_x5.t247_control_summary_extension_review.v1",
+  "status": "PASS_DEFAULT_COMPATIBLE_T247_CONTROL_SUMMARY_EXTENSION_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "preregistration": {
+    "path": "artifacts/gates/phase_5_policy/t247_deployment_control_summary_extension_preregistration_20260801.json",
+    "sha256": "910c78d35f12d652d446d0bc5fd3d629b4353497a304e641cde1a343e4f0008c"
+  },
+  "external_summary": {
+    "path": "D:\\CodexArtifacts\\t247-runtime-opt-in-wiring\\success-summary.json",
+    "file_sha256": "de482e3f329ddade23477e14bc68d450c67470568729ce597f6eb7dbba0ee7b6",
+    "source_telemetry_sha256": "a8b0cae10cd4c283012b0c8d1089a8946b12ee2f3ab2eb529e51ee4062aa9a54",
+    "backend": "mock",
+    "review_status": "INFORMATIONAL_ONLY",
+    "hardware_gate_status": "NOT_APPLICABLE_MOCK"
+  },
+  "structural_checks": {
+    "runtime_contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+    "policy_contract": "t247-command-routed-115",
+    "active_ticks": 258,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 8,
+    "t247_stage_sequence_exact": true,
+    "t247_route_sequence_exact": true,
+    "fixed_command_matches_locomotion_only": true,
+    "zero_non_x_commands": true,
+    "complete_record_stream": true,
+    "normal_exit": true,
+    "torque_off_confirmed": true,
+    "transaction_failure_rate": 0.0,
+    "zero_read_bursts": true,
+    "zero_stale_servo_samples": true,
+    "zero_device_alarms": true,
+    "zero_partial_bytes": true,
+    "zero_unexpected_packets": true,
+    "zero_envelope_events": true
+  },
+  "mock_timing_interpretation": {
+    "tick_p99_ms": 31.53602,
+    "tick_p99_9_ms": 31.5596696,
+    "bus_max_ms": 16.1426,
+    "hardware_timing_gates_false": true,
+    "classification": "INFORMATIONAL_ONLY_WINDOWS_MOCK_SLEEP_QUANTIZATION",
+    "hardware_regression_claim": false,
+    "separate_x5_command_route_screen_passed": true,
+    "x5_x000_p99_ms": 0.7864462400000001,
+    "x5_x000_p99_9_ms": 1.1788540000000056,
+    "x5_x080_p99_ms": 1.6063589999999999,
+    "x5_x080_p99_9_ms": 1.937126099,
+    "x5_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    }
+  },
+  "compatibility": {
+    "legacy_v1_101_summary_semantics_unchanged": true,
+    "t247_serial_active_ticks_must_equal_850_before_bus_construction": true,
+    "t247_serial_stage_contract": "250 calibration plus 600 locomotion",
+    "serial_result_always_requires_independent_review": true
+  },
+  "reviewed_source_hashes": {
+    "src/open_duck_x5/control_summary.py": "e956f9c9074abda834ed648a1aa39b98e6339f08c902c119e12e7239801cde04",
+    "tests/test_control_summary.py": "0b1e07877c9408e8ba8cd014749d4c5867ac8791d1194b011dca5813fd8739a5",
+    "src/open_duck_x5/runtime.py": "ae90cb80c2968529c0c22b939c68eed734592fc872b7f48c399b1400e4617254"
+  },
+  "decision": "EARN_FINAL_T247_GATE5_READINESS_PACKET",
+  "authority": {
+    "offline_cpu_only": true,
+    "robot_access": false,
+    "serial_bus": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false
+  }
+}

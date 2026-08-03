@@ -1,0 +1,95 @@
+{
+  "schema_version": "open_duck_x5.t251a2_x5_optimized_paced_screen_review.v1",
+  "status": "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN_REVIEWED",
+  "date": "2026-07-31",
+  "source_result": {
+    "status": "HOLD_T251A2_X5_OPTIMIZED_PACED_SCREEN",
+    "checks_passed": 13,
+    "checks": 15,
+    "canonical_sha256": "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5",
+    "file_sha256": "dcc1472d5a98127b5c8434363e14eb1e879af6d63c40a8933e08d0c7ed1f7fc8",
+    "raw_ticks_bytes": 55372,
+    "raw_ticks_sha256": "de7a1a668d7a467d320681043e65938b9092d975ad43afdd61e91c578e6e7367",
+    "board_source_commit": "25311ec11811c4daabcc7ef786cc16751c393f56"
+  },
+  "package": {
+    "archive": "D:/CodexArtifacts/t251a2-staging-25311ec.tar.gz",
+    "bytes": 39568697,
+    "sha256": "21a07c3530b03d08a35eb4375a56819149c24f400aee4fc2339d9ddd327cdafd",
+    "recovered_evidence": "D:/CodexArtifacts/t251a2-evidence-25311ec",
+    "all_recovered_hashes_verified": true
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "p30_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "reference_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "semantic_result": {
+    "byte_exact_ticks": 2298,
+    "mismatch": null,
+    "exact_250_0_2048_chain": true,
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "zero_measured_rate_excess": true,
+    "no_robot_modules": true,
+    "no_robot_device_descriptors": true,
+    "governor_restored_to_schedutil": true
+  },
+  "optimized_stage_locomotion_ms": {
+    "p50": 1.989025,
+    "p95": 2.08143085,
+    "p99": 2.17971376,
+    "p99_9": 2.5456359740000014,
+    "max": 2.620463
+  },
+  "optimized_commit_all_ms": {
+    "p50": 0.5894385,
+    "p95": 0.60489475,
+    "p99": 0.618558,
+    "p99_9": 0.6843785990000171,
+    "max": 0.76371
+  },
+  "screen_limits_ms": {
+    "p99": 1.8,
+    "p99_9": 2.5,
+    "max": 4.0
+  },
+  "failed_checks": [
+    "optimized_p99_with_reserve",
+    "optimized_p99_9_with_reserve"
+  ],
+  "alternating_order_audit": {
+    "baseline_first_even_locomotion": {
+      "samples": 1024,
+      "mean_ms": 2.010597908203125,
+      "p99_ms": 2.1774000899999995,
+      "max_ms": 2.377338
+    },
+    "optimized_first_odd_locomotion": {
+      "samples": 1024,
+      "mean_ms": 1.9785498984375,
+      "p99_ms": 2.1757561599999997,
+      "max_ms": 2.620463
+    },
+    "interpretation": "Immediate call order changes the mean by only 0.03204801 ms and does not explain the p99 miss. Co-resident baseline-session cache pressure across ticks remains unmeasured and cannot be assumed away."
+  },
+  "decision": {
+    "t251b_earned": false,
+    "threshold_change": false,
+    "blind_rerun": false,
+    "production_integration_earned": false,
+    "gate5_earned": false,
+    "next": "PREREGISTER_SINGLE_OPTIMIZED_HOST_AND_COMPONENT_ATTRIBUTION; THEN_CHANGE_ONLY_THE_MEASURED_HOST_COMPONENT"
+  },
+  "authority": {
+    "policy_deployed": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "schema_version": "open_duck_x5.t247_deployment_context_route_specialization_preregistration.v1",
+  "status": "PREREGISTERED_T247_EXACT_CONTEXT_ROUTE_SPECIALIZATION_CPU_CONTRACT",
+  "date": "2026-07-31",
+  "earned_by": {
+    "architecture_audit": "artifacts/gates/phase_5_policy/t247_deployment_host_architecture_audit_20260731.json",
+    "architecture_audit_file_sha256": "edaffcb68257a4f49965efc0cfed076c7a133befe669001917076551714b7980",
+    "selected_mechanism": "EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION",
+    "selection_basis": "The unchanged T247 graph has six complete routes selected only by the immutable 64-D post-calibration context. Exploratory dependency closure reduced the ORT-optimized graph from 112 nodes to 85-93 nodes for every route, while the last X5 p99 miss requires a sustained 10.496275329846201% compute reduction."
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "clarification": "This is a T247 deployment-validation contract. It does not define or train a T250/T251 policy."
+  },
+  "unchanged_assets": {
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212",
+    "policy_inputs": {
+      "obs": [1, 115],
+      "previous_action": [1, 14],
+      "h_in": [1, 64],
+      "calibration_context": [1, 64]
+    },
+    "policy_outputs": {
+      "continuous_actions": [1, 14],
+      "previous_action_out": [1, 14],
+      "h_out": [1, 64]
+    }
+  },
+  "implementation_scope": {
+    "deriver": "tools/derive_t247_context_route_variants.py",
+    "verifier": "tools/verify_t247_context_route_specialization.py",
+    "generated_binary_location": "an explicit external output directory under D:/CodexArtifacts; no ONNX binary enters the repository",
+    "routes": [
+      "lower-cond0",
+      "lower-cond1",
+      "positive-cond0",
+      "positive-cond1",
+      "tail-cond0",
+      "tail-cond1"
+    ],
+    "route_selector": {
+      "construction": "extract the original positive and conditional router MatMul/Add/comparison nodes and their byte-identical initializers into a tiny ONNX graph",
+      "execution": "run once on the frozen final calibration context using the same ONNX Runtime provider before selecting a locomotion session",
+      "required_outputs": [
+        "home-negative tail predicate",
+        "bounded-positive predicate",
+        "conditional-path predicate"
+      ],
+      "required_invariants": [
+        "the original t162 and t156 bounded-positive predicates agree",
+        "tail and bounded-positive are mutually exclusive",
+        "the original t149 and t143 conditional predicates agree",
+        "exactly one of lower, positive, or tail is selected"
+      ]
+    },
+    "allowed_graph_transform": [
+      "for lower and positive routes, bypass the home-negative low-command rewrite; for tail routes retain the exact-command-dependent rewrite while eliminating the now-constant tail conjunction",
+      "for cond0 bypass the t149 command cap and conditional negative adapter; for cond1 select them",
+      "for lower and tail routes bypass the t162 positive command rewrite; for positive routes retain its moving-command predicate while eliminating the now-constant context conjunction",
+      "select the route-determined conditional adapter and mechanics-bias source without changing any surviving arithmetic",
+      "perform backward dead-code elimination from the unchanged three policy outputs while preserving all four input declarations and their metadata",
+      "remove only initializers not referenced by the retained dependency closure"
+    ],
+    "forbidden_graph_transform": [
+      "change, quantize, fuse manually, transpose, round, rename, or replace any retained initializer value",
+      "change a surviving arithmetic operator, tensor dtype, tensor shape, graph input, graph output, action value, recurrent state value, or execution order dependency",
+      "classify calibration context with a reimplemented NumPy threshold instead of the extracted original router graph",
+      "specialize only the observed lower-cond0 configuration",
+      "modify the calibrator, observation assembly, P30 observer, target path, action semantics, policy weights, or production runtime"
+    ]
+  },
+  "deterministic_derivation_contract": {
+    "source_hash_must_match": true,
+    "onnx_checker_passes_for_router_and_all_six_variants": true,
+    "derive_twice_produces_identical_bytes_and_sha256_for_every_output": true,
+    "retained_initializers_match_source_name_dtype_shape_and_raw_value_bytes": true,
+    "public_policy_abi_exact_for_all_six_variants": true,
+    "variant_route_manifest_complete_and_unique": true,
+    "no_policy_binary_committed": true
+  },
+  "semantic_cpu_contract": {
+    "router_cases": {
+      "interior_contexts_per_route_minimum": 2,
+      "threshold_neighborhoods": [
+        "positive score immediately below, at-or-first-above, and above zero",
+        "positive score immediately below, at-or-first-above, and above the original upper bound",
+        "conditional score immediately below, at-or-first-above, and above zero"
+      ],
+      "selector_must_match_all_original_predicates": true
+    },
+    "one_step_equivalence": {
+      "routes": 6,
+      "commands_m_s": [0.0, 0.074, 0.077, 0.08],
+      "deterministic_pseudorandom_cases_per_route_minimum": 256,
+      "outputs_byte_exact": [
+        "continuous_actions",
+        "previous_action_out",
+        "h_out"
+      ]
+    },
+    "actual_chain_equivalence": {
+      "calibration_ticks": 250,
+      "locomotion_ticks": 2048,
+      "exact_handoff_switches": 1,
+      "expected_route": "lower-cond0",
+      "expected_context_float32_bytes_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+      "all_output_and_recurrent_ticks_byte_exact": true,
+      "maximum_rate_excess_rad_s": 0.0
+    },
+    "failure_boundary": "Any selector mismatch, initializer mismatch, ABI mismatch, output-bit mismatch, recurrent divergence, nonfinite value, route omission, wrong handoff count, or measured rate excess closes the mechanism before timing."
+  },
+  "local_timing_contract": {
+    "runs_only_after_semantic_contract_passes": true,
+    "session_options": {
+      "execution_mode": "ORT_SEQUENTIAL",
+      "graph_optimization": "ORT_ENABLE_ALL",
+      "intra_op_num_threads": 1,
+      "inter_op_num_threads": 1,
+      "allow_spinning": false,
+      "io_binding": true
+    },
+    "warmup_samples_per_session": 2000,
+    "measured_samples_per_route": 20000,
+    "order": "alternate predecessor-first and specialized-first for each paired sample",
+    "input_bank": "cycle deterministic valid graph inputs generated by the exact T247 host; use the full 2048-tick actual locomotion bank for lower-cond0 and route-valid deterministic banks for the other five variants",
+    "outputs_checked_during_benchmark": true,
+    "required_maximum_specialized_to_source_p50_ratio": 0.88,
+    "required_maximum_specialized_to_source_p99_ratio": 0.88,
+    "threshold_derivation": {
+      "last_x5_p99_ms": 2.01108949,
+      "frozen_x5_p99_limit_ms": 1.8,
+      "required_reduction_fraction": 0.10496275329846201,
+      "preregistered_margin_multiplier": 1.1,
+      "required_reduction_with_margin_fraction": 0.11545902862830822,
+      "rounded_up_required_reduction_fraction": 0.12
+    },
+    "all_six_routes_must_pass_materiality": true,
+    "router_one_time_latency_selection_weight": 0,
+    "graph_session_initialization_latency_selection_weight": 0
+  },
+  "decision_rule": {
+    "semantic_and_all_route_timing_contracts_pass": "EARN_ONE_SEPARATELY_PREREGISTERED_T247_X5_NO_MOTION_CONTEXT_SPECIALIZATION_RESERVED_SCREEN",
+    "semantic_contract_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION_WITHOUT_TIMING_OR_X5_EXECUTION",
+    "any_route_local_timing_materiality_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION_AS_INSUFFICIENT_WITHOUT_X5_EXECUTION",
+    "x5_execution": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false,
+    "threshold_change": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "external_derived_onnx_files": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

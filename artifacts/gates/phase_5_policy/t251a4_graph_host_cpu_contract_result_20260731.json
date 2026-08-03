@@ -1,0 +1,96 @@
+{
+  "schema_version": "open_duck_x5.t251a4_graph_host_cpu_contract_result.v1",
+  "status": "PASS_T251A4_GRAPH_HOST_CPU_CONTRACT",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "preregistration": {
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t251a4_graph_host_correction_preregistration_20260731.json",
+    "bytes": 3787,
+    "sha256": "f556a2d55386ed9eb0e7389429c7b86a6374200c444be080a0315d11c15ff1d9"
+  },
+  "source_receipts": {
+    "transaction": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v13_state_coherent.py",
+      "bytes": 42895,
+      "sha256": "13d4857b81b8a84ec9ff6eaac236154b086fbeebca0e0274b46dcb8ee14de4c7"
+    },
+    "predecessor_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v14_optimized.py",
+      "bytes": 13681,
+      "sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+    },
+    "corrected_host": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\winner_v15_graph_host_optimized.py",
+      "bytes": 1685,
+      "sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707"
+    },
+    "verifier": {
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\verify_winner_v15_graph_host_optimized.py",
+      "bytes": 13588,
+      "sha256": "bdaa36c8e9788e8c65a2bbb3de26f98946227e1874f9aadceaf23b13d7629b3f"
+    }
+  },
+  "asset_receipts": {
+    "calibrator": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\calibrator.onnx",
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "policy": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\policy.onnx",
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "p30_fit": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\p30.json",
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "reference_table": {
+      "path": "D:\\CodexArtifacts\\t251-assets\\assets\\reference.npz",
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "semantic_contract": {
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "mismatch": null,
+    "baseline_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "corrected_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "x5_reference_action_trace_sha256_informational": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "maximum_rate_excess_rad_s": 0.0
+  },
+  "local_x86_timing_informational_only": {
+    "samples": 2048,
+    "min_ms": 0.1659,
+    "mean_ms": 0.185716748046875,
+    "p50_ms": 0.1722,
+    "p95_ms": 0.2558199999999999,
+    "p99_ms": 0.3842489999999999,
+    "p99_9_ms": 0.5006840000000057,
+    "max_ms": 0.5461,
+    "selection_weight": 0
+  },
+  "checks": {
+    "asset_hashes_exact": true,
+    "all_ticks_byte_exact": true,
+    "exact_tick_counts": true,
+    "exact_one_handoff_binding_switch": true,
+    "baseline_and_corrected_action_traces_identical": true,
+    "zero_rate_excess": true
+  },
+  "failed_checks": [],
+  "decision": "EARN_T251A4_X5_SCREEN_PREREGISTRATION_ONLY",
+  "authority": {
+    "x5_execution": false,
+    "robot_device_access": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployed": false,
+    "t251b_earned": false,
+    "gate5": false
+  },
+  "result_sha256": "7b4b4b015f2bb69323bb2cf1d794d94817a3e977a09306f11c91cc59fa313595"
+}

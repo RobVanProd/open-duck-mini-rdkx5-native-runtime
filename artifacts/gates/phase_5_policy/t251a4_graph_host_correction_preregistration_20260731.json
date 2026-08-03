@@ -1,0 +1,74 @@
+{
+  "schema_version": "open_duck_x5.t251a4_graph_host_correction_preregistration.v1",
+  "status": "PREREGISTERED_T251A4_GRAPH_HOST_ONLY_CORRECTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "PASS_T251A3_X5_SINGLE_HOST_COMPONENT_ATTRIBUTION_REVIEW",
+    "review_file_sha256": "cc4e8cf6c1af2cc461c6d6c5f30235b9b068aa32555e3799ab4c8d97510e44f5",
+    "source_result_sha256": "0b8d7dbbf8669d9dd23ef8bef7e50ee5a7d9a0d66fb4254a9661be89591f73cf",
+    "selected_component": "graph_host",
+    "selected_component_p50_ms": 0.232334
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "current_sources": {
+    "transaction_source": "src/open_duck_x5/winner_v13_state_coherent.py",
+    "transaction_source_sha256": "d6fe348dbb95d86e4def71338aaf3044ff4a3ac7e4cf1420ba777f0ff831bf86",
+    "optimized_source": "tools/winner_v14_optimized.py",
+    "optimized_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8"
+  },
+  "correction": {
+    "new_default_off_host": "tools/winner_v15_graph_host_optimized.py",
+    "allowed_changes": [
+      "bind the active assembler output directly to the active ONNX observation input buffer and require object identity on every stage",
+      "before target generation, validate only the current action output for finiteness and [-1,1] range",
+      "retain output scrubbing before every ONNX call",
+      "retain the existing complete action/previous_action_out/hidden_out validation in graph commit after literal successful send and before recurrent state copy",
+      "switch the trusted bound observation from calibrator to locomotion only after the exact confirmed calibration handoff"
+    ],
+    "forbidden_changes": [
+      "policy, calibrator, ONNX options, ABI, action, target, offsets, phase, P30, history, or rate-limit semantics",
+      "removing, weakening, or moving current-action pre-send validation after send",
+      "removing or weakening full commit validation",
+      "observation, target-pipeline, observer, or ONNX-call optimization",
+      "production import or enablement",
+      "native extension or threshold change"
+    ]
+  },
+  "cpu_contract": {
+    "fake_session_boundary_matrix": true,
+    "current_action_nonfinite_or_out_of_range_fails_before_target_send": true,
+    "previous_action_or_hidden_state_corruption_fails_during_complete_send_before_state_commit": true,
+    "discard_and_failed_send_paths_do_not_advance_state": true,
+    "exact_250_0_handoff_switches_the_bound_input_once": true,
+    "real_asset_250_0_2048_v14_vs_v15_byte_exact_every_tick": true,
+    "default_disabled_and_no_production_consumer": true,
+    "all_repository_tests_and_artifact_hashes_green": true
+  },
+  "decision_rule": {
+    "contract_pass": "EARN_ONE_T251A4_SEPARATED_SEMANTIC_PLUS_SINGLE_HOST_RESERVED_SCREEN_PREREGISTRATION",
+    "contract_fail": "CLOSE_THIS_CORRECTION_WITHOUT_X5_EXECUTION",
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

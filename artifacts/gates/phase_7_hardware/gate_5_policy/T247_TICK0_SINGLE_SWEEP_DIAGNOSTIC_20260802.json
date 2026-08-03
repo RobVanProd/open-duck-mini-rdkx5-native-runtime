@@ -1,0 +1,37 @@
+{
+  "schema_version": "open_duck_x5.t247_tick0_single_sweep_review.v1",
+  "status": "PASS_DIAGNOSTIC_ONLY",
+  "date": "2026-08-02",
+  "source_commit": "0713a94c08b6044d360396b77129fd04f3ac79f4",
+  "scope": {
+    "serial_device": "/dev/ttyS1",
+    "ticks": 1,
+    "controller_loaded": false,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion": false,
+    "realtime_cpu": 7,
+    "realtime_scheduler": "SCHED_FIFO",
+    "realtime_priority": 80
+  },
+  "result": {
+    "bus_total_ms": 4.321267,
+    "group_round_trip_ms": 3.207304,
+    "extended_round_trip_ms": 0.501877,
+    "write_status": "ok",
+    "all_14_fresh": true,
+    "extended_status": "ok",
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "late_accepted_response_markers": 0,
+    "pre_torque_off": "ok",
+    "post_torque_off": "ok"
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/tick0-single-20260802T082000Z",
+    "local_directory": "D:\\CodexArtifacts\\open-duck-x5-runtime\\tick0-single-20260802T082000Z",
+    "result_json_sha256": "a660996a772a362b578779e751186459dd673b5377204ad457c1c3a1edb15573",
+    "transaction_trace_jsonl_sha256": "5bdec5fe9701a9af87bd768ccc0f5706df753c75d2dfb887c6d5df216e664bbc"
+  },
+  "interpretation": "This authorized one-sweep torque-off diagnostic shows that startup is not deterministically over budget. It does not replace the failed 10000-tick population, certify a maximum, authorize motion, or pass Gate 5."
+}

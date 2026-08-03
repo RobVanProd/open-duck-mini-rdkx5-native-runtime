@@ -1,0 +1,93 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_context_route_invalid_execution_review.v1",
+  "status": "INVALID_T247_X5_CONTEXT_ROUTE_EXECUTION_NOT_A_MECHANISM_FALSIFICATION",
+  "date": "2026-07-31",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "board_result": {
+    "external_path": "D:\\CodexArtifacts\\t247-x5-context-route-screen\\board-evidence\\result.json",
+    "file_sha256": "a47566fee592dc658e3b4bd622be686bfabc1a4ee1c330a314e47cecfb8768c2",
+    "canonical_sha256": "bbf58d6d0ab79c461a677df2d8bdc2c55556a087879e76c3ec89dfc1b7e7ead5",
+    "reported_status": "HOLD_T247_X5_CONTEXT_ROUTE_RESERVED_SCREEN",
+    "runner_exit_status": 1,
+    "checks_passed": 18,
+    "checks_total": 26,
+    "raw_ticks_external_path": "D:\\CodexArtifacts\\t247-x5-context-route-screen\\board-evidence\\raw-ticks.npz",
+    "raw_ticks_sha256": "a450816ea914eda35894141fec8c8ead7070c9df5d38d680bb79b4466e2a2d42"
+  },
+  "preexisting_x5_witness": {
+    "source": "artifacts/gates/phase_5_policy/t251a5_x5_target_reserved_screen_result_20260731.json",
+    "source_file_sha256": "bbb966e7686c0666fe671a2d4a3ccc3671117324e740f7863dec7194a1738bb8",
+    "source_result_sha256": "1f304fd1ad3b86693cbb4b7ee2ec9717b6a66dc6e158bc29186551f8941c3270",
+    "reviewed_x5_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "invalid_preregistration_action_trace_sha256": "644833f8a900730feba655ce6ab306d152a40cedd4c859f40d118e668def23fa",
+    "defect": "The X5 preregistration copied the local x86-64/Windows action witness into an aarch64 screen even though the existing reviewed X5 result already proved the architecture-specific witness."
+  },
+  "launch_precondition_failure": {
+    "required_governor": "performance",
+    "actual_governor": "schedutil",
+    "governor_before_sha256": "370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140",
+    "governor_during_sha256": "370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140",
+    "governor_after_sha256": "370afcec441b514ced2d8c7a6dce776d58ec2fd19d52cc3efe8e80eea1875140",
+    "launcher_log_sha256": "e275b3eeeeb34605e9b3331c56a5a12499c75c8aa5d43026b17725b5f7114c63",
+    "launcher_error": "The shell redirection to scaling_governor occurred outside the effective sudo context and was denied before each intended write.",
+    "runner_defect": "The runner recorded the failed governor check after both arms instead of aborting before the first measured tick, allowing an inadmissible timing population to be collected."
+  },
+  "admissible_semantic_evidence": {
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [7],
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "handoff_switches": 1,
+    "selected_route": "lower-cond0",
+    "x5_context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "original_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "specialized_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "all_2298_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "interpretation": "The architecture-specific numeric witness differs from the local witness, but original T247 and specialized T247 remain exactly equal to each other on the X5. The specialization semantic mechanism passed."
+  },
+  "inadmissible_timing_evidence": {
+    "governor": "schedutil",
+    "stage_locomotion_ms": {
+      "p50": 1.655483,
+      "p95": 5.7946643,
+      "p99": 5.8270715200000005,
+      "p99_9": 5.875662651000002,
+      "max": 5.884137
+    },
+    "ticks_above_1_8_ms": 402,
+    "ticks_above_4_0_ms": 306,
+    "selection_weight": 0,
+    "reason": "The frozen screen requires the performance governor. The schedutil distribution cannot accept or reject the context-route specialization."
+  },
+  "validity_decision": {
+    "original_preregistration_execution": "INVALID",
+    "context_route_semantics": "PASS_ON_X5",
+    "context_route_timing": "NOT_MEASURED_UNDER_REQUIRED_PRECONDITIONS",
+    "mechanism_closed": false,
+    "old_contract_retry": false,
+    "replacement_execution_permitted_only_after_new_preregistration": true,
+    "rationale": "This is the same evidence discipline previously used for invalid unaggregated policy outputs: an execution that violates a mandatory precondition and an already-contradicted witness is not treated as a valid gate attempt. The old contract is not rerun; a corrected contract must be frozen before any replacement execution."
+  },
+  "required_corrections": [
+    "pin the existing reviewed aarch64 action witness 6af1f952... rather than the local witness",
+    "pin or compare the aarch64 calibration context 69a92214... and retain lower-cond0 selection",
+    "make the runner abort before graph initialization or any arm unless governor is performance",
+    "use a launch wrapper whose privileged governor write is verified before starting the runner",
+    "retain the same T247 assets, derived graphs, 250+2048 population, and 1.8/2.5/4.0 ms thresholds"
+  ],
+  "authority": {
+    "read_only_execution_review": true,
+    "replacement_preregistration": true,
+    "replacement_x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

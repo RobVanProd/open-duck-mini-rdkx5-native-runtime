@@ -1,0 +1,152 @@
+{
+  "asset_receipts": {
+    "calibrator": {
+      "bytes": 55573,
+      "path": "D:\\CodexArtifacts\\open-duck-mini-rdkx5\\winner-v96-response-conditioned-mechanics\\winner_v96_universal_calibrator.onnx",
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "deployment_policy": {
+      "bytes": 993875,
+      "path": "D:\\CodexArtifacts\\open-duck-policy\\t247_home_negative_half_adapter_route_v1\\graphs\\2007040\\home_negative_half_adapter_route.onnx",
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "path": "D:\\CodexProjects\\open-duck-mini-rdkx5-policy\\outputs\\analysis\\fixed_target_p30_actuator_fit_20260712.json",
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "path": "D:\\CodexProjects\\open-duck-mini-rdkx5-policy\\outputs\\analysis\\ground_up_projected_reference_feature_table.npz",
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "authority": {
+    "gate5": false,
+    "grounded_replay": false,
+    "no_motion_x5_cpu_preflight": false,
+    "offline_cpu_only": true,
+    "policy_binary_staging": false,
+    "robot_motion": false
+  },
+  "checks": {
+    "all_frozen_predecessor_sources_exact": true,
+    "all_selected_asset_receipts_exact": true,
+    "all_values_finite": true,
+    "calibration_observation_fields_exact": true,
+    "context_immutable": true,
+    "cpu_only_no_hardware_execution": true,
+    "exact_250_calibration_ticks": true,
+    "first_locomotion_history_final_three_exact": true,
+    "first_locomotion_phase_reset_exact": true,
+    "handoff_context_exact": true,
+    "handoff_previous_action_exact": true,
+    "independent_p30_observer_exact": true,
+    "locomotion_5p24_slew_identity": true,
+    "locomotion_hidden_exact_zero": true,
+    "locomotion_observation_fields_exact": true,
+    "logical_target_pipeline_exact": true,
+    "measured_rate_monitor_exact": true,
+    "new_host_has_no_hardware_or_winner_v12_import": true,
+    "new_host_has_no_production_consumer": true,
+    "real_graph_chain_bit_exact": true,
+    "second_locomotion_history_boundary_exact": true,
+    "soft_offsets_physical_only_exact": true,
+    "tracked_worktree_clean_at_execution": true,
+    "zero_home_return_ticks": true,
+    "zero_measured_rate_excess": true
+  },
+  "date": "2026-07-31",
+  "decision": "EARN_NO_MOTION_X5_CPU_PREFLIGHT_PREREGISTRATION_ONLY",
+  "execution": {
+    "calibration_ticks": 250,
+    "home_return_ticks": 0,
+    "hosted_compute_units": 0,
+    "locomotion_ticks": 8,
+    "optimizer_steps": 0,
+    "policy_binaries_copied": 0,
+    "rdkx5_or_robot_access": 0,
+    "simulator_steps": 0,
+    "stage_latency_offline_windows_host": {
+      "max_ms": 0.489,
+      "mean_ms": 0.1750453488372093,
+      "min_ms": 0.1476,
+      "p50_ms": 0.15325,
+      "p95_ms": 0.29723499999999997,
+      "p99_ms": 0.35222000000000003,
+      "samples": 258
+    }
+  },
+  "failed_checks": [],
+  "frozen_source_receipts": {
+    "src/open_duck_x5/winner_v12_two_stage.py": {
+      "bytes": 28816,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v12_two_stage.py",
+      "sha256": "231d76ed15611447a9215b22252a3e8754dc8a378cc3166f870f81b5d7dca25d"
+    },
+    "src/open_duck_x5/winner_v2.py": {
+      "bytes": 34786,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v2.py",
+      "sha256": "235d32eca034e4d7d5507337bb851b84ccb206d4ad499c86279381e82d38ae2b"
+    },
+    "tests/test_winner_v12_two_stage.py": {
+      "bytes": 25169,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tests\\test_winner_v12_two_stage.py",
+      "sha256": "d4f6e89c1afb64a088aeb5a4b04c4b7dd6d373066cdebe44e9510361b254b045"
+    },
+    "tests/test_winner_v2.py": {
+      "bytes": 23581,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tests\\test_winner_v2.py",
+      "sha256": "c174785969050eb6006166d6896219ace369695db1d2196a25f315d45faf3874"
+    }
+  },
+  "git": {
+    "branch": "codex/policy-deployment-consolidation",
+    "commit": "cbc77526c127b1c3b6f65a359d42bc69484c2513",
+    "repository": "https://github.com/RobVanProd/open-duck-mini-rdkx5-native-runtime.git"
+  },
+  "handoff": {
+    "calibration_context_sha256": "a59216123ca92bb3ce9a02cd3af8d898e708c59ae317bf2b9fac8a276e41c404",
+    "final_three_calibration_actions_sha256": "e77012bfdeaa1024eab77339cb32149cc7604969e9258870b42904af55c15404",
+    "first_history_sha256": "e77012bfdeaa1024eab77339cb32149cc7604969e9258870b42904af55c15404",
+    "locomotion_hidden_nonzero": 0,
+    "second_history_sha256": "e77012bfdeaa1024eab77339cb32149cc7604969e9258870b42904af55c15404"
+  },
+  "implementation_receipts": {
+    "host": {
+      "bytes": 37405,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\src\\open_duck_x5\\winner_v13_state_coherent.py",
+      "sha256": "025cbae910f214c28e393f906388cae2723336cd1f024125768bdfae4dfb9cef"
+    },
+    "tests": {
+      "bytes": 16312,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tests\\test_winner_v13_state_coherent.py",
+      "sha256": "7b7e6060d400157539c7291bce66425da33a70ed7f338d29afb8d8b197c91a66"
+    },
+    "verifier": {
+      "bytes": 29865,
+      "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\tools\\verify_winner_v13_state_coherent.py",
+      "sha256": "01d72619f64ea6b48ecb9f79c02bfb097dc9013933324e631be6bb4e199409a5"
+    }
+  },
+  "maximum_deltas": {
+    "calibration_observation_field": 0.0,
+    "direct_onnx_action_or_state": 0.0,
+    "handoff_context": 0.0,
+    "handoff_previous_action": 0.0,
+    "independent_observer_rad": 0.0,
+    "locomotion_observation_field": 0.0,
+    "logical_target_rad": 0.0,
+    "measured_rate_excess_rad_s": 0.0,
+    "measured_rate_monitor_rad_s": 0.0,
+    "physical_target_rad": 0.0
+  },
+  "preregistration": {
+    "bytes": 5470,
+    "path": "C:\\Users\\usa50\\Documents\\Codex\\2026-07-14\\ok-so-i-need-you-to\\artifacts\\gates\\phase_5_policy\\t250_state_coherent_runtime_integration_preregistration_20260731.json",
+    "sha256": "83970b0447dcb67ce5f56f381ebc8aa171db32e70003d4a029c0bf9d677a2114"
+  },
+  "result_sha256": "09f794ae312a2acc172db0d4d06e6aa7205131276fa030cec9291f51fd6dede9",
+  "schema_version": "open_duck_x5.t250_state_coherent_runtime_integration_result.v1",
+  "status": "PASS_T250_STATE_COHERENT_RUNTIME_INTEGRATION"
+}

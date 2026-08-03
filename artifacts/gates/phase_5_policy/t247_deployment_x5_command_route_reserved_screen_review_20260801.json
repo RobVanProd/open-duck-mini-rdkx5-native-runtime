@@ -1,0 +1,118 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_command_route_reserved_screen_review.v1",
+  "status": "PASS_T247_X5_COMMAND_ROUTE_RESERVED_SCREEN_REVIEWED",
+  "date": "2026-08-01",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "replacement_authority": {
+    "invalid_execution_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_invalid_execution_review_20260801.json",
+    "replacement_preregistration": "artifacts/gates/phase_5_policy/t247_deployment_x5_command_route_replacement_execution_preregistration_20260801.json",
+    "models_runner_populations_and_thresholds_unchanged": true
+  },
+  "board_result": {
+    "external_path": "D:\\CodexArtifacts\\t247-command-route-contract\\x5-evidence-20260801\\valid-replacement\\result.json",
+    "file_sha256": "9a0215f96dc2067cbac957976db6b4b9f7ca0f6fc3b434c7504459c71ef33c36",
+    "canonical_sha256": "ac712baaea271577ce81180b9bf57e6856a402f4e5e682a0b19339c3896ef996",
+    "reported_status": "PASS_T247_X5_COMMAND_ROUTE_RESERVED_SCREEN",
+    "reported_decision": "EARN_OPT_IN_PRODUCTION_COMMAND_ROUTE_HOST_CONTRACT_AND_GATE5_READINESS_AUDIT",
+    "checks_passed": 35,
+    "checks_total": 35,
+    "failed_checks": [],
+    "raw_ticks_external_path": "D:\\CodexArtifacts\\t247-command-route-contract\\x5-evidence-20260801\\valid-replacement\\raw-ticks.npz",
+    "raw_ticks_sha256": "db1df1377f37775e74b4f37d94224fdc08ed06a93bdf2f9a1511702020873896",
+    "raw_ticks_bytes": 332732
+  },
+  "platform_preconditions": {
+    "passed_before_graph_initialization": true,
+    "linux_aarch64": true,
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [
+      7
+    ],
+    "cpu7_isolated": true,
+    "governor_during": "performance",
+    "governor_after_review": "schedutil",
+    "onnx_provider": "CPUExecutionProvider"
+  },
+  "semantic_result": {
+    "arms": 2,
+    "ticks_per_arm": 2298,
+    "selected_route": "lower-cond0",
+    "context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "x000_action_trace_sha256": "63808a1574cbda5852987d22a99443f6aa9a9ee5cf22e1a12a66a520165a5c73",
+    "x080_action_trace_sha256": "0e5a541d804f8485f7585fd8bdb7796209f3f02791c33e169a47bdf0d1c16509",
+    "all_4596_ticks_byte_exact": true,
+    "maximum_rate_excess_rad_s": 0.0,
+    "exact_one_handoff_per_arm": true,
+    "offsets_immutable_and_identity_bound": true,
+    "locomotion_desired_sent_buffer_alias": true
+  },
+  "timing_result_ms": {
+    "limits": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    },
+    "x000_home_hold_route": {
+      "samples": 2048,
+      "p50": 0.5942514999999999,
+      "p95": 0.6401287499999997,
+      "p99": 0.7864462400000001,
+      "p99_9": 1.1788540000000056,
+      "max": 1.409879
+    },
+    "x080_gate5_moving_route": {
+      "samples": 2048,
+      "p50": 1.4281085,
+      "p95": 1.49840355,
+      "p99": 1.6063589999999999,
+      "p99_9": 1.937126099,
+      "max": 1.944338,
+      "p99_margin": 0.19364100000000017,
+      "p99_9_margin": 0.562873901,
+      "max_margin": 2.055662
+    },
+    "release_lateness_max_over_both_arms": 0.059996
+  },
+  "independent_reconstruction": {
+    "raw_receipt_exact": true,
+    "result_canonical_sha256_exact": true,
+    "array_names_shapes_and_dtypes_exact": true,
+    "all_reported_stage_statistics_exact": true,
+    "both_action_trace_sha256_values_exact": true,
+    "all_35_reported_checks_true": true
+  },
+  "post_result_transport_event": {
+    "desktop_wrapper_timed_out_after_result_and_raw_artifacts_were_sealed": true,
+    "board_temporarily_unreachable_after_sealing": true,
+    "runner_process_absent_after_reconnect": true,
+    "governor_found_after_reconnect": "performance",
+    "governor_restored_and_read_back": "schedutil",
+    "result_or_raw_content_changed_after_reconnect": false,
+    "classification": "POST_EVIDENCE_WRAPPER_CLEANUP_DELAY; VALID_RUNNER_RESULT",
+    "robot_safety_effect": "none; this was a no-device CPU-only screen"
+  },
+  "decision": {
+    "command_route_semantics": "PASS_ON_X5",
+    "command_route_timing": "PASS_ALL_RESERVES",
+    "policy_t247": "UNCHANGED_AND_OFFLINE_GREEN",
+    "policy_training_earned": false,
+    "production_integration_contract_earned": true,
+    "gate5_readiness_audit_earned": true,
+    "gate5_execution_earned": false,
+    "threshold_change": false,
+    "next": "IMPLEMENT_DEFAULT_DISABLED_COMMAND_ROUTE_HOST_SELECTION_AND_COMPLETE_GATE5_READINESS_AUDIT"
+  },
+  "authority": {
+    "read_only_execution_review": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_training": false,
+    "production_integration": false,
+    "gate5": false
+  }
+}

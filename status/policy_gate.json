@@ -1,0 +1,484 @@
+{
+  "schema_version": "open_duck.runtime_policy_gate_status.v2",
+  "status_date": "2026-08-02",
+  "status": "T247_GATE5_X0_ATTEMPT1_HALTED_PRE_POLICY_TORQUE_OFF_PREFLIGHT_REQUIRED",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "offline_policy_green": true,
+  "robot_clearance": false,
+  "candidate_abi": {
+    "calibrator_inputs": {
+      "obs": [1, 115],
+      "previous_action": [1, 14],
+      "h_in": [1, 64]
+    },
+    "calibrator_outputs": {
+      "calibration_actions": [1, 14],
+      "previous_action_out": [1, 14],
+      "h_out": [1, 64]
+    },
+    "policy_inputs": {
+      "obs": [1, 115],
+      "previous_action": [1, 14],
+      "h_in": [1, 64],
+      "calibration_context": [1, 64]
+    },
+    "policy_outputs": {
+      "continuous_actions": [1, 14],
+      "previous_action_out": [1, 14],
+      "h_out": [1, 64]
+    }
+  },
+  "selected_assets": {
+    "persistence_witness": {
+      "step": 1003520,
+      "bytes": 993875,
+      "sha256": "21c714b0cbe30e43233f6a29d6ccfa058c550f28fab3dd836a73a6015b73f8f2"
+    },
+    "deployment_terminal": {
+      "step": 2007040,
+      "bytes": 993875,
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "calibrator": {
+      "bytes": 55573,
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "gates": {
+    "t249b_full_r2": {
+      "status": "PASS",
+      "green_conditions": 20,
+      "conditions": 20,
+      "green_cells": 320,
+      "cells": 320
+    },
+    "t250_policy_deployment_contract": {
+      "status": "PASS",
+      "result_sha256": "4f6608dc03d86f50877ab925fd4ab19df43fa9d2b1a8026d2c109ff592a47fed",
+      "handoff_sha256": "2193553f414efd143426e1c2201fadbb790083df14762b163ff39567f92b2dac"
+    },
+    "t250_native_runtime_integration": {
+      "status": "PASS",
+      "passing_checks": 25,
+      "checks": 25,
+      "maximum_numeric_delta": 0.0,
+      "result_sha256": "09f794ae312a2acc172db0d4d06e6aa7205131276fa030cec9291f51fd6dede9",
+      "artifact_file_sha256": "2261673c26cc8c0ec364967fd20f9437b982796322d54f0beb2b91c44f2abcc0"
+    },
+    "t251_x5_no_motion_cpu_preflight": {
+      "status": "HOLD",
+      "passing_checks": 15,
+      "checks": 18,
+      "failed_checks": [
+        "stage_latency_max",
+        "stage_latency_p99",
+        "stage_latency_p99_9"
+      ],
+      "stage_latency_ms": {
+        "p99": 3.45919992,
+        "p99_9": 54.64240899400001,
+        "max": 55.288782
+      },
+      "preregistration_file_sha256": "7593cd1a87733fcf469a7c9d68f2aa0361456b32a24fa70c49a5109a3b3ed138",
+      "result_sha256": "3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c",
+      "artifact_file_sha256": "db5a038d3a0eee1155740276abef5e14a8044ac106a16b44198532b3f17bc01c"
+    },
+    "t251a_compute_attribution": {
+      "status": "PASS_REVIEW",
+      "tail_attribution": "LINUX_RT_BANDWIDTH_THROTTLING_FROM_UNPACED_RUNNER",
+      "steady_attribution": "PYTHON_HOST_OVERHEAD_WITH_GRAPH_FLOOR_GREEN",
+      "review_file_sha256": "7f63a03450474464b69a2298d5e3e0266f7877b3773fe0a7a368d64fd9c35959"
+    },
+    "t251a2_optimized_paced_screen": {
+      "status": "HOLD",
+      "passing_checks": 13,
+      "checks": 15,
+      "byte_exact_ticks": 2298,
+      "failed_checks": [
+        "optimized_p99_9_with_reserve",
+        "optimized_p99_with_reserve"
+      ],
+      "stage_latency_ms": {
+        "p99": 2.17971376,
+        "p99_9": 2.5456359740000014,
+        "max": 2.620463
+      },
+      "screen_limits_ms": {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0
+      },
+      "preregistration_file_sha256": "cd9e71c724087f1ecffa4e4d6f0c462df3780b64a6723d094bcfab60692b1ebc",
+      "result_sha256": "291daa5f92f49930d9094ac5aaa31db4b6b01a460aebccafbab09044bf9713e5",
+      "artifact_file_sha256": "dcc1472d5a98127b5c8434363e14eb1e879af6d63c40a8933e08d0c7ed1f7fc8",
+      "t251b_earned": false
+    },
+    "t251a3_single_host_component_attribution": {
+      "status": "PASS_REVIEW",
+      "selected_component": "graph_host",
+      "selected_component_p50_ms": 0.232334,
+      "single_host_stage_latency_ms": {
+        "p99": 2.32679973,
+        "p99_9": 2.718310849000014,
+        "max": 2.905088
+      },
+      "result_sha256": "0b8d7dbbf8669d9dd23ef8bef7e50ee5a7d9a0d66fb4254a9661be89591f73cf",
+      "artifact_file_sha256": "9a1d8abd970dca73622914b11272572747a3c81ecfcd81df73e9abe6456af23a",
+      "review_file_sha256": "cc4e8cf6c1af2cc461c6d6c5f30235b9b068aa32555e3799ab4c8d97510e44f5",
+      "t251b_earned": false
+    },
+    "t251a4_graph_host_cpu_contract": {
+      "status": "PASS",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "result_sha256": "7b4b4b015f2bb69323bb2cf1d794d94817a3e977a09306f11c91cc59fa313595",
+      "artifact_file_sha256": "c33906f75cceb746b46e2b331fe13a71d4fc246fafcaa0b5e72d871d32ccfb27",
+      "x5_screen_preregistration_sha256": "ac4b05540c51cafd669d14d380d2a6c432fbbf5dc093feec2fb1208e0e7710d8",
+      "x5_screen_status": "HOLD_P99",
+      "x5_screen_checks_passed": 17,
+      "x5_screen_checks": 18,
+      "x5_screen_failed_checks": [
+        "stage_p99_within_reserve"
+      ],
+      "x5_stage_latency_ms": {
+        "p99": 2.03906,
+        "p99_9": 2.4417013490000015,
+        "max": 2.517046
+      },
+      "x5_screen_result_sha256": "3fdc034f7bb23c689332e7f5f020191fcae993f06a20f39f33574420638056d3",
+      "x5_screen_artifact_file_sha256": "556790fcf338003e05787a9a5c9bc1164c537999fe2f5f1fd8b8901dc8cd91e1",
+      "next_measured_component": "target",
+      "t251b_earned": false
+    },
+    "t251a5_target_cpu_contract": {
+      "status": "PASS",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "offsets_immutable": true,
+      "locomotion_desired_sent_buffer_alias": true,
+      "local_target_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_median_ratio": 0.641025641025641,
+      "required_maximum_median_ratio": 0.75,
+      "result_sha256": "a8b0a71b83956fd72a21690c62c201b3d0f7e06722c310c53f8063e6945255b6",
+      "artifact_file_sha256": "ed6f02f883f56358beca7d7d879443a30044058019b40f0950fd46c096bdca17",
+      "x5_screen_preregistration_sha256": "37888047ab8b508463835e024706490dcf6aaceec4352a6801fd44c2de67a8c3",
+      "x5_screen_status": "HOLD_P99",
+      "x5_screen_checks_passed": 21,
+      "x5_screen_checks": 22,
+      "x5_screen_failed_checks": [
+        "stage_p99_within_reserve"
+      ],
+      "x5_stage_latency_ms": {
+        "p99": 2.01108949,
+        "p99_9": 2.396690901000009,
+        "max": 2.701923
+      },
+      "x5_screen_result_sha256": "1f304fd1ad3b86693cbb4b7ee2ec9717b6a66dc6e158bc29186551f8941c3270",
+      "x5_screen_artifact_file_sha256": "bbb966e7686c0666fe671a2d4a3ccc3671117324e740f7863dec7194a1738bb8",
+      "x5_screen_review_file_sha256": "d1dc9e6fcbd649b0db4233f8ae44487dc0737c5b6753776fd9933163af3b2b35",
+      "next_measured_component": "observation",
+      "t251b_earned": false
+    },
+    "t251a6_observation_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "local_observation_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_median_ratio": 1.0277777777777777,
+      "required_maximum_median_ratio": 0.75,
+      "failed_checks": [
+        "microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "a368645581264f5836e848cae7be7f5d83d18ca3f58f8ca5e1b339f5605e31d3",
+      "artifact_file_sha256": "1351d09308d36588053de7e6cf8f0c5f540ec62246d3ee0135f45e82948b7114",
+      "review_file_sha256": "a5e1058c79012bc52b7a48a3d0550310d4c74fcd227ea03c83408890389c534e",
+      "x5_screen_status": "NOT_EARNED",
+      "next_measured_component": "transaction_residual",
+      "t251b_earned": false
+    },
+    "t251a7_transaction_residual_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "fallback_diagnostic_cases_exact": 7,
+      "fault_boundary_cases_exact": 6,
+      "local_transaction_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_median_ratio": 0.8095238095238095,
+      "required_maximum_median_ratio": 0.75,
+      "failed_checks": [
+        "microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "54fc59dabea7ce725cbd5bcfaca3698660ced114834c0f22a325c4903e7ed69a",
+      "artifact_file_sha256": "1a179ff8f23b23a19e2e296287a351d5096dcf363b3a1ab6bbcd646091b7e577",
+      "review_file_sha256": "1d1733d993ed3f72b50867dc54dd9694da4c1bdb73e8224f25a87d53f9580607",
+      "x5_screen_status": "NOT_EARNED",
+      "next_measured_component": "observer_stage",
+      "t251b_earned": false
+    },
+    "t251a8_observer_stage_cpu_contract": {
+      "status": "CLOSED_TOO_SMALL",
+      "byte_exact_ticks": 2298,
+      "handoff_switches": 1,
+      "maximum_rate_excess_rad_s": 0.0,
+      "boundary_contract_exact": true,
+      "local_observer_stage_microbenchmark_samples": 20000,
+      "corrected_to_predecessor_stage_median_ratio": 0.7777777777777777,
+      "required_maximum_stage_median_ratio": 0.75,
+      "corrected_to_predecessor_stage_plus_commit_median_ratio": 1.0372670807453417,
+      "required_maximum_stage_plus_commit_median_ratio": 1.1,
+      "failed_checks": [
+        "stage_microbenchmark_median_improves_at_least_25_percent"
+      ],
+      "result_sha256": "fc4884e3d367fbab67517ea4ba38b7083b2afa381fbd3f9e64a126d72057af8a",
+      "artifact_file_sha256": "6dd88f528c2b91e92448dcc74bf81a01083032d26b8f3c53c8c7629185103867",
+      "review_file_sha256": "5deb6fa14ceb70dff7cda0a89460b5974e5f72366d7a5962375b5813923286e6",
+      "x5_screen_status": "NOT_EARNED",
+      "component_local_optimization": "EXHAUSTED",
+      "t251b_earned": false
+    },
+    "t247_deployment_context_route_specialization": {
+      "status": "CLOSED_AFTER_VALID_X5_P99_MISS",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "architecture_audit_file_sha256": "edaffcb68257a4f49965efc0cfed076c7a133befe669001917076551714b7980",
+      "preregistration_file_sha256": "4a038b0db38703e9a8adbd2439c1c23d82d09805a7119985874cbde48cd5a5ec",
+      "selected_mechanism": "EXACT_POST_CALIBRATION_CONTEXT_ROUTE_SPECIALIZATION",
+      "complete_routes": 6,
+      "cpu_contract_status": "PASS",
+      "cpu_contract_checks_passed": 14,
+      "cpu_contract_checks": 14,
+      "cpu_contract_result_sha256": "d6d8026e8dfdd59ac68942d70da87bc65e6bb5c8952712be4eb17ad9797b25a2",
+      "cpu_contract_artifact_file_sha256": "f3a185718ab166fa9ac349f63f6261f7589e2602674da335e9fd1a4f11f9482c",
+      "cpu_contract_review_file_sha256": "ae6d7d4b7ada216f808240e009c1daad2f869fe821abeec42482171732ddad7e",
+      "worst_local_p50_ratio": 0.8061674008810572,
+      "worst_local_p99_ratio": 0.8421147763217338,
+      "x5_screen_status": "VALID_CORRECTED_EXECUTION_REVIEWED_CLOSED_P99",
+      "x5_screen_preregistration_file_sha256": "1fe2b2103967a25ce6ed84d60b620c3021e2daba461d0d9eb230a5299513ac05",
+      "x5_execution_package_file_sha256": "daed01700cfa385b5a4d97c084cc2b5c6666b9cbb15be32f6f5b5067eedcb521",
+      "x5_runner_source_commit": "ee6c23e8e97257b97f007caf9a3bd9b1fefcb54a",
+      "invalid_x5_execution_review_file_sha256": "1484050b0bec73a6205476bd77e52fa31b3a0a1dd407b1cc7d6f24da31e2e1d7",
+      "x5_semantics_status": "PASS_BYTE_EXACT",
+      "x5_architecture_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+      "x5_timing_status": "FAIL_P99_ONLY",
+      "corrected_x5_screen_preregistration_file_sha256": "428a71cb16cf57b0bc85c826f700f3dc7102d9616114778551f79830d7ea080f",
+      "corrected_x5_execution_package_file_sha256": "7e9030183e492c15a69104ffdb0c789966d9c0a09a0500ecb31e1f9777ee5b6c",
+      "corrected_x5_runner_source_commit": "baf3aa665d8630c2f4a6a4a5283192c2ed81edc9",
+      "corrected_x5_result_status": "HOLD_T247_X5_CONTEXT_ROUTE_CORRECTED_SCREEN",
+      "corrected_x5_checks_passed": 27,
+      "corrected_x5_checks": 28,
+      "corrected_x5_failed_checks": [
+        "stage_p99_within_reserve"
+      ],
+      "corrected_x5_stage_latency_ms": {
+        "p50": 1.6024825,
+        "p95": 1.7034178999999996,
+        "p99": 2.0972155199999998,
+        "p99_9": 2.2679420730000057,
+        "max": 2.285213
+      },
+      "corrected_x5_result_sha256": "48a23f5afc7b4fbb26ef859fc97eed60e6810fb48348c6117fee9f71f8704766",
+      "corrected_x5_artifact_file_sha256": "9f272fe0d2aa34ae08d0aec129c59d3305d20cb2631df388ce319d5e12783d47",
+      "corrected_x5_raw_ticks_sha256": "b91b4d05e7a4361ef520ac76302dc20901f6b0a22feb40895d610753c60af1e5",
+      "corrected_x5_review_file_sha256": "4c3620563b8b0137067689895ec6450b02c49043a6bdfa67c18dd2e273dadc3e",
+      "closure": "NO_RETRY_NO_THRESHOLD_CHANGE",
+      "next": "READ_ONLY_PERIODIC_HOST_OR_KERNEL_ATTRIBUTION",
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
+    "t247_deployment_x5_thread_cpu_attribution": {
+      "status": "COMPLETE_REVIEWED",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "source_context_route_specialization": "CLOSED_WITHOUT_RETRY",
+      "audit_file_sha256": "a3707eada67133751d15805c6676daba69c5868eda6652be17ab0bbc4f8d244c",
+      "preregistration_file_sha256": "72d78a7b1332509f9cc9a0eca465cc56a4e9918b83a8e87ba55fb47fc3f9a681",
+      "selected_falsifier": "PAIRED_STAGE_WALL_AND_THREAD_CPU_TIME_ATTRIBUTION",
+      "selection_weight": 0,
+      "runner_source_sha256": "48622bf5fe75f18462c6e4cfdd7ad35d552be554aeed7dd8db91623c58364c10",
+      "runner_unit_checks": "PASS",
+      "execution_package": "SEALED",
+      "execution_package_file_sha256": "5701d632810c33e4c9d970d327331dfb508b7b8f3777576279742dfa6eb3080e",
+      "runner_source_commit": "01191c9e2ee1921d63724edf0ec9dc2aee2cf0b2",
+      "x5_execution": "COMPLETE",
+      "x5_checks_passed": 24,
+      "x5_checks": 24,
+      "x5_failed_checks": [],
+      "x5_semantics_status": "PASS_BYTE_EXACT",
+      "x5_action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+      "x5_maximum_rate_excess_rad_s": 0.0,
+      "x5_stage_wall_ms": {
+        "p50": 1.558235,
+        "p95": 1.7089496499999999,
+        "p99": 2.11269953,
+        "p99_9": 2.3906260990000066,
+        "max": 2.489467
+      },
+      "x5_stage_thread_cpu_ms": {
+        "p50": 1.5530635,
+        "p95": 1.7032434,
+        "p99": 2.10883123,
+        "p99_9": 2.3895289950000085,
+        "max": 2.478875
+      },
+      "x5_stage_stolen_ms": {
+        "p50": 0.005256,
+        "p95": 0.007881,
+        "p99": 0.009716519999999998,
+        "p99_9": 0.013950255000000068,
+        "max": 0.017091
+      },
+      "x5_wall_slow_ticks": 47,
+      "x5_thread_slow_ticks": 46,
+      "x5_wall_and_thread_slow_fraction": 0.9787234042553191,
+      "classification": "SCHEDULED_COMPUTE_DOMINANT",
+      "decision": "SELECT_READ_ONLY_STATIC_CONTEXT_VALUE_PARTIAL_EVALUATION_AUDIT",
+      "result_sha256": "a391446cef5edf3e9349ee74810180ba3f8d08999bf3ba1b1d5753605f5df0f1",
+      "artifact_file_sha256": "c9ca65799e25072633ab51ca0e2f73cbd15ef98c6f612b072e6e911ae2f7d9b7",
+      "raw_ticks_sha256": "a7f25d75605bcd4e1cdaa0ee1b4ed0ed9f954bf3bacc2235baddc274d75b608d",
+      "review_file_sha256": "0a69b695332dd32fa48bade3124612e38631e6021254fff7cfd546353400a72b",
+      "boot_change": false,
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
+    "t247_deployment_static_context_partial_evaluation": {
+      "status": "CLOSED_TOO_SMALL",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "selected_route": "lower-cond0",
+      "source_nodes": 100,
+      "candidate_nodes": 93,
+      "source_initializers": 76,
+      "candidate_initializers": 70,
+      "outputs_byte_exact": true,
+      "local_benchmark_samples": 20000,
+      "candidate_to_current_p50_ratio": 0.9457964601769912,
+      "candidate_to_current_p99_ratio": 0.9385842142094214,
+      "required_maximum_ratio": 0.88,
+      "minimum_x5_reduction_fraction_needed": 0.1480094663532206,
+      "x5_execution_earned": false,
+      "audit_file_sha256": "092f62f48f62ef7276f7eecb0f2bec6d334338ee7ab81e06232feb7b5fdef8c8",
+      "next": "DERIVE_A_NEW_COMPUTE_MECHANISM_FROM_PHASE_AND_TICK_CORRELATION_BEFORE_ANY_X5_RUN",
+      "policy_training_earned": false,
+      "production_integration_earned": false,
+      "gate5_earned": false
+    },
+    "t247_deployment_command_route_specialization": {
+      "status": "PASS_CPU_CONTRACT_REVIEWED",
+      "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+      "policy_weights_unchanged": true,
+      "context_routes": 6,
+      "exact_command_routes_per_context": 4,
+      "generated_models": 24,
+      "fallback_preserved": true,
+      "derive_twice_byte_exact": true,
+      "all_onnx_checker_pass": true,
+      "all_policy_abis_exact": true,
+      "all_retained_initializers_exact": true,
+      "one_step_cases": 6144,
+      "route_switch_ticks": 7920,
+      "fallback_ticks": 2160,
+      "all_semantics_byte_exact": true,
+      "actual_chains": 4,
+      "maximum_rate_excess_rad_s": 0.0,
+      "worst_local_p50_ratio": 0.8735083532219571,
+      "worst_local_p99_ratio": 0.8780141843971632,
+      "required_maximum_ratio": 0.88,
+      "cpu_result_sha256": "82e9267f5277d7bd67521b7ba0fba079ffcdb53f0830ee340be3b8e2c3651320",
+      "cpu_result_file_sha256": "a1679e52dd43685fd6359d5f093402dc4775c80054ef1904406d27fc2ebd3a98",
+      "cpu_review_file_sha256": "f6e466a6ec9edd427d4e4c0d8b7e15874bff99b2169ff69a1f6df6de51ec4929",
+      "x5_screen_status": "PASS_REVIEWED_35_OF_35",
+      "x5_screen_checks_passed": 35,
+      "x5_screen_checks": 35,
+      "x5_screen_failed_checks": [],
+      "x5_x000_p99_ms": 0.7864462400000001,
+      "x5_x000_p99_9_ms": 1.1788540000000056,
+      "x5_x000_max_ms": 1.409879,
+      "x5_x080_p99_ms": 1.6063589999999999,
+      "x5_x080_p99_9_ms": 1.937126099,
+      "x5_x080_max_ms": 1.944338,
+      "x5_timing_limits_ms": {
+        "p99": 1.8,
+        "p99_9": 2.5,
+        "max": 4.0
+      },
+      "x5_result_file_sha256": "9a0215f96dc2067cbac957976db6b4b9f7ca0f6fc3b434c7504459c71ef33c36",
+      "x5_result_canonical_sha256": "ac712baaea271577ce81180b9bf57e6856a402f4e5e682a0b19339c3896ef996",
+      "x5_raw_ticks_sha256": "db1df1377f37775e74b4f37d94224fdc08ed06a93bdf2f9a1511702020873896",
+      "x5_screen_preregistration_file_sha256": "cdda6d2a277b70942f253dacbc799acf279bbe24443f187f09602bbf3d38479b",
+      "x5_execution_package_file_sha256": "a46b159fbb482565eaf3863e142f0d40eb2a72c711fbf7f29c1a6decea850881",
+      "x5_runner_source_commit": "b3de662f0dc381d2bcc45fe61aa8f11555a7432e",
+      "policy_training_earned": false,
+      "production_integration_earned": true,
+      "gate5_readiness_earned": true,
+      "gate5_earned": false
+    },
+    "opt_in_production_integration": {
+      "status": "PASS_REVIEWED",
+      "runtime_wiring_checks_passed": 18,
+      "runtime_wiring_checks": 18,
+      "runtime_wiring_failed_checks": [],
+      "runtime_wiring_result_file_sha256": "a8b04d7bafdbf596801fe17c01b607d02f0cea76b5e60fb134e2238e97f9949a",
+      "runtime_wiring_result_canonical_sha256": "2e904712495d97f6ee44bbd28b6fa110d6d066fdecff87132c23e357ab017e0a",
+      "control_summary_status": "PASS_REVIEWED",
+      "t247_runtime_contract_id": "open-duck-mini.t247-command-routed.115x14.v1",
+      "serial_active_ticks": 850,
+      "serial_calibration_ticks": 250,
+      "serial_locomotion_ticks": 600,
+      "legacy_v1_unchanged": true,
+      "mock_timing_selection_weight": 0
+    },
+    "t247_gate5_readiness": {
+      "status": "HALTED_PRE_POLICY_CONTROLLER_DIRECT_PASS_TORQUE_OFF_REQUIRED",
+      "launcher_preregistered": true,
+      "launcher_frozen": true,
+      "one_arm_per_invocation": true,
+      "x008_requires_reviewed_x0_and_separate_authorization": true,
+      "policy_binary_staged_on_x5": true,
+      "controller_direct_validation": "PASS_10000_TICKS",
+      "controller_identity": "0C:35:26:2A:B8:0B",
+      "controller_a_edges": 1,
+      "controller_disconnects": 0,
+      "controller_present_torque_off_probe": "NOT_RUN",
+      "x0_run": "HALTED_PRE_POLICY_0_ACTIVE_TICKS",
+      "x008_run": "NOT_RUN",
+      "grounded_replay": false
+    },
+    "gate_5": "HALTED_PRE_POLICY_NOT_PASSED"
+  },
+  "validation": {
+    "repository_tests": {
+      "status": "PASS",
+      "passed": 545
+    },
+    "reviewed_artifact_manifest": {
+      "status": "PASS",
+      "entries": 236
+    }
+  },
+  "authority": {
+    "policy_training_earned": false,
+    "policy_binary_staged_on_x5": true,
+    "production_runtime_integration_earned": true,
+    "gate_5_authorized_by_this_status": false,
+    "robot_motion_authorized_by_this_status": false,
+    "grounded_replay": false
+  },
+  "repositories": {
+    "policy_evidence": "https://github.com/RobVanProd/open-duck-mini-rdkx5",
+    "native_runtime": "https://github.com/RobVanProd/open-duck-mini-rdkx5-native-runtime"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_context_route_corrected_screen_preregistration.v1",
+  "status": "PREREGISTERED_ONE_CORRECTED_T247_X5_CONTEXT_ROUTE_SCREEN",
+  "date": "2026-07-31",
+  "earned_by": {
+    "invalid_execution_review": "artifacts/gates/phase_5_policy/t247_deployment_x5_context_route_invalid_execution_review_20260731.json",
+    "invalid_execution_review_file_sha256": "1484050b0bec73a6205476bd77e52fa31b3a0a1dd407b1cc7d6f24da31e2e1d7",
+    "classification": "MANDATORY_PLATFORM_PRECONDITION_AND_ARCHITECTURE_WITNESS_DEFECT",
+    "old_contract_retry": false,
+    "replacement_executions_authorized": 1,
+    "mechanism_semantics_already_passed_on_x5": true
+  },
+  "nomenclature": {
+    "frozen_policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "weights_changed": false,
+    "clarification": "This corrects an invalid deployment-validation execution. It does not create a newer policy model."
+  },
+  "unchanged_assets": {
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "derived_assets": {
+    "context_router_sha256": "3b1f406fba5147a3f38ec59fc7f9c8d42dd27fa7eeb54344f447c060eb95b284",
+    "routes": {
+      "lower-cond0": "9f07e51595658a085effdd0e682905ea32ef36f9c4de591254407cd178c54825",
+      "lower-cond1": "fc66c094491a2518e95ee97e12a0d6c69b6e8791e2af0797212bfd7ac91f7a0c",
+      "positive-cond0": "9293c1a039f8978f7b46deb2334287e8e56471ec4525698b610e1a4380e3c30d",
+      "positive-cond1": "051a79367b5c321bce3b8c3a462628b07454d7302a6ee16ef118c964c1c69c4c",
+      "tail-cond0": "6f88928b0593016ee7534ece5ce9ac621067f0ab10436fc332fdc9237128277d",
+      "tail-cond1": "39636128e2f03bb681ffed4e062620a2de66135978b53e0eea1fb746d38d832c"
+    },
+    "all_variants_required": true,
+    "selected_route_in_frozen_screen": "lower-cond0"
+  },
+  "architecture_specific_witness": {
+    "platform": "aarch64 Linux / RDK-X5 / CPUExecutionProvider",
+    "action_trace_sha256": "6af1f952d577ef1f4d67fd7d9896934fe42ddfaf7bd5252d6b3c5342ec820bd3",
+    "action_trace_preexisting_review_source": "artifacts/gates/phase_5_policy/t251a5_x5_target_reserved_screen_result_20260731.json",
+    "action_trace_preexisting_source_file_sha256": "bbb966e7686c0666fe671a2d4a3ccc3671117324e740f7863dec7194a1738bb8",
+    "calibration_context_float32_bytes_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "calibration_context_source": "invalid screen semantic arm only; timing values carry zero selection weight",
+    "expected_route": "lower-cond0",
+    "original_and_specialized_must_match_each_other_byte_for_byte": true
+  },
+  "runner_correction_contract": {
+    "runner": "tools/run_t247_x5_context_route_corrected_screen.py",
+    "allowed_changes_from_invalid_runner": [
+      "load this corrected preregistration and corrected staging root",
+      "pin the aarch64 action and context witnesses above",
+      "evaluate scheduler, priority, CPU affinity, isolated CPU, and governor before creating the router or either policy graph session",
+      "abort without creating result.json or raw-ticks.npz when any platform precondition is false",
+      "retain all semantic comparisons, tick counts, stage measurements, safety checks, and decision thresholds"
+    ],
+    "forbidden_changes": [
+      "change T247, any derived graph, policy ABI, observation, action, P30, target, tick population, timing statistic, or threshold",
+      "turn a failed platform preflight into a measured HOLD result",
+      "access serial, GPIO, I2C, controllers, sensors, servos, torque, or motion"
+    ],
+    "sealed_execution_package_required_after_implementation_before_run": true
+  },
+  "launch_preflight_contract": {
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t247-context-route-v2",
+    "governor_path": "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor",
+    "privileged_write": "echo performance | sudo -n tee /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor",
+    "required_readback_before_runner": "performance",
+    "runner_not_started_if_readback_mismatches": true,
+    "runner_launch": "sudo -n env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 taskset -c 7 chrt -f 80 <sealed invocation>",
+    "restore": "echo schedutil | sudo -n tee /sys/devices/system/cpu/cpu7/cpufreq/scaling_governor",
+    "required_readback_after_runner": "schedutil"
+  },
+  "platform_contract": {
+    "operating_system": "Linux",
+    "machine": "aarch64",
+    "scheduler": "SCHED_FIFO",
+    "priority": 80,
+    "affinity": [7],
+    "isolated_cpu_runtime_verified": true,
+    "governor": "performance",
+    "onnx_provider": "CPUExecutionProvider",
+    "onnx_execution_mode": "ORT_SEQUENTIAL",
+    "onnx_graph_optimization": "ORT_ENABLE_ALL",
+    "intra_and_inter_op_threads": 1,
+    "spinning": false,
+    "io_binding": true,
+    "gc_disabled_during_arms": true
+  },
+  "screen": {
+    "command_x_m_s": 0.074,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 2048,
+    "period_ms": 20.0,
+    "expected_handoff_switches": 1,
+    "semantic_arm": "paced original T247 versus lower-cond0 specialized T247",
+    "timing_arm": "paced single lower-cond0 specialized T247 host",
+    "semantic_arm_selection_weight": 0,
+    "timing_population": "specialized locomotion stage ticks 250:2297 only",
+    "reference_reserve_limits_ms": {
+      "p99": 1.8,
+      "p99_9": 2.5,
+      "max": 4.0
+    }
+  },
+  "decision_rule": {
+    "platform_preflight_fails_before_runner": "NOT_EXECUTED_AND_NO_TIMING_EVIDENCE_CREATED",
+    "all_semantic_safety_and_reserve_checks_pass": "EARN_T247_CONTEXT_ROUTE_PRODUCTION_INTEGRATION_PREREGISTRATION_ONLY",
+    "valid_execution_semantic_or_safety_check_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION",
+    "valid_execution_p99_p99_9_or_max_fails": "CLOSE_CONTEXT_ROUTE_SPECIALIZATION",
+    "valid_execution_retry": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_executed": false,
+    "gate5_earned": false
+  },
+  "safety_and_authority": {
+    "one_corrected_no_motion_x5_cpu_screen": true,
+    "robot_descriptors_forbidden": true,
+    "robot_modules_forbidden": true,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "production_integration": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}

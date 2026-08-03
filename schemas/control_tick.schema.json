@@ -85,7 +85,8 @@
     "observation": {
       "oneOf": [
         { "type": "null" },
-        { "$ref": "#/$defs/number101" }
+        { "$ref": "#/$defs/number101" },
+        { "$ref": "#/$defs/number115" }
       ]
     },
     "action": {
@@ -97,7 +98,21 @@
     "actual_position_rad": { "$ref": "#/$defs/number14" },
     "sent_target_rad": { "$ref": "#/$defs/number14" },
     "implied_target_velocity_rad_s": { "$ref": "#/$defs/number14" },
-    "over_3_75_rad_s": { "$ref": "#/$defs/bool14" }
+    "over_3_75_rad_s": { "$ref": "#/$defs/bool14" },
+    "policy_host": {
+      "type": "object",
+      "required": [
+        "stage",
+        "selected_context_route",
+        "selected_command_route"
+      ],
+      "properties": {
+        "stage": { "enum": ["calibration", "locomotion"] },
+        "selected_context_route": { "type": ["string", "null"] },
+        "selected_command_route": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
   },
   "allOf": [
     {
@@ -105,7 +120,6 @@
       "then": {
         "properties": {
           "paused": { "const": false },
-          "observation": { "$ref": "#/$defs/number101" },
           "action": { "$ref": "#/$defs/number14" }
         }
       },
@@ -118,6 +132,29 @@
             "minItems": 14,
             "maxItems": 14,
             "items": { "const": false }
+          }
+        }
+      }
+    },
+    {
+      "if": { "required": ["policy_host"] },
+      "then": {
+        "properties": {
+          "observation": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/$defs/number115" }
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "observation": {
+            "oneOf": [
+              { "type": "null" },
+              { "$ref": "#/$defs/number101" }
+            ]
           }
         }
       }
@@ -137,6 +174,12 @@
       "type": "array",
       "minItems": 101,
       "maxItems": 101,
+      "items": { "type": "number" }
+    },
+    "number115": {
+      "type": "array",
+      "minItems": 115,
+      "maxItems": 115,
       "items": { "type": "number" }
     },
     "bool14": {

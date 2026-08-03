@@ -1080,3 +1080,316 @@ Missing, false, uncommitted, mismatched, or unrelated clearance evidence now
 blocks before serial open and before ONNX loading in the X5 CPU preflight. This
 proof does not itself authorize runtime deployment, serial access, torque,
 motion, automatic calibration, or Gate 5; those remain separately gated.
+
+## D068 — Keep T247 and specialize only exact immutable routes
+
+Accepted. T247 remains the unchanged selected policy; T250/T251 are evidence
+labels, not replacement policies. The initial complete context route missed the
+strict X5 p99 compute reserve even though its outputs were exact. A sequence of
+measured host corrections either closed too small or still missed p99. The
+eventual selected mechanism performs exact partial evaluation only after the
+immutable calibration context and exact Gate 5 command are known.
+
+All 24 context/command models preserve the recurrent ABI and frozen outputs,
+with the complete context graph retained for other commands. The reserved X5
+screen passed 35/35: x=0 p99/p99.9/max were
+`0.786446/1.178854/1.409879 ms`; x=.08 were
+`1.606359/1.937126/1.944338 ms`; all were inside `1.8/2.5/4.0 ms` with zero
+rate excess. This earns opt-in host integration, not a policy change or motion.
+
+## D069 — Admit T247 only through a distinct exact-duration Gate 5 path
+
+Accepted. The default 101-D v1 contract remains unchanged. T247 is available
+only through an explicit, default-disabled `t247-command-routed-115` selector
+with runtime contract ID `open-duck-mini.t247-command-routed.115x14.v1`.
+Runtime wiring passed 18/18 real-asset mock checks, including ordered
+calibration/locomotion stages, successful-write-owned recurrent state,
+start-paused behavior, and injected-write torque-off.
+
+Serial T247 requires exactly 850 active ticks: 250 calibration and 600
+locomotion. The frozen launcher runs one command arm per invocation, validates
+all source/config/IMU/model hashes before the governor or UART, and restores the
+governor on every exit. It cannot chain x=0 to x=.08; x=.08 additionally needs
+a hash-verified reviewed x=0 receipt and separate authorization. This decision
+makes x=0 ready for an explicit suspended Gate 5 authorization but does not
+authorize staging, torque, motion, or grounded replay.
+
+## D070 — Remove the Linux controller thread after the pre-policy Gate 5 halt
+
+Accepted as a repair hypothesis, held behind no-motion validation. The first
+authorized x=0 invocation entered home and remained paused, then halted at tick
+2921 on a `92.776 ms` watchdog overrun. It executed zero active policy ticks.
+Torque-off, UART release, and governor restoration were confirmed. The grouped
+read consumed `90.701099 ms` yet all servo statuses were reported `ok` despite
+the configured `4 ms` response timeout.
+
+The tick began at monotonic `10251.550112780 s`; the kernel created a replacement
+Xbox Bluetooth HID device at `10251.532533 s`, only `17.57978 ms` earlier. The
+Linux runtime used an SDL/pygame polling thread in the same interpreter as the
+SCHED_FIFO servo loop. The selected causal hypothesis is that Bluetooth hotplug
+processing held the Python interpreter lock while the serial thread was waiting.
+The transport then resumed after its deadline, consumed already-buffered bytes,
+and misclassified the late transaction as successful.
+
+Linux controller input therefore moves to nonblocking `/dev/input/js0` reads on
+the control thread with no pygame thread. Serial receive code rejects bytes
+returned after the absolute deadline, and physical-controller freshness becomes
+mandatory while paused as well as active. This does not change T247, its ABI,
+observation/action semantics, or any servo setting. The old Gate 5 launcher is
+held. A controller-only A-edge test and a controller-present 10,000-tick
+torque-off timing probe must both pass before a replacement x=0 attempt can be
+preregistered; neither result authorizes motion.
+
+The controller-only step passed on 2026-08-02 using the original public
+Bluetooth identity `0C:35:26:2A:B8:0B` (`usb:v045Ep0B13d0515`). The direct
+backend completed 10,000/10,000 scheduled reads with exactly one A edge, zero
+disconnects, no read errno, and an unchanged joydev inode. Kernel axis and
+button maps also matched the inherited Xbox mapping. A second controller
+identity, `0C:35:26:3E:55:F6` (`d0509`), repeatedly failed HID-over-GATT reads
+and is rejected for Gate 5. The remaining no-motion falsifier is the same
+backend inside the 10,000-tick torque-off serial probe.
+
+## D071 — Preserve tick zero and bound startup anomaly handling
+
+Accepted offline only. The controller-present torque-off probe completed all
+10,000 measured ticks but failed its strict bus maximum: tick 0 was 5.080639 ms
+against `<5 ms`. That same tick contained the run's only two failed replies and
+the only generic-recovery parse. The remaining 9,999 fixed-order ticks stayed
+at or below 4.372012 ms. The result remains `FAIL`; tick 0 is not discarded,
+the population is not shortened, and the threshold is not relaxed.
+
+The selected correction is additive and fail-closed. The controller is opened
+and drained before serial open. Under final RT settings, exactly one
+full-transaction startup readiness exchange is recorded separately and tried
+once without retry. It must have every servo fresh, clean extended telemetry,
+no device alarms or structural anomalies, bus total `<5 ms`, and work time at
+or below the existing 40 ms hard-overrun limit. The same absolute ticker then
+advances into measured tick 0, so the measured 10,000-tick population and its
+original gates remain intact. The summary's overall bus maximum is the maximum
+across readiness and measured populations.
+
+For an exact 140-byte response train, the bus parser now handles a complete
+unique out-of-order train or one structurally damaged but position-anchored slot
+with a bounded fixed-slot pass. Ambiguous input still uses the generic recovery
+parser. No read is made fresh unless its own ID, structure, and checksum are
+valid. The runtime also rechecks controller freshness before servo verification,
+every home-entry write, the final hold, and startup readiness. Any failure exits
+the torque guard before policy staging. This decision authorizes no hardware,
+torque, motion, or Gate 5 replay; a newly frozen no-motion revalidation remains
+required.
+
+## D072 — Accept the one-shot startup-readiness revalidation
+
+Accepted as a reviewed no-motion pass. On the supported RDK-X5, the separately
+recorded readiness exchange completed once at 4.009592 ms bus time and
+4.133509 ms total work, with all 14 servo samples fresh, clean extended
+telemetry, zero alarms or structural anomalies, and a 19.989001 ms boundary to
+measured tick 0. It was not retried or removed from the decision.
+
+All 10,000 subsequent measured torque-off ticks completed. Recomputed tick
+p99/p99.9 were 20.0026284/20.009668167 ms, bus p99.9/max were
+4.215181041/4.883761 ms, and all 160,000 transaction outcomes were successful.
+There were zero read bursts, late-response markers, device alarms, or telemetry
+drops. Every measured grouped response used the fixed-order fast path. The
+controller identity stayed exact, torque-off was confirmed, `/dev/ttyS1` was
+released, and `schedutil` was restored.
+
+The raw evidence archive reproduced SHA-256
+`adac9560e9b0724f7e8a123dae48410ed884e1304bcdab630924b1dcd9c19f3f`
+locally, and an independent replay verified every contained file hash, schema,
+tick and trace sequence, percentile, outcome count, and late-byte marker. This
+closes the pre-policy timing repair only. It authorizes preparation of a new x=0
+launcher, not torque, motion, policy execution, x=.08, or grounded replay.
+
+## D073 — Freeze a replacement x=0-only Gate 5 launcher
+
+Accepted offline. The replacement launcher has one hardcoded x=0 runtime
+invocation and no command-selection or second-arm path. It pins the reviewed
+no-motion receipt, runtime and schema trees, every T247 asset, the board config,
+the IMU calibration, and the known-good Xbox identity. It rechecks the
+controller after the run, requires the serial device to be released and the
+governor restored, schema-validates the full telemetry stream, and requires one
+clean startup-readiness event plus every independent control-summary gate.
+
+The frozen launcher SHA-256 is
+`319b0320bde78ce73fc5a76eb716ed989adfedc176def3a572af797495519926`.
+Its preregistration and exact command packet are recorded in the Gate 5
+artifact directory. This decision authorizes no hardware access, torque,
+motion, policy execution, x=.08, or grounded replay. The exact suspended x=0
+motion scope requires fresh explicit operator authorization.
+
+## D074 — Halt the replacement attempt on a readiness-event serialization defect
+
+Accepted as a failed pre-policy attempt, not a Gate 5 result. The authorized
+five-second home entry completed and the one startup-readiness exchange was
+attempted, but its event passed the NumPy two-element phase vector directly to
+the asynchronous JSON writer. Serialization failed before a readiness record,
+control tick, or active policy tick was written. The runner then failed closed;
+the controller remained present, `/dev/ttyS1` was released, and `schedutil` was
+restored.
+
+Because the writer failure also prevented the terminal halt record, torque-off
+was independently repeated and verified by reading register 40 from every
+servo. All 14 replied `ok` with value zero. The raw failed-run archive and the
+separate cutoff receipt are preserved outside Git with hashes in the reviewed
+attempt artifact.
+
+The repair does not change phase values or policy semantics: runtime readiness
+serializes the existing `[0.0, 0.0]` vector as JSON-native numbers. Both event
+schemas and the semantic summarizer now require exactly two finite numbers,
+and the runtime test crosses the actual `json.dumps` boundary using a NumPy
+phase vector. The failed invocation is not retried under its preregistration or
+authorization. A new frozen source/launcher packet, green checks, clean X5
+staging, and fresh explicit suspended motion authorization are required.
+
+## D075 — Freeze one phase-JSON-repaired x=0 retry
+
+Accepted offline. The repaired runtime and schemas are pinned by Git tree, and
+the launcher now requires both the reviewed no-motion readiness evidence and
+the reviewed failed-attempt artifact. It rejects the consumed output directory,
+uses a new exact output path, and additionally requires readiness phase
+`[0.0, 0.0]` in the post-run semantic review. Candidate, assets, controller,
+UART, RT settings, five-second home entry, one readiness attempt, 250+600
+active ticks, timing gates, and all stop rules are unchanged.
+
+The launcher SHA-256 is
+`c7598541b84623581016bf0d3c68a5f8a9f64c67d7f56906085c452dea8a8c0e`.
+Its new preregistration and review packet are in the Gate 5 artifact directory.
+This freeze authorizes no robot access, torque, motion, policy execution, x=.08,
+or grounded replay. It may run only after fresh explicit authorization for this
+exact suspended x=0 attempt.
+
+## D076 — Require an evidence-visible operator unpause cue
+
+Accepted as a failed pre-policy attempt, not a Gate 5 result. The repaired
+launcher completed home entry, but the A-button edge arrived at the explicit
+reject-toggle check before the startup-readiness bus exchange. The runtime
+halted correctly with zero readiness records, zero control ticks, and zero
+active policy ticks. Runtime and independent register-40 checks both confirmed
+torque off for all 14 servos; the UART and governor were restored.
+
+The cause is procedural: visually judging when home entry ended did not expose
+the brief readiness boundary. The next attempt keeps the runtime and policy
+unchanged. Its launcher runs in a monitored background session, and the agent
+polls the JSONL stream until a clean `startup_readiness` `PASS` record is
+durably visible. Only then may the agent tell the operator `GO — press A once`.
+The operator must not press A before that cue.
+
+The runner's post-halt candidate validator also receives a diagnostic-only
+repair so null timing statistics from a zero-tick halt evaluate false instead
+of raising `TypeError`. Neither change affects the motion, observation, action,
+servo, sensor, or timing path. The consumed attempt is preserved and cannot be
+retried under its authorization.
+
+## D077 — Freeze the readiness-cued x=0 retry
+
+Accepted offline. The candidate, runtime trees, assets, controller identity,
+transport, RT settings, motion duration, policy ticks, and all safety gates are
+unchanged. The new protocol changes only orchestration: the frozen launcher is
+started once in a monitored background session, and the operator keeps hands
+off the controller until the agent observes one clean readiness `PASS` record.
+The agent then issues the exact `GO — press A once now` cue.
+
+The runner's no-tick candidate validator now treats null timing and bus
+statistics as failed checks rather than comparing them with floats. A direct
+regression test executes that embedded validator on a zero-tick summary and
+requires a clean hold exit without `TypeError`.
+
+The frozen launcher SHA-256 is
+`7bcf2900bba180646e651ea10bdf03fe7c48a1be85c2be672fd4ff5e8db75b72`.
+The preregistration and launcher review bind a new unused evidence directory
+and the exact operator handshake. They authorize no robot access, torque,
+motion, policy execution, x=.08, or grounded replay; fresh explicit suspended
+x=0 authorization is still required.
+
+## D078 — Accept the readiness-cued suspended T247 x=0 arm
+
+Accepted as `PASS_REVIEWED_T247_GATE5_X0`. After the frozen five-second home
+entry, the monitored launcher produced exactly one clean readiness `PASS`
+record while paused and before policy staging. The operator pressed A once only
+after the explicit GO cue. The runtime then completed exactly 250 calibration
+and 600 locomotion ticks at fixed x=0.
+
+Tick p99/p99.9 were 20.058568/20.115872 ms and bus p99.9/max were
+3.836193/3.919508 ms. All 56,960 expected transactions succeeded. There were
+zero read bursts, stale required samples, alarms, partial bytes, unexpected
+packets, telemetry drops, or 3.75 rad/s envelope events. Runtime cutoff and a
+separate all-14 register-40 readback confirmed torque off. The operator reported
+that everything looked and sounded normal.
+
+The external archive reproduced SHA-256
+`ace166ceec085bb3d22b817e8256fcb3ef148b9313ac7f0666d6768d84c19633`
+locally. Independent review verified every contained hash, all 3,564 schemas,
+contiguous control ticks 0-3559, exact active-stage counts, and an exact summary
+replay after source-path normalization.
+
+This decision earns only a separately frozen and reviewed suspended x=.08 arm.
+It does not authorize x=.08, automatic promotion, grounded replay, or robot
+clearance. The three earlier failed pre-policy attempts remain preserved and
+are not reclassified.
+
+## D079 — Freeze a distinct readiness-cued T247 x=.08 arm
+
+Accepted offline only. The new launcher hardcodes fixed command x=.08 and has
+no command selector or second-command path. Before any governor or serial
+access, it validates the reviewed x=0 receipt at SHA-256
+`9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096`
+and rechecks its candidate, command, duration, operator, cutoff, and advancement
+fields. It also pins the accepted no-motion readiness receipt, runtime trees,
+assets, config, IMU calibration, controller identity, and RT settings.
+
+The x=.08 launcher SHA-256 is
+`d5ff0da2b7ea09528baeb7ea58b91168b5af06f874c02f7704e6d571d5a83fd7`.
+It preserves the evidence-visible readiness handshake: the operator does not
+press A until the agent durably observes one clean readiness `PASS` record and
+issues the exact GO cue. It requires exactly 250 calibration and 600 locomotion
+ticks, all summary gates, torque-off, UART release, controller identity after
+the run, and governor restoration.
+
+This freeze authorizes no robot access, torque, motion, policy execution, or
+grounded replay. The x=.08 run remains `NOT_RUN` until the exact commit is green
+in CI, staged without hardware access, and receives fresh explicit suspended
+motion authorization.
+
+## D080 — Accept exact no-motion X5 staging for the x=.08 arm
+
+Accepted as code-staging evidence only. Commit
+`90b685b6c912dcd018a3779bbd1d3d4f72ec311f` was transferred through a complete
+hash-verified Git bundle because the board's configured GitHub proxy was
+unreachable. A detached clean worktree was created at
+`/home/sunrise/open-duck-x5-gate5-x008`. Its runtime and schema trees, launcher,
+preregistration, and reviewed x=0 receipt all reproduced their frozen hashes.
+
+The staging operation did not open `/dev/ttyS1`, access sensors, load the policy,
+change the CPU governor, enable torque, or move the robot. After staging, the
+UART was free and the governor remained `schedutil`; the temporary board bundle
+was removed. This earns only a fresh exact suspended x=.08 authorization request.
+It does not authorize the run or grounded motion.
+
+## D081 — Accept the readiness-cued suspended T247 x=.08 arm
+
+Accepted as `PASS_REVIEWED_T247_GATE5_X008`. The separately frozen launcher
+validated the reviewed x=0 receipt before device access, entered home over five
+seconds, produced exactly one clean startup-readiness `PASS` while paused, and
+waited for the explicit operator cue. The operator pressed A once only after
+the agent issued `GO — press A once now`. The runtime completed exactly 250
+calibration and 600 locomotion ticks at fixed x=.08 with no second-command path.
+
+Tick p99/p99.9 were 20.126557/20.137626 ms and bus p99.9/max were
+3.898666/4.008135 ms. All 46,224 expected transactions succeeded. There were
+zero read bursts, stale required samples, alarms, partial bytes, unexpected
+packets, telemetry drops, or 3.75 rad/s envelope events. All 20 summary gates
+and all 15 candidate checks passed. The operator reported that the run "looked
+and sounded clean to me."
+
+Runtime cutoff and a separate all-14 register-40 readback confirmed torque off.
+The external archive reproduced SHA-256
+`2a06a0f9e5489f4d751098ca0aab221bf50b4b6e9694e0cc1a2e126c019911c5`
+locally. Independent review verified every member hash, all 2,893 schemas,
+contiguous ticks 0-2888, the exact 250-calibration then 600-locomotion stage
+sequence, and an exact local summary replay after source-path normalization.
+
+The suspended Gate 5 x=0 and x=.08 sequence is complete and the reviewed
+runtime/policy is ready for RDK-X5 handoff. This decision grants no automatic
+promotion, repeat motion authority, grounded replay, or grounded robot
+clearance; those remain outside this repository's authority.

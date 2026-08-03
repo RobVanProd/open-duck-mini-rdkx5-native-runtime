@@ -1,0 +1,54 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_x008_staging_review.v1",
+  "status": "READY_FOR_FRESH_EXPLICIT_SUSPENDED_T247_GATE5_X008_AUTHORIZATION",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "scope": {
+    "operation": "code staging and hash verification only",
+    "board_host": "192.168.1.50",
+    "board_directory": "/home/sunrise/open-duck-x5-gate5-x008",
+    "serial_opened": false,
+    "servo_bus_accessed": false,
+    "sensors_accessed": false,
+    "policy_loaded": false,
+    "governor_changed": false,
+    "torque_enabled": false,
+    "motion": false
+  },
+  "transfer": {
+    "method": "complete Git bundle after the board's configured GitHub proxy was unreachable",
+    "local_bundle": "D:\\CodexArtifacts\\open-duck-x5-runtime\\t247-x008-freeze-90b685b.bundle",
+    "bundle_sha256": "d154d87a4157fb169caa25bda0ed6a855c9ab4928e0b2395540f7c1fe3711870",
+    "bundle_bytes": 1464060,
+    "remote_bundle_removed_after_verified_fetch": true
+  },
+  "staged_source": {
+    "commit": "90b685b6c912dcd018a3779bbd1d3d4f72ec311f",
+    "detached_head_exact": true,
+    "tracked_worktree_clean": true,
+    "source_tree": "2aba58167a82b47bdd6942da25d4913c098cbfba",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "launcher_path": "setup/run_t247_gate5_x008.sh",
+    "launcher_sha256": "d5ff0da2b7ea09528baeb7ea58b91168b5af06f874c02f7704e6d571d5a83fd7",
+    "launcher_executable": true,
+    "launcher_bash_syntax": "PASS",
+    "launcher_help_path": "PASS_NON_MUTATING",
+    "preregistration_sha256": "00aa292f9a39445690d5ec654aadc46edde49021d6cb467a524e739d7009d457",
+    "x0_review_sha256": "9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096"
+  },
+  "board_state_after_staging": {
+    "serial_device": "/dev/ttyS1",
+    "serial_device_owner": "free",
+    "cpu_governor": "schedutil"
+  },
+  "required_authorization_text": "I am physically present; the robot is securely supported on its stand, hands are clear, and the known-good Xbox controller is connected. I authorize the frozen readiness-cued T247 Gate 5 x=.08 run on /dev/ttyS1, including torque enable, five-second home entry, one startup-readiness exchange, and exactly 850 active policy ticks. I will not press A until you say GO — press A once now. No other command and no grounded motion.",
+  "authority": {
+    "staging_review_only": true,
+    "robot_access": false,
+    "torque": false,
+    "motion": false,
+    "gate5_run": false,
+    "x008": false,
+    "grounded_replay": false
+  }
+}

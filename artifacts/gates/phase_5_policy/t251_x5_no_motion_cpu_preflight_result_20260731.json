@@ -1,0 +1,135 @@
+{
+  "asset_receipts": {
+    "calibrator": {
+      "bytes": 55573,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251/assets/calibrator.onnx",
+      "sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576"
+    },
+    "deployment_policy": {
+      "bytes": 993875,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251/assets/policy.onnx",
+      "sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
+    },
+    "fixed_p30_runtime_observer_fit": {
+      "bytes": 18664,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251/assets/p30.json",
+      "sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f"
+    },
+    "projected_reference_table": {
+      "bytes": 259604,
+      "path": "/home/sunrise/open_duck_x5_preflight/t251/assets/reference.npz",
+      "sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+    }
+  },
+  "authority": {
+    "gate5": false,
+    "grounded_replay": false,
+    "motion": false,
+    "no_motion_x5_cpu_preflight_executed": true,
+    "policy_deployed": false,
+    "production_runtime_modified": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "torque": false
+  },
+  "checks": {
+    "aarch64_linux": true,
+    "all_asset_receipts_exact": true,
+    "all_values_finite": true,
+    "context_immutable": true,
+    "cpu_provider_only": true,
+    "exact_10000_tick_locomotion_chain": true,
+    "exact_250_tick_calibration": true,
+    "no_robot_device_descriptors_before_or_after": true,
+    "no_robot_interface_imports": true,
+    "performance_governor_verified": true,
+    "runtime_source_receipt_exact": true,
+    "sched_fifo_verified": true,
+    "single_cpu_affinity_verified": true,
+    "stage_latency_max": false,
+    "stage_latency_p99": false,
+    "stage_latency_p99_9": false,
+    "zero_home_return_ticks": true,
+    "zero_measured_rate_excess": true
+  },
+  "date": "2026-07-31",
+  "decision": "HOLD_T250_X5_INTEGRATION_AND_ATTRIBUTE_WITHOUT_CHANGING_THRESHOLDS",
+  "execution": {
+    "calibration_context_sha256": "69a92214a3365d810956997b2f4eb7bf97fffda927c8fb36fe41a521dc322cea",
+    "calibration_ticks": 250,
+    "home_return_ticks": 0,
+    "initialization_and_warmup_ms": 134.19944,
+    "locomotion_ticks": 10000,
+    "maximum_abs_action": 0.8269020915031433,
+    "maximum_rate_excess_rad_s": 0.0,
+    "stage_latency_compute_only": {
+      "max_ms": 55.288782,
+      "mean_ms": 3.039803887121951,
+      "min_ms": 1.449041,
+      "p50_ms": 2.926458,
+      "p95_ms": 3.01102255,
+      "p99_9_ms": 54.64240899400001,
+      "p99_ms": 3.45919992,
+      "samples": 10250
+    }
+  },
+  "failed_checks": [
+    "stage_latency_max",
+    "stage_latency_p99",
+    "stage_latency_p99_9"
+  ],
+  "git": {
+    "branch": "codex/policy-deployment-consolidation",
+    "commit": "df314e36919a8ea6fc0b0966356351cad786c3de",
+    "tracked_status_clean": true
+  },
+  "host_source": {
+    "bytes": 37405,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251/source/src/open_duck_x5/winner_v13_state_coherent.py",
+    "sha256": "025cbae910f214c28e393f906388cae2723336cd1f024125768bdfae4dfb9cef"
+  },
+  "interpretation": {
+    "certifies": "exact assets and state-coherent host are CPU-compatible on the X5 with bounded policy-host compute time under the registered RT process setup",
+    "does_not_certify": "20 ms full control-loop period, servo-bus time, live sensors, torque, motion, behavior, or Gate 5"
+  },
+  "isolation_evidence": {
+    "external_send_implementation": false,
+    "robot_descriptors_after": {},
+    "robot_descriptors_before": {},
+    "robot_modules_after": [],
+    "robot_modules_before": [],
+    "serial_gpio_i2c_controller_or_torque_access": false,
+    "staging_root": "/home/sunrise/open_duck_x5_preflight/t251"
+  },
+  "platform": {
+    "affinity": [
+      7
+    ],
+    "governor": "performance",
+    "machine": "aarch64",
+    "numpy": "2.2.6",
+    "onnxruntime": "1.23.2",
+    "onnxruntime_device": "CPU",
+    "python": "3.10.12",
+    "release": "6.1.83",
+    "scheduler": "SCHED_FIFO",
+    "scheduler_priority": 80,
+    "session_providers": {
+      "calibrator": [
+        "CPUExecutionProvider"
+      ],
+      "locomotion": [
+        "CPUExecutionProvider"
+      ]
+    },
+    "system": "Linux"
+  },
+  "preregistration": {
+    "bytes": 4402,
+    "path": "/home/sunrise/open_duck_x5_preflight/t251/source/artifacts/gates/phase_5_policy/t251_x5_no_motion_cpu_preflight_preregistration_20260731.json",
+    "sha256": "7593cd1a87733fcf469a7c9d68f2aa0361456b32a24fa70c49a5109a3b3ed138"
+  },
+  "result_sha256": "3e78002a6b1fb23e38881a0813a153678eaf1f53003ae613cf5a4ef9c5ba875c",
+  "schema_version": "open_duck_x5.t251_x5_no_motion_cpu_preflight_result.v1",
+  "status": "HOLD_T251_X5_NO_MOTION_CPU_PREFLIGHT"
+}

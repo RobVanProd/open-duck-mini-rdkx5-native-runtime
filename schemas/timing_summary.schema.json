@@ -30,6 +30,8 @@
     "max_read_burst_ticks",
     "tracking_joint_index",
     "tracking_absolute_error_rad",
+    "startup_readiness",
+    "overall_bus_max_ms",
     "environment",
     "jsonl_sha256",
     "gates"
@@ -124,6 +126,13 @@
       },
       "additionalProperties": false
     },
+    "startup_readiness": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/startupReadiness" }
+      ]
+    },
+    "overall_bus_max_ms": { "$ref": "#/$defs/nullableNonnegative" },
     "environment": {
       "type": "object",
       "required": [
@@ -139,6 +148,10 @@
         "torque_enabled",
         "torque_off_status",
         "watchdog_consecutive_failures",
+        "controller",
+        "controller_backend",
+        "startup_readiness_exchange",
+        "startup_readiness_output",
         "hardware_authorized",
         "suspended_or_benched",
         "moving_gate_authorized",
@@ -161,6 +174,10 @@
         "torque_enabled": { "type": "boolean" },
         "torque_off_status": { "$ref": "#/$defs/errorName" },
         "watchdog_consecutive_failures": { "type": "integer", "minimum": 1 },
+        "controller": { "enum": ["none", "xbox", "f710"] },
+        "controller_backend": { "type": ["string", "null"] },
+        "startup_readiness_exchange": { "type": "boolean" },
+        "startup_readiness_output": { "type": ["string", "null"] },
         "hardware_authorized": { "type": "boolean" },
         "suspended_or_benched": { "type": "boolean" },
         "moving_gate_authorized": { "type": "boolean" },
@@ -191,6 +208,9 @@
         "realtime_verified_when_required",
         "authorization_provenance",
         "moving_gate_scope",
+        "startup_readiness_required",
+        "startup_readiness_passed",
+        "overall_bus_max_under_5_ms",
         "gate2_home_hold_candidate",
         "gate4_sine_candidate"
       ],
@@ -277,6 +297,67 @@
         "device": { "type": "integer", "minimum": 0 },
         "unexpected_id": { "type": "integer", "minimum": 0 },
         "io": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "startupReadiness": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "failures",
+        "tick_start_monotonic_ns",
+        "tick_work_ms",
+        "release_lateness_ms",
+        "next_measured_tick_period_ms",
+        "bus_total_ms",
+        "group_round_trip_ms",
+        "extended_round_trip_ms",
+        "write_status",
+        "per_servo_status",
+        "per_servo_device_status",
+        "extended_status",
+        "extended_servo_id",
+        "extended_device_status",
+        "partial_bytes",
+        "unexpected_packets",
+        "all_fresh",
+        "instrumentation"
+      ],
+      "properties": {
+        "schema_version": { "const": "open_duck_x5.startup_readiness_exchange.v1" },
+        "status": { "enum": ["PASS", "FAIL"] },
+        "failures": { "type": "array", "items": { "type": "string" } },
+        "tick_start_monotonic_ns": { "type": "integer", "minimum": 0 },
+        "tick_work_ms": { "type": "number", "minimum": 0 },
+        "release_lateness_ms": { "type": "number", "minimum": 0 },
+        "next_measured_tick_period_ms": { "$ref": "#/$defs/nullableNonnegative" },
+        "bus_total_ms": { "type": "number", "minimum": 0 },
+        "group_round_trip_ms": { "type": "number", "minimum": 0 },
+        "extended_round_trip_ms": { "type": "number", "minimum": 0 },
+        "write_status": { "$ref": "#/$defs/errorName" },
+        "per_servo_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/errorName" }
+        },
+        "per_servo_device_status": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        "extended_status": { "$ref": "#/$defs/errorName" },
+        "extended_servo_id": { "type": "integer" },
+        "extended_device_status": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "partial_bytes": { "type": "integer", "minimum": 0 },
+        "unexpected_packets": { "type": "integer", "minimum": 0 },
+        "all_fresh": { "type": "boolean" },
+        "instrumentation": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
       },
       "additionalProperties": false
     }

@@ -5,8 +5,10 @@ torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
 restored `schedutil`. Gate 3 completed the corrected nine-label BNO055/contact
 matrix with no servo path. Gate 4 completed its frozen two-frequency sine
-sequence. Gate 5 remains `NOT_RUN`; authorization for one gate does not
-authorize the next.
+sequence. After three preserved pre-policy halts and a reviewed readiness
+repair, Gate 5 completed both separately authorized suspended T247 arms, x=0
+and x=.08. Both are `PASS_REVIEWED`. No completed authorization may be reused,
+and grounded motion remains outside this runbook.
 
 ## Common preflight
 
@@ -414,56 +416,109 @@ alarms, or telemetry drops. Torque-off and governor restoration were confirmed.
 Rob observed smooth motion with nothing weird. Gate 4 is `PASS_REVIEWED`; this
 does not authorize Gate 5.
 
-## Gate 5 — Suspended policy replay
+## Gate 5 — Suspended T247 policy replay
 
-- Golden observation/action comparison must already pass.
-- Run `x=0.0`, review, then separately authorize `x=0.08`.
-- Full telemetry includes observation, actions, sent targets, implied target velocity, envelope events, joint state/staleness, sensor ages, bus classes, current, voltage, temperature, and tick timing.
-- At `x=0.08`: transaction failures <0.1%, zero bursts, tick p99 <=21 ms, tick p99.9 <=22 ms.
+**PASS REVIEWED; all launchers and authorizations are consumed.** Do not invoke
+any Gate 5 launcher again from this evidence. The first attempt halted while
+paused after zero active policy ticks. Its first replacement halted on a
+readiness JSON defect. The phase-JSON retry then halted because A was pressed
+before readiness completed. The readiness-cued x=0 and separately frozen x=.08
+arms later completed and passed. Every attempt recorded or independently
+verified torque-off.
 
-The operational serial runtime is reserved for this gate. It refuses to start
-unless the config has `start_paused=true`, the run has a finite tick count, and
-the exact fixed command is either `0` or `0.08`. Example for the first,
-separately authorized replay:
+T247 still uses its reviewed, default-disabled 115-D two-stage path; the default
+101-D v1 path and the candidate policy weights remain unchanged. The bounded
+startup-readiness correction passed its replacement no-motion revalidation and
+was then used by both accepted motion arms.
+
+The replacement no-motion command below is retained only as consumed historical
+provenance. It performed one recorded readiness exchange and exactly 10,000
+measured ticks without enabling torque or loading a policy:
 
 ```bash
-open_duck_x5_runtime --bus serial --config ~/duck_config.json \
-  --policy ~/candidate-101.onnx --controller xbox \
-  --fixed-command-x 0 --max-active-ticks 600 --max-ticks 900 \
-  --require-realtime --rt-cpu 7 --rt-priority 80 \
-  --gate5-authorized --hardware-authorized --suspended-or-benched \
-  --telemetry gate5-x0.jsonl
+cd /home/sunrise/open-duck-x5-startup-readiness
+sudo setup/run_gate5_startup_readiness_revalidation.sh \
+  --source-root /home/sunrise/open-duck-x5-startup-readiness \
+  --output-dir /home/sunrise/duck-evidence/gate5-startup-readiness-20260802 \
+  --hardware-authorized --suspended-or-benched
 ```
 
-The operator unpauses with the preserved controller action only after the home
-hold is visually verified. Review and close the `x=0` artifact before Rob
-separately authorizes a new invocation using `--fixed-command-x 0.08`. A 115-D
-or stateful candidate is rejected by the frozen 101/14 host and cannot be used
-as a substitute export. The verified winner is such a stateful 115-D policy;
-its 512000-step checkpoint is selected and its default-off v2 path passes the
-offline matrix, but that path has no reviewed serial integration. Gate 5 remains
-blocked on the policy's passed variable-configuration envelope and
-`robot_clearance: true`, automatic supported calibration, the no-servo X5 CPU
-preflight, and a separately frozen v2 launcher. Per-build COM measurement is
-not required and cannot waive those gates.
+Do not rerun it from the consumed authorization.
+
+The completed motion sequence followed this strict order:
+
+1. Run only x=0 after explicit authorization for that exact suspended run.
+2. Independently summarize, hash, and review the complete x=0 artifact.
+3. Request separate authorization for x=.08 only after x=0 was reviewed green.
+4. Run x=.08 as a new launcher invocation; the two arms were never chained.
+
+Each arm contains exactly 850 valid active ticks: 250 calibration ticks and 600
+locomotion ticks. The 3,850 total-tick cap allows at most 60 seconds for the
+paused operator window. The runtime enters home over five seconds and then
+holds paused until the controller's preserved A-edge toggle unpauses it.
+
+The following attempt-1 command is retained only for provenance and must not be
+rerun:
+
+```bash
+cd /home/sunrise/open-duck-x5-gate5-t247
+sudo setup/run_t247_gate5_single_arm.sh \
+  --source-root /home/sunrise/open-duck-x5-gate5-t247 \
+  --asset-root /home/sunrise/open-duck-x5-gate5-t247-assets \
+  --config /home/sunrise/duck_config.json \
+  --imu-calibration /home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json \
+  --output-dir /home/sunrise/duck-evidence/gate5-t247-x0-20260801 \
+  --fixed-command-x 0 \
+  --hardware-authorized --suspended-or-benched \
+  --gate5-moving-authorized
+```
+
+Do not run that historical command. The phase-JSON repair and its new
+single-attempt launcher are now frozen, but still require fresh explicit
+suspended x=0 authorization. The exact reviewed command is:
+
+```bash
+cd /home/sunrise/open-duck-x5-gate5-x0-replacement
+sudo setup/run_t247_gate5_x0_replacement.sh \
+  --source-root /home/sunrise/open-duck-x5-gate5-x0-replacement \
+  --asset-root /home/sunrise/open-duck-x5-gate5-t247-assets \
+  --config /home/sunrise/duck_config.json \
+  --imu-calibration /home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json \
+  --output-dir /home/sunrise/duck-evidence/gate5-t247-x0-readiness-cued-retry-20260802 \
+  --hardware-authorized --suspended-or-benched \
+  --gate5-moving-authorized
+```
+
+This invocation is launched in a monitored background session. The operator
+must not press A until the agent has observed the clean startup-readiness
+`PASS` record and explicitly says `GO — press A once now`. An early halt is a
+stop, never a cue or retry.
+
+The launcher validates the source tree, config, IMU profile, policy,
+calibrator, observer fit, reference table, route manifests, and context router
+before changing the governor or opening the UART. It requires `/dev/ttyS1`,
+isolated CPU 7, `SCHED_FIFO` priority 80, the temporary `performance` governor,
+and the Xbox controller. It restores the original `schedutil` governor on
+normal, failure, and signal exits.
 
 During serial Gate 5 the controller is pause/unpause-only. The authorized X
-command is fixed, all lateral/yaw/head command fields are zero, and the phase
-factor is 1.0; joystick drift or LB cannot mutate the replay.
+command is fixed; lateral, yaw, and head commands are zero; and the phase factor
+is 1.0. Controller drift, head-mode input, or sprint input cannot mutate the
+replay.
 
-After the runtime closes, independently validate and summarize the complete
-stream before reviewing any threshold:
+Full JSONL contains the 115-D observation, action, target, implied velocity,
+envelope events, joint state and staleness, sensor ages, route/stage, bus error
+classes, current, voltage, temperature, and timing. The launcher runs the
+independent summarizer after torque-off and governor restoration. A serial
+summary stays `REVIEW_REQUIRED`; the launcher never promotes a gate.
 
-```bash
-summarize_control_run --input gate5-x0.jsonl \
-  --output gate5-x0-summary.json
-python tools/hash_artifacts.py
-python tools/hash_artifacts.py --check
-```
+Both arms require all structural and safety checks plus transaction failures
+below 0.1%, zero read bursts, tick p99 at most 21 ms, tick p99.9 at most 22 ms,
+bus maximum below 5 ms, zero stale required samples, zero device alarms, zero
+telemetry drops, and confirmed torque-off. At x=.08, the existing tracking and
+behavior comparison is the direct decision against the old runtime baseline.
 
-The 900-tick total cap bounds the paused operator window; the run completes only
-after 600 valid policy ticks. Reaching the total cap first is a safety halt.
-Mock summaries are informational, and serial summaries remain
-`REVIEW_REQUIRED` even when their recomputed candidate booleans are green.
-
-Passing Gate 5 ends this workstream. It does not authorize grounded replay or policy deployment.
+The x=.08 launcher additionally required a hash-verified
+`PASS_REVIEWED_T247_GATE5_X0` receipt. Both accepted receipts are now frozen.
+Passing suspended Gate 5 ends this workstream; it does not authorize another
+motion run or grounded replay.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,16 @@ from open_duck_x5.control_summary import (
     main as summary_main,
 )
 from open_duck_x5.runtime import main as runtime_main
+from open_duck_x5.t247_command_routes import (
+    T247_CALIBRATOR_SHA256,
+    T247_COMMAND_MANIFEST_SHA256,
+    T247_CONTEXT_ROUTER_SHA256,
+    T247_P30_SHA256,
+    T247_POLICY_CONTRACT,
+    T247_POLICY_SHA256,
+    T247_REFERENCE_SHA256,
+    T247_RUNTIME_CONTRACT_ID,
+)
 
 
 def _example_config() -> Path:
@@ -28,6 +39,86 @@ def _summary_validator() -> Draft202012Validator:
     schema = json.loads(path.read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema)
+
+
+def _realtime_event(start_timestamp: int) -> dict[str, object]:
+    return {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": start_timestamp,
+        "event": "realtime_verified",
+        "details": {
+            "cpu": 5,
+            "scheduler": "SCHED_FIFO",
+            "priority": 80,
+            "isolated": True,
+            "affinity": [5],
+            "initial_affinity": [0, 1, 2, 3, 4, 5],
+            "housekeeping_affinity": [0, 1, 2, 3, 4],
+            "background_threads": [
+                {
+                    "tid": 101,
+                    "affinity": [0, 1, 2, 3, 4],
+                    "scheduler": 0,
+                    "priority": 0,
+                }
+            ],
+        },
+    }
+
+
+def _startup_readiness_event(first_tick_timestamp: int) -> dict[str, object]:
+    tick_start = first_tick_timestamp - 20_000_000
+    return {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": tick_start + 4_000_000,
+        "event": "startup_readiness",
+        "details": {
+            "status": "PASS",
+            "failures": [],
+            "paused": True,
+            "policy_staged": False,
+            "policy_committed_ticks": None,
+            "phase": [0.0, 0.0],
+            "tick_start_monotonic_ns": tick_start,
+            "tick_work_ms": 4.0,
+            "release_lateness_ms": 0.0,
+            "next_release_monotonic_ns": first_tick_timestamp,
+            "bus_total_ms": 3.9,
+            "group_round_trip_ms": 3.0,
+            "extended_round_trip_ms": 0.5,
+            "write_status": "ok",
+            "all_fresh": True,
+            "per_servo_status": ["ok"] * 14,
+            "per_servo_device_status": [0] * 14,
+            "extended_status": "ok",
+            "extended_device_status": 0,
+            "imu_stale": False,
+            "contacts_stale": False,
+            "partial_bytes": 0,
+            "unexpected_packets": 0,
+        },
+    }
+
+
+def _insert_startup_readiness(records: list[dict[str, object]]) -> None:
+    start = records[0]
+    realtime = next(
+        (record for record in records if record.get("event") == "realtime_verified"),
+        None,
+    )
+    lower_timestamp = int(start["timestamp_monotonic_ns"])
+    if realtime is not None:
+        lower_timestamp = max(lower_timestamp, int(realtime["timestamp_monotonic_ns"]))
+    readiness_tick_start = lower_timestamp + 1_000_000
+    first_tick_timestamp = readiness_tick_start + 20_000_000
+    ticks = [record for record in records if record.get("tick") is not None]
+    for index, tick in enumerate(ticks):
+        tick["timestamp_monotonic_ns"] = first_tick_timestamp + index * 20_000_000
+        tick["tick_period_ms"] = 20.0
+    halt = records[-1]
+    halt["timestamp_monotonic_ns"] = first_tick_timestamp + len(ticks) * 20_000_000
+    insertion_index = 2 if realtime is not None else 1
+    records.insert(insertion_index, _startup_readiness_event(first_tick_timestamp))
 
 
 def _run_paused(
@@ -53,6 +144,101 @@ def _run_paused(
         == 0
     )
     return telemetry
+
+
+def _synthetic_t247_telemetry(tmp_path: Path, *, fixed_x: float = 0.08) -> Path:
+    source = _run_paused(tmp_path, ticks=1)
+    records = [json.loads(line) for line in source.read_text(encoding="utf-8").splitlines()]
+    start = records[0]
+    template = records[1]
+    halt = records[-1]
+    active_ticks = 252
+    details = start["details"]
+    details["contract_id"] = T247_RUNTIME_CONTRACT_ID
+    details["fixed_command_x"] = fixed_x
+    details["max_ticks"] = active_ticks + 1
+    details["max_active_ticks"] = active_ticks
+    details["policy"] = {
+        "contract": T247_POLICY_CONTRACT,
+        "path": "/frozen/policy.onnx",
+        "sha256": T247_POLICY_SHA256,
+        "calibration_ticks": 250,
+        "calibrator_inputs": {
+            "obs": [1, 115],
+            "previous_action": [1, 14],
+            "h_in": [1, 64],
+        },
+        "locomotion_inputs": {
+            "obs": [1, 115],
+            "previous_action": [1, 14],
+            "h_in": [1, 64],
+            "calibration_context": [1, 64],
+        },
+        "outputs": {
+            "action": [1, 14],
+            "previous_action_out": [1, 14],
+            "h_out": [1, 64],
+        },
+        "context_routes": 6,
+        "exact_command_routes": 24,
+        "fallback_preserved": True,
+        "assets": {
+            "calibrator": {"path": "/frozen/calibrator.onnx", "sha256": T247_CALIBRATOR_SHA256},
+            "command_route_manifest": {
+                "path": "/frozen/manifest.json",
+                "sha256": T247_COMMAND_MANIFEST_SHA256,
+            },
+            "p30_fit": {"path": "/frozen/p30.json", "sha256": T247_P30_SHA256},
+            "reference_table": {
+                "path": "/frozen/reference.npz",
+                "sha256": T247_REFERENCE_SHA256,
+            },
+            "context_route_root": {
+                "path": "/frozen/context-routes",
+                "verified_models": 6,
+                "router_sha256": T247_CONTEXT_ROUTER_SHA256,
+            },
+            "command_route_root": {
+                "path": "/frozen/command-routes",
+                "verified_models": 24,
+            },
+        },
+    }
+    tick_records = []
+    first_timestamp = int(start["timestamp_monotonic_ns"]) + 20_000_000
+    for index in range(active_ticks):
+        tick = deepcopy(template)
+        tick["tick"] = index
+        tick["timestamp_monotonic_ns"] = first_timestamp + index * 20_000_000
+        tick["tick_period_ms"] = None if index == 0 else 20.0
+        tick["paused"] = False
+        tick["observation_valid"] = True
+        observation = [0.0] * 115
+        stage = "calibration" if index < 250 else "locomotion"
+        if stage == "locomotion":
+            observation[6] = fixed_x
+        tick["observation"] = observation
+        tick["action"] = [0.0] * 14
+        tick["extended"]["servo_id"] = details["servo_ids"][index % 14]
+        tick["policy_host"] = {
+            "stage": stage,
+            "selected_context_route": (
+                "lower-cond1" if index >= 249 else None
+            ),
+            "selected_command_route": (
+                ("x000" if fixed_x == 0.0 else "x080")
+                if stage == "locomotion"
+                else ("fallback" if index == 249 else None)
+            ),
+        }
+        tick_records.append(tick)
+    halt["timestamp_monotonic_ns"] = first_timestamp + active_ticks * 20_000_000
+    output = tmp_path / "synthetic-t247.jsonl"
+    output.write_text(
+        "\n".join(json.dumps(record) for record in (start, *tick_records, halt)) + "\n",
+        encoding="utf-8",
+    )
+    return output
 
 
 def test_paused_mock_control_summary_is_structurally_complete_but_not_gate5(
@@ -155,6 +341,53 @@ def test_active_policy_summary_preserves_provenance_command_and_envelope(
     assert summary["gates"]["zero_non_x_commands"] is True
 
 
+def test_t247_summary_validates_calibration_locomotion_and_route_sequence(
+    tmp_path: Path,
+) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+    start = json.loads(telemetry.read_text(encoding="utf-8").splitlines()[0])
+    event_schema = json.loads(
+        (Path(__file__).parents[1] / "schemas/runtime_event.schema.json").read_text()
+    )
+    Draft202012Validator(event_schema).validate(start)
+
+    summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(summary)
+    assert summary["active_policy_ticks"] == 252
+    assert summary["command"]["observed_x"]["min"] == 0.08
+    assert summary["command"]["observed_x"]["max"] == 0.08
+    assert summary["command"]["matches_fixed_x"] is True
+    assert summary["gates"]["t247_stage_sequence_exact"] is True
+    assert summary["gates"]["t247_route_sequence_exact"] is True
+
+
+def test_t247_summary_rejects_wrong_locomotion_route(tmp_path: Path) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    records[-2]["policy_host"]["selected_command_route"] = "x000"
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ControlSummaryError, match="command route differs"):
+        summarize_control_run(telemetry)
+
+
+def test_t247_summary_rejects_legacy_top_level_contract_id(tmp_path: Path) -> None:
+    telemetry = _synthetic_t247_telemetry(tmp_path)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    records[0]["details"]["contract_id"] = "open-duck-mini.best-walk.101x14.v1"
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ControlSummaryError, match="wrong runtime contract ID"):
+        summarize_control_run(telemetry)
+
+
 def test_summary_rejects_tick_discontinuity(tmp_path: Path) -> None:
     telemetry = _run_paused(tmp_path, ticks=3)
     records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
@@ -255,23 +488,7 @@ def test_synthetic_serial_summary_always_requires_human_review(
     details["gate5_authorized"] = True
     details["hardware_authorized"] = True
     details["suspended_or_benched"] = True
-    realtime_event = {
-        "schema_version": "open_duck_x5.runtime_event.v1",
-        "timestamp_monotonic_ns": start["timestamp_monotonic_ns"],
-        "event": "realtime_verified",
-        "details": {
-            "cpu": 5,
-            "scheduler": "SCHED_FIFO",
-            "priority": 80,
-            "isolated": True,
-            "affinity": [5],
-            "initial_affinity": [0, 1, 2, 3, 4, 5],
-            "housekeeping_affinity": [0, 1, 2, 3, 4],
-            "background_threads": [
-                {"tid": 101, "affinity": [0, 1, 2, 3, 4], "scheduler": 0, "priority": 0}
-            ],
-        },
-    }
+    realtime_event = _realtime_event(int(start["timestamp_monotonic_ns"]))
     records.insert(1, realtime_event)
     telemetry.write_text(
         "\n".join(json.dumps(record) for record in records) + "\n",
@@ -284,6 +501,103 @@ def test_synthetic_serial_summary_always_requires_human_review(
     assert summary["informational_only"] is False
     assert summary["review_status"] == "REVIEW_REQUIRED"
     assert summary["hardware_gate_status"] == "REVIEW_REQUIRED"
+    assert summary["startup_readiness"] is None
+    assert summary["gates"]["startup_readiness_passed"] is False
+    assert summary["gates"]["gate5_timing_and_bus_candidate"] is False
+
+    _insert_startup_readiness(records)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    ready_summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(ready_summary)
+    assert ready_summary["startup_readiness"]["status"] == "PASS"
+    assert ready_summary["gates"]["startup_readiness_passed"] is True
+    assert ready_summary["timing"]["tick_period_ms"]["min"] == 20.0
+
+
+def test_startup_readiness_is_ordered_and_anchors_first_tick_period(
+    tmp_path: Path,
+) -> None:
+    telemetry = _run_paused(tmp_path, ticks=3)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+
+    summary = summarize_control_run(telemetry)
+
+    _summary_validator().validate(summary)
+    assert summary["startup_readiness"]["status"] == "PASS"
+    assert summary["timing"]["tick_period_ms"] == {
+        "min": 20.0,
+        "mean": 20.0,
+        "p95": 20.0,
+        "p99": 20.0,
+        "p99_9": 20.0,
+        "max": 20.0,
+    }
+
+
+def test_summary_rejects_duplicate_or_late_startup_readiness(tmp_path: Path) -> None:
+    telemetry = _run_paused(tmp_path, ticks=2)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    duplicate = deepcopy(records)
+    duplicate.insert(2, deepcopy(duplicate[1]))
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in duplicate) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="duplicated or out of order"):
+        summarize_control_run(telemetry)
+
+    readiness = records.pop(1)
+    records.insert(2, readiness)
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="duplicated or out of order"):
+        summarize_control_run(telemetry)
+
+
+def test_summary_rejects_dirty_pass_or_null_first_period_after_readiness(
+    tmp_path: Path,
+) -> None:
+    telemetry = _run_paused(tmp_path, ticks=2)
+    records = [json.loads(line) for line in telemetry.read_text(encoding="utf-8").splitlines()]
+    _insert_startup_readiness(records)
+    dirty = deepcopy(records)
+    dirty[1]["details"]["all_fresh"] = False
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in dirty) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="PASS record is not clean"):
+        summarize_control_run(telemetry)
+
+    invalid_phase = deepcopy(records)
+    invalid_phase[1]["details"]["phase"] = 0.0
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in invalid_phase) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="phase must contain exactly 2 values"):
+        summarize_control_run(telemetry)
+
+    first_tick = next(record for record in records if record.get("tick") == 0)
+    first_tick["tick_period_ms"] = None
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in records) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="tick 0 period must be numeric"):
+        summarize_control_run(telemetry)
 
 
 def test_summary_refuses_to_overwrite_control_jsonl(tmp_path: Path) -> None:

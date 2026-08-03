@@ -1,0 +1,119 @@
+{
+  "schema_version": "open_duck_x5.t247_x5_periodic_latency_attribution_audit.v1",
+  "status": "SELECT_WALL_VS_THREAD_CPU_ATTRIBUTION_FOR_PREREGISTRATION",
+  "date": "2026-07-31",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+  "source_evidence": {
+    "review": "artifacts/gates/phase_5_policy/t247_deployment_x5_context_route_corrected_screen_review_20260731.json",
+    "review_file_sha256": "4c3620563b8b0137067689895ec6450b02c49043a6bdfa67c18dd2e273dadc3e",
+    "board_result_external_path": "D:\\CodexArtifacts\\t247-x5-context-route-corrected-screen\\board-evidence\\result.json",
+    "board_result_file_sha256": "9f272fe0d2aa34ae08d0aec129c59d3305d20cb2631df388ce319d5e12783d47",
+    "board_result_canonical_sha256": "48a23f5afc7b4fbb26ef859fc97eed60e6810fb48348c6117fee9f71f8704766",
+    "raw_ticks_external_path": "D:\\CodexArtifacts\\t247-x5-context-route-corrected-screen\\board-evidence\\raw-ticks.npz",
+    "raw_ticks_sha256": "b91b4d05e7a4361ef520ac76302dc20901f6b0a22feb40895d610753c60af1e5",
+    "valid_platform_preconditions": true,
+    "semantic_ticks_byte_exact": 2298,
+    "rate_excess_rad_s": 0.0,
+    "stage_locomotion_ms": {
+      "samples": 2048,
+      "p50": 1.6024825,
+      "p95": 1.7034178999999996,
+      "p99": 2.0972155199999998,
+      "p99_9": 2.2679420730000057,
+      "max": 2.285213
+    },
+    "ticks_above_1_8_ms": 53,
+    "recurring_over_limit_events": 8,
+    "recurring_event_spacing_ticks": [
+      250,
+      251,
+      251,
+      250,
+      251,
+      251,
+      250
+    ],
+    "cluster_window_ticks": 44,
+    "cluster_ticks_above_1_8_ms": 35
+  },
+  "read_only_board_snapshot": {
+    "captured_at": "2026-07-31T21:37:10-04:00",
+    "uptime_seconds": 15516.64,
+    "kernel": "Linux 6.1.83 #3 SMP PREEMPT aarch64",
+    "boot_cmdline": "console=tty1 console=ttyS0,115200 rootfstype=ext4 rw rootwait root=/dev/mmcblk1p2 mtdparts=spi7.0:0x700000@0x0(miniboot),0x180000@0x700000(ubootenv) hobotboot.reason=COLD_BOOT isolcpus=7",
+    "isolated_cpus_sysfs": "7",
+    "governor_after_screen_and_at_snapshot": "schedutil",
+    "kernel_config": {
+      "CONFIG_PREEMPT": "y",
+      "CONFIG_IRQ_TIME_ACCOUNTING": "y",
+      "CONFIG_HZ_100": "y",
+      "CONFIG_NO_HZ_IDLE": "y",
+      "CONFIG_NO_HZ_FULL": "not set"
+    },
+    "boot_parameters_absent": [
+      "nohz_full",
+      "rcu_nocbs",
+      "irqaffinity"
+    ],
+    "default_irq_affinity_mask": "ff",
+    "irqbalance": "inactive",
+    "cpu7_non_user_residents": [
+      "cpuhp/7",
+      "migration/7",
+      "ksoftirqd/7",
+      "kworker/7:0-mm_percpu_wq",
+      "kworker/7:0H-kblockd",
+      "kworker/7:1-mm_percpu_wq",
+      "kworker/7:1H-kblockd"
+    ],
+    "unbound_workqueue_cpumask": "7f",
+    "writeback_workqueue_cpumask": "ff",
+    "cpu7_cumulative_softirqs": {
+      "TIMER": 96,
+      "SCHED": 0,
+      "RCU": 3997
+    },
+    "cpu7_cumulative_arch_timer_interrupts": 48433,
+    "interpretation_limit": "Cumulative counters prove that CPU 7 still executes timer, RCU, and kernel-worker work, but they do not align any specific kernel event to the preserved slow ticks. The existing trace therefore cannot distinguish scheduled thread compute from interrupt, softirq, or preemption time."
+  },
+  "selected_falsifier": {
+    "name": "PAIRED_STAGE_WALL_AND_THREAD_CPU_TIME_ATTRIBUTION",
+    "reason": "Linux thread CPU time excludes time when the policy thread is not executing and IRQ-time accounting is enabled. Recording paired wall and thread CPU durations around the exact stage call can distinguish a slow computation from time stolen by kernel or scheduler work without changing policy numerics or boot state.",
+    "population": "one paced 250-calibration plus 2048-locomotion no-device chain using the already-derived lower-cond0 graph",
+    "measurements": [
+      "per-tick stage wall duration",
+      "per-tick stage CLOCK_THREAD_CPUTIME_ID duration",
+      "per-tick voluntary and involuntary context-switch deltas",
+      "per-tick minor and major page-fault deltas",
+      "start/end CPU7 softirq and interrupt counters",
+      "unchanged action-trace and route witnesses"
+    ],
+    "selection_weight": 0,
+    "cannot_reopen_closed_context_route_specialization": true,
+    "no_reserve_pass_or_gate_claim": true,
+    "pre_registration_required": true,
+    "sealed_execution_package_required": true
+  },
+  "rejected_immediate_actions": {
+    "boot_change": "The current evidence identifies incomplete housekeeping isolation as a competing cause but does not attribute the measured p99 miss to it. Do not reboot or change boot parameters before paired timing speaks; this kernel also lacks CONFIG_NO_HZ_FULL.",
+    "context_route_retry": "The valid corrected screen permanently closed that optimization under its frozen decision rule. The attribution population carries zero reserve selection weight and cannot reverse the closure.",
+    "threshold_change": "The 1.8/2.5/4.0 ms reserve remains unchanged.",
+    "policy_change_or_training": "T247 outputs are exact and no policy behavior defect is implicated; training is unearned.",
+    "native_policy_extension": "The repository escalation rule permits only the servo transaction to move native after a 20 ms loop miss; it does not authorize a native policy host."
+  },
+  "authority": {
+    "read_only_local_and_board_audit": true,
+    "new_x5_execution": false,
+    "boot_change": false,
+    "policy_training": false,
+    "production_integration": false,
+    "robot_descriptors": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "gate5": false
+  }
+}

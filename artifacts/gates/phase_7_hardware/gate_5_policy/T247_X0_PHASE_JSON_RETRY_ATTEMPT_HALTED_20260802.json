@@ -1,0 +1,80 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_x0_phase_json_retry_attempt_review.v1",
+  "status": "HALT_PRE_POLICY_CONTROLLER_TOGGLED_DURING_STARTUP_READINESS",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "33bfb9d34eef6178aea1b739e3fb93b6c6c3b649",
+  "fixed_command_x_m_s": 0.0,
+  "robot_supported": true,
+  "operator_present": true,
+  "authorized_home_entry_completed": true,
+  "startup_readiness_exchange_attempted": 0,
+  "startup_readiness_event_recorded": false,
+  "control_ticks_recorded": 0,
+  "active_policy_ticks": 0,
+  "policy_inference_observed": false,
+  "gate5_passed": false,
+  "x008_earned": false,
+  "robot_clearance": false,
+  "halt": {
+    "runtime_status": 2,
+    "summary_status": 0,
+    "candidate_status": 1,
+    "reason": "SafetyError: physical controller toggled during startup readiness",
+    "location": "the reject-toggle controller check before the readiness bus exchange",
+    "runtime_events": [
+      "runtime_start",
+      "realtime_verified",
+      "runtime_halt"
+    ],
+    "startup_readiness_bus_transaction_executed": false,
+    "secondary_runner_diagnostic_defect": "The candidate validator compared null no-tick timing statistics with numeric limits and raised TypeError after the semantic summary had already completed."
+  },
+  "causal_attribution": {
+    "classification": "OPERATOR_CUE_WAS_NOT_SYNCHRONIZED_TO_RECORDED_READINESS",
+    "evidence": "The only halt reason is the controller toggle rejected before the readiness transaction; no readiness or control tick exists.",
+    "operator_instruction_issue": "The instruction to press A once home appeared to be holding did not expose the brief home-to-readiness boundary and allowed the edge to arrive too early.",
+    "selected_correction": "Launch the unchanged one-shot runner in a monitored background session, poll its JSONL until the clean startup_readiness PASS record is durably visible, and only then issue an explicit GO cue for one A press.",
+    "policy_or_runtime_contract_change": false
+  },
+  "safety_exit": {
+    "runtime_torque_off_attempted": true,
+    "runtime_torque_off_status": "ok",
+    "runtime_summary_torque_off_confirmed": true,
+    "independent_posthalt_disable_torque_status": "ok",
+    "independent_readback_ids": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 13, 14],
+    "independent_readback_status": "14_of_14_ok_torque_enable_zero",
+    "serial_device_released": true,
+    "controller_after_ok": true,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil"
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-t247-x0-phase-json-retry-20260802",
+    "control_jsonl_sha256": "26ebca2be91f8cb123626649c01d7959788a7e8902892e84ef22c091fa6d865a",
+    "summary_json_sha256": "73c62f5a8bde801e859e04384ab4324c3f947b73b53b1067b518df719abc1bed",
+    "runner_metadata_sha256": "20b69b73ef838819dff8962a17d24fa1e967d79602b315c5f9d2210e8c721129",
+    "runtime_stderr_sha256": "9015659267e5f16acbd87e42a57f4db5a81eaec2a04dc9389807642c8bdbd0d6",
+    "runtime_command_sha256": "6f251fcaf2b35bbfccdb3f604d714a00997c4c22f7c3c624dad4218d31947d2b",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x0-phase-json-retry-20260802.tar.gz",
+    "external_archive_sha256": "0f47a1a7dcb44d2d4b3010832b1b15b476e5cc8ac2b5e747ac21bde0c67d7692",
+    "posthalt_torque_off_receipt": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x0-phase-json-retry-20260802-posthalt-torque-off.json",
+    "posthalt_torque_off_receipt_sha256": "2d1c82d8861dc2b63f9be79a9a83a4fafa5ff6d6cbb0b8ccfe2ae7fcd8a40dda"
+  },
+  "stop_rule_applied": "The failed invocation is not retried under its preregistration or motion authorization.",
+  "required_before_retry": [
+    "Make the no-tick candidate validator fail cleanly without a TypeError.",
+    "Freeze a monitored readiness-cue launch protocol with a new unused output directory.",
+    "Pass local and CI checks and stage the exact clean commit on the X5.",
+    "Obtain fresh explicit suspended x=0 motion authorization that instructs the operator not to press A until the GO cue."
+  ],
+  "authority": {
+    "robot_access": false,
+    "torque": false,
+    "motion": false,
+    "retry": false,
+    "x008": false,
+    "grounded_replay": false
+  }
+}

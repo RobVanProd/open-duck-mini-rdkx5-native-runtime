@@ -1,0 +1,77 @@
+{
+  "schema_version": "open_duck_x5.t251a8_observer_stage_correction_preregistration.v1",
+  "status": "PREREGISTERED_T251A8_OBSERVER_STAGE_ONLY_CORRECTION",
+  "date": "2026-07-31",
+  "earned_by": {
+    "status": "CLOSED_T251A7_TRANSACTION_RESIDUAL_CORRECTION_AS_TOO_SMALL",
+    "review_file_sha256": "1d1733d993ed3f72b50867dc54dd9694da4c1bdb73e8224f25a87d53f9580607",
+    "source_result_sha256": "54fc59dabea7ce725cbd5bcfaca3698660ced114834c0f22a325c4903e7ed69a",
+    "selected_component": "observer_stage",
+    "selected_component_p50_ms": 0.045501,
+    "selection_basis": "only unchanged eligible T251A3 component after immutable ONNX and the closed graph_host, target, observation, and transaction-residual corrections"
+  },
+  "unchanged_assets": {
+    "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "deployment_policy_sha256": "dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54",
+    "calibrator_sha256": "0f3aebfd9946a6271fdb14adec3d68d556648f270984639d372c973a7d7dc576",
+    "fixed_p30_runtime_observer_fit_sha256": "a58db8ffc505d2bb64cba7f5618d0e2c65904fc9f9ac37b560a1231e090f5f4f",
+    "projected_reference_table_sha256": "8102d9cd139584816d807ca635bcca6d37fa6b3c455848e00395b6d565968212"
+  },
+  "current_sources": {
+    "observer_source": "tools/winner_v14_optimized.py",
+    "observer_source_sha256": "36e09e50fabdc380447a7863bea387c55d1a2cc01bf4e2f7f930451997efb2a8",
+    "graph_host_source": "tools/winner_v15_graph_host_optimized.py",
+    "graph_host_source_sha256": "b87b0ff7e3a8fb6e1b0aeca22a9f21dfd33f9d638fadb4f78238d412ee9c5707",
+    "predecessor_source": "tools/winner_v16_target_optimized.py",
+    "predecessor_source_sha256": "c843ce77dd000b8584ce93cc24aebe97bac9e4b8503b4a7312ca228873ad75af"
+  },
+  "correction": {
+    "new_default_off_host": "tools/winner_v19_observer_stage_optimized.py",
+    "allowed_changes": [
+      "after the exact calibration handoff and V16 locomotion target alias, cold-bind the observer to that exact stable sent-logical-target ndarray",
+      "for that identity only, retain pending and finite checks but remove the redundant shape check and staged-target copy",
+      "temporarily expose the trusted target as the observer's staged source so the unchanged vectorized P30 commit consumes it directly, then restore the private slow-path buffer after commit or discard",
+      "route every non-identical source, pending-state error, non-finite source, commit error, and discard through diagnostics and state transitions exact to the predecessor"
+    ],
+    "forbidden_changes": [
+      "using the closed T251A6 or T251A7 implementations or changing observation, ONNX, graph_host, target, or transaction shell",
+      "policy, calibrator, ABI, P30 coefficients, delay/tau/velocity semantics, observer value, phase, history, action, target, offsets, rate limits, transaction commit order, or production behavior",
+      "accepting a non-finite target, retaining a caller substitution, native extension, threshold change, or robot-device access"
+    ]
+  },
+  "cpu_contract": {
+    "full_2298_tick_chain_is_byte_exact_to_v16": true,
+    "exact_one_handoff_and_target_identity_binding": true,
+    "calibration_uses_predecessor_observer_path": true,
+    "pending_wrong_source_nonfinite_commit_discard_and_failed_send_match_predecessor": true,
+    "p30_values_delay_history_and_staged_state_match_at_stage_commit_and_discard": true,
+    "local_20000_sample_observer_stage_microbenchmark_median_at_most_75_percent_of_predecessor": true,
+    "local_20000_sample_stage_plus_commit_median_at_most_110_percent_of_predecessor": true,
+    "default_disabled_and_no_production_consumer": true,
+    "all_repository_tests_and_artifact_hashes_green": true
+  },
+  "decision_rule": {
+    "contract_and_local_microbenchmarks_pass": "EARN_ONE_T251A8_SEPARATED_SEMANTIC_PLUS_SINGLE_HOST_RESERVED_SCREEN_PREREGISTRATION",
+    "semantic_or_safety_contract_fail": "CLOSE_OBSERVER_STAGE_CORRECTION_WITHOUT_X5_EXECUTION",
+    "local_stage_materiality_fail": "CLOSE_OBSERVER_STAGE_CORRECTION_AS_TOO_SMALL_WITHOUT_X5_EXECUTION",
+    "local_stage_plus_commit_regression": "CLOSE_OBSERVER_STAGE_CORRECTION_AS_TOTAL_WORK_REGRESSION_WITHOUT_X5_EXECUTION",
+    "x5_execution": false,
+    "t251b_earned": false,
+    "threshold_change": false,
+    "policy_training_earned": false,
+    "production_integration_earned": false,
+    "gate5_earned": false
+  },
+  "authority": {
+    "local_cpu_contract": true,
+    "x5_execution": false,
+    "serial_bus": false,
+    "servo_reads_or_writes": false,
+    "sensors": false,
+    "torque": false,
+    "motion": false,
+    "policy_deployment": false,
+    "gate5": false,
+    "grounded_replay": false
+  }
+}
