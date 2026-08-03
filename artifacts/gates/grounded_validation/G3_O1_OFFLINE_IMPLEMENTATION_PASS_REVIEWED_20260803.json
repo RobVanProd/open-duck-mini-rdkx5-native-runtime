@@ -52,7 +52,7 @@
   },
   "mock_fault_injection": {
     "path": "artifacts/gates/grounded_validation/G3_O1_MOCK_FAULT_INJECTION_20260803.json",
-    "sha256": "d6e87b8e4be43bbcfb89d3851eeed37e127b70c148649b28918f3c3b29580642",
+    "sha256": "f44517d50a6affeac97ede3b39cca22bb13dcf3359b9eb9e0d3f68ae15591da3",
     "status": "PASS",
     "cases": 5,
     "integration_zero_goal_writes_after_home_entry_fault": true,

@@ -137,7 +137,9 @@ def main(argv: list[str] | None = None) -> int:
     result = run_fault_injection()
     output = args.output.expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    # Evidence hashes must be identical on Windows development hosts and the
+    # Linux CI/X5 checkout. Avoid platform newline translation.
+    output.write_bytes((json.dumps(result, indent=2) + "\n").encode("utf-8"))
     print(json.dumps(result, separators=(",", ":")))
     return 0 if result["status"] == "PASS" else 2
 
