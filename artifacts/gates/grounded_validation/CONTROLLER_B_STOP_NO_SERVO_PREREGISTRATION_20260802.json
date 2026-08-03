@@ -1,0 +1,84 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_NO_SERVO",
+  "date": "2026-08-02",
+  "purpose": "Prove that the known physical Xbox controller's B button reaches the frozen emergency-stop software path before any torque-on or grounded test is prepared.",
+  "earned_by": {
+    "gate5_x0_review_path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json",
+    "gate5_x0_review_sha256": "9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096",
+    "gate5_x0_status": "PASS_REVIEWED_T247_GATE5_X0",
+    "gate5_x008_review_path": "artifacts/gates/phase_7_hardware/gate_5_policy/T247_X008_READINESS_CUED_PASS_REVIEWED_20260802.json",
+    "gate5_x008_review_sha256": "0ef3c547c2939012c5f09a074520e99697a51761fbfa4bab3b293a8c503c6130",
+    "gate5_x008_status": "PASS_REVIEWED_T247_GATE5_X008"
+  },
+  "frozen_source": {
+    "source_commit": "257c84fddd1ed9162498840cd00b4d90c33785a1",
+    "source_tree": "ce6a77e08fe860500e3ed8f69cec06e7885af1da",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751",
+    "probe_module": "open_duck_x5.controller_stop_probe",
+    "controller_backend": "LinuxJoystickController"
+  },
+  "frozen_controller": {
+    "kind": "xbox",
+    "device": "/dev/input/js0",
+    "bluetooth_mac": "0C:35:26:2A:B8:0B",
+    "sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "modalias": "usb:v045Ep0B13d0515",
+    "emergency_stop_button": "B",
+    "linux_button_index": 1,
+    "forbidden_button_during_probe": "A"
+  },
+  "frozen_run": {
+    "ticks_maximum": 3000,
+    "frequency_hz": 50.0,
+    "maximum_window_seconds": 60.0,
+    "required_emergency_stop_events": 1,
+    "required_pause_toggle_events": 0,
+    "required_disconnect_or_stale_events": 0,
+    "new_output_directory_must_not_exist": true,
+    "single_probe_invocation": true,
+    "automatic_follow_on": false
+  },
+  "operator_handshake": {
+    "before_launch": "Operator is physically present with the known-good controller connected and does not press A or B.",
+    "cue": "GO - press B once now.",
+    "operator_action": "Press B exactly once after the GO cue and do not press A.",
+    "timeout": "If B is not observed within 3000 ticks, the probe fails and is not retried under this preregistration."
+  },
+  "acceptance": {
+    "probe_exit_zero": true,
+    "summary_status": "PASS",
+    "emergency_stop_events": 1,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 0,
+    "correct_controller_identity_before_and_after": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "stop_rules": [
+    "Any source, receipt, controller identity, or Bluetooth-state mismatch blocks before the probe starts.",
+    "Pressing A fails the probe because A is pause/unpause, not emergency stop.",
+    "Controller disconnect or stale controller state fails the probe.",
+    "No serial device, servo bus, torque command, policy, or motion path may be opened by this launcher.",
+    "A pass authorizes only preparation of a separately preregistered suspended no-policy cutoff test; it does not authorize that test.",
+    "No grounded launcher or grounded motion may be prepared from a NOT_RUN or failed result."
+  ],
+  "required_authorization_text": "I am physically present with the known-good Xbox controller connected. I authorize the frozen controller-only B-button emergency-stop mapping probe: at most 3000 controller ticks, no serial or servo access, no torque, no policy, and no motion. I will press B exactly once only after you say GO and will not press A.",
+  "authority": {
+    "preregistration_only": true,
+    "controller_access": false,
+    "robot_access": false,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "suspended_cutoff_test": false,
+    "grounded_replay": false
+  },
+  "advance": "After an explicitly authorized physical controller-only PASS_REVIEWED, freeze a separate suspended, no-policy home-entry emergency-stop cutoff revalidation. Do not create a grounded execution path yet."
+}

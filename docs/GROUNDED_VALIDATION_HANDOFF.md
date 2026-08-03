@@ -1,0 +1,90 @@
+# Grounded validation handoff
+
+## Current result
+
+The frozen T247 policy/runtime completed both suspended Gate 5 arms:
+
+- x=0: `PASS_REVIEWED`
+- x=.08: `PASS_REVIEWED`
+
+Those results establish policy/runtime contract fidelity, clean 50 Hz timing,
+clean all-14 bus operation, and clean observed suspended motion. They do not
+establish that the robot can safely support itself on the floor.
+
+## Why the next step is controller safety, not walking
+
+Xbox A remains pause/unpause. Pausing holds the last commanded posture; it is
+not a hard torque-off. The new B-button path raises the same safety exception as
+other watchdog failures, so the existing torque guard cuts torque on every exit
+path. Before relying on B near a moving robot, the physical button mapping and
+then the torque cutoff must each be measured independently.
+
+This changes no observation, action, policy, home, phase, rate, servo, or sensor
+semantics. The reviewed T247 ONNX asset and suspended Gate 5 evidence remain
+unchanged.
+
+## Frozen ladder
+
+| Stage | Scope | State | What a pass earns |
+|---|---|---|---|
+| G0 | Offline B-edge implementation and tests | `PASS` | Controller-only physical mapping may be requested |
+| G1 | Physical Xbox B mapping; controller input only | `NOT_RUN` | A separate suspended cutoff test may be preregistered |
+| G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | `BLOCKED_ON_G1` | Grounded x=0 may be designed and separately authorized |
+| G3 | Grounded x=0 only | `BLOCKED_ON_G2`; no launcher exists | Grounded x=.08 may be designed and separately authorized |
+| G4 | Grounded x=.08 only | `BLOCKED_ON_G3`; no launcher exists | Grounded validation handoff review |
+
+There is no automatic promotion between stages. Every physical stage gets a
+new preregistration, exact authorization, evidence directory, review, and stop
+decision.
+
+## G1: controller-only physical mapping
+
+The only current executable is
+`setup/run_grounded_controller_stop_preflight.sh`. Despite the filename, it is
+not a grounded robot run. It opens `/dev/input/js0` only and explicitly does
+not open serial, touch servos, enable torque, load T247, or command motion.
+
+Pass criteria are exactly one B emergency-stop edge, zero A pause edges, zero
+disconnect/stale events, the frozen controller identity before and after, and
+the probe's explicit no-serial/no-servo/no-torque/no-policy/no-motion fields.
+The run ends immediately when B is observed or after 3000 ticks (60 seconds).
+
+## G2: suspended cutoff revalidation (not yet executable)
+
+Only a reviewed G1 pass can earn this stage. Its future preregistration must
+freeze all of the following before any moving command exists:
+
+1. no policy and no walking command;
+2. the already reviewed five-second home entry on the stand;
+3. a visible cue for one B press while the home-entry/hold path is active;
+4. halt reason exactly `physical controller emergency stop requested`;
+5. bounded B-event-to-control-stop latency, with the threshold fixed before
+   the run;
+6. cleanup plus an independent all-14 register-40 read proving torque is off;
+7. no retry or automatic transition to grounded work.
+
+## G3/G4: grounded work (not authorized and not implemented)
+
+Grounded testing is a new authority boundary. It must not reuse the
+`--suspended-or-benched` assertion while the robot is on the floor. A reviewed
+G2 pass is necessary but not sufficient: the repository authority, launcher,
+support/clear-area procedure, run duration, command, stop conditions, and
+operator actions must all be reviewed before G3 exists.
+
+G3 will be x=0 only. G4 can exist only after a reviewed G3 pass and will be
+x=.08 only. No other command, command sweep, or autonomous continuation is
+part of this ladder.
+
+## Frozen evidence inputs
+
+- T247 x=0 review SHA-256:
+  `9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096`
+- T247 x=.08 review SHA-256:
+  `0ef3c547c2939012c5f09a074520e99697a51761fbfa4bab3b293a8c503c6130`
+- Emergency-stop source commit:
+  `257c84fddd1ed9162498840cd00b4d90c33785a1`
+- Runtime source tree:
+  `ce6a77e08fe860500e3ed8f69cec06e7885af1da`
+
+The G1 preregistration is
+`artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_PREREGISTRATION_20260802.json`.
