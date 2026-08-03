@@ -40,6 +40,11 @@ REPLACEMENT_LAUNCHER_REVIEW = (
     / "artifacts/gates/grounded_validation"
     / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_LAUNCHER_REVIEW_20260802.json"
 )
+REPLACEMENT_PASS_REVIEW = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_PASS_REVIEWED_20260803.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -275,3 +280,48 @@ def test_g2_replacement_launcher_review_is_exact_and_not_run() -> None:
     assert value["decision"]["replacement_ready_for_fresh_exact_authorization"] is True
     assert value["decision"]["replacement_authorized"] is False
     assert value["decision"]["g2"] == "NOT_RUN"
+
+
+def test_g2_replacement_review_closes_only_the_suspended_gate() -> None:
+    value = json.loads(REPLACEMENT_PASS_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_REVIEWED_SUSPENDED_CONTROLLER_B_CUTOFF_G2"
+    assert value["preregistration"]["sha256"] == _sha256(
+        REPLACEMENT_PREREGISTRATION
+    )
+    assert value["launcher"]["replacement_sha256"] == _sha256(
+        REPLACEMENT_RUNNER
+    )
+    assert value["launcher"]["underlying_sha256"] == _sha256(RUNNER)
+    assert value["scope"]["policy_loaded"] is False
+    assert value["scope"]["grounded_motion"] is False
+    assert value["preflight"]["ticks_completed"] == 10_000
+    assert value["preflight"]["tick_sequence_exact"] is True
+    assert value["preflight"]["transactions_failed"] == 0
+    assert value["preflight"]["stale_servo_samples"] == 0
+    assert value["preflight"]["bus_total_ms"]["max"] < 5.0
+
+
+def test_g2_replacement_review_meets_cutoff_and_readback_contract() -> None:
+    value = json.loads(REPLACEMENT_PASS_REVIEW.read_text(encoding="utf-8"))
+    cutoff = value["cutoff"]
+    readback = value["independent_readback"]
+
+    assert cutoff["halt_reason"] == "physical controller emergency stop requested"
+    assert cutoff["probe_exit_status"] == 2
+    assert cutoff["control_exchanges_after_detection"] == 0
+    assert cutoff["detection_to_torque_disable_complete_ms"] <= 20.0
+    assert cutoff["torque_disable_status"] == "ok"
+    assert readback["status"] == "PASS"
+    assert readback["process_separate_from_cutoff_probe"] is True
+    assert readback["records"] == 14
+    assert readback["responses_ok"] == 14
+    assert readback["read_order"][-2:] == [14, 13]
+    assert readback["torque_enable_values"] == [0] * 14
+    assert readback["all_14_torque_enable_registers_zero"] is True
+    decision = value["decision"]
+    assert decision["g2_suspended_controller_b_cutoff"] == "PASS_REVIEWED"
+    assert decision["grounded_x0_design_review_earned"] is True
+    assert decision["grounded_x0_ready_to_run"] is False
+    assert decision["grounded_motion_authorized"] is False
+    assert decision["grounded_launcher_exists"] is False

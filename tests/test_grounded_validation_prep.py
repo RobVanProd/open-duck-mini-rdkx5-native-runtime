@@ -210,14 +210,16 @@ def test_controller_stop_runner_parses_and_help_is_non_moving() -> None:
     assert "This is not a grounded robot run" in completed.stdout
 
 
-def test_handoff_blocks_grounded_launchers_until_sequential_safety_passes() -> None:
+def test_handoff_keeps_grounded_motion_blocked_after_g2_pass() -> None:
     text = HANDOFF.read_text(encoding="utf-8")
 
     assert "G1 | Physical Xbox B mapping" in text
     assert "G2 | Suspended, no-policy home-entry B cutoff" in text
     assert "G3 | Grounded x=0 only" in text
     assert "G4 | Grounded x=.08 only" in text
-    assert "G2 itself remains unrun" in text
+    assert "G2 is therefore `PASS_REVIEWED`" in text
+    assert "outside current authority; no launcher exists" in text
+    assert "does not authorize grounded motion" in text
     assert "run_suspended_controller_b_cutoff_g2.sh" in text
     assert "within 20 ms" in text
     assert "no policy or grounded-motion path" in text
