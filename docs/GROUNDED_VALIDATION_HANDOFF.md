@@ -29,7 +29,7 @@ unchanged.
 |---|---|---|---|
 | G0 | Offline B-edge implementation and tests | `PASS` | Controller-only physical mapping may be requested |
 | G1 | Physical Xbox B mapping; controller input only | `PASS_REVIEWED` | A separate suspended cutoff test may be preregistered |
-| G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | Preregistration earned; test not authorized | Grounded x=0 may be designed and separately authorized |
+| G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | `PREREGISTERED_NOT_RUN`; launcher reviewed; fresh authorization required | Grounded x=0 may be designed and separately authorized |
 | G3 | Grounded x=0 only | `BLOCKED_ON_G2`; no launcher exists | Grounded x=.08 may be designed and separately authorized |
 | G4 | Grounded x=.08 only | `BLOCKED_ON_G3`; no launcher exists | Grounded validation handoff review |
 
@@ -39,10 +39,9 @@ decision.
 
 ## G1: controller-only physical mapping
 
-The only current executable is
-`setup/run_grounded_controller_stop_preflight.sh`. Despite the filename, it is
-not a grounded robot run. It opens `/dev/input/js0` only and explicitly does
-not open serial, touch servos, enable torque, load T247, or command motion.
+The G1 launchers are preserved as evidence. Despite their filenames, they are
+not grounded robot runs. They open `/dev/input/js0` only and explicitly do not
+open serial, touch servos, enable torque, load T247, or command motion.
 
 Pass criteria are exactly one B emergency-stop edge, zero A pause edges, zero
 disconnect/stale events, the frozen controller identity before and after, and
@@ -67,21 +66,33 @@ The operator-return attempt then passed: the known Xbox produced exactly one B
 edge at tick 456, with zero A edges, zero stale/disconnected samples, and sample
 ages from 0.011959 through 0.123042 ms. This closes G1 only. G2 still requires
 its own frozen launcher, event-to-stop threshold, independent register-40
-torque-off readback, and fresh suspended-motion authorization.
+torque-off readback, and fresh suspended-motion authorization. Those G2 items
+are now frozen and reviewed offline; G2 itself remains unrun.
 
-## G2: suspended cutoff revalidation (not yet executable)
+## G2: suspended cutoff revalidation (frozen, not run)
 
-Only a reviewed G1 pass can earn this stage. Its future preregistration must
-freeze all of the following before any moving command exists:
+The reviewed G1 pass earned this stage. Its preregistration and one-shot
+launcher now freeze all of the following before execution:
 
 1. no policy and no walking command;
 2. the already reviewed five-second home entry on the stand;
 3. a visible cue for one B press while the home-entry/hold path is active;
 4. halt reason exactly `physical controller emergency stop requested`;
-5. bounded B-event-to-control-stop latency, with the threshold fixed before
-   the run;
+5. B detection through completion of the torque-disable write within 20 ms,
+   exactly one frozen 50 Hz control period, with no control exchange after B;
 6. cleanup plus an independent all-14 register-40 read proving torque is off;
 7. no retry or automatic transition to grounded work.
+
+The launcher is `setup/run_suspended_controller_b_cutoff_g2.sh`. It first runs
+the full 10,000-tick torque-off timing preflight. Only a complete pass permits
+the five-second home entry. It writes `HOME_HOLD_READY` only after home entry,
+then waits for the operator's single B press. The expected halt is followed by
+a separate process that disables torque again and reads register 40 on all 14
+servos, with ID 13 last. It has no policy or grounded-motion path.
+
+G2 is still `NOT_RUN`. The launcher requires all hardware acknowledgements and
+the exact fresh authorization stored in the preregistration. Do not press B
+before Codex reports the launcher-generated GO cue.
 
 ## G3/G4: grounded work (not authorized and not implemented)
 
@@ -104,7 +115,11 @@ part of this ladder.
 - Emergency-stop source commit:
   `257c84fddd1ed9162498840cd00b4d90c33785a1`
 - Runtime source tree:
-  `ce6a77e08fe860500e3ed8f69cec06e7885af1da`
+  `6bb064e1d15c27fb6af7301cf2fe9a6b4d7fb6d4`
+- G1 reviewed pass SHA-256:
+  `e4fe7279b33c25a8334ff0dc8f067c9e0321b6710a39d0fc3f53016b5e3c0d13`
+- G2 preregistration SHA-256:
+  `414776d4792a859b27a75b7020577c5b370fc307f70a036032d250bf8f4dca83`
 
 The G1 preregistration is
 `artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_PREREGISTRATION_20260802.json`.

@@ -1,0 +1,117 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN_SUSPENDED_CONTROLLER_B_CUTOFF_G2",
+  "date": "2026-08-02",
+  "earned_by": {
+    "review_path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_OPERATOR_RETURN_PASS_REVIEWED_20260802.json",
+    "review_sha256": "e4fe7279b33c25a8334ff0dc8f067c9e0321b6710a39d0fc3f53016b5e3c0d13",
+    "status": "PASS_REVIEWED_CONTROLLER_B_STOP_MAPPING",
+    "suspended_cutoff_preregistration_earned": true
+  },
+  "frozen_source": {
+    "minimum_commit": "479cb4dce37ca85d6f0a4da4bf8322e7e14d4cb4",
+    "source_tree": "6bb064e1d15c27fb6af7301cf2fe9a6b4d7fb6d4",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "4d2b05b958aea152a16c88e094ff25fd78d31b55"
+  },
+  "scope": {
+    "robot_support": "stand/suspended-or-benched",
+    "serial_device": "/dev/ttyS1",
+    "controller_device": "/dev/input/js0",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "policy_loaded": false,
+    "commanded_velocity_m_s": null,
+    "grounded_motion": false,
+    "automatic_follow_on": false
+  },
+  "sequence": [
+    {
+      "stage": "torque_off_preflight",
+      "ticks": 10000,
+      "frequency_hz": 50,
+      "controller_required": true,
+      "torque_enable_requested": false,
+      "motion": false
+    },
+    {
+      "stage": "home_entry_and_hold",
+      "home_entry_seconds": 5,
+      "maximum_home_hold_ticks": 3000,
+      "amplitude_rad": 0.0,
+      "controller_required": true,
+      "torque_enable_requested": true,
+      "motion": true,
+      "policy_loaded": false
+    },
+    {
+      "stage": "independent_torque_off_readback",
+      "register_address": 40,
+      "servo_count": 14,
+      "read_order": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13],
+      "torque_enable_requested": false,
+      "motion": false
+    }
+  ],
+  "operator_protocol": {
+    "press_before_home_ready_cue": "PROHIBITED",
+    "cue": "GO — press B exactly once now; do not press A",
+    "button": "B",
+    "presses": 1,
+    "a_button_presses": 0
+  },
+  "acceptance": {
+    "preflight": {
+      "complete_ticks": 10000,
+      "tick_p99_at_most_ms": 21.0,
+      "tick_p99_9_at_most_ms": 22.0,
+      "bus_max_strictly_below_ms": 5.0,
+      "transaction_failure_rate_strictly_below": 0.001,
+      "read_bursts": 0,
+      "stale_servo_samples": 0,
+      "device_alarm_replies": 0,
+      "telemetry_records_dropped": 0,
+      "torque_off_confirmed": true
+    },
+    "home_ready": {
+      "written_only_after_five_second_home_entry": true,
+      "controller_connected": true,
+      "policy_loaded": false,
+      "torque_enabled_requested": true
+    },
+    "cutoff": {
+      "halt_reason_exact": "physical controller emergency stop requested",
+      "control_exchanges_after_detection": 0,
+      "event_to_torque_disable_complete_at_most_ms": 20.0,
+      "derivation": "one frozen 50 Hz control period",
+      "probe_exit_status": 2,
+      "torque_disable_status": "ok"
+    },
+    "independent_readback": {
+      "initial_disable_status": "ok",
+      "complete_register_40_reads": 14,
+      "all_14_torque_enable_registers_zero": true,
+      "final_disable_status": "ok"
+    }
+  },
+  "stop_rules": {
+    "preflight_failure": "HALT_BEFORE_TORQUE_ENABLE",
+    "controller_disconnect_or_staleness": "TORQUE_OFF_AND_HALT",
+    "a_button_edge_during_home_entry_or_hold": "TORQUE_OFF_AND_HALT",
+    "unexpected_motion_or_sound": "OPERATOR_PRESSES_B_AND_SEQUENCE_HALTS",
+    "cutoff_threshold_failure": "HOLD_G2_NO_RETRY_WITHOUT_REVIEW",
+    "readback_failure": "HOLD_G2_AND_KEEP_TORQUE_OFF",
+    "automatic_retry": false,
+    "automatic_grounded_follow_on": false
+  },
+  "authorization": {
+    "required_fresh_exact_text": "I am physically present; the robot is securely supported on its stand, hands are clear, and the known-good Xbox controller is connected. I authorize the frozen suspended no-policy G2 B-button cutoff sequence on /dev/ttyS1: one 10,000-tick torque-off preflight; then, only if it passes, five-second move to home and home hold; after Codex says GO, I will press B exactly once and will not press A. I authorize torque enable and motion only for that home entry/hold, followed by independent all-14 register-40 torque-off readback. No policy, no x command, no grounded motion, and no automatic follow-on.",
+    "current_run_authorized": false
+  },
+  "decision": {
+    "g2_status": "NOT_RUN",
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "grounded_motion_authorized": false,
+    "automatic_promotion": false
+  }
+}

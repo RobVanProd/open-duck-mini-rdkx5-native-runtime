@@ -217,7 +217,10 @@ def test_handoff_blocks_grounded_launchers_until_sequential_safety_passes() -> N
     assert "G2 | Suspended, no-policy home-entry B cutoff" in text
     assert "G3 | Grounded x=0 only" in text
     assert "G4 | Grounded x=.08 only" in text
-    assert "no launcher exists" in text
+    assert "G2 itself remains unrun" in text
+    assert "run_suspended_controller_b_cutoff_g2.sh" in text
+    assert "within 20 ms" in text
+    assert "no policy or grounded-motion path" in text
     assert "There is no automatic promotion between stages" in text
     assert "must not reuse the\n`--suspended-or-benched` assertion" in text
 
