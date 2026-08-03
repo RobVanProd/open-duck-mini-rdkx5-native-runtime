@@ -150,7 +150,7 @@ def _validate_startup_readiness(
     if policy_contract == T247_POLICY_CONTRACT and committed_ticks != 0:
         raise ControlSummaryError("T247 startup_readiness did not precede all policy ticks")
 
-    phase = _require_number(details.get("phase"), "startup_readiness phase")
+    phase = _require_array(details.get("phase"), "startup_readiness phase", 2)
     tick_start = details.get("tick_start_monotonic_ns")
     next_release = details.get("next_release_monotonic_ns")
     if (
@@ -228,7 +228,10 @@ def _validate_startup_readiness(
         and details["paused"] is True
         and details["policy_staged"] is False
         and committed_ticks in (None, 0)
-        and math.isclose(phase, 0.0, rel_tol=0.0, abs_tol=1e-12)
+        and all(
+            math.isclose(float(value), 0.0, rel_tol=0.0, abs_tol=1e-12)
+            for value in phase
+        )
         and details["all_fresh"] is True
         and details["imu_stale"] is False
         and details["contacts_stale"] is False

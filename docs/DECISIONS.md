@@ -1217,3 +1217,27 @@ Its preregistration and exact command packet are recorded in the Gate 5
 artifact directory. This decision authorizes no hardware access, torque,
 motion, policy execution, x=.08, or grounded replay. The exact suspended x=0
 motion scope requires fresh explicit operator authorization.
+
+## D074 — Halt the replacement attempt on a readiness-event serialization defect
+
+Accepted as a failed pre-policy attempt, not a Gate 5 result. The authorized
+five-second home entry completed and the one startup-readiness exchange was
+attempted, but its event passed the NumPy two-element phase vector directly to
+the asynchronous JSON writer. Serialization failed before a readiness record,
+control tick, or active policy tick was written. The runner then failed closed;
+the controller remained present, `/dev/ttyS1` was released, and `schedutil` was
+restored.
+
+Because the writer failure also prevented the terminal halt record, torque-off
+was independently repeated and verified by reading register 40 from every
+servo. All 14 replied `ok` with value zero. The raw failed-run archive and the
+separate cutoff receipt are preserved outside Git with hashes in the reviewed
+attempt artifact.
+
+The repair does not change phase values or policy semantics: runtime readiness
+serializes the existing `[0.0, 0.0]` vector as JSON-native numbers. Both event
+schemas and the semantic summarizer now require exactly two finite numbers,
+and the runtime test crosses the actual `json.dumps` boundary using a NumPy
+phase vector. The failed invocation is not retried under its preregistration or
+authorization. A new frozen source/launcher packet, green checks, clean X5
+staging, and fresh explicit suspended motion authorization are required.

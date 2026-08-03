@@ -1,0 +1,78 @@
+{
+  "schema_version": "open_duck_x5.t247_gate5_x0_replacement_attempt_review.v1",
+  "status": "HALT_PRE_POLICY_STARTUP_READINESS_TELEMETRY_DEFECT",
+  "date": "2026-08-02",
+  "candidate_id": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+  "source_commit": "3033a57eba36edd08be6c075b820fb5c9ad82f45",
+  "fixed_command_x_m_s": 0.0,
+  "robot_supported": true,
+  "operator_present": true,
+  "authorized_home_entry_completed": true,
+  "startup_readiness_exchange_attempted": 1,
+  "startup_readiness_event_recorded": false,
+  "control_ticks_recorded": 0,
+  "active_policy_ticks": 0,
+  "policy_inference_observed": false,
+  "gate5_passed": false,
+  "x008_earned": false,
+  "robot_clearance": false,
+  "halt": {
+    "runtime_status": 2,
+    "summary_status": 2,
+    "candidate_status": 1,
+    "reason": "control telemetry writer failed: Object of type ndarray is not JSON serializable",
+    "failed_field": "startup_readiness.details.phase",
+    "runtime_value": "numpy.ndarray(shape=(2,), dtype=float64)",
+    "required_wire_value": "JSON array of exactly two finite numbers",
+    "records_before_halt": [
+      "runtime_start",
+      "realtime_verified"
+    ],
+    "root_cause": "The production readiness event passed PhaseClock.value directly to the asynchronous JSON writer. The unit fixture substituted a scalar and validated only the unencoded Python object, so it did not exercise the production serialization boundary."
+  },
+  "safety_exit": {
+    "runtime_cleanup_order": "disable_torque_before_sensor_bus_and_writer_close",
+    "runtime_torque_off_attempted": true,
+    "runtime_halt_record_missing_because_writer_failed": true,
+    "independent_posthalt_disable_torque_status": "ok",
+    "independent_readback_ids": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 13, 14],
+    "independent_readback_status": "14_of_14_ok_torque_enable_zero",
+    "serial_device_released": true,
+    "controller_after_ok": true,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil"
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/gate5-t247-x0-replacement-frozen-20260802",
+    "control_jsonl_sha256": "78b4c2208a2f145b8952b9a21574eb465c3854eea5bc7900b885169d5d319de0",
+    "runner_metadata_sha256": "0364ec3732fddcfeaa30a02afeb77996719b1d0b0a67011eae4b92070dd0cfbb",
+    "runtime_stderr_sha256": "755e6edbb10d13f8941995a962e0be888e416331bf6e206e518919c902f555a0",
+    "runtime_command_sha256": "3aed5848d75535e8e76946a7df608bddff5c9e9a7f40a4d448bfaad61e40afb8",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x0-replacement-frozen-20260802.tar.gz",
+    "external_archive_sha256": "e9d421c60629746b8fa5c582876566b5cebb19c4992eb9a2db56a0a408d255f7",
+    "posthalt_torque_off_receipt": "D:\\CodexArtifacts\\open-duck-x5-runtime\\gate5-t247-x0-replacement-frozen-20260802-posthalt-torque-off.json",
+    "posthalt_torque_off_receipt_sha256": "2f1bd8cd2c6fdf35422ded3dae5bc0d9ef8d9b3c4e332df9c01e3a0a7c7319fa"
+  },
+  "selected_repair": {
+    "runtime": "Serialize the existing frozen two-element phase vector as JSON-native numbers without changing its values or policy semantics.",
+    "schema": "Require exactly two numeric phase elements in runtime-event and control-summary schemas.",
+    "tests": "Use the real NumPy phase-vector shape and require complete-event json.dumps plus schema validation.",
+    "contract_change": false
+  },
+  "stop_rule_applied": "The failed invocation is not retried under its preregistration or motion authorization.",
+  "required_before_retry": [
+    "Implement and fully validate the exact serialization repair offline.",
+    "Freeze a new source tree, schemas, one-shot launcher, preregistration, and unused evidence directory.",
+    "Pass local and CI checks and stage the exact clean commit on the X5.",
+    "Obtain fresh explicit suspended x=0 motion authorization."
+  ],
+  "authority": {
+    "robot_access": false,
+    "torque": false,
+    "motion": false,
+    "retry": false,
+    "x008": false,
+    "grounded_replay": false
+  }
+}

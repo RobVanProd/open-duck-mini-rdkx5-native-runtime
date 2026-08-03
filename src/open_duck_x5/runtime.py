@@ -570,7 +570,11 @@ class Runtime:
             "policy_committed_ticks": (
                 self.t247_host.committed_ticks if self.t247_host is not None else None
             ),
-            "phase": self.phase.value,
+            # PhaseClock exposes the frozen two-element phase vector as a
+            # NumPy array. Runtime events must contain JSON-native values so
+            # the asynchronous writer cannot fail after this readiness
+            # transaction has already completed.
+            "phase": self.phase.value.tolist(),
             "tick_start_monotonic_ns": tick_start_ns,
             "tick_work_ms": tick_work_ms,
             "release_lateness_ms": release_lateness_ns / 1e6,

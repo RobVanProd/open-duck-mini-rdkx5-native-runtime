@@ -451,7 +451,12 @@
         "paused": { "type": "boolean" },
         "policy_staged": { "type": "boolean" },
         "policy_committed_ticks": { "type": ["integer", "null"], "minimum": 0 },
-        "phase": { "type": "number" },
+        "phase": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "number" }
+        },
         "tick_start_monotonic_ns": { "type": "integer", "minimum": 0 },
         "tick_work_ms": { "type": "number", "minimum": 0 },
         "release_lateness_ms": { "type": "number", "minimum": 0 },

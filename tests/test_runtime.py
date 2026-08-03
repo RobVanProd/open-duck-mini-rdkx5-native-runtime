@@ -744,7 +744,7 @@ def _startup_readiness_runtime(*, bus_total_failure: bool = False):
     runtime.hold_physical_target = np.zeros(14, dtype=np.float64)
     runtime.paused = True
     runtime.t247_host = Namespace(committed_ticks=0)
-    runtime.phase = Namespace(value=0.0)
+    runtime.phase = Namespace(value=np.zeros(2, dtype=np.float64))
     runtime.writer = Writer()
     runtime.stop_requested = False
     runtime.watchdog = runtime_module.Watchdog()
@@ -759,7 +759,7 @@ def test_runtime_startup_readiness_preserves_policy_state_and_pause() -> None:
 
     assert runtime.paused is True
     assert runtime.t247_host.committed_ticks == 0
-    assert runtime.phase.value == 0.0
+    np.testing.assert_array_equal(runtime.phase.value, [0.0, 0.0])
     assert len(events) == 1
     name, details = events[0]
     assert name == "startup_readiness"
@@ -776,14 +776,16 @@ def test_runtime_startup_readiness_preserves_policy_state_and_pause() -> None:
     event_schema = json.loads(
         (Path(__file__).parents[1] / "schemas/runtime_event.schema.json").read_text()
     )
-    Draft202012Validator(event_schema).validate(
-        {
-            "schema_version": "open_duck_x5.runtime_event.v1",
-            "timestamp_monotonic_ns": ticker.start_ns + 4_000_000,
-            "event": name,
-            "details": details,
-        }
-    )
+    event = {
+        "schema_version": "open_duck_x5.runtime_event.v1",
+        "timestamp_monotonic_ns": ticker.start_ns + 4_000_000,
+        "event": name,
+        "details": details,
+    }
+    # Exercise the production writer boundary as well as schema validation.
+    # A raw NumPy phase vector is schema-shaped but is not JSON serializable.
+    serialized = json.dumps(event)
+    Draft202012Validator(event_schema).validate(json.loads(serialized))
     assert runtime._previous_tick_start_ns == ticker.start_ns
 
 

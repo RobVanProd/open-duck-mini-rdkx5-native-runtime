@@ -15,7 +15,8 @@ The offline and pre-Gate-5 evidence remains green:
 - Hardware Gates 1-4: `PASS_REVIEWED`.
 - Single-arm Gate 5 launcher: correctly halted and failed closed.
 
-The current state is `READY_FOR_FRESH_EXPLICIT_SUSPENDED_T247_GATE5_X0_AUTHORIZATION`.
+The first replacement authorization was consumed by a second pre-policy halt;
+Gate 5 still has zero active policy ticks.
 The failed tick was causally aligned with an Xbox Bluetooth HID reconnect. The
 review selected a thread-free Linux joystick backend, late-serial-deadline
 rejection, and paused-controller freshness enforcement. A controller-only test
@@ -44,8 +45,21 @@ That replacement is now frozen as
 `319b0320bde78ce73fc5a76eb716ed989adfedc176def3a572af797495519926`.
 It has one hardcoded x=0 invocation, requires the accepted no-motion receipt,
 pins the known-good controller before and after, requires the new readiness
-event and every summary gate, and contains no second-command path. It has not
-run and the earlier no-motion authorization does not authorize it.
+event and every summary gate, and contains no second-command path. That
+launcher ran once. Its five-second home entry completed, but the
+startup-readiness event could not serialize the NumPy phase vector. The
+evidence stream contains only `runtime_start` and `realtime_verified`; there is
+no readiness record, control tick, or active policy tick. The runner failed
+closed. A separate torque-off command then returned `ok`, and all 14 servos
+read back register 40 as zero. The exact failed evidence is recorded in
+`T247_X0_REPLACEMENT_ATTEMPT_HALTED_20260802.json`.
+
+The phase values and policy contract are unchanged. The selected repair merely
+serializes the frozen two-number phase vector to JSON-native values and makes
+the schemas, semantic validator, and tests enforce that representation. The
+consumed launcher and authorization cannot be reused. A new exact freeze,
+green checks, clean X5 staging, and fresh suspended x=0 authorization are
+required.
 
 The x=.08 arm remains blocked. It requires a separately reviewed green x=0
 receipt, the receipt's exact SHA-256, and separate explicit authorization.

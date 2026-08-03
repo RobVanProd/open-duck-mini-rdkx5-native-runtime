@@ -78,7 +78,7 @@ def _startup_readiness_event(first_tick_timestamp: int) -> dict[str, object]:
             "paused": True,
             "policy_staged": False,
             "policy_committed_ticks": None,
-            "phase": 0.0,
+            "phase": [0.0, 0.0],
             "tick_start_monotonic_ns": tick_start,
             "tick_work_ms": 4.0,
             "release_lateness_ms": 0.0,
@@ -579,6 +579,15 @@ def test_summary_rejects_dirty_pass_or_null_first_period_after_readiness(
         encoding="utf-8",
     )
     with pytest.raises(ControlSummaryError, match="PASS record is not clean"):
+        summarize_control_run(telemetry)
+
+    invalid_phase = deepcopy(records)
+    invalid_phase[1]["details"]["phase"] = 0.0
+    telemetry.write_text(
+        "\n".join(json.dumps(record) for record in invalid_phase) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ControlSummaryError, match="phase must contain exactly 2 values"):
         summarize_control_run(telemetry)
 
     first_tick = next(record for record in records if record.get("tick") == 0)
