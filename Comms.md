@@ -7,7 +7,7 @@ and the detailed deployment state lives in
 
 ## Current decision
 
-`T247 GATE-5 x=0 PASS_REVIEWED; x=.08 LAUNCHER FROZEN, AUTHORIZATION NEXT`
+`T247 GATE-5 x=0 PASS_REVIEWED; x=.08 STAGED EXACT, AUTHORIZATION NEXT`
 
 T247 remains the unchanged selected policy. T250 and T251 were contract,
 attribution, and host-optimization evidence labels; they did not replace the
@@ -68,9 +68,8 @@ state advance is owned by a confirmed successful servo write.
 ## Next action
 
 No training or policy modification is selected. The distinct x=.08-only
-launcher is frozen against the reviewed x=0 receipt. Push it, require green CI,
-stage that exact commit without opening the servo bus, then obtain fresh exact
-suspended-motion authorization. Do not reuse the x=0 launcher or start x=.08
-automatically.
+launcher is frozen, green in CI, and staged at exact commit `90b685b` against
+the reviewed x=0 receipt. Obtain fresh exact suspended-motion authorization.
+Do not reuse the x=0 launcher or start x=.08 automatically.
 
 Grounded replay remains outside authority.

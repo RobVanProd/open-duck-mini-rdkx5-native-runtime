@@ -26,3 +26,9 @@ selector, validates the reviewed x=0 receipt and its exact SHA before any
 governor or serial access, and contains no second-command path. It still requires
 fresh exact suspended-motion authorization. Grounded replay remains prohibited
 and robot clearance remains false.
+
+Commit `90b685b6c912dcd018a3779bbd1d3d4f72ec311f` is staged in a separate
+clean X5 worktree. The launcher, preregistration, and x=0 receipt hashes match;
+the UART remained free and the governor remained `schedutil`. This no-motion
+staging result is recorded in `T247_X008_STAGING_REVIEW_20260802.json` and does
+not authorize execution.

@@ -17,7 +17,7 @@
     "startup_readiness_review_sha256": "15c550432eb6ada9b9579c1e298a32585dd6c81091c97ad95be6fe0f9c3e61b7"
   },
   "offline_review": {
-    "full_tests": "579_PASS",
+    "full_tests": "580_PASS",
     "focused_x008_contract_tests": "10_PASS",
     "bash_syntax": "PASS",
     "help_path_non_mutating": "PASS",

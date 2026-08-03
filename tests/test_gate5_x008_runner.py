@@ -27,6 +27,11 @@ LAUNCHER_REVIEW = (
     / "artifacts/gates/phase_7_hardware/gate_5_policy"
     / "T247_X008_READINESS_CUED_LAUNCHER_REVIEW_20260802.json"
 )
+STAGING_REVIEW = (
+    ROOT
+    / "artifacts/gates/phase_7_hardware/gate_5_policy"
+    / "T247_X008_STAGING_REVIEW_20260802.json"
+)
 
 
 def _script() -> str:
@@ -199,3 +204,26 @@ def test_x008_launcher_review_pins_exact_runner_receipts_and_command() -> None:
     assert value["run_scope"]["grounded_replay"] is False
     assert value["operator_handshake"]["agent_cue"] == "GO — press A once now."
     assert value["authority"]["current_motion"] is False
+
+
+def test_x008_staging_review_is_exact_and_no_motion() -> None:
+    value = json.loads(STAGING_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == (
+        "READY_FOR_FRESH_EXPLICIT_SUSPENDED_T247_GATE5_X008_AUTHORIZATION"
+    )
+    assert value["staged_source"]["commit"] == (
+        "90b685b6c912dcd018a3779bbd1d3d4f72ec311f"
+    )
+    assert value["staged_source"]["launcher_sha256"] == _sha256(RUNNER)
+    assert value["staged_source"]["preregistration_sha256"] == _sha256(
+        PREREGISTRATION
+    )
+    assert value["staged_source"]["x0_review_sha256"] == _sha256(X0_REVIEW)
+    assert value["staged_source"]["tracked_worktree_clean"] is True
+    assert value["board_state_after_staging"]["serial_device_owner"] == "free"
+    assert value["board_state_after_staging"]["cpu_governor"] == "schedutil"
+    assert value["scope"]["servo_bus_accessed"] is False
+    assert value["scope"]["torque_enabled"] is False
+    assert value["scope"]["motion"] is False
+    assert value["authority"]["x008"] is False

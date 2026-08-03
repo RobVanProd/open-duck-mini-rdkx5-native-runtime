@@ -1350,3 +1350,18 @@ This freeze authorizes no robot access, torque, motion, policy execution, or
 grounded replay. The x=.08 run remains `NOT_RUN` until the exact commit is green
 in CI, staged without hardware access, and receives fresh explicit suspended
 motion authorization.
+
+## D080 — Accept exact no-motion X5 staging for the x=.08 arm
+
+Accepted as code-staging evidence only. Commit
+`90b685b6c912dcd018a3779bbd1d3d4f72ec311f` was transferred through a complete
+hash-verified Git bundle because the board's configured GitHub proxy was
+unreachable. A detached clean worktree was created at
+`/home/sunrise/open-duck-x5-gate5-x008`. Its runtime and schema trees, launcher,
+preregistration, and reviewed x=0 receipt all reproduced their frozen hashes.
+
+The staging operation did not open `/dev/ttyS1`, access sensors, load the policy,
+change the CPU governor, enable torque, or move the robot. After staging, the
+UART was free and the governor remained `schedutil`; the temporary board bundle
+was removed. This earns only a fresh exact suspended x=.08 authorization request.
+It does not authorize the run or grounded motion.
