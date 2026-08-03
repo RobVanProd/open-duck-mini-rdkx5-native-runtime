@@ -1,0 +1,37 @@
+{
+  "schema_version": "open_duck_x5.g3_s1_suspended_guard_revalidation_launcher_review.v1",
+  "status": "PASS_REVIEWED_NOT_RUN",
+  "date": "2026-08-03",
+  "launcher": {
+    "path": "setup/run_g3_s1_suspended_guard_revalidation.sh",
+    "sha256": "aece13065bd624c7d8c926de728463f10ed788df5e487d07c773123abfa5126d",
+    "bash_syntax": "PASS",
+    "runtime_invocations": 1,
+    "independent_torque_off_readbacks": 1
+  },
+  "frozen_implementation": {
+    "source_tree": "a6e19c2aca38c51ce6f3b4a09bc28efe2eedf3c7",
+    "schema_tree": "5598eb32d1b79271378d700da896517481f4ded5",
+    "pyproject_blob": "c8482e8d54bc7e0e9178094ca80354de5e01888f",
+    "preregistration_sha256": "c25a9383c3e7447990bbd5f008dc3e48245915ace79d8d01b284a06738dbc64d",
+    "g3_o1_review_sha256": "dd02e9182937a99871c8320f47c4f141972bd7a556871ec655ee56907476e6ef"
+  },
+  "scope": {
+    "suspended_only": true,
+    "fixed_command_x_m_s": 0.0,
+    "active_ticks": 850,
+    "grounded_guard_mode": "suspended-revalidation",
+    "grounded_authorization_flags_present": false,
+    "x008_path": false,
+    "walking_path": false,
+    "automatic_follow_on": false
+  },
+  "authority": {
+    "launcher_preparation_authorized": true,
+    "robot_access_authorized": false,
+    "torque_authorized": false,
+    "motion_authorized": false,
+    "run_status": "NOT_RUN",
+    "required_next": "new exact G3-S1 suspended-motion authorization"
+  }
+}

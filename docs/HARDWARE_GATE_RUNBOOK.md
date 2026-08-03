@@ -1,5 +1,10 @@
 # Staged Hardware Gate Runbook
 
+For the default-disabled grounded-safety sequence after the completed Gate 5
+suspended policy arms, see `docs/G_SERIES_RUNBOOK.md`. That document does not
+authorize hardware access and currently stops at the separately authorized
+suspended G3-S1 revalidation.
+
 Gates 1 through 4 are `PASS_REVIEWED`. Gate 2 completed its frozen 10,000-tick
 torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
