@@ -6,6 +6,7 @@ import math
 import sys
 from pathlib import Path
 
+from .clock import clock_ns
 from .controller import ControllerReadout, create_controller
 from .hardware_guard import (
     HardwareAuthorizationError,
@@ -65,11 +66,13 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         for tick in range(args.ticks):
             tick_start_ns, _ = ticker.wait()
             controller.read_into(readout)
-            age_ns = tick_start_ns - readout.timestamp_ns
+            sample_check_ns = clock_ns()
+            age_ns = sample_check_ns - readout.timestamp_ns
             record = {
                 "schema_version": "open_duck_x5.controller_stop_tick.v1",
                 "tick": tick,
                 "timestamp_monotonic_ns": tick_start_ns,
+                "sample_checked_monotonic_ns": sample_check_ns,
                 "connected": bool(readout.connected),
                 "sample_age_ms": age_ns / 1e6,
                 "pause_toggle": bool(readout.pause_toggle),

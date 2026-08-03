@@ -59,6 +59,11 @@ def test_controller_stop_probe_accepts_exact_b_edge_without_servo_path(
     controller = Controller()
     monkeypatch.setattr(probe, "create_controller", lambda _kind: controller)
     monkeypatch.setattr(probe, "AbsoluteTicker", FakeTicker)
+    monkeypatch.setattr(
+        probe,
+        "clock_ns",
+        lambda: controller.reads * 20_000_000 + 1_000_000,
+    )
 
     summary = probe.run_probe(_args(tmp_path))
 
@@ -97,6 +102,7 @@ def test_controller_stop_probe_rejects_a_button_instead_of_b(
 
     monkeypatch.setattr(probe, "create_controller", lambda _kind: Controller())
     monkeypatch.setattr(probe, "AbsoluteTicker", FakeTicker)
+    monkeypatch.setattr(probe, "clock_ns", lambda: 21_000_000)
 
     summary = probe.run_probe(_args(tmp_path))
 
@@ -113,3 +119,45 @@ def test_controller_stop_probe_refuses_existing_evidence(tmp_path) -> None:
         probe.run_probe(_args(tmp_path, output=output))
 
     assert output.read_text() == "preserve\n"
+
+
+def test_controller_stop_probe_measures_freshness_after_controller_read(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    class Controller:
+        reads = 0
+
+        def read_into(self, output) -> None:
+            self.reads += 1
+            output.connected = True
+            # LinuxJoystickController stamps the sample inside read_into, so
+            # it is expected to be newer than this tick's release timestamp.
+            output.timestamp_ns = self.reads * 20_000_000 + 322_834
+            output.pause_toggle = False
+            output.emergency_stop = self.reads == 2
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+    controller = Controller()
+    monkeypatch.setattr(probe, "create_controller", lambda _kind: controller)
+    monkeypatch.setattr(probe, "AbsoluteTicker", FakeTicker)
+    monkeypatch.setattr(
+        probe,
+        "clock_ns",
+        lambda: controller.reads * 20_000_000 + 500_000,
+    )
+
+    summary = probe.run_probe(_args(tmp_path))
+
+    assert summary["status"] == "PASS"
+    assert summary["emergency_stop_tick"] == 1
+    records = [
+        json.loads(line)
+        for line in (tmp_path / "controller.jsonl").read_text().splitlines()
+    ]
+    assert records[0]["timestamp_monotonic_ns"] == 20_000_000
+    assert records[0]["sample_checked_monotonic_ns"] == 20_500_000
+    assert records[0]["sample_age_ms"] == pytest.approx(0.177166)

@@ -28,7 +28,7 @@ unchanged.
 | Stage | Scope | State | What a pass earns |
 |---|---|---|---|
 | G0 | Offline B-edge implementation and tests | `PASS` | Controller-only physical mapping may be requested |
-| G1 | Physical Xbox B mapping; controller input only | `NOT_RUN` | A separate suspended cutoff test may be preregistered |
+| G1 | Physical Xbox B mapping; controller input only | Attempt 1 halted before operator action; replacement pending | A separate suspended cutoff test may be preregistered |
 | G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | `BLOCKED_ON_G1` | Grounded x=0 may be designed and separately authorized |
 | G3 | Grounded x=0 only | `BLOCKED_ON_G2`; no launcher exists | Grounded x=.08 may be designed and separately authorized |
 | G4 | Grounded x=.08 only | `BLOCKED_ON_G3`; no launcher exists | Grounded validation handoff review |
@@ -48,6 +48,14 @@ Pass criteria are exactly one B emergency-stop edge, zero A pause edges, zero
 disconnect/stale events, the frozen controller identity before and after, and
 the probe's explicit no-serial/no-servo/no-torque/no-policy/no-motion fields.
 The run ends immediately when B is observed or after 3000 ticks (60 seconds).
+
+The first physical invocation halted on tick 0 before the operator could press
+B. The controller was connected and unchanged, but the probe computed sample
+age as `tick_start - controller_timestamp`. Because the controller timestamps
+its state inside the later `read_into` call, this produced `-0.322834 ms` and a
+false stale-state classification. The runtime was not affected: its controller
+freshness checks already sample the monotonic clock after `read_into`. The
+attempt is permanently closed; only a separately frozen replacement may run.
 
 ## G2: suspended cutoff revalidation (not yet executable)
 
