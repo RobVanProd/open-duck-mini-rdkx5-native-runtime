@@ -28,6 +28,24 @@ LAUNCHER_REVIEW = (
     / "artifacts/gates/grounded_validation"
     / "CONTROLLER_B_STOP_NO_SERVO_LAUNCHER_REVIEW_20260802.json"
 )
+ATTEMPT1 = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_NO_SERVO_ATTEMPT1_HALTED_20260802.json"
+)
+REPLACEMENT_RUNNER = (
+    ROOT / "setup/run_grounded_controller_stop_preflight_replacement.sh"
+)
+REPLACEMENT_PREREGISTRATION = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT_PREREGISTRATION_20260802.json"
+)
+REPLACEMENT_LAUNCHER_REVIEW = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT_LAUNCHER_REVIEW_20260802.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -179,3 +197,86 @@ def test_handoff_blocks_grounded_launchers_until_sequential_safety_passes() -> N
     assert "no launcher exists" in text
     assert "There is no automatic promotion between stages" in text
     assert "must not reuse the\n`--suspended-or-benched` assertion" in text
+
+
+def test_attempt1_is_preserved_as_pre_action_timestamp_halt() -> None:
+    value = json.loads(ATTEMPT1.read_text(encoding="utf-8"))
+
+    assert value["status"] == "HALTED_BEFORE_OPERATOR_ACTION"
+    assert value["observed"]["controller_sample_age_ms"] == -0.322834
+    assert value["observed"]["emergency_stop_events"] == 0
+    assert value["observed"]["pause_toggle_events"] == 0
+    assert value["attribution"]["classification"] == (
+        "PROBE_TIMESTAMP_BOOKKEEPING_DEFECT"
+    )
+    assert value["attribution"]["runtime_affected"] is False
+    assert value["decision"]["retry_under_original_preregistration"] is False
+    assert value["decision"]["grounded_motion_authorized"] is False
+
+
+def test_replacement_preregistration_pins_fix_and_attempt1() -> None:
+    value = json.loads(REPLACEMENT_PREREGISTRATION.read_text(encoding="utf-8"))
+
+    assert value["status"] == (
+        "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT"
+    )
+    assert value["supersedes"]["attempt1_sha256"] == _sha256(ATTEMPT1)
+    assert value["supersedes"]["retry_under_original_preregistration"] is False
+    assert value["fix_contract"]["source_commit"] == (
+        "655d510872d8ca08067389bd819e4354c497454e"
+    )
+    assert value["fix_contract"]["source_tree"] == (
+        "850f013937a4ab4c9c2c9824744407e5d312b938"
+    )
+    assert value["fix_contract"]["runtime_control_path_changed"] is False
+    assert value["frozen_run"]["automatic_follow_on"] is False
+    assert value["authority"]["controller_access"] is False
+    assert value["authority"]["motion"] is False
+    assert value["authority"]["grounded_replay"] is False
+
+
+def test_replacement_runner_is_controller_only_and_validates_corrected_age() -> None:
+    script = REPLACEMENT_RUNNER.read_text(encoding="utf-8")
+    invocation = "-m open_duck_x5.controller_stop_probe"
+
+    assert _sha256(REPLACEMENT_PREREGISTRATION) in script
+    assert _sha256(ATTEMPT1) in script
+    assert script.count(invocation) == 1
+    assert 'expected_source_commit="655d510872d8ca08067389bd819e4354c497454e"' in script
+    assert 'expected_source_tree="850f013937a4ab4c9c2c9824744407e5d312b938"' in script
+    assert '"sample_age_nonnegative"' in script
+    assert '"sample_age_at_most_250_ms"' in script
+    assert '"sample_check_field_complete"' in script
+    assert "/dev/tty" not in script
+    assert "open_duck_x5.runtime" not in script
+    assert "--enable-torque" not in script
+    assert "--policy" not in script
+    assert '"automatic_follow_on": False' in script
+    assert '"grounded_motion_authorized": False' in script
+
+
+def test_replacement_launcher_review_pins_exact_runner() -> None:
+    value = json.loads(REPLACEMENT_LAUNCHER_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_OFFLINE_REVIEW_NOT_RUN_REPLACEMENT"
+    assert value["preregistration"]["sha256"] == _sha256(
+        REPLACEMENT_PREREGISTRATION
+    )
+    assert value["attempt1"]["sha256"] == _sha256(ATTEMPT1)
+    assert value["launcher"]["sha256"] == _sha256(REPLACEMENT_RUNNER)
+    assert all(value["offline_checks"].values())
+    assert value["result_scope"]["replacement_probe_executed"] is False
+    assert value["decision"]["automatic_promotion"] is False
+
+
+def test_replacement_runner_parses_and_help_is_nonmoving() -> None:
+    subprocess.run(["bash", "-n", str(REPLACEMENT_RUNNER)], check=True)
+    completed = subprocess.run(
+        ["bash", str(REPLACEMENT_RUNNER), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "Replacement controller-only B-button mapping probe" in completed.stdout
+    assert "does not open serial" in completed.stdout
+    assert "command motion" in completed.stdout

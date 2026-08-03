@@ -1,0 +1,64 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_replacement_launcher_review.v1",
+  "status": "PASS_OFFLINE_REVIEW_NOT_RUN_REPLACEMENT",
+  "date": "2026-08-02",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT_PREREGISTRATION_20260802.json",
+    "sha256": "4d031b0d63c87e08cc77e8df799b41325f2271223885bf9e2c9bb36eeb4edf8e",
+    "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT"
+  },
+  "attempt1": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_ATTEMPT1_HALTED_20260802.json",
+    "sha256": "3e3a44bac1aba8b00dae05e7a1a647d7f412db352065bac02cabf558db167969",
+    "status": "HALTED_BEFORE_OPERATOR_ACTION"
+  },
+  "launcher": {
+    "path": "setup/run_grounded_controller_stop_preflight_replacement.sh",
+    "sha256": "b8b5fa22ed70654753ab1be5f55cbdfbc591d0013dd1681818efb965333ae709",
+    "probe_invocations": 1,
+    "probe_module": "open_duck_x5.controller_stop_probe"
+  },
+  "frozen_source": {
+    "source_commit": "655d510872d8ca08067389bd819e4354c497454e",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751"
+  },
+  "offline_checks": {
+    "attempt1_defect_reproduced": true,
+    "post_read_freshness_order_tested": true,
+    "bash_syntax": true,
+    "help_path_non_mutating": true,
+    "hardware_acknowledgements_required": true,
+    "known_controller_identity_required_before_and_after": true,
+    "attempt1_halt_and_reviewed_gate5_receipts_pinned": true,
+    "tracked_source_must_be_clean": true,
+    "new_output_directory_required": true,
+    "single_controller_probe_invocation": true,
+    "all_sample_ages_validated_between_0_and_250_ms": true,
+    "serial_device_path_absent": true,
+    "servo_bus_invocation_absent": true,
+    "torque_enable_invocation_absent": true,
+    "policy_invocation_absent": true,
+    "motion_invocation_absent": true,
+    "automatic_follow_on_absent": true,
+    "grounded_launcher_absent": true
+  },
+  "result_scope": {
+    "controller_only": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "replacement_probe_executed": false
+  },
+  "decision": {
+    "replacement_ready_under_received_exact_authorization": true,
+    "suspended_cutoff_test_ready": false,
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "automatic_promotion": false
+  },
+  "advance": "After CI passes, stage the exact replacement on the X5 and issue the GO cue. A reviewed physical pass remains required before preparing any suspended cutoff test."
+}
