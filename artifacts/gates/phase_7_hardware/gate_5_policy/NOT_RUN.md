@@ -68,6 +68,18 @@ The repaired retry is now frozen against runtime tree
 It requires a new unused output directory and fresh explicit suspended x=0
 authorization. It has not run.
 
+That phase-JSON retry halted before its readiness bus exchange because the
+operator A-button edge arrived during the explicit reject-toggle check. It
+recorded zero control ticks and zero active policy ticks. Runtime cutoff and a
+separate all-14 register-40 readback both passed. The exact evidence is in
+`T247_X0_PHASE_JSON_RETRY_ATTEMPT_HALTED_20260802.json`.
+
+The next retry must use a monitored readiness handshake: no A press until the
+agent observes the clean readiness `PASS` record and explicitly says `GO`.
+That new protocol is now frozen with launcher SHA-256
+`7bcf2900bba180646e651ea10bdf03fe7c48a1be85c2be672fd4ff5e8db75b72`
+and a new unused evidence directory. It remains unauthorized and has not run.
+
 The x=.08 arm remains blocked. It requires a separately reviewed green x=0
 receipt, the receipt's exact SHA-256, and separate explicit authorization.
 Grounded replay remains prohibited.

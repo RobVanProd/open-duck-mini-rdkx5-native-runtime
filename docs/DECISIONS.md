@@ -1258,3 +1258,46 @@ Its new preregistration and review packet are in the Gate 5 artifact directory.
 This freeze authorizes no robot access, torque, motion, policy execution, x=.08,
 or grounded replay. It may run only after fresh explicit authorization for this
 exact suspended x=0 attempt.
+
+## D076 — Require an evidence-visible operator unpause cue
+
+Accepted as a failed pre-policy attempt, not a Gate 5 result. The repaired
+launcher completed home entry, but the A-button edge arrived at the explicit
+reject-toggle check before the startup-readiness bus exchange. The runtime
+halted correctly with zero readiness records, zero control ticks, and zero
+active policy ticks. Runtime and independent register-40 checks both confirmed
+torque off for all 14 servos; the UART and governor were restored.
+
+The cause is procedural: visually judging when home entry ended did not expose
+the brief readiness boundary. The next attempt keeps the runtime and policy
+unchanged. Its launcher runs in a monitored background session, and the agent
+polls the JSONL stream until a clean `startup_readiness` `PASS` record is
+durably visible. Only then may the agent tell the operator `GO — press A once`.
+The operator must not press A before that cue.
+
+The runner's post-halt candidate validator also receives a diagnostic-only
+repair so null timing statistics from a zero-tick halt evaluate false instead
+of raising `TypeError`. Neither change affects the motion, observation, action,
+servo, sensor, or timing path. The consumed attempt is preserved and cannot be
+retried under its authorization.
+
+## D077 — Freeze the readiness-cued x=0 retry
+
+Accepted offline. The candidate, runtime trees, assets, controller identity,
+transport, RT settings, motion duration, policy ticks, and all safety gates are
+unchanged. The new protocol changes only orchestration: the frozen launcher is
+started once in a monitored background session, and the operator keeps hands
+off the controller until the agent observes one clean readiness `PASS` record.
+The agent then issues the exact `GO — press A once now` cue.
+
+The runner's no-tick candidate validator now treats null timing and bus
+statistics as failed checks rather than comparing them with floats. A direct
+regression test executes that embedded validator on a zero-tick summary and
+requires a clean hold exit without `TypeError`.
+
+The frozen launcher SHA-256 is
+`7bcf2900bba180646e651ea10bdf03fe7c48a1be85c2be672fd4ff5e8db75b72`.
+The preregistration and launcher review bind a new unused evidence directory
+and the exact operator handshake. They authorize no robot access, torque,
+motion, policy execution, x=.08, or grounded replay; fresh explicit suspended
+x=0 authorization is still required.
