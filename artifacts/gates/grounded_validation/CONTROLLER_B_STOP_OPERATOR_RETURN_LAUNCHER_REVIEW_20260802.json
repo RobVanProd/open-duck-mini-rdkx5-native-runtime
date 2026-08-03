@@ -1,0 +1,63 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_operator_return_launcher_review.v1",
+  "status": "PASS_OFFLINE_REVIEW_NOT_RUN_OPERATOR_RETURN",
+  "date": "2026-08-02",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_OPERATOR_RETURN_PREREGISTRATION_20260802.json",
+    "sha256": "a2cf248f8a83aef32f864065837c09db00975bf380634c29915584ccfb8986ad",
+    "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_OPERATOR_RETURN"
+  },
+  "attempt2": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_NO_SERVO_ATTEMPT2_OPERATOR_UNAVAILABLE_20260802.json",
+    "sha256": "df44adc999e578fe600d257fbef6b6f5aeaf43153b4e67e88c9db0d98b066ad8",
+    "status": "HALTED_NO_OPERATOR_ACTION"
+  },
+  "launcher": {
+    "path": "setup/run_grounded_controller_stop_operator_return.sh",
+    "sha256": "4453ee6b7f0be22f21f64239b3cca64ebdf846bbe363e5f8a09850554190df62",
+    "probe_invocations": 1,
+    "probe_module": "open_duck_x5.controller_stop_probe"
+  },
+  "frozen_source": {
+    "source_commit": "655d510872d8ca08067389bd819e4354c497454e",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "c5599cd5bbe11f7884ff663307712edb7b7b4751"
+  },
+  "offline_checks": {
+    "attempt2_operator_unavailable_receipt_pinned": true,
+    "corrected_probe_unchanged": true,
+    "bash_syntax": true,
+    "help_path_non_mutating": true,
+    "hardware_acknowledgements_required": true,
+    "known_controller_identity_required_before_and_after": true,
+    "tracked_source_must_be_clean": true,
+    "new_output_directory_required": true,
+    "single_controller_probe_invocation": true,
+    "all_sample_ages_validated_between_0_and_250_ms": true,
+    "serial_device_path_absent": true,
+    "servo_bus_invocation_absent": true,
+    "torque_enable_invocation_absent": true,
+    "policy_invocation_absent": true,
+    "motion_invocation_absent": true,
+    "automatic_follow_on_absent": true,
+    "grounded_launcher_absent": true
+  },
+  "result_scope": {
+    "controller_only": true,
+    "serial_access": false,
+    "servo_access": false,
+    "torque": false,
+    "policy": false,
+    "motion": false,
+    "operator_return_probe_executed": false
+  },
+  "decision": {
+    "operator_return_attempt_ready_under_fresh_request": true,
+    "suspended_cutoff_test_ready": false,
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "automatic_promotion": false
+  },
+  "advance": "After CI passes, stage exactly this one-shot controller-only launcher and issue the GO cue while the operator is present."
+}

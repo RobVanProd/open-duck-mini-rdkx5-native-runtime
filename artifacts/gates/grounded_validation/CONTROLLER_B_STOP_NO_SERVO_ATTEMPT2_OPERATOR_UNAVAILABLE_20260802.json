@@ -1,0 +1,70 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_no_servo_attempt.v1",
+  "status": "HALTED_NO_OPERATOR_ACTION",
+  "date": "2026-08-02",
+  "scope": {
+    "controller_only": true,
+    "ticks_requested": 3000,
+    "ticks_recorded": 3000,
+    "duration_ms": 59980.082238,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "operator": {
+    "go_cue_issued": true,
+    "b_press_observed": false,
+    "a_press_observed": false,
+    "postrun_report": "had to use the restroom emergency",
+    "available_during_window": false
+  },
+  "observed": {
+    "probe_status": "FAIL",
+    "failure": "b_button_emergency_stop_not_observed_before_tick_cap",
+    "controller_samples": 3000,
+    "controller_sample_age_ms": {
+      "min": 0.011,
+      "mean": 0.042512787,
+      "max": 0.086292
+    },
+    "emergency_stop_events": 0,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 0,
+    "controller_identity_before_and_after": "0c:35:26:2a:b8:0b",
+    "bluetooth_connected_before_and_after": true
+  },
+  "attribution": {
+    "classification": "OPERATOR_UNAVAILABLE_DURING_CUE_WINDOW",
+    "timestamp_fix_validated": true,
+    "controller_transport_healthy": true,
+    "button_mapping_tested": false,
+    "runtime_affected": false,
+    "robot_failure": false
+  },
+  "frozen_inputs": {
+    "source_commit": "f2864c62cd37a3e58e8e70fa9129672467dc14ca",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "launcher_sha256": "b8b5fa22ed70654753ab1be5f55cbdfbc591d0013dd1681818efb965333ae709",
+    "preregistration_sha256": "4d031b0d63c87e08cc77e8df799b41325f2271223885bf9e2c9bb36eeb4edf8e"
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/controller-b-stop-replacement-20260802",
+    "controller_jsonl_sha256": "6481222fe926014092022fbeed2550c48e7294ab2029096d15d115388aee3301",
+    "summary_json_sha256": "20145096d5c5965fe9146eddb91ee39993a6e80c8d1da17ad1202c4505122bd5",
+    "metadata_json_sha256": "aeeba1fedba448939423b4a7666ac3cfd586c333ae80be6efc917b2e028768dd",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\grounded-validation-prep\\controller-b-stop-replacement-20260802.tar.gz",
+    "external_archive_sha256": "c8a4a4e461cc1553db6a0768a34f20acfeddc446be4a851ea472b384379054f8",
+    "external_archive_bytes": 62495
+  },
+  "decision": {
+    "attempt_passed": false,
+    "button_mapping_result": "NOT_OBSERVED_OPERATOR_ABSENT",
+    "retry_under_replacement_preregistration": false,
+    "new_operator_return_preregistration_required": true,
+    "suspended_cutoff_test_authorized": false,
+    "grounded_motion_authorized": false
+  },
+  "advance": "Under the operator's fresh same-scope authorization, freeze one new controller-only operator-return attempt. Do not change the corrected probe or advance any robot gate."
+}

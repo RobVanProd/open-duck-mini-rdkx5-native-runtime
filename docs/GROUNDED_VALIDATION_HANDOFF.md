@@ -57,6 +57,12 @@ false stale-state classification. The runtime was not affected: its controller
 freshness checks already sample the monotonic clock after `read_into`. The
 attempt is permanently closed; only a separately frozen replacement may run.
 
+The corrected replacement then recorded all 3000 samples with ages from 0.011
+through 0.086292 ms, zero stale/disconnect events, and zero A/B edges. The
+operator subsequently reported being unavailable during the cue window, so it
+does not test the physical B mapping. That attempt is also closed; a distinct
+operator-return preregistration is required for the requested repeat.
+
 ## G2: suspended cutoff revalidation (not yet executable)
 
 Only a reviewed G1 pass can earn this stage. Its future preregistration must

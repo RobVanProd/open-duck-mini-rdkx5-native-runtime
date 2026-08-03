@@ -46,6 +46,24 @@ REPLACEMENT_LAUNCHER_REVIEW = (
     / "artifacts/gates/grounded_validation"
     / "CONTROLLER_B_STOP_NO_SERVO_REPLACEMENT_LAUNCHER_REVIEW_20260802.json"
 )
+ATTEMPT2 = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_NO_SERVO_ATTEMPT2_OPERATOR_UNAVAILABLE_20260802.json"
+)
+OPERATOR_RETURN_RUNNER = (
+    ROOT / "setup/run_grounded_controller_stop_operator_return.sh"
+)
+OPERATOR_RETURN_PREREGISTRATION = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_OPERATOR_RETURN_PREREGISTRATION_20260802.json"
+)
+OPERATOR_RETURN_LAUNCHER_REVIEW = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_OPERATOR_RETURN_LAUNCHER_REVIEW_20260802.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -280,3 +298,77 @@ def test_replacement_runner_parses_and_help_is_nonmoving() -> None:
     assert "Replacement controller-only B-button mapping probe" in completed.stdout
     assert "does not open serial" in completed.stdout
     assert "command motion" in completed.stdout
+
+
+def test_attempt2_records_healthy_transport_and_operator_absence() -> None:
+    value = json.loads(ATTEMPT2.read_text(encoding="utf-8"))
+
+    assert value["status"] == "HALTED_NO_OPERATOR_ACTION"
+    assert value["scope"]["ticks_recorded"] == 3000
+    assert value["observed"]["disconnect_or_stale_events"] == 0
+    assert value["observed"]["emergency_stop_events"] == 0
+    assert value["attribution"]["timestamp_fix_validated"] is True
+    assert value["attribution"]["button_mapping_tested"] is False
+    assert value["decision"]["retry_under_replacement_preregistration"] is False
+
+
+def test_operator_return_preregistration_pins_attempt2_and_same_probe() -> None:
+    value = json.loads(OPERATOR_RETURN_PREREGISTRATION.read_text(encoding="utf-8"))
+
+    assert value["status"] == (
+        "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_OPERATOR_RETURN"
+    )
+    assert value["earned_by"]["attempt2_sha256"] == _sha256(ATTEMPT2)
+    assert value["earned_by"]["button_mapping_tested"] is False
+    assert value["frozen_source"]["probe_change_from_attempt2"] is False
+    assert value["frozen_run"]["single_probe_invocation"] is True
+    assert value["frozen_run"]["automatic_follow_on"] is False
+    assert value["operator_handshake"]["fresh_request"] == (
+        "try again i had to use the restroom emergency. im good"
+    )
+    assert value["authority"]["motion"] is False
+    assert value["authority"]["grounded_replay"] is False
+
+
+def test_operator_return_launcher_is_one_shot_controller_only() -> None:
+    script = OPERATOR_RETURN_RUNNER.read_text(encoding="utf-8")
+    invocation = "-m open_duck_x5.controller_stop_probe"
+
+    assert _sha256(OPERATOR_RETURN_PREREGISTRATION) in script
+    assert _sha256(ATTEMPT2) in script
+    assert script.count(invocation) == 1
+    assert 'expected_source_tree="850f013937a4ab4c9c2c9824744407e5d312b938"' in script
+    assert '"sample_age_nonnegative"' in script
+    assert '"one_b_edge"' in script
+    assert "/dev/tty" not in script
+    assert "open_duck_x5.runtime" not in script
+    assert "--enable-torque" not in script
+    assert "--policy" not in script
+    assert '"automatic_follow_on": False' in script
+    assert '"grounded_motion_authorized": False' in script
+
+
+def test_operator_return_launcher_review_pins_exact_runner() -> None:
+    value = json.loads(OPERATOR_RETURN_LAUNCHER_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_OFFLINE_REVIEW_NOT_RUN_OPERATOR_RETURN"
+    assert value["preregistration"]["sha256"] == _sha256(
+        OPERATOR_RETURN_PREREGISTRATION
+    )
+    assert value["attempt2"]["sha256"] == _sha256(ATTEMPT2)
+    assert value["launcher"]["sha256"] == _sha256(OPERATOR_RETURN_RUNNER)
+    assert all(value["offline_checks"].values())
+    assert value["result_scope"]["operator_return_probe_executed"] is False
+    assert value["decision"]["automatic_promotion"] is False
+
+
+def test_operator_return_runner_parses_and_help_is_nonmoving() -> None:
+    subprocess.run(["bash", "-n", str(OPERATOR_RETURN_RUNNER)], check=True)
+    completed = subprocess.run(
+        ["bash", str(OPERATOR_RETURN_RUNNER), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "One-shot controller-only B-button mapping attempt" in completed.stdout
+    assert "no serial, servo, torque, policy, or motion" in completed.stdout
