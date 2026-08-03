@@ -1,0 +1,51 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_replacement_launcher_review.v1",
+  "status": "PASS_OFFLINE_REVIEW_NOT_RUN_G2_REPLACEMENT",
+  "date": "2026-08-02",
+  "attempt1": {
+    "path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_ATTEMPT1_CONTROLLER_SLEEP_20260802.json",
+    "sha256": "b1dd37afe181271f0bd2f6e1945b2d9bea363bb10b4832cee2d7cd145099aea1"
+  },
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_PREREGISTRATION_20260802.json",
+    "sha256": "89291c53af4a56e3a12f08ec83df7e5ee392eb307f63abee09b65f6d9f4a50e4"
+  },
+  "launcher": {
+    "path": "setup/run_suspended_controller_b_cutoff_g2_replacement.sh",
+    "sha256": "db7b1af76596da3994c5493397b2d83dd0ca6d7a5b74c00b0af7c83705da41b5",
+    "underlying_launcher_path": "setup/run_suspended_controller_b_cutoff_g2.sh",
+    "underlying_launcher_sha256": "63eb293fda095a0be977447de3b81e0e3a56de162ebed7cecda9093e802920ce"
+  },
+  "offline_checks": {
+    "shell_syntax": true,
+    "attempt1_failure_pinned": true,
+    "unchanged_g2_launcher_pinned": true,
+    "runtime_unchanged": true,
+    "probe_unchanged": true,
+    "servo_bus_unchanged": true,
+    "operator_axis_activity_only_change": true,
+    "keep_awake_interval_exactly_25_s": true,
+    "axis_input_not_consumed_by_target_generation": true,
+    "a_button_forbidden": true,
+    "b_button_forbidden_before_home_ready": true,
+    "controller_disconnect_remains_fail_closed": true,
+    "no_policy_path": true,
+    "no_grounded_path": true,
+    "no_automatic_retry": true,
+    "no_automatic_follow_on": true
+  },
+  "result_scope": {
+    "replacement_executed": false,
+    "torque_enabled": false,
+    "motion_executed": false,
+    "policy_loaded": false,
+    "grounded_motion": false
+  },
+  "decision": {
+    "replacement_ready_for_fresh_exact_authorization": true,
+    "replacement_authorized": false,
+    "g2": "NOT_RUN",
+    "grounded_motion_authorized": false,
+    "automatic_promotion": false
+  }
+}

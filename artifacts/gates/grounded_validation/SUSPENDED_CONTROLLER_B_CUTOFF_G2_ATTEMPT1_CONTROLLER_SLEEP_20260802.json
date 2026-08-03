@@ -1,0 +1,81 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_attempt1.v1",
+  "status": "HALTED_BEFORE_TORQUE_ENABLE_CONTROLLER_TRANSPORT_LOSS",
+  "date": "2026-08-02",
+  "source_commit": "1318f7be0d2006d37bbe9864e3e4c54023cc36d0",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_PREREGISTRATION_20260802.json",
+    "sha256": "414776d4792a859b27a75b7020577c5b370fc307f70a036032d250bf8f4dca83"
+  },
+  "launcher": {
+    "path": "setup/run_suspended_controller_b_cutoff_g2.sh",
+    "sha256": "63eb293fda095a0be977447de3b81e0e3a56de162ebed7cecda9093e802920ce"
+  },
+  "preflight": {
+    "ticks_requested": 10000,
+    "ticks_completed": 215,
+    "duration_s": 4.3,
+    "halt_reason": "physical controller state is disconnected or stale",
+    "tick_period_ms": {
+      "p99": 20.00254275,
+      "p99_9": 20.002698375,
+      "max": 20.002725
+    },
+    "bus_total_ms": {
+      "p99": 3.83180848,
+      "p99_9": 3.8627932860000005,
+      "max": 3.864345
+    },
+    "transactions_expected": 3440,
+    "transactions_failed": 0,
+    "read_bursts": 0,
+    "partial_bytes": 0,
+    "unexpected_packets": 0,
+    "device_alarm_replies": 0,
+    "torque_off_status": "ok"
+  },
+  "attribution": {
+    "classification": "REAL_JOYDEV_TRANSPORT_INTERRUPTION",
+    "controller_connected_at_launcher_start": true,
+    "controller_identity_at_launcher_start": "0c:35:26:2a:b8:0b",
+    "current_js0_recreated_after_halt": true,
+    "preflight_summary_written_local": "2026-08-02T23:49:00.152727176-04:00",
+    "replacement_js0_birth_local": "2026-08-02T23:49:13.332765880-04:00",
+    "replacement_js0_sysfs": "/devices/virtual/misc/uhid/0005:045E:0B13.000E/input/input14/js0",
+    "operator_report": "controller had been connected for a while and likely went to sleep from inactivity",
+    "operator_report_classification": "PLAUSIBLE_PHYSICAL_ATTRIBUTION",
+    "timestamp_bookkeeping_defect": false,
+    "servo_bus_failure": false,
+    "timing_gate_failure": false
+  },
+  "safety_exit": {
+    "moving_stage_entered": false,
+    "torque_enable_requested": false,
+    "policy_loaded": false,
+    "motion_observed": false,
+    "grounded_motion": false,
+    "governor_before": "schedutil",
+    "governor_during": "performance",
+    "governor_after": "schedutil",
+    "independent_post_halt_readback_status": "PASS",
+    "all_14_torque_enable_registers_zero": true,
+    "register_40_read_order": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13]
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/suspended-controller-b-cutoff-g2-20260802",
+    "preflight_summary_sha256": "1bd8ab60ea8587df5dd130aa23dc41495a3bddb55a8acf4a521f1070be43b916",
+    "preflight_timing_jsonl_sha256": "9049076fa694f0e75cf5740dde20519a4d81f98a7f74a353034d949d621f6b84",
+    "post_halt_torque_off_readback_sha256": "5d7defbae4f402eb513f81c4ead0f56eaf3d9810686f30155d6fcb24c483ba1c",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\grounded-validation-prep\\suspended-controller-b-cutoff-g2-attempt1-20260802.tar.gz",
+    "external_archive_sha256": "eeb3dbc3144c302e12b0a5c8b828e07a53d29c0abaa3d12b45ccc2a55f12df3e",
+    "external_archive_bytes": 19132
+  },
+  "decision": {
+    "g2": "NOT_RUN",
+    "retry_under_original_preregistration": false,
+    "replacement_with_operator_keep_awake_protocol_earned": true,
+    "replacement_run_authorized": false,
+    "grounded_motion_authorized": false,
+    "automatic_follow_on": false
+  }
+}

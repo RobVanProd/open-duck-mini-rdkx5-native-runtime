@@ -22,6 +22,24 @@ LAUNCHER_REVIEW = (
     / "artifacts/gates/grounded_validation"
     / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_LAUNCHER_REVIEW_20260802.json"
 )
+ATTEMPT1 = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_ATTEMPT1_CONTROLLER_SLEEP_20260802.json"
+)
+REPLACEMENT_PREREGISTRATION = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_PREREGISTRATION_20260802.json"
+)
+REPLACEMENT_RUNNER = (
+    ROOT / "setup/run_suspended_controller_b_cutoff_g2_replacement.sh"
+)
+REPLACEMENT_LAUNCHER_REVIEW = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT_LAUNCHER_REVIEW_20260802.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -164,3 +182,96 @@ def test_g2_launcher_review_pins_exact_not_run_scope() -> None:
     assert value["decision"]["g2_ready_for_fresh_exact_authorization"] is True
     assert value["decision"]["g2_authorized"] is False
     assert value["decision"]["grounded_motion_authorized"] is False
+
+
+def test_g2_attempt1_closed_before_torque_for_real_controller_sleep() -> None:
+    value = json.loads(ATTEMPT1.read_text(encoding="utf-8"))
+
+    assert value["status"] == (
+        "HALTED_BEFORE_TORQUE_ENABLE_CONTROLLER_TRANSPORT_LOSS"
+    )
+    assert value["preflight"]["ticks_completed"] == 215
+    assert value["preflight"]["transactions_failed"] == 0
+    assert value["attribution"]["classification"] == (
+        "REAL_JOYDEV_TRANSPORT_INTERRUPTION"
+    )
+    assert value["attribution"]["current_js0_recreated_after_halt"] is True
+    assert value["attribution"]["timestamp_bookkeeping_defect"] is False
+    assert value["safety_exit"]["moving_stage_entered"] is False
+    assert value["safety_exit"]["all_14_torque_enable_registers_zero"] is True
+    assert value["decision"]["retry_under_original_preregistration"] is False
+    assert value["decision"]["replacement_run_authorized"] is False
+
+
+def test_g2_replacement_changes_only_operator_keep_awake_protocol() -> None:
+    value = json.loads(REPLACEMENT_PREREGISTRATION.read_text(encoding="utf-8"))
+
+    assert value["status"] == (
+        "PREREGISTERED_NOT_RUN_SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT"
+    )
+    assert value["earned_by"]["attempt1_sha256"] == _sha256(ATTEMPT1)
+    assert value["frozen_source"]["runtime_change_from_attempt1"] is False
+    assert value["frozen_source"]["probe_change_from_attempt1"] is False
+    assert value["frozen_source"]["servo_bus_change_from_attempt1"] is False
+    protocol = value["operator_keep_awake_protocol"]
+    assert protocol["preflight_cue_interval_s"] == 25
+    assert protocol["a_button_presses"] == 0
+    assert protocol["b_button_before_home_ready"] == "PROHIBITED"
+    assert protocol["axis_input_can_command_robot"] is False
+    assert value["unchanged_sequence"]["preflight_ticks"] == 10_000
+    assert value["unchanged_sequence"]["policy_loaded"] is False
+    assert value["unchanged_sequence"][
+        "b_event_to_torque_disable_complete_at_most_ms"
+    ] == 20.0
+    assert value["decision"]["g2"] == "NOT_RUN"
+    assert value["decision"]["grounded_motion_authorized"] is False
+
+
+def test_g2_replacement_wrapper_pins_evidence_and_only_wraps_original() -> None:
+    script = REPLACEMENT_RUNNER.read_text(encoding="utf-8")
+
+    assert _sha256(ATTEMPT1) in script
+    assert _sha256(REPLACEMENT_PREREGISTRATION) in script
+    assert _sha256(RUNNER) in script
+    assert 'keep_awake_interval_s="25"' in script
+    assert "operator_action=KEEP_AWAKE" in script
+    assert script.count("run_suspended_controller_b_cutoff_g2.sh") == 2
+    assert "open_duck_x5.probe" not in script
+    assert "open_duck_x5.runtime" not in script
+    assert "--policy" not in script
+    assert "--grounded" not in script
+    assert '"automatic_retry": False' in script
+    assert '"automatic_follow_on": False' in script
+
+
+def test_g2_replacement_wrapper_parses_and_help_explains_axis_safety() -> None:
+    subprocess.run(["bash", "-n", str(REPLACEMENT_RUNNER)], check=True)
+    completed = subprocess.run(
+        ["bash", str(REPLACEMENT_RUNNER), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "keep-awake cue every 25 seconds" in completed.stdout
+    assert "gently move either stick once" in completed.stdout
+    assert "axes cannot command the robot" in completed.stdout
+    assert "no policy" in completed.stdout
+    assert "no grounded path" in completed.stdout
+
+
+def test_g2_replacement_launcher_review_is_exact_and_not_run() -> None:
+    value = json.loads(REPLACEMENT_LAUNCHER_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_OFFLINE_REVIEW_NOT_RUN_G2_REPLACEMENT"
+    assert value["attempt1"]["sha256"] == _sha256(ATTEMPT1)
+    assert value["preregistration"]["sha256"] == _sha256(
+        REPLACEMENT_PREREGISTRATION
+    )
+    assert value["launcher"]["sha256"] == _sha256(REPLACEMENT_RUNNER)
+    assert value["launcher"]["underlying_launcher_sha256"] == _sha256(RUNNER)
+    assert all(value["offline_checks"].values())
+    assert value["result_scope"]["replacement_executed"] is False
+    assert value["result_scope"]["torque_enabled"] is False
+    assert value["decision"]["replacement_ready_for_fresh_exact_authorization"] is True
+    assert value["decision"]["replacement_authorized"] is False
+    assert value["decision"]["g2"] == "NOT_RUN"

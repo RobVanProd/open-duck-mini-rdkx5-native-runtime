@@ -94,6 +94,20 @@ G2 is still `NOT_RUN`. The launcher requires all hardware acknowledgements and
 the exact fresh authorization stored in the preregistration. Do not press B
 before Codex reports the launcher-generated GO cue.
 
+The first G2 invocation halted during the torque-off preflight after 215 clean
+ticks because the Xbox joydev endpoint disappeared. Torque was never enabled,
+the moving stage was never entered, and a separate post-halt register-40 read
+confirmed all 14 servos torque-off. The new `/dev/input/js0` was created 13.18
+seconds after the halt. The operator reported that the controller had already
+been idle and likely slept. The original attempt is closed.
+
+A replacement is frozen without changing the runtime, probe, bus, thresholds,
+or G2 sequence. Its only change is an operator keep-awake protocol: move either
+stick once immediately before launch and once at each 25-second cue during the
+torque-off preflight, then release it to center. Controller axes cannot affect
+the zero-amplitude no-policy targets. A and pre-GO B remain forbidden. The
+replacement is reviewed offline but requires new exact authorization.
+
 ## G3/G4: grounded work (not authorized and not implemented)
 
 Grounded testing is a new authority boundary. It must not reuse the

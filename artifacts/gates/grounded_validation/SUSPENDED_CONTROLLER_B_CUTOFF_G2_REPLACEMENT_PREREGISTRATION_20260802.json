@@ -1,0 +1,70 @@
+{
+  "schema_version": "open_duck_x5.suspended_controller_b_cutoff_g2_replacement_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN_SUSPENDED_CONTROLLER_B_CUTOFF_G2_REPLACEMENT",
+  "date": "2026-08-02",
+  "earned_by": {
+    "attempt1_path": "artifacts/gates/grounded_validation/SUSPENDED_CONTROLLER_B_CUTOFF_G2_ATTEMPT1_CONTROLLER_SLEEP_20260802.json",
+    "attempt1_sha256": "b1dd37afe181271f0bd2f6e1945b2d9bea363bb10b4832cee2d7cd145099aea1",
+    "attempt1_status": "HALTED_BEFORE_TORQUE_ENABLE_CONTROLLER_TRANSPORT_LOSS",
+    "moving_stage_entered": false,
+    "all_14_torque_enable_registers_zero": true
+  },
+  "frozen_source": {
+    "minimum_commit": "1318f7be0d2006d37bbe9864e3e4c54023cc36d0",
+    "source_tree": "6bb064e1d15c27fb6af7301cf2fe9a6b4d7fb6d4",
+    "schema_tree": "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "pyproject_blob": "4d2b05b958aea152a16c88e094ff25fd78d31b55",
+    "runtime_change_from_attempt1": false,
+    "probe_change_from_attempt1": false,
+    "servo_bus_change_from_attempt1": false
+  },
+  "mechanism": {
+    "diagnosis": "The known Xbox had been idle before launch and its joydev endpoint disappeared during the torque-off preflight, then was recreated 13.18 seconds after the halt.",
+    "single_change": "Operator-generated axis activity keeps the controller awake while the unchanged fail-closed probe runs.",
+    "software_controller_reconnect": false,
+    "disconnect_tolerance": false,
+    "stale_threshold_change": false
+  },
+  "operator_keep_awake_protocol": {
+    "before_launch": "Move either stick once, then release it to center.",
+    "preflight_cue_interval_s": 25,
+    "on_each_preflight_cue": "Gently move either stick once, then release it to center.",
+    "a_button_presses": 0,
+    "b_button_before_home_ready": "PROHIBITED",
+    "axis_input_can_command_robot": false,
+    "reason_axis_input_cannot_command_robot": "The timing probe has no policy and always sends the frozen zero-amplitude home target; controller command axes are not consumed by target generation."
+  },
+  "unchanged_sequence": {
+    "preflight_ticks": 10000,
+    "preflight_torque_enable_requested": false,
+    "preflight_motion": false,
+    "home_entry_seconds": 5,
+    "home_hold_ticks_maximum": 3000,
+    "home_hold_amplitude_rad": 0.0,
+    "policy_loaded": false,
+    "b_event_to_torque_disable_complete_at_most_ms": 20.0,
+    "independent_register_40_reads": 14,
+    "read_order": [20, 21, 22, 23, 24, 30, 31, 32, 33, 10, 11, 12, 14, 13],
+    "grounded_motion": false,
+    "automatic_follow_on": false
+  },
+  "stop_rules": {
+    "any_controller_disconnect_or_staleness": "TORQUE_OFF_AND_HALT",
+    "preflight_failure": "HALT_BEFORE_TORQUE_ENABLE",
+    "unexpected_motion_or_sound": "OPERATOR_PRESSES_B_AND_SEQUENCE_HALTS",
+    "a_button_edge_during_home_entry_or_hold": "TORQUE_OFF_AND_HALT",
+    "automatic_retry": false,
+    "automatic_grounded_follow_on": false
+  },
+  "authorization": {
+    "required_fresh_exact_text": "I am physically present; the robot is securely supported on its stand, hands are clear, and the known-good Xbox controller is connected. I authorize the frozen replacement suspended no-policy G2 B-button cutoff sequence on /dev/ttyS1. I will move either stick once immediately before launch and once at each 25-second KEEP AWAKE cue, then release it to center; I will not press A. I authorize the 10,000-tick torque-off preflight and, only if it passes, torque enable for the five-second move to home and home hold. After Codex says GO, I will press B exactly once. I authorize the independent all-14 register-40 torque-off readback afterward. No policy, no x command, no grounded motion, and no automatic follow-on.",
+    "replacement_run_authorized": false
+  },
+  "decision": {
+    "g2": "NOT_RUN",
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "grounded_motion_authorized": false,
+    "automatic_promotion": false
+  }
+}
