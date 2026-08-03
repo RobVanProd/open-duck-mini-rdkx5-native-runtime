@@ -1327,3 +1327,26 @@ This decision earns only a separately frozen and reviewed suspended x=.08 arm.
 It does not authorize x=.08, automatic promotion, grounded replay, or robot
 clearance. The three earlier failed pre-policy attempts remain preserved and
 are not reclassified.
+
+## D079 — Freeze a distinct readiness-cued T247 x=.08 arm
+
+Accepted offline only. The new launcher hardcodes fixed command x=.08 and has
+no command selector or second-command path. Before any governor or serial
+access, it validates the reviewed x=0 receipt at SHA-256
+`9d40a3cd5c937eff84a65ea3117af9b0178eebc8af366692926fd175736fb096`
+and rechecks its candidate, command, duration, operator, cutoff, and advancement
+fields. It also pins the accepted no-motion readiness receipt, runtime trees,
+assets, config, IMU calibration, controller identity, and RT settings.
+
+The x=.08 launcher SHA-256 is
+`d5ff0da2b7ea09528baeb7ea58b91168b5af06f874c02f7704e6d571d5a83fd7`.
+It preserves the evidence-visible readiness handshake: the operator does not
+press A until the agent durably observes one clean readiness `PASS` record and
+issues the exact GO cue. It requires exactly 250 calibration and 600 locomotion
+ticks, all summary gates, torque-off, UART release, controller identity after
+the run, and governor restoration.
+
+This freeze authorizes no robot access, torque, motion, policy execution, or
+grounded replay. The x=.08 run remains `NOT_RUN` until the exact commit is green
+in CI, staged without hardware access, and receives fresh explicit suspended
+motion authorization.

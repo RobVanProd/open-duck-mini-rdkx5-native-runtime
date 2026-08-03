@@ -4,7 +4,7 @@ Status date: 2026-08-02
 
 ## Current state
 
-`T247 GATE 5 x=0 PASS_REVIEWED; SEPARATE x=.08 FREEZE NEXT`
+`T247 GATE 5 x=0 PASS_REVIEWED; x=.08 LAUNCHER FROZEN, AUTHORIZATION NEXT`
 
 The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
@@ -45,10 +45,9 @@ hardware timing result.
 
 ## Exact remaining sequence
 
-1. Freeze a separate x=.08 preregistration and launcher bound to the reviewed
-   x=0 receipt's exact SHA-256.
-2. Run all offline checks, push the freeze, and require green CI.
-3. Obtain fresh explicit authorization for that exact suspended x=.08 run.
+1. Push the x=.08 freeze and require green CI.
+2. Stage the exact reviewed commit on the X5 without opening the servo bus.
+3. Obtain fresh explicit authorization for the frozen suspended x=.08 run.
 4. Run only x=.08, then independently summarize and review it.
 
 The launcher cannot start x=.08 after x=0. Its x=.08 path requires both a

@@ -20,6 +20,9 @@ contiguous ticks 0-3559, exact 250+600 active-stage counts, and an exact summary
 match after source-path normalization. The reviewed receipt is
 `T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json`.
 
-The x=.08 arm remains `NOT_RUN`. The reviewed x=0 receipt earns only a separate
-x=.08 preregistration and launcher review; it does not authorize that run.
-Grounded replay remains prohibited and robot clearance remains false.
+The x=.08 arm remains `NOT_RUN`. Its distinct x=.08-only preregistration and
+launcher review are now frozen. The launcher hardcodes x=.08, accepts no command
+selector, validates the reviewed x=0 receipt and its exact SHA before any
+governor or serial access, and contains no second-command path. It still requires
+fresh exact suspended-motion authorization. Grounded replay remains prohibited
+and robot clearance remains false.
