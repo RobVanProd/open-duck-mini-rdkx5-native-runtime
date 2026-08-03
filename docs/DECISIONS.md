@@ -1365,3 +1365,31 @@ change the CPU governor, enable torque, or move the robot. After staging, the
 UART was free and the governor remained `schedutil`; the temporary board bundle
 was removed. This earns only a fresh exact suspended x=.08 authorization request.
 It does not authorize the run or grounded motion.
+
+## D081 — Accept the readiness-cued suspended T247 x=.08 arm
+
+Accepted as `PASS_REVIEWED_T247_GATE5_X008`. The separately frozen launcher
+validated the reviewed x=0 receipt before device access, entered home over five
+seconds, produced exactly one clean startup-readiness `PASS` while paused, and
+waited for the explicit operator cue. The operator pressed A once only after
+the agent issued `GO — press A once now`. The runtime completed exactly 250
+calibration and 600 locomotion ticks at fixed x=.08 with no second-command path.
+
+Tick p99/p99.9 were 20.126557/20.137626 ms and bus p99.9/max were
+3.898666/4.008135 ms. All 46,224 expected transactions succeeded. There were
+zero read bursts, stale required samples, alarms, partial bytes, unexpected
+packets, telemetry drops, or 3.75 rad/s envelope events. All 20 summary gates
+and all 15 candidate checks passed. The operator reported that the run "looked
+and sounded clean to me."
+
+Runtime cutoff and a separate all-14 register-40 readback confirmed torque off.
+The external archive reproduced SHA-256
+`2a06a0f9e5489f4d751098ca0aab221bf50b4b6e9694e0cc1a2e126c019911c5`
+locally. Independent review verified every member hash, all 2,893 schemas,
+contiguous ticks 0-2888, the exact 250-calibration then 600-locomotion stage
+sequence, and an exact local summary replay after source-path normalization.
+
+The suspended Gate 5 x=0 and x=.08 sequence is complete and the reviewed
+runtime/policy is ready for RDK-X5 handoff. This decision grants no automatic
+promotion, repeat motion authority, grounded replay, or grounded robot
+clearance; those remain outside this repository's authority.

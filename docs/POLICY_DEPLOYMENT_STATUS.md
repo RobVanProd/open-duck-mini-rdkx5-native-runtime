@@ -4,7 +4,7 @@ Status date: 2026-08-02
 
 ## Current state
 
-`T247 GATE 5 x=0 PASS_REVIEWED; x=.08 STAGED EXACT, AUTHORIZATION NEXT`
+`T247 SUSPENDED GATE 5 COMPLETE: x=0 AND x=.08 PASS_REVIEWED`
 
 The policy-search and runtime-integration work remain green. T247 is still the
 unchanged winner; T250/T251 were evidence and integration labels, not newer
@@ -15,6 +15,14 @@ There were zero bursts, stale samples, alarms, telemetry drops, or target-rate
 envelope events. Runtime and independent register readback confirmed torque
 off, independent replay matched the board summary exactly, and the operator
 reported that everything looked and sounded normal.
+
+The separately frozen x=.08 arm then completed the same exact 250+600 active
+sequence. Tick p99/p99.9 were 20.126557/20.137626 ms, bus p99.9/max were
+3.898666/4.008135 ms, and all 46,224 transactions succeeded. There were zero
+bursts, stale samples, alarms, telemetry drops, or target-rate envelope events.
+The operator reported that it looked and sounded clean. Runtime and independent
+register readback again confirmed torque off, and the local independent replay
+validated all 2,893 records and reproduced the board summary exactly.
 
 ## What is green
 
@@ -27,6 +35,7 @@ reported that everything looked and sounded normal.
 | Independent summary | T247 stage, route, ABI, asset, duration, and safety validation passes |
 | Robot runtime | Hardware Gates 1-4 are `PASS_REVIEWED` |
 | Gate 5 x=0 | `PASS_REVIEWED`: exact 250+600 active ticks, all automatic gates green, normal operator observation, torque off independently verified |
+| Gate 5 x=.08 | `PASS_REVIEWED`: exact 250+600 active ticks, all 20 summary gates and 15/15 candidate checks green, clean operator observation, torque off independently verified |
 | Controller isolation | The known-good Xbox identity passed 10,000/10,000 direct 50 Hz reads, one A edge, zero disconnects, and an unchanged device inode with no UART or servo access |
 | Startup repair offline contract | One pre-serial controller drain, a one-shot separately recorded full-shape readiness exchange, bounded fixed-slot anomaly routing, unchanged measured tick population, and fail-closed home/controller checks pass tests |
 
@@ -43,21 +52,18 @@ resolution quantized the fake bus delay. That summary is explicitly
 `INFORMATIONAL_ONLY`; it does not override the green X5 measurements or claim a
 hardware timing result.
 
-## Exact remaining sequence
+## Completed sequence
 
-1. Obtain fresh explicit authorization for the frozen suspended x=.08 run.
-2. Launch exactly one detached x=.08 process while the operator does not press A.
-3. Observe one clean readiness `PASS`, then issue the exact GO cue.
-4. Run only x=.08, then independently summarize and review it.
-
-The launcher cannot start x=.08 after x=0. Its x=.08 path requires both a
-separate authorization and the exact SHA-256 of a reviewed green x=0 receipt.
+The x=0 and x=.08 arms were launched separately under exact authorization.
+Each produced one clean readiness `PASS`, ran only after the explicit GO cue,
+completed exactly 850 active policy ticks, exited normally, and independently
+verified torque off. The reviewed runtime/policy is ready for RDK-X5 handoff.
 
 ## Still not proven
 
-- No suspended x=.08 T247 policy tick has run.
 - T247 does not have grounded-walking clearance.
-- The reviewed x=0 result does not authorize x=.08 or grounded replay by itself.
+- The reviewed suspended results do not authorize another motion run or grounded
+  replay by themselves.
 
 The frozen readiness and command packet are in
 `artifacts/gates/phase_7_hardware/gate_5_policy/`.

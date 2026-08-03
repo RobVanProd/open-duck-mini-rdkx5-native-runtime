@@ -1,4 +1,4 @@
-# PARTIAL PASS — Hardware Gate 5: T247 x=0 reviewed; x=.08 not run
+# PASS REVIEWED — Hardware Gate 5: suspended T247 x=0 and x=.08
 
 The readiness-cued suspended T247 x=0 arm completed on 2026-08-02 and is
 `PASS_REVIEWED_T247_GATE5_X0`. This supersedes the pre-policy status of the
@@ -20,15 +20,23 @@ contiguous ticks 0-3559, exact 250+600 active-stage counts, and an exact summary
 match after source-path normalization. The reviewed receipt is
 `T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json`.
 
-The x=.08 arm remains `NOT_RUN`. Its distinct x=.08-only preregistration and
-launcher review are now frozen. The launcher hardcodes x=.08, accepts no command
-selector, validates the reviewed x=0 receipt and its exact SHA before any
-governor or serial access, and contains no second-command path. It still requires
-fresh exact suspended-motion authorization. Grounded replay remains prohibited
-and robot clearance remains false.
+The separately frozen x=.08 arm completed on 2026-08-02 and is
+`PASS_REVIEWED_T247_GATE5_X008`. It used one five-second home entry, one clean
+startup-readiness exchange, exactly 250 calibration ticks, and exactly 600
+locomotion ticks. All 46,224 transactions succeeded. Tick p99/p99.9 were
+20.126557/20.137626 ms; bus p99.9/max were 3.898666/4.008135 ms. There were
+zero read bursts, stale required samples, alarms, partial bytes, unexpected
+packets, telemetry drops, or target-velocity envelope events. The operator
+reported that it looked and sounded clean.
 
-Commit `90b685b6c912dcd018a3779bbd1d3d4f72ec311f` is staged in a separate
-clean X5 worktree. The launcher, preregistration, and x=0 receipt hashes match;
-the UART remained free and the governor remained `schedutil`. This no-motion
-staging result is recorded in `T247_X008_STAGING_REVIEW_20260802.json` and does
-not authorize execution.
+Runtime cutoff and an independent all-14 torque-enable register readback both
+confirmed torque off. The raw archive reproduced SHA-256
+`2a06a0f9e5489f4d751098ca0aab221bf50b4b6e9694e0cc1a2e126c019911c5`
+locally. Independent replay verified every member hash, all 2,893 schemas,
+contiguous ticks 0-2888, the exact 250+600 active-stage sequence, and an exact
+summary match after source-path normalization. The reviewed receipt is
+`T247_X008_READINESS_CUED_PASS_REVIEWED_20260802.json`.
+
+The suspended Gate 5 sequence is complete and ready for runtime handoff.
+Grounded replay remains prohibited and no further motion is authorized by this
+result.

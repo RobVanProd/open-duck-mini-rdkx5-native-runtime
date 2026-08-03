@@ -6,15 +6,12 @@ the `performance` governor, then confirmed torque-off and restored `schedutil`.
 Gate 3 completed its corrected nine-label no-servo sensor matrix with all 2,250
 samples fresh and the physical labels independently reviewed. Gate 4 completed
 its frozen left-hip-yaw 0.25/0.5 Hz sine populations with tracking and timing
-gates simultaneously green. Gate 5 remains `NOT_RUN`, but its T247 x=0
-readiness packet and single-arm launcher are frozen but held. Its first
-controller-present torque-off population completed 10,000 ticks and failed the
-strict bus maximum at measured tick 0 (5.080639 ms). A bounded, separately
-recorded startup-readiness correction is offline-green and awaits an explicitly
-authorized no-motion revalidation. The gates are
-sequential; passing or authorizing one gate does not authorize the next. Every
-invocation requires Rob's authorization for that exact gate and command, plus a
-physically suspended or benched robot.
+gates simultaneously green. Gate 5 then completed both separately frozen T247
+arms, x=0 and x=.08, with exact 250-calibration + 600-locomotion active
+sequences. Both are `PASS_REVIEWED`; their independent replays, operator notes,
+and all-14 torque-off readbacks are preserved under `gate_5_policy/`. The gates
+were run sequentially under exact per-arm authorization. No completed gate
+authorizes a new invocation or grounded motion.
 
 The automatic configuration check has a separately frozen structure under
 `automatic_configuration/`, but remains blocked on the preregistered policy

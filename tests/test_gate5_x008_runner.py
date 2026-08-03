@@ -32,6 +32,11 @@ STAGING_REVIEW = (
     / "artifacts/gates/phase_7_hardware/gate_5_policy"
     / "T247_X008_STAGING_REVIEW_20260802.json"
 )
+PASS_REVIEW = (
+    ROOT
+    / "artifacts/gates/phase_7_hardware/gate_5_policy"
+    / "T247_X008_READINESS_CUED_PASS_REVIEWED_20260802.json"
+)
 
 
 def _script() -> str:
@@ -227,3 +232,37 @@ def test_x008_staging_review_is_exact_and_no_motion() -> None:
     assert value["scope"]["torque_enabled"] is False
     assert value["scope"]["motion"] is False
     assert value["authority"]["x008"] is False
+
+
+def test_x008_review_receipt_closes_only_suspended_gate5() -> None:
+    value = json.loads(PASS_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_REVIEWED_T247_GATE5_X008"
+    assert value["source_commit"] == (
+        "90b685b6c912dcd018a3779bbd1d3d4f72ec311f"
+    )
+    assert value["preregistration"]["sha256"] == _sha256(PREREGISTRATION)
+    assert value["launcher"]["sha256"] == _sha256(RUNNER)
+    assert value["earned_by"]["x0_review_sha256"] == _sha256(X0_REVIEW)
+    assert value["scope"]["fixed_command_x_m_s"] == 0.08
+    assert value["scope"]["active_policy_ticks"] == 850
+    assert value["scope"]["grounded_motion"] is False
+    assert value["measured_population"]["calibration_ticks"] == 250
+    assert value["measured_population"]["locomotion_ticks"] == 600
+    assert value["measured_population"]["transactions_failed"] == 0
+    assert value["policy_review"]["all_control_summary_gates_true"] is True
+    assert value["policy_review"]["candidate_validator_checks_passed"] == 15
+    assert value["policy_review"]["candidate_validator_checks_total"] == 15
+    assert value["policy_review"]["target_velocity_envelope_events"] == 0
+    assert value["operator_review"]["observation"] == (
+        "looked and sounded clean to me"
+    )
+    assert value["operator_review"]["result"] == "PASS"
+    assert value["independent_review"]["status"] == "PASS"
+    assert value["safety_exit"]["all_14_torque_enable_registers_zero"] is True
+    assert value["decision"]["suspended_gate5_sequence"] == (
+        "COMPLETE_PASS_REVIEWED"
+    )
+    assert value["decision"]["runtime_handoff_ready"] is True
+    assert value["decision"]["grounded_replay_authorized"] is False
+    assert value["decision"]["grounded_robot_clearance"] is False

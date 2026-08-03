@@ -7,7 +7,7 @@ and the detailed deployment state lives in
 
 ## Current decision
 
-`T247 GATE-5 x=0 PASS_REVIEWED; x=.08 STAGED EXACT, AUTHORIZATION NEXT`
+`T247 SUSPENDED GATE 5 COMPLETE: x=0 AND x=.08 PASS_REVIEWED`
 
 T247 remains the unchanged selected policy. T250 and T251 were contract,
 attribution, and host-optimization evidence labels; they did not replace the
@@ -19,7 +19,7 @@ policy.
 | Policy ABI | Explicit two-stage 115-D/14-action T247 path; default 101-D v1 unchanged |
 | X5 compute | x=0 and x=.08 exact routes pass 35/35 with zero rate excess |
 | Runtime wiring | 18/18 real-asset mock checks pass, including pause and failed-write cleanup |
-| Hardware | Gates 1-4 and suspended T247 Gate 5 x=0 `PASS_REVIEWED`; x=.08 `NOT_RUN` |
+| Hardware | Gates 1-4 and both suspended T247 Gate 5 arms `PASS_REVIEWED` |
 
 ## Frozen assets
 
@@ -38,6 +38,15 @@ locomotion ticks. All 56,960 transactions succeeded; tick p99/p99.9 were
 gate passed; and the operator reported normal motion and sound. Runtime and an
 independent all-14 register readback confirmed torque off. The accepted receipt
 is `T247_X0_READINESS_CUED_PASS_REVIEWED_20260802.json`.
+
+The separately frozen suspended x=.08 arm also completed exactly 250
+calibration plus 600 locomotion ticks. All 46,224 transactions succeeded;
+tick p99/p99.9 were 20.126557/20.137626 ms; bus p99.9/max were
+3.898666/4.008135 ms; every summary gate passed; and there were zero stale
+samples, bursts, alarms, dropped records, or target-rate envelope events. The
+operator reported that it "looked and sounded clean to me." Runtime cutoff and
+an independent all-14 register-40 readback confirmed torque off. The accepted
+receipt is `T247_X008_READINESS_CUED_PASS_REVIEWED_20260802.json`.
 
 ## Exact T247 ABI
 
@@ -65,11 +74,10 @@ state advance is owned by a confirmed successful servo write.
   policy order is unchanged.
 - Gate 5 uses 250 calibration plus 600 locomotion ticks at 50 Hz.
 
-## Next action
+## Handoff state
 
-No training or policy modification is selected. The distinct x=.08-only
-launcher is frozen, green in CI, and staged at exact commit `90b685b` against
-the reviewed x=0 receipt. Obtain fresh exact suspended-motion authorization.
-Do not reuse the x=0 launcher or start x=.08 automatically.
-
-Grounded replay remains outside authority.
+No training or policy modification is selected. The frozen T247 runtime and
+policy have completed the full suspended Gate 5 sequence and are ready for
+handoff on the RDK-X5. This result authorizes no additional motion by itself.
+Grounded replay remains outside this repository's authority and requires a
+separate workstream and explicit authorization.

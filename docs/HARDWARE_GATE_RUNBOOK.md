@@ -5,9 +5,10 @@ torque-off preflight, five-second home move, and 10,000-tick home hold under the
 verified temporary `performance` governor, then confirmed torque-off and
 restored `schedutil`. Gate 3 completed the corrected nine-label BNO055/contact
 matrix with no servo path. Gate 4 completed its frozen two-frequency sine
-sequence. Gate 5 attempt 1 halted while paused after zero active policy ticks;
-it did not pass. Authorization for one gate or attempt does not authorize the
-next.
+sequence. After three preserved pre-policy halts and a reviewed readiness
+repair, Gate 5 completed both separately authorized suspended T247 arms, x=0
+and x=.08. Both are `PASS_REVIEWED`. No completed authorization may be reused,
+and grounded motion remains outside this runbook.
 
 ## Common preflight
 
@@ -417,24 +418,22 @@ does not authorize Gate 5.
 
 ## Gate 5 — Suspended T247 policy replay
 
-**HOLD without fresh exact authorization:** Do not invoke any Gate 5 launcher.
-The first attempt halted while paused after zero active policy ticks. Its first
-replacement halted on a readiness JSON defect. The phase-JSON retry then
-halted because A was pressed before readiness completed. All three launchers
-and authorizations are consumed historical evidence and are not retry commands.
-Every attempt recorded or independently verified torque-off.
+**PASS REVIEWED; all launchers and authorizations are consumed.** Do not invoke
+any Gate 5 launcher again from this evidence. The first attempt halted while
+paused after zero active policy ticks. Its first replacement halted on a
+readiness JSON defect. The phase-JSON retry then halted because A was pressed
+before readiness completed. The readiness-cued x=0 and separately frozen x=.08
+arms later completed and passed. Every attempt recorded or independently
+verified torque-off.
 
 T247 still uses its reviewed, default-disabled 115-D two-stage path; the default
-101-D v1 path and the candidate policy weights remain unchanged. The controller
-screen passed. The first controller-present torque-off population completed
-10,000 ticks but failed the strict bus maximum at measured tick 0: 5.080639 ms.
-That failure remains frozen. The bounded startup-readiness correction must pass
-the replacement no-motion revalidation before a motion retry can be frozen.
+101-D v1 path and the candidate policy weights remain unchanged. The bounded
+startup-readiness correction passed its replacement no-motion revalidation and
+was then used by both accepted motion arms.
 
-The replacement no-motion command is separately preregistered and requires
-fresh explicit authorization. It performs one recorded readiness exchange and,
-only if that passes, exactly 10,000 measured ticks. It never enables torque,
-loads a policy, or exposes a motion flag:
+The replacement no-motion command below is retained only as consumed historical
+provenance. It performed one recorded readiness exchange and exactly 10,000
+measured ticks without enabling torque or loading a policy:
 
 ```bash
 cd /home/sunrise/open-duck-x5-startup-readiness
@@ -444,16 +443,14 @@ sudo setup/run_gate5_startup_readiness_revalidation.sh \
   --hardware-authorized --suspended-or-benched
 ```
 
-Do not run it without the exact no-motion authorization. A failure is preserved
-without retry; a pass earns review and launcher preparation, not motion.
+Do not rerun it from the consumed authorization.
 
-After that no-motion result is independently reviewed green, the motion sequence
-is strict:
+The completed motion sequence followed this strict order:
 
 1. Run only x=0 after explicit authorization for that exact suspended run.
 2. Independently summarize, hash, and review the complete x=0 artifact.
-3. Request separate authorization for x=.08 only if x=0 is reviewed green.
-4. Run x=.08 as a new launcher invocation. Never chain the two arms.
+3. Request separate authorization for x=.08 only after x=0 was reviewed green.
+4. Run x=.08 as a new launcher invocation; the two arms were never chained.
 
 Each arm contains exactly 850 valid active ticks: 250 calibration ticks and 600
 locomotion ticks. The 3,850 total-tick cap allows at most 60 seconds for the
@@ -521,6 +518,7 @@ bus maximum below 5 ms, zero stale required samples, zero device alarms, zero
 telemetry drops, and confirmed torque-off. At x=.08, the existing tracking and
 behavior comparison is the direct decision against the old runtime baseline.
 
-The x=.08 launcher additionally requires a hash-verified
-`PASS_REVIEWED_T247_GATE5_X0` receipt. Passing suspended Gate 5 ends this
-workstream; it does not authorize grounded replay.
+The x=.08 launcher additionally required a hash-verified
+`PASS_REVIEWED_T247_GATE5_X0` receipt. Both accepted receipts are now frozen.
+Passing suspended Gate 5 ends this workstream; it does not authorize another
+motion run or grounded replay.
