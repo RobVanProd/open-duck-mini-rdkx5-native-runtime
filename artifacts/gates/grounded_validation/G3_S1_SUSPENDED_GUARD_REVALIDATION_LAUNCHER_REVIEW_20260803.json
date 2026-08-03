@@ -4,17 +4,17 @@
   "date": "2026-08-03",
   "launcher": {
     "path": "setup/run_g3_s1_suspended_guard_revalidation.sh",
-    "sha256": "aece13065bd624c7d8c926de728463f10ed788df5e487d07c773123abfa5126d",
+    "sha256": "fa4ece3e2533cdd6bc528561d6b362d0edbfd3d06111f8d21a4e402afa634521",
     "bash_syntax": "PASS",
     "runtime_invocations": 1,
     "independent_torque_off_readbacks": 1
   },
   "frozen_implementation": {
-    "source_tree": "a6e19c2aca38c51ce6f3b4a09bc28efe2eedf3c7",
+    "source_tree": "3a2a158ff942b24831ec5d8bf2dbfdde5e37a8b5",
     "schema_tree": "5598eb32d1b79271378d700da896517481f4ded5",
     "pyproject_blob": "c8482e8d54bc7e0e9178094ca80354de5e01888f",
     "preregistration_sha256": "c25a9383c3e7447990bbd5f008dc3e48245915ace79d8d01b284a06738dbc64d",
-    "g3_o1_review_sha256": "dd02e9182937a99871c8320f47c4f141972bd7a556871ec655ee56907476e6ef"
+    "g3_o1_review_sha256": "f271f02cd2d6423d3f9651f408106ec80b47394a8afa4ffb811b072bb784dec2"
   },
   "scope": {
     "suspended_only": true,
