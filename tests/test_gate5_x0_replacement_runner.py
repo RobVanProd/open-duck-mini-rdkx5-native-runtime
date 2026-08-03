@@ -10,7 +10,7 @@ RUNNER = ROOT / "setup/run_t247_gate5_x0_replacement.sh"
 PREREGISTRATION = (
     ROOT
     / "artifacts/gates/phase_7_hardware/gate_5_policy"
-    / "T247_X0_REPLACEMENT_LAUNCHER_PREREGISTRATION_20260802.json"
+    / "T247_X0_PHASE_JSON_RETRY_PREREGISTRATION_20260802.json"
 )
 READINESS_REVIEW = (
     ROOT
@@ -20,7 +20,12 @@ READINESS_REVIEW = (
 LAUNCHER_REVIEW = (
     ROOT
     / "artifacts/gates/phase_7_hardware/gate_5_policy"
-    / "T247_X0_REPLACEMENT_LAUNCHER_REVIEW_20260802.json"
+    / "T247_X0_PHASE_JSON_RETRY_LAUNCHER_REVIEW_20260802.json"
+)
+PRIOR_ATTEMPT_REVIEW = (
+    ROOT
+    / "artifacts/gates/phase_7_hardware/gate_5_policy"
+    / "T247_X0_REPLACEMENT_ATTEMPT_HALTED_20260802.json"
 )
 
 
@@ -35,11 +40,12 @@ def _sha256(path: Path) -> str:
 def test_replacement_preregistration_is_x0_only_and_unexecuted() -> None:
     value = json.loads(PREREGISTRATION.read_text(encoding="utf-8"))
 
-    assert value["status"] == "PREREGISTERED_NOT_RUN_T247_GATE5_X0_REPLACEMENT"
+    assert value["status"] == "PREREGISTERED_NOT_RUN_T247_GATE5_X0_PHASE_JSON_RETRY"
     assert value["candidate_id"] == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL"
     assert value["frozen_candidate"]["fixed_command_x_m_s"] == 0.0
     assert value["frozen_candidate"]["active_ticks"] == 850
     assert value["frozen_runtime"]["startup_readiness_attempts"] == 1
+    assert value["frozen_runtime"]["startup_readiness_phase"] == [0.0, 0.0]
     assert value["launcher_contract"]["x0_only"] is True
     assert value["launcher_contract"]["fixed_command_is_not_configurable"] is True
     assert value["launcher_contract"]["no_second_command_path"] is True
@@ -49,6 +55,7 @@ def test_replacement_preregistration_is_x0_only_and_unexecuted() -> None:
         "torque": False,
         "motion": False,
         "gate5_run": False,
+        "x008": False,
         "grounded_replay": False,
     }
     assert value["earned_by"]["startup_readiness_review_sha256"] == _sha256(
@@ -61,8 +68,9 @@ def test_replacement_runner_pins_preregistration_readiness_and_runtime() -> None
 
     assert _sha256(PREREGISTRATION) in script
     assert _sha256(READINESS_REVIEW) in script
-    assert 'readonly expected_source_tree="30eaf1679e89074e8d36a4066046c1e06c29d393"' in script
-    assert 'readonly expected_schema_tree="0d3db1ef97b14c237ad44ef8ed07a400014851fb"' in script
+    assert _sha256(PRIOR_ATTEMPT_REVIEW) in script
+    assert 'readonly expected_source_tree="2aba58167a82b47bdd6942da25d4913c098cbfba"' in script
+    assert 'readonly expected_schema_tree="55580397a2d01bd6f76417f57a92c4dddee7f642"' in script
     assert 'readonly device="/dev/ttyS1"' in script
     assert 'readonly active_ticks="850"' in script
     assert 'readonly maximum_total_ticks="3850"' in script
@@ -113,6 +121,7 @@ def test_replacement_runner_requires_readiness_and_all_summary_gates() -> None:
     assert 'event_counts.get("startup_readiness") == 1' in script
     assert 'readiness.get("status") == "PASS"' in script
     assert 'readiness.get("policy_committed_ticks") == 0' in script
+    assert 'readiness.get("phase") == [0.0, 0.0]' in script
     assert 'and all(value is True for value in gates.values())' in script
     assert 'summary.get("active_policy_ticks") == 850' in script
     assert 'summary.get("command", {}).get("fixed_x") == 0.0' in script
@@ -162,6 +171,9 @@ def test_replacement_launcher_review_pins_exact_runner_and_command() -> None:
     )
     assert value["frozen_source"]["startup_readiness_review_sha256"] == _sha256(
         READINESS_REVIEW
+    )
+    assert value["frozen_source"]["prior_attempt_review_sha256"] == _sha256(
+        PRIOR_ATTEMPT_REVIEW
     )
     argv = value["frozen_argv"]
     assert argv.count("setup/run_t247_gate5_x0_replacement.sh") == 1

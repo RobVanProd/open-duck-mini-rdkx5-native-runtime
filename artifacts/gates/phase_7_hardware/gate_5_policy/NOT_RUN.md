@@ -61,6 +61,13 @@ consumed launcher and authorization cannot be reused. A new exact freeze,
 green checks, clean X5 staging, and fresh suspended x=0 authorization are
 required.
 
+The repaired retry is now frozen against runtime tree
+`2aba58167a82b47bdd6942da25d4913c098cbfba`, schema tree
+`55580397a2d01bd6f76417f57a92c4dddee7f642`, and launcher SHA-256
+`c7598541b84623581016bf0d3c68a5f8a9f64c67d7f56906085c452dea8a8c0e`.
+It requires a new unused output directory and fresh explicit suspended x=0
+authorization. It has not run.
+
 The x=.08 arm remains blocked. It requires a separately reviewed green x=0
 receipt, the receipt's exact SHA-256, and separate explicit authorization.
 Grounded replay remains prohibited.

@@ -1241,3 +1241,20 @@ and the runtime test crosses the actual `json.dumps` boundary using a NumPy
 phase vector. The failed invocation is not retried under its preregistration or
 authorization. A new frozen source/launcher packet, green checks, clean X5
 staging, and fresh explicit suspended motion authorization are required.
+
+## D075 — Freeze one phase-JSON-repaired x=0 retry
+
+Accepted offline. The repaired runtime and schemas are pinned by Git tree, and
+the launcher now requires both the reviewed no-motion readiness evidence and
+the reviewed failed-attempt artifact. It rejects the consumed output directory,
+uses a new exact output path, and additionally requires readiness phase
+`[0.0, 0.0]` in the post-run semantic review. Candidate, assets, controller,
+UART, RT settings, five-second home entry, one readiness attempt, 250+600
+active ticks, timing gates, and all stop rules are unchanged.
+
+The launcher SHA-256 is
+`c7598541b84623581016bf0d3c68a5f8a9f64c67d7f56906085c452dea8a8c0e`.
+Its new preregistration and review packet are in the Gate 5 artifact directory.
+This freeze authorizes no robot access, torque, motion, policy execution, x=.08,
+or grounded replay. It may run only after fresh explicit authorization for this
+exact suspended x=0 attempt.

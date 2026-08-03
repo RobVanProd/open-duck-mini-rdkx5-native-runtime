@@ -417,11 +417,13 @@ does not authorize Gate 5.
 
 ## Gate 5 — Suspended T247 policy replay
 
-**HOLD:** Do not invoke `setup/run_t247_gate5_single_arm.sh`. Attempt 1 on
-2026-08-02 halted while paused after zero active policy ticks. A Bluetooth Xbox
-HID reconnect was aligned within 17.58 ms of a 90.701 ms grouped-read stall;
-the watchdog confirmed torque-off. The old launcher remains historical evidence
-and is not a retry command.
+**HOLD without fresh exact authorization:** Do not invoke any Gate 5 launcher.
+The first attempt halted while paused after zero active policy ticks. Its
+replacement completed home entry but then halted before a readiness record or
+active policy tick because the NumPy phase vector was not JSON serializable.
+Both launchers and authorizations are consumed historical evidence and are not
+retry commands. Torque-off was independently verified on all 14 servos after
+the second halt.
 
 T247 still uses its reviewed, default-disabled 115-D two-stage path; the default
 101-D v1 path and the candidate policy weights remain unchanged. The controller
@@ -475,9 +477,23 @@ sudo setup/run_t247_gate5_single_arm.sh \
   --gate5-moving-authorized
 ```
 
-Do not run that command. A replacement launcher requires completed no-motion
-repair evidence, a new preregistration, and fresh explicit authorization for
-the exact x=0 motion. The historical launcher validates the source tree, config, IMU profile, policy,
+Do not run that historical command. The phase-JSON repair and its new
+single-attempt launcher are now frozen, but still require fresh explicit
+suspended x=0 authorization. The exact reviewed command is:
+
+```bash
+cd /home/sunrise/open-duck-x5-gate5-x0-replacement
+sudo setup/run_t247_gate5_x0_replacement.sh \
+  --source-root /home/sunrise/open-duck-x5-gate5-x0-replacement \
+  --asset-root /home/sunrise/open-duck-x5-gate5-t247-assets \
+  --config /home/sunrise/duck_config.json \
+  --imu-calibration /home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json \
+  --output-dir /home/sunrise/duck-evidence/gate5-t247-x0-phase-json-retry-20260802 \
+  --hardware-authorized --suspended-or-benched \
+  --gate5-moving-authorized
+```
+
+The launcher validates the source tree, config, IMU profile, policy,
 calibrator, observer fit, reference table, route manifests, and context router
 before changing the governor or opening the UART. It requires `/dev/ttyS1`,
 isolated CPU 7, `SCHED_FIFO` priority 80, the temporary `performance` governor,

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly expected_source_tree="30eaf1679e89074e8d36a4066046c1e06c29d393"
-readonly expected_schema_tree="0d3db1ef97b14c237ad44ef8ed07a400014851fb"
+readonly expected_source_tree="2aba58167a82b47bdd6942da25d4913c098cbfba"
+readonly expected_schema_tree="55580397a2d01bd6f76417f57a92c4dddee7f642"
 readonly expected_pyproject_blob="8bd71d3a44276bdb21755d1492a19c57f6c80fe0"
-readonly expected_preregistration_sha256="5b91302f3ee89421e82ff79e0ccaf9f7fc1e594651dc80cfdc61d4840838986d"
+readonly expected_preregistration_sha256="ec7f228c61b4e0acc2483f33d7f8c66accd378d210e30f9e09a25c00d65294df"
 readonly expected_readiness_review_sha256="15c550432eb6ada9b9579c1e298a32585dd6c81091c97ad95be6fe0f9c3e61b7"
+readonly expected_prior_attempt_review_sha256="8eab681f498738ec0b015fe94c3bd41fd70cd99fad0c0bde8cde9e3648feb019"
 readonly expected_config_sha256="131a7b8fce1107b14f4727562f44f9e17324caf7fc22512ad7115911f050991b"
 readonly expected_imu_sha256="e7518b0df8614c1d399c789fd26aa9888043ebacfccc98ef75a5010a4b8c34be"
 readonly expected_policy_sha256="dadfb446ea7c720f274a15bc65e9171c2e74d715ccfaf58adbb408b6c1365a54"
@@ -53,7 +54,7 @@ Usage: sudo setup/run_t247_gate5_x0_replacement.sh \
   --asset-root /home/sunrise/open-duck-x5-gate5-t247-assets \
   --config /home/sunrise/duck_config.json \
   --imu-calibration /home/sunrise/gate3/sensor-matrix-20260718-readybarrier/calibration/imu_calibration.json \
-  --output-dir /home/sunrise/duck-evidence/gate5-t247-x0-replacement-YYYYMMDD \
+  --output-dir /home/sunrise/duck-evidence/gate5-t247-x0-phase-json-retry-YYYYMMDD \
   --hardware-authorized --suspended-or-benched --gate5-moving-authorized
 
 Runs exactly the frozen suspended T247 x=0 arm: five-second home entry, one
@@ -153,10 +154,42 @@ if [[ "$(git -C "$source_root" rev-parse HEAD:src/open_duck_x5)" != \
   exit 2
 fi
 
-preregistration="$source_root/artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_REPLACEMENT_LAUNCHER_PREREGISTRATION_20260802.json"
+preregistration="$source_root/artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_PHASE_JSON_RETRY_PREREGISTRATION_20260802.json"
 readiness_review="$source_root/artifacts/gates/phase_7_hardware/gate_5_policy/T247_STARTUP_READINESS_REVALIDATION_PASS_20260802.json"
+prior_attempt_review="$source_root/artifacts/gates/phase_7_hardware/gate_5_policy/T247_X0_REPLACEMENT_ATTEMPT_HALTED_20260802.json"
 require_hash "$preregistration" "$expected_preregistration_sha256" "preregistration"
 require_hash "$readiness_review" "$expected_readiness_review_sha256" "readiness_review"
+require_hash "$prior_attempt_review" "$expected_prior_attempt_review_sha256" \
+  "prior_attempt_review"
+"$venv_python" - "$preregistration" "$prior_attempt_review" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+preregistration = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+attempt = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+checks = {
+    "preregistered": preregistration.get("status")
+    == "PREREGISTERED_NOT_RUN_T247_GATE5_X0_PHASE_JSON_RETRY",
+    "candidate": preregistration.get("candidate_id")
+    == "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "source_tree": preregistration.get("frozen_runtime", {}).get("source_tree")
+    == "2aba58167a82b47bdd6942da25d4913c098cbfba",
+    "schema_tree": preregistration.get("frozen_runtime", {}).get("schema_tree")
+    == "55580397a2d01bd6f76417f57a92c4dddee7f642",
+    "phase": preregistration.get("frozen_runtime", {}).get(
+        "startup_readiness_phase"
+    )
+    == [0.0, 0.0],
+    "prior_halt": attempt.get("status")
+    == "HALT_PRE_POLICY_STARTUP_READINESS_TELEMETRY_DEFECT",
+    "prior_zero_ticks": attempt.get("active_policy_ticks") == 0,
+    "prior_not_pass": attempt.get("gate5_passed") is False,
+    "no_authority": preregistration.get("authority", {}).get("gate5_run") is False,
+}
+if not all(checks.values()):
+    raise SystemExit("result=BLOCKED reason=phase_json_retry_contract_mismatch")
+PY
 "$venv_python" - "$readiness_review" <<'PY'
 import json
 import sys
@@ -433,6 +466,7 @@ checks = {
     and readiness.get("paused") is True
     and readiness.get("policy_staged") is False
     and readiness.get("policy_committed_ticks") == 0
+    and readiness.get("phase") == [0.0, 0.0]
     and readiness.get("all_fresh") is True
     and readiness.get("imu_stale") is False
     and readiness.get("contacts_stale") is False
@@ -460,7 +494,7 @@ checks = {
     "serial_released": serial_released == "true",
 }
 payload = {
-    "schema_version": "open_duck_x5.t247_gate5_x0_replacement_candidate_review.v1",
+    "schema_version": "open_duck_x5.t247_gate5_x0_phase_json_retry_candidate_review.v1",
     "status": (
         "COMPLETE_T247_GATE5_X0_REVIEW_REQUIRED"
         if all(checks.values())
@@ -495,7 +529,7 @@ from pathlib import Path
 
 output, runtime, summary, candidate, restore, controller, serial = sys.argv[1:]
 value = {
-    "schema_version": "open_duck_x5.t247_gate5_x0_replacement_runner.v1",
+    "schema_version": "open_duck_x5.t247_gate5_x0_phase_json_retry_runner.v1",
     "fixed_command_x_m_s": 0.0,
     "active_ticks": 850,
     "calibration_ticks": 250,
