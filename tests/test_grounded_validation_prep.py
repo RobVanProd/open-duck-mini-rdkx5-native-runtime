@@ -64,6 +64,11 @@ OPERATOR_RETURN_LAUNCHER_REVIEW = (
     / "artifacts/gates/grounded_validation"
     / "CONTROLLER_B_STOP_OPERATOR_RETURN_LAUNCHER_REVIEW_20260802.json"
 )
+OPERATOR_RETURN_PASS_REVIEW = (
+    ROOT
+    / "artifacts/gates/grounded_validation"
+    / "CONTROLLER_B_STOP_OPERATOR_RETURN_PASS_REVIEWED_20260802.json"
+)
 
 
 def _sha256(path: Path) -> str:
@@ -372,3 +377,31 @@ def test_operator_return_runner_parses_and_help_is_nonmoving() -> None:
     )
     assert "One-shot controller-only B-button mapping attempt" in completed.stdout
     assert "no serial, servo, torque, policy, or motion" in completed.stdout
+
+
+def test_operator_return_pass_review_closes_only_g1() -> None:
+    value = json.loads(OPERATOR_RETURN_PASS_REVIEW.read_text(encoding="utf-8"))
+
+    assert value["status"] == "PASS_REVIEWED_CONTROLLER_B_STOP_MAPPING"
+    assert value["preregistration"]["sha256"] == _sha256(
+        OPERATOR_RETURN_PREREGISTRATION
+    )
+    assert value["launcher"]["sha256"] == _sha256(OPERATOR_RETURN_RUNNER)
+    assert value["scope"]["ticks_recorded"] == 457
+    assert value["scope"]["serial_access"] is False
+    assert value["scope"]["servo_access"] is False
+    assert value["scope"]["torque_enabled"] is False
+    assert value["scope"]["motion"] is False
+    assert value["result"]["emergency_stop_events"] == 1
+    assert value["result"]["emergency_stop_tick"] == 456
+    assert value["result"]["pause_toggle_events"] == 0
+    assert value["result"]["disconnect_or_stale_events"] == 0
+    assert value["decision"] == {
+        "g1_controller_b_mapping": "PASS_REVIEWED",
+        "suspended_cutoff_preregistration_earned": True,
+        "suspended_cutoff_test_authorized": False,
+        "grounded_x0_ready": False,
+        "grounded_x008_ready": False,
+        "grounded_motion_authorized": False,
+        "automatic_promotion": False,
+    }

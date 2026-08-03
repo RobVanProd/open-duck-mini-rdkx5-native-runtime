@@ -1,0 +1,79 @@
+{
+  "schema_version": "open_duck_x5.controller_b_stop_operator_return_review.v1",
+  "status": "PASS_REVIEWED_CONTROLLER_B_STOP_MAPPING",
+  "date": "2026-08-02",
+  "preregistration": {
+    "path": "artifacts/gates/grounded_validation/CONTROLLER_B_STOP_OPERATOR_RETURN_PREREGISTRATION_20260802.json",
+    "sha256": "a2cf248f8a83aef32f864065837c09db00975bf380634c29915584ccfb8986ad",
+    "status": "PREREGISTERED_NOT_RUN_CONTROLLER_B_STOP_OPERATOR_RETURN"
+  },
+  "launcher": {
+    "path": "setup/run_grounded_controller_stop_operator_return.sh",
+    "sha256": "4453ee6b7f0be22f21f64239b3cca64ebdf846bbe363e5f8a09850554190df62",
+    "source_commit": "053bac687475434f2b00f521a4a93d64de61c6cd",
+    "source_tree": "850f013937a4ab4c9c2c9824744407e5d312b938",
+    "probe_invocations": 1
+  },
+  "scope": {
+    "controller_only": true,
+    "controller_device": "/dev/input/js0",
+    "controller_sysfs_uniq": "0c:35:26:2a:b8:0b",
+    "ticks_requested_maximum": 3000,
+    "ticks_recorded": 457,
+    "frequency_hz": 50.0,
+    "duration_ms": 9120.017492,
+    "serial_access": false,
+    "servo_access": false,
+    "torque_enabled": false,
+    "policy_loaded": false,
+    "motion": false
+  },
+  "result": {
+    "summary_status": "PASS",
+    "validation_status": "PASS",
+    "emergency_stop_button": "B",
+    "emergency_stop_events": 1,
+    "emergency_stop_tick": 456,
+    "emergency_stop_sample_age_ms": 0.026875,
+    "pause_toggle_events": 0,
+    "disconnect_or_stale_events": 0,
+    "sample_age_ms": {
+      "min": 0.011959,
+      "max": 0.123042
+    },
+    "all_16_validation_checks": true,
+    "controller_identity_unchanged": true,
+    "bluetooth_connected_before_and_after": true,
+    "probe_stderr_empty": true
+  },
+  "independent_review": {
+    "archive_member_hashes_present": true,
+    "trace_rows": 457,
+    "tick_sequence_exact_0_through_456": true,
+    "one_b_edge_at_final_record": true,
+    "zero_a_edges": true,
+    "zero_disconnected_records": true,
+    "duration_recomputed_ms": 9120.017492,
+    "event_sample_age_recomputed_ms": 0.026875
+  },
+  "evidence": {
+    "board_directory": "/home/sunrise/duck-evidence/controller-b-stop-operator-return-20260802",
+    "controller_jsonl_sha256": "4a84f2fd56401ac23f9fdd0413d180b545e2cd4a20ae06778b01c0b431d90a33",
+    "summary_json_sha256": "d8d4d6d00578ac049bcbf4749fcba30735e9980890fbd07122d48770ff8f8b5c",
+    "validation_json_sha256": "294592a086e4edd1c93ec6626c7b3ac0f079dd5c6032ad3c4649dfc3ff8930c0",
+    "metadata_json_sha256": "30b8d41a93ec0736f5eebb5f36451038024263dda180f357185410e57f615028",
+    "external_archive": "D:\\CodexArtifacts\\open-duck-x5-runtime\\grounded-validation-prep\\controller-b-stop-operator-return-20260802.tar.gz",
+    "external_archive_sha256": "42ba0678ddda19c33af7f3946420841dbae34703b72c7b8a7faf966640a349bf",
+    "external_archive_bytes": 11982
+  },
+  "decision": {
+    "g1_controller_b_mapping": "PASS_REVIEWED",
+    "suspended_cutoff_preregistration_earned": true,
+    "suspended_cutoff_test_authorized": false,
+    "grounded_x0_ready": false,
+    "grounded_x008_ready": false,
+    "grounded_motion_authorized": false,
+    "automatic_promotion": false
+  },
+  "advance": "Freeze and review a separate suspended, no-policy home-entry B-cutoff test with independent all-14 torque-off readback and a preregistered event-to-stop latency threshold. Fresh exact motion authorization is required before running it."
+}

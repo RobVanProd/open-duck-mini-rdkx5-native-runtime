@@ -28,8 +28,8 @@ unchanged.
 | Stage | Scope | State | What a pass earns |
 |---|---|---|---|
 | G0 | Offline B-edge implementation and tests | `PASS` | Controller-only physical mapping may be requested |
-| G1 | Physical Xbox B mapping; controller input only | Attempt 1 halted before operator action; replacement pending | A separate suspended cutoff test may be preregistered |
-| G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | `BLOCKED_ON_G1` | Grounded x=0 may be designed and separately authorized |
+| G1 | Physical Xbox B mapping; controller input only | `PASS_REVIEWED` | A separate suspended cutoff test may be preregistered |
+| G2 | Suspended, no-policy home-entry B cutoff with independent torque-off readback | Preregistration earned; test not authorized | Grounded x=0 may be designed and separately authorized |
 | G3 | Grounded x=0 only | `BLOCKED_ON_G2`; no launcher exists | Grounded x=.08 may be designed and separately authorized |
 | G4 | Grounded x=.08 only | `BLOCKED_ON_G3`; no launcher exists | Grounded validation handoff review |
 
@@ -62,6 +62,12 @@ through 0.086292 ms, zero stale/disconnect events, and zero A/B edges. The
 operator subsequently reported being unavailable during the cue window, so it
 does not test the physical B mapping. That attempt is also closed; a distinct
 operator-return preregistration is required for the requested repeat.
+
+The operator-return attempt then passed: the known Xbox produced exactly one B
+edge at tick 456, with zero A edges, zero stale/disconnected samples, and sample
+ages from 0.011959 through 0.123042 ms. This closes G1 only. G2 still requires
+its own frozen launcher, event-to-stop threshold, independent register-40
+torque-off readback, and fresh suspended-motion authorization.
 
 ## G2: suspended cutoff revalidation (not yet executable)
 
