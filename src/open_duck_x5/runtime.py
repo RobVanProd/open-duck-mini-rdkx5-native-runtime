@@ -23,8 +23,17 @@ from .constants import (
     JOINT_NAMES,
     SERVO_IDS,
 )
-from .contract import ActionPipeline, ObservationAssembler, PhaseClock, StaleObservationError
+from .contract import (
+    ActionPipeline,
+    ObservationAssembler,
+    PhaseClock,
+    StaleObservationError,
+)
 from .controller import ControllerReadout, NullController, create_controller
+from .grounded_safety import (
+    GROUNDED_READINESS_SAMPLES,
+    GroundedStabilityGuard,
+)
 from .hardware_guard import (
     HardwareAuthorizationError,
     add_hardware_ack_arguments,
@@ -98,7 +107,9 @@ def _device_alarm_details(snapshot: ServoSnapshot) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Open Duck Mini deterministic X5 runtime")
+    parser = argparse.ArgumentParser(
+        description="Open Duck Mini deterministic X5 runtime"
+    )
     parser.add_argument("--bus", choices=("mock", "serial"), default="mock")
     parser.add_argument("--device", default="/dev/ttyS1")
     parser.add_argument("--baudrate", type=int, default=1_000_000)
@@ -116,7 +127,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--command-route-manifest", type=Path)
     parser.add_argument("--p30-fit", type=Path)
     parser.add_argument("--reference-table", type=Path)
-    parser.add_argument("--controller", choices=("none", "xbox", "f710"), default="none")
+    parser.add_argument(
+        "--controller", choices=("none", "xbox", "f710"), default="none"
+    )
     parser.add_argument("--fixed-command-x", type=float)
     parser.add_argument("--telemetry", type=Path, required=True)
     parser.add_argument("--max-ticks", type=int, default=0, help="0 runs until stopped")
@@ -144,7 +157,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="assert that this exact suspended Gate 5 policy replay is authorized",
     )
-    add_hardware_ack_arguments(parser)
+    parser.add_argument(
+        "--grounded-guard-suspended-revalidation",
+        action="store_true",
+        help=(
+            "enable the G3 tilt guard during a separately authorized suspended x=0 "
+            "revalidation; contact-loss cutoff remains disabled while suspended"
+        ),
+    )
+    add_hardware_ack_arguments(parser, allow_grounded_x0=True)
     return parser
 
 
@@ -174,6 +195,51 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         raise ValueError("--rt-priority must be in 1..99 for SCHED_FIFO")
     if args.fixed_command_x is not None and not np.isfinite(args.fixed_command_x):
         raise ValueError("--fixed-command-x must be finite")
+    grounded_assertion_present = bool(
+        getattr(args, "grounded_test_area_confirmed", False)
+        or getattr(args, "grounded_x0_authorized", False)
+    )
+    if grounded_assertion_present and args.bus != "serial":
+        raise ValueError("grounded G3 authorization is valid only with --bus serial")
+    if (
+        getattr(args, "grounded_guard_suspended_revalidation", False)
+        and args.bus != "serial"
+    ):
+        raise ValueError(
+            "suspended G3 guard revalidation is valid only with --bus serial"
+        )
+    if grounded_assertion_present and getattr(
+        args, "grounded_guard_suspended_revalidation", False
+    ):
+        raise ValueError(
+            "grounded G3 and suspended guard revalidation are mutually exclusive"
+        )
+    if grounded_assertion_present:
+        if args.gate5_authorized:
+            raise ValueError("grounded G3 must not reuse --gate5-authorized")
+        if args.suspended_or_benched:
+            raise ValueError(
+                "grounded G3 is mutually exclusive with --suspended-or-benched"
+            )
+        if args.fixed_command_x != 0.0:
+            raise ValueError("grounded G3 permits only --fixed-command-x 0")
+        if args.max_active_ticks != T247_GATE5_ACTIVE_TICKS:
+            raise ValueError("grounded G3 requires exactly 850 active ticks")
+        if args.controller != "xbox":
+            raise ValueError("grounded G3 requires --controller xbox")
+        if args.policy_contract != POLICY_CONTRACT_T247:
+            raise ValueError(
+                f"grounded G3 requires --policy-contract {POLICY_CONTRACT_T247}"
+            )
+    if getattr(args, "grounded_guard_suspended_revalidation", False):
+        if args.fixed_command_x != 0.0:
+            raise ValueError("suspended G3 guard revalidation permits only x=0")
+        if args.max_active_ticks != T247_GATE5_ACTIVE_TICKS:
+            raise ValueError(
+                "suspended G3 guard revalidation requires exactly 850 active ticks"
+            )
+        if args.controller != "xbox":
+            raise ValueError("suspended G3 guard revalidation requires Xbox")
     t247_asset_names = (
         "calibrator",
         "context_route_root",
@@ -182,9 +248,7 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
         "p30_fit",
         "reference_table",
     )
-    t247_assets = {
-        name: getattr(args, name, None) for name in t247_asset_names
-    }
+    t247_assets = {name: getattr(args, name, None) for name in t247_asset_names}
     if policy_contract == POLICY_CONTRACT_T247:
         missing = [name for name, value in t247_assets.items() if value is None]
         if args.policy is None:
@@ -194,8 +258,7 @@ def validate_runtime_args(args: argparse.Namespace) -> None:
             raise ValueError(f"T247 policy contract requires {flags}")
     elif any(value is not None for value in t247_assets.values()):
         raise ValueError(
-            "T247 asset arguments require --policy-contract "
-            f"{POLICY_CONTRACT_T247}"
+            f"T247 asset arguments require --policy-contract {POLICY_CONTRACT_T247}"
         )
     telemetry_path = args.telemetry.expanduser().resolve()
     protected_paths = {args.config.expanduser().resolve()}
@@ -264,15 +327,31 @@ class Runtime:
         self.realtime_preparation = None
         self.realtime_state = None
         self._gc_was_enabled = gc.isenabled()
+        self.grounded_x0_mode = bool(
+            getattr(args, "grounded_test_area_confirmed", False)
+            or getattr(args, "grounded_x0_authorized", False)
+        )
+        self.grounded_guard_suspended_revalidation = bool(
+            getattr(args, "grounded_guard_suspended_revalidation", False)
+        )
+        self.stability_guard: GroundedStabilityGuard | None = None
 
         try:
             if args.bus == "serial":
-                require_hardware_authorization(
+                authorization_mode = require_hardware_authorization(
                     hardware_authorized=args.hardware_authorized,
                     suspended_or_benched=args.suspended_or_benched,
+                    grounded_test_area_confirmed=getattr(
+                        args, "grounded_test_area_confirmed", False
+                    ),
+                    grounded_x0_authorized=getattr(
+                        args, "grounded_x0_authorized", False
+                    ),
+                    allow_grounded_x0=True,
                     operation="X5 runtime",
                 )
-                if not args.gate5_authorized:
+                self.grounded_x0_mode = authorization_mode == "grounded-x0"
+                if not self.grounded_x0_mode and not args.gate5_authorized:
                     raise HardwareAuthorizationError(
                         "serial runtime is reserved for Gate 5: pass --gate5-authorized "
                         "only after this exact command/duration is explicitly authorized"
@@ -280,7 +359,9 @@ class Runtime:
                 if args.policy is None:
                     raise ValueError("Gate 5 serial runtime requires --policy")
                 if args.max_ticks < 1:
-                    raise ValueError("Gate 5 serial runtime requires finite --max-ticks")
+                    raise ValueError(
+                        "Gate 5 serial runtime requires finite --max-ticks"
+                    )
                 if args.fixed_command_x not in (0.0, 0.08):
                     raise ValueError(
                         "Gate 5 serial runtime requires --fixed-command-x 0 or 0.08"
@@ -309,18 +390,41 @@ class Runtime:
                         "Gate 5 serial runtime requires start_paused=true in duck_config.json"
                     )
                 if not args.require_realtime:
-                    raise RealtimeSetupError("serial runtime requires --require-realtime")
+                    raise RealtimeSetupError(
+                        "serial runtime requires --require-realtime"
+                    )
                 self.imu_calibration = BNO055Calibration.load(args.imu_calibration)
                 if self.policy_contract != POLICY_CONTRACT_T247:
                     raise PolicyContractError(
-                        "serial Gate 5 requires --policy-contract "
-                        f"{POLICY_CONTRACT_T247}"
+                        f"serial Gate 5 requires --policy-contract {POLICY_CONTRACT_T247}"
                     )
                 if args.max_active_ticks != T247_GATE5_ACTIVE_TICKS:
                     raise ValueError(
                         "serial T247 Gate 5 requires exactly 850 active ticks "
                         "(250 calibration + 600 locomotion)"
                     )
+                if self.grounded_x0_mode:
+                    if args.gate5_authorized:
+                        raise HardwareAuthorizationError(
+                            "grounded G3 must not reuse --gate5-authorized"
+                        )
+                    if args.fixed_command_x != 0.0:
+                        raise HardwareAuthorizationError(
+                            "grounded G3 permits only --fixed-command-x 0"
+                        )
+                    if args.controller != "xbox":
+                        raise HardwareAuthorizationError(
+                            "grounded G3 requires the reviewed Xbox controller"
+                        )
+                if self.grounded_guard_suspended_revalidation:
+                    if args.fixed_command_x != 0.0:
+                        raise HardwareAuthorizationError(
+                            "suspended G3 guard revalidation permits only x=0"
+                        )
+                    if args.controller != "xbox":
+                        raise HardwareAuthorizationError(
+                            "suspended G3 guard revalidation requires Xbox"
+                        )
             if args.require_realtime:
                 # This must happen before ONNX, sensors, controller, or writer
                 # create threads. They then inherit housekeeping affinity.
@@ -360,6 +464,11 @@ class Runtime:
                 self.bus = MockSTS3215Bus()
                 self.sensor_hub = MockSensorHub()
 
+            if self.grounded_x0_mode or self.grounded_guard_suspended_revalidation:
+                self.stability_guard = GroundedStabilityGuard(
+                    enforce_contacts=self.grounded_x0_mode
+                )
+
             self.policy_path = (
                 args.policy.expanduser().resolve() if args.policy is not None else None
             )
@@ -371,8 +480,7 @@ class Runtime:
             else:
                 if self.policy_path is None or self.policy_sha256 != T247_POLICY_SHA256:
                     raise PolicyContractError(
-                        "T247 provenance policy SHA-256 differs: "
-                        f"{self.policy_sha256}"
+                        f"T247 provenance policy SHA-256 differs: {self.policy_sha256}"
                     )
                 self.t247_asset_paths = {
                     "calibrator": args.calibrator.expanduser().resolve(),
@@ -433,7 +541,9 @@ class Runtime:
 
     def request_stop(self, signum=None, frame=None) -> None:
         del frame
-        self.halt_reason = f"signal:{signum}" if signum is not None else "stop_requested"
+        self.halt_reason = (
+            f"signal:{signum}" if signum is not None else "stop_requested"
+        )
         self.stop_requested = True
 
     def _verify_all_servos(self) -> None:
@@ -454,8 +564,82 @@ class Runtime:
             )
 
     def _logical_from_snapshot(self) -> None:
-        np.subtract(self.snapshot.positions_rad, self.offsets, out=self.logical_positions)
+        np.subtract(
+            self.snapshot.positions_rad, self.offsets, out=self.logical_positions
+        )
         np.copyto(self.logical_velocities, self.snapshot.velocities_rad_s)
+
+    def _observe_stability_guard(self) -> None:
+        stability_guard = getattr(self, "stability_guard", None)
+        if stability_guard is not None:
+            stability_guard.observe(self.sensors)
+
+    def _run_grounded_guard_readiness(self) -> None:
+        """Establish the G3 baseline with torque off and zero goal writes."""
+
+        if self.stability_guard is None:
+            return
+        ticker = AbsoluteTicker()
+        previous_tick_start_ns = 0
+        failures: list[str] = []
+        try:
+            for _ in range(GROUNDED_READINESS_SAMPLES):
+                tick_start_ns, _ = ticker.wait()
+                if self.stop_requested:
+                    raise SafetyError("stop requested during grounded guard readiness")
+                self._require_controller_ready(reject_toggle=True)
+                self.snapshot.begin_tick()
+                self.bus.read_state_into(self.snapshot)
+                if not self.snapshot.all_fresh:
+                    raise SafetyError("grounded guard readiness servo read failed")
+                if self.snapshot.device_alarm_count:
+                    raise SafetyError(
+                        "grounded guard readiness device alarm: "
+                        + _device_alarm_details(self.snapshot)
+                    )
+                self.sensor_hub.read_into(self.sensors, clock_ns())
+                self.stability_guard.add_readiness_sample(self.sensors)
+                tick_period_ns = (
+                    tick_start_ns - previous_tick_start_ns
+                    if previous_tick_start_ns
+                    else 0
+                )
+                previous_tick_start_ns = tick_start_ns
+                self.watchdog.observe(
+                    tick_period_ns=tick_period_ns,
+                    tick_work_ns=clock_ns() - tick_start_ns,
+                    bus_ok=True,
+                )
+        except SafetyError as exc:
+            failures.append(str(exc))
+            self.writer.publish_event(
+                "grounded_readiness",
+                details={
+                    "status": "FAIL",
+                    "failures": failures,
+                    "torque_enabled": False,
+                    "goal_position_writes": 0,
+                    "policy_staged": False,
+                    **self.stability_guard.telemetry(),
+                },
+            )
+            raise
+        self.writer.publish_event(
+            "grounded_readiness",
+            details={
+                "status": "PASS",
+                "failures": failures,
+                "torque_enabled": False,
+                "goal_position_writes": 0,
+                "policy_staged": False,
+                "baseline_unit_vector": [
+                    self.stability_guard.baseline_x,
+                    self.stability_guard.baseline_y,
+                    self.stability_guard.baseline_z,
+                ],
+                **self.stability_guard.telemetry(),
+            },
+        )
 
     def _move_home_slowly(self, guard: TorqueGuard) -> None:
         self._logical_from_snapshot()
@@ -475,6 +659,8 @@ class Runtime:
             if self.stop_requested:
                 raise SafetyError("stop requested during home move")
             self._require_controller_ready(reject_toggle=True)
+            self.sensor_hub.read_into(self.sensors, clock_ns())
+            self._observe_stability_guard()
             fraction = step / steps
             np.multiply(start, 1.0 - fraction, out=target)
             target += HOME_RAD * fraction
@@ -487,8 +673,7 @@ class Runtime:
                 raise SafetyError("home move read failed")
             if self.snapshot.device_alarm_count:
                 raise SafetyError(
-                    "home move device alarm: "
-                    + _device_alarm_details(self.snapshot)
+                    "home move device alarm: " + _device_alarm_details(self.snapshot)
                 )
             tick_period_ns = (
                 tick_start_ns - previous_tick_start_ns if previous_tick_start_ns else 0
@@ -502,6 +687,8 @@ class Runtime:
         high_gains = [30] * ACTION_DIM
         high_gains[5:9] = [8, 8, 8, 8]
         self._require_controller_ready(reject_toggle=True)
+        self.sensor_hub.read_into(self.sensors, clock_ns())
+        self._observe_stability_guard()
         if self.bus.set_gain_vectors(high_gains) is not ErrorCode.OK:
             raise SafetyError("failed to set operating gains")
         if self.bus.write_positions(self.hold_physical_target) is not ErrorCode.OK:
@@ -523,6 +710,7 @@ class Runtime:
         self.snapshot.begin_tick()
         self.bus.read_state_into(self.snapshot)
         self.sensor_hub.read_into(self.sensors, clock_ns())
+        self._observe_stability_guard()
         write_start_ns = clock_ns()
         self.snapshot.write_status = self.bus.write_positions(self.hold_physical_target)
         write_elapsed_ns = clock_ns() - write_start_ns
@@ -624,9 +812,9 @@ class Runtime:
             if self.paused and self.policy is None and self.t247_host is None:
                 return
             self.paused = not self.paused
-        if (
-            getattr(self.args, "bus", None) == "serial"
-            and getattr(self.args, "gate5_authorized", False)
+        if getattr(self.args, "bus", None) == "serial" and (
+            getattr(self.args, "gate5_authorized", False)
+            or getattr(self, "grounded_x0_mode", False)
         ):
             # Gate 5 is an exact fixed-command replay. The physical controller
             # remains the reviewed pause/unpause surface, but joystick/head/LB
@@ -707,15 +895,15 @@ class Runtime:
         imu_diagnostics = dict(sensor_diagnostics["imu"])
         return {
             "contract_id": (
-                T247_RUNTIME_CONTRACT_ID
-                if self.t247_host is not None
-                else CONTRACT_ID
+                T247_RUNTIME_CONTRACT_ID if self.t247_host is not None else CONTRACT_ID
             ),
             "control_frequency_hz": CONTROL_FREQUENCY_HZ,
             "control_period_ns": CONTROL_PERIOD_NS,
             "bus": {
                 "backend": self.args.bus,
-                "device": self.args.device if self.args.bus == "serial" else "mock://sts3215",
+                "device": self.args.device
+                if self.args.bus == "serial"
+                else "mock://sts3215",
                 "baudrate": self.args.baudrate,
                 "timeout_ms": self.args.timeout_ms,
             },
@@ -779,6 +967,18 @@ class Runtime:
             "gate5_authorized": self.args.gate5_authorized,
             "hardware_authorized": self.args.hardware_authorized,
             "suspended_or_benched": self.args.suspended_or_benched,
+            "grounded_test_area_confirmed": getattr(
+                self.args, "grounded_test_area_confirmed", False
+            ),
+            "grounded_x0_authorized": getattr(
+                self.args, "grounded_x0_authorized", False
+            ),
+            "grounded_guard_suspended_revalidation": (
+                self.grounded_guard_suspended_revalidation
+            ),
+            "grounded_safety_mode": (
+                self.stability_guard.mode if self.stability_guard is not None else None
+            ),
         }
 
     def run(self) -> None:
@@ -812,253 +1012,299 @@ class Runtime:
         self._verify_all_servos()
         if self.stop_requested:
             return
-        with TorqueGuard(self.bus) as guard:
-            self._move_home_slowly(guard)
-            ticker = AbsoluteTicker()
-            if self.args.bus == "serial" and self.args.gate5_authorized:
-                self._run_startup_readiness(ticker)
-            gc.disable()
-            tick = 0
-            active_tick = 0
-            while not self.stop_requested and (
-                not self.args.max_ticks or tick < self.args.max_ticks
-            ) and (
-                not self.args.max_active_ticks
-                or active_tick < self.args.max_active_ticks
-            ):
-                tick_start_ns, _ = ticker.wait()
-                if self.stop_requested:
-                    break
-                tick_period_ns = (
-                    tick_start_ns - self._previous_tick_start_ns
-                    if self._previous_tick_start_ns
-                    else 0
-                )
-                self._previous_tick_start_ns = tick_start_ns
-                self._update_controller(tick_start_ns)
-
-                self.snapshot.begin_tick()
-                self.bus.read_state_into(self.snapshot)
-                if self.snapshot.device_alarm_count:
-                    raise SafetyError(
-                        "control-loop device alarm: "
-                        + _device_alarm_details(self.snapshot)
+        try:
+            with TorqueGuard(self.bus) as guard:
+                self._run_grounded_guard_readiness()
+                self._move_home_slowly(guard)
+                ticker = AbsoluteTicker()
+                if self.args.bus == "serial" and (
+                    self.args.gate5_authorized or self.grounded_x0_mode
+                ):
+                    self._run_startup_readiness(ticker)
+                gc.disable()
+                tick = 0
+                active_tick = 0
+                while (
+                    not self.stop_requested
+                    and (not self.args.max_ticks or tick < self.args.max_ticks)
+                    and (
+                        not self.args.max_active_ticks
+                        or active_tick < self.args.max_active_ticks
                     )
-                self._logical_from_snapshot()
-                self.sensor_hub.read_into(self.sensors, clock_ns())
-
-                observation_valid = False
-                t247_staged = False
-                policy_stage: str | None = None
-                if not self.paused and self.t247_host is not None:
-                    policy_tick = self.t247_host.committed_ticks
-                    policy_stage = (
-                        "calibration"
-                        if self.t247_host.confirmed_calibration_ticks
-                        < T247_CALIBRATION_TICKS
-                        else "locomotion"
+                ):
+                    tick_start_ns, _ = ticker.wait()
+                    if self.stop_requested:
+                        break
+                    tick_period_ns = (
+                        tick_start_ns - self._previous_tick_start_ns
+                        if self._previous_tick_start_ns
+                        else 0
                     )
-                    try:
-                        physical_target = self.t247_host.stage_tick(
-                            tick_index=policy_tick,
-                            logical_period_ns=CONTROL_PERIOD_NS,
-                            servo_sample_tick_index=policy_tick,
-                            imu_sample_tick_index=policy_tick,
-                            contacts_sample_tick_index=policy_tick,
-                            gyro_rad_s=self.sensors.gyro_rad_s,
-                            acceleration_m_s2=self.sensors.acceleration_m_s2,
-                            commands=self.commands,
-                            positions_rad=self.logical_positions,
-                            velocities_rad_s=self.logical_velocities,
-                            foot_contacts=self.sensors.contacts,
-                            servo_stale=self.snapshot.stale,
-                            imu_stale=self.sensors.imu_stale,
-                            contacts_stale=self.sensors.contacts_stale,
-                            soft_offsets_rad=self.offsets,
-                        )
-                        np.copyto(
-                            self.telemetry_action,
-                            self.t247_host.normalized_action_view,
-                        )
-                        np.greater(
-                            self.t247_host.target_pipeline.graph_rate_excess_rad_s,
-                            0.0,
-                            out=self.t247_over_envelope,
-                        )
-                        observation_valid = True
-                        t247_staged = True
-                    except (WinnerV13ContractError, WinnerV2ContractError) as exc:
-                        raise SafetyError(f"T247 policy transaction failed: {exc}") from exc
-                elif not self.paused and self.policy is not None:
-                    try:
-                        observation = self.assembler.build(
-                            gyro_rad_s=self.sensors.gyro_rad_s,
-                            acceleration_m_s2=self.sensors.acceleration_m_s2,
-                            commands=self.commands,
-                            positions_rad=self.logical_positions,
-                            velocities_rad_s=self.logical_velocities,
-                            previous_motor_target_rad=self.action_pipeline.previous_motor_target_rad,
-                            foot_contacts=self.sensors.contacts,
-                            phase=self.phase.value,
-                            servo_stale=self.snapshot.stale,
-                            imu_stale=self.sensors.imu_stale,
-                            contacts_stale=self.sensors.contacts_stale,
-                        )
-                        # Preserve inherited real-runtime order: advance after obs construction.
-                        self.phase.advance(
-                            base_factor=self.controller_readout.phase_frequency_factor
-                        )
-                        action = self.policy.infer(observation)
-                        np.copyto(self.telemetry_action, action)
-                        self.assembler.commit_action(action)
-                        physical_target = self.action_pipeline.apply(
-                            action, self.commands, self.offsets
-                        )
-                        observation_valid = True
-                    except StaleObservationError as exc:
-                        sources: list[str] = []
-                        if bool(self.snapshot.stale.any()):
-                            stale_ids = [
-                                str(servo_id)
-                                for servo_id, stale in zip(
-                                    SERVO_IDS, self.snapshot.stale, strict=True
-                                )
-                                if bool(stale)
-                            ]
-                            sources.append("servos=" + ",".join(stale_ids))
-                        if self.sensors.imu_stale:
-                            sources.append("imu")
-                        if self.sensors.contacts_stale:
-                            sources.append("contacts")
-                        detail = "; ".join(sources) if sources else "unknown input"
+                    self._previous_tick_start_ns = tick_start_ns
+                    self._update_controller(tick_start_ns)
+
+                    self.snapshot.begin_tick()
+                    self.bus.read_state_into(self.snapshot)
+                    if self.snapshot.device_alarm_count:
                         raise SafetyError(
-                            f"required policy observation became stale: {detail}"
-                        ) from exc
-                else:
-                    physical_target = self.hold_physical_target
-                    if self.t247_host is None:
-                        self.action_pipeline.implied_velocity_rad_s.fill(0.0)
-                        self.action_pipeline.over_envelope.fill(False)
-                    else:
-                        self.t247_host.target_pipeline.implied_velocity_rad_s.fill(0.0)
-                        self.t247_over_envelope.fill(False)
+                            "control-loop device alarm: "
+                            + _device_alarm_details(self.snapshot)
+                        )
+                    self._logical_from_snapshot()
+                    self.sensor_hub.read_into(self.sensors, clock_ns())
+                    self._observe_stability_guard()
 
-                if observation_valid and not t247_staged:
-                    np.copyto(self.hold_physical_target, physical_target)
-
-                write_start_ns = clock_ns()
-                self.snapshot.write_status = self.bus.write_positions(physical_target)
-                write_elapsed_ns = clock_ns() - write_start_ns
-                if t247_staged:
-                    if self.snapshot.write_status is not ErrorCode.OK:
+                    observation_valid = False
+                    t247_staged = False
+                    policy_stage: str | None = None
+                    if not self.paused and self.t247_host is not None:
+                        policy_tick = self.t247_host.committed_ticks
+                        policy_stage = (
+                            "calibration"
+                            if self.t247_host.confirmed_calibration_ticks
+                            < T247_CALIBRATION_TICKS
+                            else "locomotion"
+                        )
                         try:
-                            self.t247_host.complete_send(write_succeeded=False)
+                            physical_target = self.t247_host.stage_tick(
+                                tick_index=policy_tick,
+                                logical_period_ns=CONTROL_PERIOD_NS,
+                                servo_sample_tick_index=policy_tick,
+                                imu_sample_tick_index=policy_tick,
+                                contacts_sample_tick_index=policy_tick,
+                                gyro_rad_s=self.sensors.gyro_rad_s,
+                                acceleration_m_s2=self.sensors.acceleration_m_s2,
+                                commands=self.commands,
+                                positions_rad=self.logical_positions,
+                                velocities_rad_s=self.logical_velocities,
+                                foot_contacts=self.sensors.contacts,
+                                servo_stale=self.snapshot.stale,
+                                imu_stale=self.sensors.imu_stale,
+                                contacts_stale=self.sensors.contacts_stale,
+                                soft_offsets_rad=self.offsets,
+                            )
+                            np.copyto(
+                                self.telemetry_action,
+                                self.t247_host.normalized_action_view,
+                            )
+                            np.greater(
+                                self.t247_host.target_pipeline.graph_rate_excess_rad_s,
+                                0.0,
+                                out=self.t247_over_envelope,
+                            )
+                            observation_valid = True
+                            t247_staged = True
+                        except (WinnerV13ContractError, WinnerV2ContractError) as exc:
+                            raise SafetyError(
+                                f"T247 policy transaction failed: {exc}"
+                            ) from exc
+                    elif not self.paused and self.policy is not None:
+                        try:
+                            observation = self.assembler.build(
+                                gyro_rad_s=self.sensors.gyro_rad_s,
+                                acceleration_m_s2=self.sensors.acceleration_m_s2,
+                                commands=self.commands,
+                                positions_rad=self.logical_positions,
+                                velocities_rad_s=self.logical_velocities,
+                                previous_motor_target_rad=self.action_pipeline.previous_motor_target_rad,
+                                foot_contacts=self.sensors.contacts,
+                                phase=self.phase.value,
+                                servo_stale=self.snapshot.stale,
+                                imu_stale=self.sensors.imu_stale,
+                                contacts_stale=self.sensors.contacts_stale,
+                            )
+                            # Preserve inherited real-runtime order: advance after obs construction.
+                            self.phase.advance(
+                                base_factor=self.controller_readout.phase_frequency_factor
+                            )
+                            action = self.policy.infer(observation)
+                            np.copyto(self.telemetry_action, action)
+                            self.assembler.commit_action(action)
+                            physical_target = self.action_pipeline.apply(
+                                action, self.commands, self.offsets
+                            )
+                            observation_valid = True
+                        except StaleObservationError as exc:
+                            sources: list[str] = []
+                            if bool(self.snapshot.stale.any()):
+                                stale_ids = [
+                                    str(servo_id)
+                                    for servo_id, stale in zip(
+                                        SERVO_IDS, self.snapshot.stale, strict=True
+                                    )
+                                    if bool(stale)
+                                ]
+                                sources.append("servos=" + ",".join(stale_ids))
+                            if self.sensors.imu_stale:
+                                sources.append("imu")
+                            if self.sensors.contacts_stale:
+                                sources.append("contacts")
+                            detail = "; ".join(sources) if sources else "unknown input"
+                            raise SafetyError(
+                                f"required policy observation became stale: {detail}"
+                            ) from exc
+                    else:
+                        physical_target = self.hold_physical_target
+                        if self.t247_host is None:
+                            self.action_pipeline.implied_velocity_rad_s.fill(0.0)
+                            self.action_pipeline.over_envelope.fill(False)
+                        else:
+                            self.t247_host.target_pipeline.implied_velocity_rad_s.fill(
+                                0.0
+                            )
+                            self.t247_over_envelope.fill(False)
+
+                    if observation_valid and not t247_staged:
+                        np.copyto(self.hold_physical_target, physical_target)
+
+                    write_start_ns = clock_ns()
+                    self.snapshot.write_status = self.bus.write_positions(
+                        physical_target
+                    )
+                    write_elapsed_ns = clock_ns() - write_start_ns
+                    if t247_staged:
+                        if self.snapshot.write_status is not ErrorCode.OK:
+                            try:
+                                self.t247_host.complete_send(write_succeeded=False)
+                            except WinnerV13ContractError as exc:
+                                raise SafetyError(
+                                    "T247 target write failed; recurrent state was not committed"
+                                ) from exc
+                            raise SafetyError(
+                                "T247 target write failed without faulting the policy host"
+                            )
+                        try:
+                            self.t247_host.complete_send(write_succeeded=True)
+                            if (
+                                self.t247_host.confirmed_calibration_ticks
+                                == T247_CALIBRATION_TICKS
+                                and not self.t247_host.handoff_complete
+                            ):
+                                self.t247_host.confirm_calibration_handoff(True)
                         except WinnerV13ContractError as exc:
                             raise SafetyError(
-                                "T247 target write failed; recurrent state was not committed"
+                                f"T247 confirmed-send commit failed: {exc}"
                             ) from exc
+                        np.copyto(self.hold_physical_target, physical_target)
+                    self.bus.read_extended_into(
+                        self.snapshot, SERVO_IDS[tick % ACTION_DIM]
+                    )
+                    if self.snapshot.extended_device_status:
                         raise SafetyError(
-                            "T247 target write failed without faulting the policy host"
+                            "extended telemetry device alarm: "
+                            f"{self.snapshot.extended_servo_id}:"
+                            f"0x{self.snapshot.extended_device_status:02x}"
                         )
-                    try:
-                        self.t247_host.complete_send(write_succeeded=True)
-                        if (
-                            self.t247_host.confirmed_calibration_ticks
-                            == T247_CALIBRATION_TICKS
-                            and not self.t247_host.handoff_complete
-                        ):
-                            self.t247_host.confirm_calibration_handoff(True)
-                    except WinnerV13ContractError as exc:
-                        raise SafetyError(
-                            f"T247 confirmed-send commit failed: {exc}"
-                        ) from exc
-                    np.copyto(self.hold_physical_target, physical_target)
-                self.bus.read_extended_into(self.snapshot, SERVO_IDS[tick % ACTION_DIM])
-                if self.snapshot.extended_device_status:
+                    self.snapshot.bus_total_ns = (
+                        self.snapshot.group_round_trip_ns
+                        + write_elapsed_ns
+                        + self.snapshot.extended_round_trip_ns
+                    )
+                    tick_work_ns = clock_ns() - tick_start_ns
+                    bus_ok = (
+                        self.snapshot.all_fresh
+                        and self.snapshot.write_status is ErrorCode.OK
+                        and self.snapshot.extended_status is ErrorCode.OK
+                        and self.snapshot.partial_bytes == 0
+                        and self.snapshot.unexpected_packets == 0
+                    )
+
+                    if self.t247_host is None:
+                        telemetry_observation = self.assembler.observation
+                        telemetry_sent_target = (
+                            self.action_pipeline.previous_motor_target_rad
+                        )
+                        telemetry_implied_velocity = (
+                            self.action_pipeline.implied_velocity_rad_s
+                        )
+                        telemetry_over_envelope = self.action_pipeline.over_envelope
+                        selected_context_route = None
+                        selected_command_route = None
+                    else:
+                        telemetry_observation = self.t247_host.observation_view
+                        telemetry_sent_target = self.t247_host.logical_target_view
+                        telemetry_implied_velocity = (
+                            self.t247_host.target_pipeline.implied_velocity_rad_s
+                        )
+                        telemetry_over_envelope = self.t247_over_envelope
+                        selected_context_route = self.t247_host.selected_context_route
+                        selected_command_route = self.t247_host.selected_command_route
+
+                    self.writer.publish(
+                        tick,
+                        tick_start_ns,
+                        tick_period_ns,
+                        tick_work_ns,
+                        self.paused,
+                        observation_valid,
+                        self.sensors.imu_age_ns,
+                        self.sensors.contacts_age_ns,
+                        self.snapshot,
+                        telemetry_observation,
+                        self.telemetry_action,
+                        self.logical_positions,
+                        telemetry_sent_target,
+                        telemetry_implied_velocity,
+                        telemetry_over_envelope,
+                        policy_stage=policy_stage,
+                        selected_context_route=selected_context_route,
+                        selected_command_route=selected_command_route,
+                        grounded_safety_mode=(
+                            self.stability_guard.mode
+                            if self.stability_guard is not None
+                            else None
+                        ),
+                        grounded_tilt_deg=(
+                            self.stability_guard.tilt_deg
+                            if self.stability_guard is not None
+                            else 0.0
+                        ),
+                        grounded_sustained_tilt_ticks=(
+                            self.stability_guard.sustained_tilt_ticks
+                            if self.stability_guard is not None
+                            else 0
+                        ),
+                        grounded_both_contacts_false_ticks=(
+                            self.stability_guard.both_contacts_false_ticks
+                            if self.stability_guard is not None
+                            else 0
+                        ),
+                        grounded_invalid_acceleration_ticks=(
+                            self.stability_guard.invalid_acceleration_ticks
+                            if self.stability_guard is not None
+                            else 0
+                        ),
+                    )
+                    # Include record capture/queue publication in the safety deadline.
+                    # The record itself carries pre-publication work so logging remains
+                    # a bounded one-way handoff from the hot loop.
+                    watchdog_work_ns = clock_ns() - tick_start_ns
+                    self.watchdog.observe(
+                        tick_period_ns=tick_period_ns,
+                        tick_work_ns=watchdog_work_ns,
+                        bus_ok=bus_ok,
+                    )
+                    active_tick += int(observation_valid)
+                    tick += 1
+                if (
+                    not self.stop_requested
+                    and self.args.max_active_ticks
+                    and active_tick < self.args.max_active_ticks
+                ):
                     raise SafetyError(
-                        "extended telemetry device alarm: "
-                        f"{self.snapshot.extended_servo_id}:"
-                        f"0x{self.snapshot.extended_device_status:02x}"
+                        "total tick cap reached before active policy target: "
+                        f"{active_tick}/{self.args.max_active_ticks}"
                     )
-                self.snapshot.bus_total_ns = (
-                    self.snapshot.group_round_trip_ns
-                    + write_elapsed_ns
-                    + self.snapshot.extended_round_trip_ns
-                )
-                tick_work_ns = clock_ns() - tick_start_ns
-                bus_ok = (
-                    self.snapshot.all_fresh
-                    and self.snapshot.write_status is ErrorCode.OK
-                    and self.snapshot.extended_status is ErrorCode.OK
-                    and self.snapshot.partial_bytes == 0
-                    and self.snapshot.unexpected_packets == 0
-                )
-
-                if self.t247_host is None:
-                    telemetry_observation = self.assembler.observation
-                    telemetry_sent_target = (
-                        self.action_pipeline.previous_motor_target_rad
-                    )
-                    telemetry_implied_velocity = (
-                        self.action_pipeline.implied_velocity_rad_s
-                    )
-                    telemetry_over_envelope = self.action_pipeline.over_envelope
-                    selected_context_route = None
-                    selected_command_route = None
-                else:
-                    telemetry_observation = self.t247_host.observation_view
-                    telemetry_sent_target = self.t247_host.logical_target_view
-                    telemetry_implied_velocity = (
-                        self.t247_host.target_pipeline.implied_velocity_rad_s
-                    )
-                    telemetry_over_envelope = self.t247_over_envelope
-                    selected_context_route = (
-                        self.t247_host.selected_context_route
-                    )
-                    selected_command_route = (
-                        self.t247_host.selected_command_route
-                    )
-
-                self.writer.publish(
-                    tick,
-                    tick_start_ns,
-                    tick_period_ns,
-                    tick_work_ns,
-                    self.paused,
-                    observation_valid,
-                    self.sensors.imu_age_ns,
-                    self.sensors.contacts_age_ns,
-                    self.snapshot,
-                    telemetry_observation,
-                    self.telemetry_action,
-                    self.logical_positions,
-                    telemetry_sent_target,
-                    telemetry_implied_velocity,
-                    telemetry_over_envelope,
-                    policy_stage=policy_stage,
-                    selected_context_route=selected_context_route,
-                    selected_command_route=selected_command_route,
-                )
-                # Include record capture/queue publication in the safety deadline.
-                # The record itself carries pre-publication work so logging remains
-                # a bounded one-way handoff from the hot loop.
-                watchdog_work_ns = clock_ns() - tick_start_ns
-                self.watchdog.observe(
-                    tick_period_ns=tick_period_ns,
-                    tick_work_ns=watchdog_work_ns,
-                    bus_ok=bus_ok,
-                )
-                active_tick += int(observation_valid)
-                tick += 1
+        except SafetyError:
             if (
-                not self.stop_requested
-                and self.args.max_active_ticks
-                and active_tick < self.args.max_active_ticks
+                self.stability_guard is not None
+                and self.stability_guard.trip_reason is not None
             ):
-                raise SafetyError(
-                    "total tick cap reached before active policy target: "
-                    f"{active_tick}/{self.args.max_active_ticks}"
+                self.writer.publish_event(
+                    "grounded_safety_trip",
+                    details=self.stability_guard.telemetry(),
                 )
+            raise
 
     def close(self) -> None:
         errors: list[BaseException] = []

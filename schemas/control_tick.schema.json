@@ -112,6 +112,24 @@
         "selected_command_route": { "type": ["string", "null"] }
       },
       "additionalProperties": false
+    },
+    "grounded_safety": {
+      "type": "object",
+      "required": [
+        "mode",
+        "tilt_from_baseline_deg",
+        "sustained_tilt_ticks",
+        "both_contacts_false_ticks",
+        "invalid_acceleration_ticks"
+      ],
+      "properties": {
+        "mode": { "enum": ["grounded-enforced", "suspended-revalidation"] },
+        "tilt_from_baseline_deg": { "type": "number", "minimum": 0, "maximum": 180 },
+        "sustained_tilt_ticks": { "type": "integer", "minimum": 0 },
+        "both_contacts_false_ticks": { "type": "integer", "minimum": 0 },
+        "invalid_acceleration_ticks": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
     }
   },
   "allOf": [

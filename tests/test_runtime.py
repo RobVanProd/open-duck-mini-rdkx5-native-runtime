@@ -706,6 +706,68 @@ def test_serial_gate5_controller_is_pause_only_and_command_locked() -> None:
     assert runtime.controller_readout.phase_frequency_factor == 1.0
 
 
+def _grounded_scope_args(tmp_path: Path) -> list[str]:
+    return [
+        "--bus",
+        "serial",
+        "--telemetry",
+        str(tmp_path / "grounded.jsonl"),
+        "--policy-contract",
+        runtime_module.POLICY_CONTRACT_T247,
+        "--policy",
+        str(tmp_path / "policy.onnx"),
+        "--calibrator",
+        str(tmp_path / "calibrator.onnx"),
+        "--context-route-root",
+        str(tmp_path / "context"),
+        "--command-route-root",
+        str(tmp_path / "commands"),
+        "--command-route-manifest",
+        str(tmp_path / "commands" / "manifest.json"),
+        "--p30-fit",
+        str(tmp_path / "p30.json"),
+        "--reference-table",
+        str(tmp_path / "reference.npz"),
+        "--controller",
+        "xbox",
+        "--fixed-command-x",
+        "0",
+        "--max-ticks",
+        "3850",
+        "--max-active-ticks",
+        "850",
+        "--hardware-authorized",
+        "--grounded-test-area-confirmed",
+        "--grounded-x0-authorized",
+    ]
+
+
+def test_grounded_g3_authorization_is_default_off_and_scope_locked(tmp_path: Path) -> None:
+    parser = build_parser()
+    defaults = parser.parse_args(["--telemetry", str(tmp_path / "default.jsonl")])
+    assert defaults.grounded_test_area_confirmed is False
+    assert defaults.grounded_x0_authorized is False
+    assert defaults.grounded_guard_suspended_revalidation is False
+
+    args = parser.parse_args(_grounded_scope_args(tmp_path))
+    runtime_module.validate_runtime_args(args)
+    args.fixed_command_x = 0.08
+    with pytest.raises(ValueError, match="only --fixed-command-x 0"):
+        runtime_module.validate_runtime_args(args)
+
+
+def test_grounded_g3_rejects_suspended_or_gate5_assertions(tmp_path: Path) -> None:
+    parser = build_parser()
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        runtime_module.validate_runtime_args(
+            parser.parse_args([*_grounded_scope_args(tmp_path), "--suspended-or-benched"])
+        )
+    with pytest.raises(ValueError, match="must not reuse"):
+        runtime_module.validate_runtime_args(
+            parser.parse_args([*_grounded_scope_args(tmp_path), "--gate5-authorized"])
+        )
+
+
 def _startup_readiness_runtime(*, bus_total_failure: bool = False):
     events: list[tuple[str, object]] = []
 

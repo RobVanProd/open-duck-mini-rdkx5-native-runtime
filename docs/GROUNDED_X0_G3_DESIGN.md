@@ -1,6 +1,6 @@
 # Grounded x=0 G3 design
 
-Status: `DESIGN_FROZEN_BLOCKED_ON_EXPLICIT_AUTHORITY_AMENDMENT`
+Status: `G3-O1_IMPLEMENTED_OFFLINE_G3-S1_NOT_RUN`
 
 G2 proved the physical B-button path can complete torque disable in 0.197709
 ms and that all 14 torque-enable registers are zero afterward. That earns an
@@ -30,11 +30,13 @@ or both-feet-lost cutoff. Reusing the suspended assertion on the floor would be
 false, and relying only on human B-button reaction would omit an automatic
 fall detector.
 
-No grounded launcher is therefore created by this design.
+No grounded launcher is created. The later authority amendment permits only a
+default-disabled runtime path and preparation of a suspended revalidation; it
+does not authorize any invocation on the robot.
 
 ## Proposed default-off guard
 
-After a separately approved authority amendment, G3 implementation will add a
+The approved offline G3 implementation adds a
 mutually exclusive grounded assertion that is valid only for the frozen T247
 x=0 command and exact 850-active-tick duration. Existing suspended behavior
 will remain unchanged.
@@ -80,9 +82,10 @@ required.
 
 ## Current stop point
 
-Implementation is blocked by the repository's explicit grounded-authority
-boundary. The exact authority-amendment text is frozen in
-`artifacts/gates/grounded_validation/GROUNDED_X0_G3_AUTHORITY_AND_SAFETY_DESIGN_20260803.json`.
-Approving it authorizes only offline, default-disabled implementation and
-preparation of a future suspended revalidation. It does not authorize robot
-access, torque, motion, a grounded run, x=.08, or walking.
+The exact authority-amendment text frozen in
+`artifacts/gates/grounded_validation/GROUNDED_X0_G3_AUTHORITY_AND_SAFETY_DESIGN_20260803.json`
+was granted. G3-O1 is now implemented offline and default-disabled. The mock
+fault artifact is `G3_O1_MOCK_FAULT_INJECTION_20260803.json`. G3-S1 remains
+`PREREGISTERED_NOT_RUN` and requires a new exact suspended-motion authorization.
+There is still no authorization for robot access, torque, motion, a grounded
+run, x=.08, or walking from this implementation work.

@@ -12,6 +12,8 @@
         "runtime_start",
         "realtime_verified",
         "startup_readiness",
+        "grounded_readiness",
+        "grounded_safety_trip",
         "runtime_halt"
       ]
     },
@@ -347,7 +349,14 @@
         "realtime_required": { "type": "boolean" },
         "gate5_authorized": { "type": "boolean" },
         "hardware_authorized": { "type": "boolean" },
-        "suspended_or_benched": { "type": "boolean" }
+        "suspended_or_benched": { "type": "boolean" },
+        "grounded_test_area_confirmed": { "type": "boolean" },
+        "grounded_x0_authorized": { "type": "boolean" },
+        "grounded_guard_suspended_revalidation": { "type": "boolean" },
+        "grounded_safety_mode": {
+          "type": ["string", "null"],
+          "enum": ["grounded-enforced", "suspended-revalidation", null]
+        }
       },
       "allOf": [
         {

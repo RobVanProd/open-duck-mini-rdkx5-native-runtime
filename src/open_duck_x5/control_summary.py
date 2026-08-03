@@ -380,6 +380,8 @@ def _read_records(
     start: dict[str, object] | None = None
     realtime: dict[str, object] | None = None
     readiness: dict[str, object] | None = None
+    grounded_readiness_seen = False
+    grounded_safety_trip_seen = False
     halt: dict[str, object] | None = None
     ticks: list[dict[str, object]] = []
     with path.open("r", encoding="utf-8") as handle:
@@ -425,6 +427,18 @@ def _read_records(
                         "startup_readiness is duplicated or out of order"
                     )
                 readiness = record
+            elif event == "grounded_readiness":
+                if start is None or grounded_readiness_seen or readiness is not None or ticks:
+                    raise ControlSummaryError(
+                        "grounded_readiness is duplicated or out of order"
+                    )
+                grounded_readiness_seen = True
+            elif event == "grounded_safety_trip":
+                if start is None or grounded_safety_trip_seen:
+                    raise ControlSummaryError(
+                        "grounded_safety_trip is duplicated or out of order"
+                    )
+                grounded_safety_trip_seen = True
             elif event == "runtime_halt":
                 if start is None:
                     raise ControlSummaryError("runtime_halt appeared before runtime_start")

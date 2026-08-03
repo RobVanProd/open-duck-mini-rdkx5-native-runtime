@@ -125,11 +125,14 @@ def test_g3_design_requires_no_measurement_equipment_and_no_launcher() -> None:
     assert not list((ROOT / "setup").glob("*grounded*x0*"))
 
 
-def test_current_repository_authority_still_excludes_grounded_replay() -> None:
+def test_authority_amendment_permits_only_default_off_implementation() -> None:
     text = AGENT_INSTRUCTIONS.read_text(encoding="utf-8")
     value = json.loads(DESIGN.read_text(encoding="utf-8"))
 
-    assert "Grounded replay and grounded walking are outside" in text
+    assert "No grounded invocation is authorized" in text
+    assert "Grounded x=.08 replay and grounded walking remain outside" in text
+    # The design receipt is immutable evidence of the former blocked state;
+    # the later user authorization is reflected in AGENTS.md and the G3-O1 receipt.
     assert value["authority_amendment"]["currently_granted"] is False
     assert value["authority_amendment"][
         "required_before_runtime_or_launcher_implementation"

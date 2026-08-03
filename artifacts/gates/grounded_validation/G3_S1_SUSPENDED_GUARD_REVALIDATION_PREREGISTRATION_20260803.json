@@ -1,0 +1,64 @@
+{
+  "schema_version": "open_duck_x5.g3_s1_suspended_guard_revalidation_preregistration.v1",
+  "status": "PREREGISTERED_NOT_RUN",
+  "date": "2026-08-03",
+  "scope": {
+    "robot_support": "suspended-or-benched",
+    "grounded": false,
+    "fixed_command_x_m_s": 0.0,
+    "home_entry_seconds": 5,
+    "guard_readiness_samples": 50,
+    "startup_readiness_attempts": 1,
+    "calibration_ticks": 250,
+    "locomotion_ticks": 600,
+    "active_policy_ticks": 850,
+    "maximum_total_ticks": 3850,
+    "policy": "T247_HOME_NEGATIVE_HALF_ADAPTER_FINAL",
+    "automatic_follow_on": false
+  },
+  "guard_mode": {
+    "name": "suspended-revalidation",
+    "tilt_cutoff_enforced": true,
+    "invalid_acceleration_cutoff_enforced": true,
+    "both_contacts_false_cutoff_enforced": false,
+    "reason": "both contacts false is the expected suspended state",
+    "grounded_contact_loss_coverage": "G3-O1 mock fault injection"
+  },
+  "required_runtime_flags": [
+    "--hardware-authorized",
+    "--suspended-or-benched",
+    "--gate5-authorized",
+    "--grounded-guard-suspended-revalidation"
+  ],
+  "acceptance": {
+    "grounded_readiness_status": "PASS",
+    "goal_position_writes_during_guard_readiness": 0,
+    "guard_trips": 0,
+    "tick_p99_at_most_ms": 21.0,
+    "tick_p99_9_at_most_ms": 22.0,
+    "bus_max_strictly_below_ms": 5.0,
+    "transaction_failure_rate_strictly_below": 0.001,
+    "read_bursts": 0,
+    "stale_required_samples": 0,
+    "target_velocity_envelope_events": 0,
+    "telemetry_records_dropped": 0,
+    "torque_off_confirmed": true,
+    "all_14_torque_enable_registers_zero": true,
+    "operator_observation_required": true
+  },
+  "stop_rules": {
+    "automatic_guard_trip": "TORQUE_OFF_AND_HALT",
+    "b_button": "TORQUE_OFF_AND_HALT",
+    "controller_disconnect_or_stale": "TORQUE_OFF_AND_HALT",
+    "automatic_retry": false,
+    "automatic_grounded_follow_on": false,
+    "automatic_x008_follow_on": false
+  },
+  "authority": {
+    "offline_preparation_authorized": true,
+    "robot_access_authorized": false,
+    "suspended_motion_authorized": false,
+    "grounded_motion_authorized": false,
+    "required_next": "new exact authorization for G3-S1 while operator is physically present"
+  }
+}

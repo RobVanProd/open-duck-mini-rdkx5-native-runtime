@@ -14,8 +14,10 @@ This repository controls a real biped robot. Safety, contract fidelity, and meas
 
 - Development is offline by default. Use the mock bus.
 - Do not access the robot, deploy a policy, energize torque, or run a moving test without Rob explicitly authorizing that exact hardware gate.
-- Every hardware command must require both `--hardware-authorized` and `--suspended-or-benched`.
-- Grounded replay and grounded walking are outside this repository's authority.
+- Every suspended hardware command must require both `--hardware-authorized` and `--suspended-or-benched`.
+- The frozen G3 x=0 path may be implemented offline and default-disabled. Its honest grounded mode must require `--hardware-authorized`, `--grounded-test-area-confirmed`, and `--grounded-x0-authorized`, and must reject `--suspended-or-benched`.
+- No grounded invocation is authorized by this repository instruction. It still requires Rob to authorize that exact grounded gate while physically present.
+- Grounded x=.08 replay and grounded walking remain outside this repository's authority.
 - Do not advance past a failed timing gate.
 
 ## Safety
