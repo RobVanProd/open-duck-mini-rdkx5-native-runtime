@@ -7,7 +7,7 @@ import math
 import platform
 import signal
 import sys
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +15,7 @@ import numpy as np
 from .bus import ErrorCode, MockSTS3215Bus, ServoSnapshot, STS3215Bus
 from .clock import clock_ns
 from .config import DuckConfig
-from .constants import CONTROL_FREQUENCY_HZ, HOME_RAD, JOINT_NAMES
+from .constants import CONTROL_FREQUENCY_HZ, CONTROL_PERIOD_NS, HOME_RAD, JOINT_NAMES
 from .controller import ControllerReadout, create_controller
 from .hardware_guard import (
     HardwareAuthorizationError,
@@ -31,6 +31,16 @@ from .transaction_trace import TransactionTraceSeries
 
 class ProbeInterrupted(RuntimeError):
     pass
+
+
+@dataclass(slots=True)
+class EmergencyStopAudit:
+    detected_ns: int = 0
+    control_exchanges_completed: int = 0
+    control_exchanges_at_detection: int = 0
+    home_ready_ns: int = 0
+    torque_disable_start_ns: int = 0
+    torque_disable_end_ns: int = 0
 
 
 def _raise_if_stop_requested(args: argparse.Namespace) -> None:
@@ -73,6 +83,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--startup-readiness-output",
         type=Path,
         help="Dedicated JSON result for --startup-readiness-exchange.",
+    )
+    parser.add_argument(
+        "--emergency-stop-cutoff-audit-output",
+        type=Path,
+        help=(
+            "Dedicated JSON result for the suspended, no-policy B-button cutoff "
+            "audit. Requires --home-ready-output, torque, and a controller."
+        ),
+    )
+    parser.add_argument(
+        "--home-ready-output",
+        type=Path,
+        help=(
+            "Durable readiness cue written only after the moving probe has completed "
+            "home entry. Used only with --emergency-stop-cutoff-audit-output."
+        ),
     )
     parser.add_argument("--require-realtime", action="store_true")
     parser.add_argument("--rt-cpu", type=int, default=7)
@@ -141,12 +167,18 @@ def _read_controller_or_trip(
     readout: ControllerReadout,
     *,
     reject_toggle: bool,
+    stop_audit: EmergencyStopAudit | None = None,
 ) -> None:
     controller.read_into(readout)
     now_ns = clock_ns()
     if not readout.connected or now_ns - readout.timestamp_ns > 250_000_000:
         raise WatchdogTrip("physical controller state is disconnected or stale")
     if readout.emergency_stop:
+        if stop_audit is not None and stop_audit.detected_ns == 0:
+            stop_audit.detected_ns = now_ns
+            stop_audit.control_exchanges_at_detection = (
+                stop_audit.control_exchanges_completed
+            )
         raise WatchdogTrip("physical controller emergency stop requested")
     if reject_toggle and readout.pause_toggle:
         raise WatchdogTrip("physical controller toggled during startup readiness")
@@ -327,6 +359,36 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         if args.startup_readiness_output is not None
         else None
     )
+    cutoff_audit_requested = args.emergency_stop_cutoff_audit_output is not None
+    if cutoff_audit_requested != (args.home_ready_output is not None):
+        raise ValueError(
+            "--emergency-stop-cutoff-audit-output and --home-ready-output must be "
+            "used together"
+        )
+    cutoff_audit_path = (
+        args.emergency_stop_cutoff_audit_output.expanduser().resolve()
+        if args.emergency_stop_cutoff_audit_output is not None
+        else None
+    )
+    home_ready_path = (
+        args.home_ready_output.expanduser().resolve()
+        if args.home_ready_output is not None
+        else None
+    )
+    if cutoff_audit_requested:
+        if args.bus != "serial":
+            raise ValueError("emergency-stop cutoff audit requires the serial bus")
+        if not args.enable_torque:
+            raise ValueError("emergency-stop cutoff audit requires --enable-torque")
+        if args.controller == "none":
+            raise ValueError("emergency-stop cutoff audit requires a controller")
+        if args.amplitude_rad != 0.0:
+            raise ValueError("emergency-stop cutoff audit requires zero amplitude")
+        if args.startup_readiness_exchange:
+            raise ValueError(
+                "emergency-stop cutoff audit cannot use the torque-off startup "
+                "readiness exchange"
+            )
     protected_paths: set[Path] = set()
     if args.config is not None:
         protected_paths.add(args.config.expanduser().resolve())
@@ -337,11 +399,16 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         output_paths.append(instrumentation_path)
     if readiness_path is not None:
         output_paths.append(readiness_path)
+    if cutoff_audit_path is not None:
+        output_paths.append(cutoff_audit_path)
+    if home_ready_path is not None:
+        output_paths.append(home_ready_path)
     if len(set(output_paths)) != len(output_paths) or any(
         path in protected_paths for path in output_paths
     ):
         raise ValueError(
-            "probe output, summary, instrumentation, config, and serial device must be distinct"
+            "probe output, summary, auxiliary outputs, config, and serial device must "
+            "be distinct"
         )
     if args.bus == "serial" and args.enable_torque:
         if not args.moving_gate_authorized:
@@ -375,6 +442,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         realtime_preparation = prepare_realtime(cpu=args.rt_cpu, require_isolated=True)
     controller = None
     controller_readout = ControllerReadout()
+    stop_audit = EmergencyStopAudit() if cutoff_audit_requested else None
     if args.controller != "none":
         try:
             controller = create_controller(args.controller)
@@ -385,6 +453,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 controller,
                 controller_readout,
                 reject_toggle=False,
+                stop_audit=stop_audit,
             )
         except BaseException:
             if controller is not None:
@@ -450,6 +519,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 controller,
                 controller_readout,
                 reject_toggle=True,
+                stop_audit=stop_audit,
             )
 
     halt_reason = None
@@ -466,6 +536,7 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 controller,
                 controller_readout,
                 reject_toggle=True,
+                stop_audit=stop_audit,
             )
         if args.bus == "serial":
             _verify_servos(
@@ -482,6 +553,31 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 stop_check=check_stop_and_controller,
                 watchdog=watchdog,
             )
+        if stop_audit is not None:
+            check_stop_and_controller()
+            stop_audit.home_ready_ns = clock_ns()
+            if home_ready_path is None:
+                raise AssertionError("emergency-stop cutoff audit lacks home-ready path")
+            home_ready_path.parent.mkdir(parents=True, exist_ok=True)
+            home_ready_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "open_duck_x5.home_hold_ready.v1",
+                        "status": "HOME_HOLD_READY",
+                        "timestamp_monotonic_ns": stop_audit.home_ready_ns,
+                        "controller_connected": bool(controller_readout.connected),
+                        "torque_enabled_requested": True,
+                        "policy_loaded": False,
+                        "home_entry_seconds": float(args.home_seconds),
+                        "target_positions_rad": physical_home.tolist(),
+                        "config_sha256": config_sha256,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
         ticker = AbsoluteTicker(period_ns=int(1e9 / args.frequency_hz))
         if args.startup_readiness_exchange:
             _raise_if_stop_requested(args)
@@ -492,8 +588,11 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                     controller,
                     controller_readout,
                     reject_toggle=True,
+                    stop_audit=stop_audit,
                 )
             bus.exchange_into(targets, readiness_snapshot, 0)
+            if stop_audit is not None:
+                stop_audit.control_exchanges_completed += 1
             readiness_tick_work_ns = clock_ns() - readiness_tick_start_ns
             readiness_record = _startup_readiness_record(
                 bus,
@@ -520,12 +619,15 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
                 _read_controller_or_trip(
                     controller,
                     controller_readout,
-                    reject_toggle=False,
+                    reject_toggle=stop_audit is not None,
+                    stop_audit=stop_audit,
                 )
             phase = 2.0 * math.pi * args.sine_hz * tick / args.frequency_hz
             targets[:] = physical_home
             targets[sine_joint_index] += args.amplitude_rad * math.sin(phase)
             bus.exchange_into(targets, snapshot, tick)
+            if stop_audit is not None:
+                stop_audit.control_exchanges_completed += 1
             if args.enable_torque and snapshot.any_device_alarm:
                 raise WatchdogTrip(
                     "servo device alarm during moving probe: "
@@ -564,7 +666,11 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
         halt_reason = str(exc)
     finally:
         try:
+            if stop_audit is not None:
+                stop_audit.torque_disable_start_ns = clock_ns()
             torque_off_status = bus.disable_torque()
+            if stop_audit is not None:
+                stop_audit.torque_disable_end_ns = clock_ns()
         finally:
             bus.close()
             if controller is not None:
@@ -573,6 +679,75 @@ def run_probe(args: argparse.Namespace) -> dict[str, object]:
     if torque_off_status is not ErrorCode.OK:
         cutoff_reason = f"cleanup torque-off failed: {torque_off_status.name.lower()}"
         halt_reason = f"{halt_reason}; {cutoff_reason}" if halt_reason else cutoff_reason
+    if stop_audit is not None:
+        if cutoff_audit_path is None:
+            raise AssertionError("emergency-stop cutoff audit lacks an output path")
+        detected = stop_audit.detected_ns > 0
+        detection_to_disable_start_ms = (
+            (stop_audit.torque_disable_start_ns - stop_audit.detected_ns) / 1e6
+            if detected
+            else None
+        )
+        detection_to_disable_complete_ms = (
+            (stop_audit.torque_disable_end_ns - stop_audit.detected_ns) / 1e6
+            if detected
+            else None
+        )
+        disable_call_ms = (
+            (stop_audit.torque_disable_end_ns - stop_audit.torque_disable_start_ns)
+            / 1e6
+        )
+        cutoff_checks = {
+            "home_ready_before_stop": detected
+            and stop_audit.home_ready_ns > 0
+            and stop_audit.detected_ns >= stop_audit.home_ready_ns,
+            "exact_emergency_stop_halt_reason": halt_reason
+            == "physical controller emergency stop requested",
+            "no_control_exchange_after_detection": detected
+            and stop_audit.control_exchanges_completed
+            == stop_audit.control_exchanges_at_detection,
+            "torque_disable_status_ok": torque_off_status is ErrorCode.OK,
+            "cutoff_complete_within_one_20_ms_tick": (
+                detection_to_disable_complete_ms is not None
+                and 0.0 <= detection_to_disable_complete_ms <= CONTROL_PERIOD_NS / 1e6
+            ),
+        }
+        cutoff_record = {
+            "schema_version": "open_duck_x5.emergency_stop_cutoff_audit.v1",
+            "status": (
+                "PASS_CANDIDATE" if all(cutoff_checks.values()) else "FAIL"
+            ),
+            "halt_reason": halt_reason,
+            "policy_loaded": False,
+            "torque_enable_requested": bool(args.enable_torque),
+            "cutoff_limit_ms": CONTROL_PERIOD_NS / 1e6,
+            "emergency_stop_detected_monotonic_ns": (
+                stop_audit.detected_ns if detected else None
+            ),
+            "home_ready_monotonic_ns": (
+                stop_audit.home_ready_ns if stop_audit.home_ready_ns > 0 else None
+            ),
+            "torque_disable_start_monotonic_ns": stop_audit.torque_disable_start_ns,
+            "torque_disable_end_monotonic_ns": stop_audit.torque_disable_end_ns,
+            "detection_to_torque_disable_start_ms": detection_to_disable_start_ms,
+            "detection_to_torque_disable_complete_ms": detection_to_disable_complete_ms,
+            "torque_disable_call_ms": disable_call_ms,
+            "control_exchanges_at_detection": (
+                stop_audit.control_exchanges_at_detection if detected else None
+            ),
+            "control_exchanges_completed": stop_audit.control_exchanges_completed,
+            "torque_disable_status": torque_off_status.name.lower(),
+            "checks": cutoff_checks,
+        }
+        try:
+            cutoff_audit_path.parent.mkdir(parents=True, exist_ok=True)
+            cutoff_audit_path.write_text(
+                json.dumps(cutoff_record, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            cutoff_reason = f"emergency-stop cutoff audit output failed: {exc}"
+            halt_reason = f"{halt_reason}; {cutoff_reason}" if halt_reason else cutoff_reason
     if transaction_trace is not None and instrumentation_path is not None:
         try:
             transaction_trace.write_jsonl(instrumentation_path)

@@ -52,6 +52,7 @@ review_winner_v2_cpu_preflight = "open_duck_x5.winner_v2_cpu_preflight_review:ma
 prepare_policy_envelope_closure = "open_duck_x5.policy_envelope_closure:main"
 audit_winner_v2_completion = "open_duck_x5.winner_v2_completion_audit:main"
 probe_controller_stop = "open_duck_x5.controller_stop_probe:main"
+verify_torque_off = "open_duck_x5.torque_off_readback:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -552,6 +552,137 @@ def test_probe_emergency_stop_during_home_entry_disables_torque(
     assert FakeSerialBus.instance.torque_enabled is False
 
 
+def test_cutoff_audit_requires_paired_distinct_outputs(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "2",
+                "--emergency-stop-cutoff-audit-output",
+                str(tmp_path / "cutoff.json"),
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+
+    collision = tmp_path / "cutoff.json"
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--bus",
+                "mock",
+                "--ticks",
+                "2",
+                "--emergency-stop-cutoff-audit-output",
+                str(collision),
+                "--home-ready-output",
+                str(collision),
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+
+
+def test_probe_emergency_stop_cutoff_audit_is_cued_and_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class EmergencyStopController:
+        reads = 0
+
+        def read_into(self, output) -> None:
+            self.reads += 1
+            output.connected = True
+            output.timestamp_ns = probe.clock_ns()
+            output.pause_toggle = False
+            # Initial prime, pre-run check, two home-step checks, post-home cue
+            # check, then one successful home-hold exchange before the B edge.
+            output.emergency_stop = self.reads >= 7
+
+        @staticmethod
+        def close() -> None:
+            return None
+
+    class FakeSerialBus(probe.MockSTS3215Bus):
+        instance = None
+
+        def __init__(self, *_args, **_kwargs) -> None:
+            super().__init__(latency_s=0.0)
+            self.device = "/dev/ttyS1"
+            self.baudrate = 1_000_000
+            self.ever_enabled = False
+            FakeSerialBus.instance = self
+
+        def enable_torque(self):
+            self.ever_enabled = True
+            return super().enable_torque()
+
+    monkeypatch.setattr(probe, "create_controller", lambda _kind: EmergencyStopController())
+    monkeypatch.setattr(probe, "STS3215Bus", FakeSerialBus)
+    monkeypatch.setattr(probe, "prepare_realtime", lambda **_kwargs: SimpleNamespace())
+    monkeypatch.setattr(probe, "configure_realtime", lambda **_kwargs: SimpleNamespace())
+    monkeypatch.setattr(probe, "asdict", lambda _value: {"verified": True})
+
+    cutoff_path = tmp_path / "cutoff.json"
+    ready_path = tmp_path / "home-ready.json"
+    summary = probe.run_probe(
+        probe.build_parser().parse_args(
+            [
+                "--bus",
+                "serial",
+                "--controller",
+                "xbox",
+                "--enable-torque",
+                "--moving-gate-authorized",
+                "--hardware-authorized",
+                "--suspended-or-benched",
+                "--require-realtime",
+                "--config",
+                str(Path(__file__).parents[1] / "duck_config.example.json"),
+                "--home-seconds",
+                "0.02",
+                "--ticks",
+                "3",
+                "--amplitude-rad",
+                "0",
+                "--emergency-stop-cutoff-audit-output",
+                str(cutoff_path),
+                "--home-ready-output",
+                str(ready_path),
+                "--output",
+                str(tmp_path / "timing.jsonl"),
+                "--summary",
+                str(tmp_path / "summary.json"),
+            ]
+        )
+    )
+
+    ready = json.loads(ready_path.read_text(encoding="utf-8"))
+    cutoff = json.loads(cutoff_path.read_text(encoding="utf-8"))
+    assert ready["status"] == "HOME_HOLD_READY"
+    assert ready["policy_loaded"] is False
+    assert ready["torque_enabled_requested"] is True
+    assert summary["run_status"] == "HALTED"
+    assert summary["halt_reason"] == "physical controller emergency stop requested"
+    assert cutoff["status"] == "PASS_CANDIDATE"
+    assert cutoff["halt_reason"] == "physical controller emergency stop requested"
+    assert cutoff["policy_loaded"] is False
+    assert cutoff["cutoff_limit_ms"] == 20.0
+    assert cutoff["detection_to_torque_disable_complete_ms"] <= 20.0
+    assert cutoff["control_exchanges_at_detection"] == 1
+    assert cutoff["control_exchanges_completed"] == 1
+    assert all(cutoff["checks"].values())
+    assert FakeSerialBus.instance is not None
+    assert FakeSerialBus.instance.ever_enabled is True
+    assert FakeSerialBus.instance.torque_enabled is False
+
+
 def test_mock_moving_probe_runs_slow_home_path(tmp_path: Path) -> None:
     root = Path(__file__).parents[1]
     output = tmp_path / "moving.jsonl"
